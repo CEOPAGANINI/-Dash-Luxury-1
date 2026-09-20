@@ -48,6 +48,8 @@ import {
   type Tamanho,
 } from "./board-blocks-store";
 import { CampaignHoverCard, type CampaignPreview } from "./campaign-hover-card";
+import { ROTULO_DA_SAUDE, Semaforo, descricaoDaSaude, saudeDasMetricas, saudeDoConjunto } from "./campaign-health";
+import { useTaxas } from "./fees-store";
 import { QuadroAoVivo } from "./class-board-live";
 import { PainelDoBloco } from "./block-metrics-panel";
 import { INTERVALO_AMOSTRA_MS, chaveDoHistorico, registrarRoasDoBloco, useRoasHistory } from "./roas-history-store";
@@ -302,6 +304,8 @@ export function ClassBoard({
      campanhas ligadas a blocos criados (ver o cofre dos blocos). */
   const cofreDeBlocos = useBoardBlocks();
   const existentes = blocosExistentes(cofreDeBlocos);
+  /* A taxa do gateway entra na saúde (lucro) de cada bloco e campanha. */
+  const { gatewayPercentual } = useTaxas();
   /* A ordem que se vê: a guardada, sem o que já não existe, e com o que
      ainda não estava nela (um pilar restaurado, um bloco recém-criado)
      no fim. Tudo o que mexe na ordem parte desta lista. */
@@ -903,18 +907,19 @@ export function ClassBoard({
                       />
                     )}
                   />
-                  {/* Os números do bloco: investimento somado e ROAS da soma.
-                      Só quando há investimento; o ROAS e o traço no rodapé do
-                      bloco têm a cor da faixa (ruim, mediano, ótimo). */}
+                  {/* Os números do bloco: investimento somado e o semáforo da
+                      soma (lucro, empate ou prejuízo, com o gateway). Só quando
+                      há investimento; o ROAS fica no rótulo e no painel. */}
                   {numeros.estado !== "sem" && numeros.roas !== null && (
                     <button
                       type="button"
                       className="class-board-pilar-numeros"
                       data-roas={numeros.estado}
-                      aria-label={`Números do bloco ${nome}: investimento ${formatCurrency(numeros.investimentoCents / 100)}, receita ${formatCurrency(numeros.receitaCents / 100)}, ROAS ${formatRatio(numeros.roas)}, ${ROTULO_DO_ROAS[numeros.estado]}`}
+                      data-saude={saudeDoConjunto(cartoes.map((c) => c.metrics), gatewayPercentual)}
+                      aria-label={`Números do bloco ${nome}: investimento ${formatCurrency(numeros.investimentoCents / 100)}, receita ${formatCurrency(numeros.receitaCents / 100)}, ROAS ${formatRatio(numeros.roas)}, ${ROTULO_DO_ROAS[numeros.estado]}, ${ROTULO_DA_SAUDE[saudeDoConjunto(cartoes.map((c) => c.metrics), gatewayPercentual)]}`}
                       aria-expanded={painelDeNumeros?.id === pilar}
                       aria-haspopup="dialog"
-                      title={`Investimento ${formatCurrency(numeros.investimentoCents / 100)} · Receita ${formatCurrency(numeros.receitaCents / 100)} · ROAS ${formatRatio(numeros.roas)} (${ROTULO_DO_ROAS[numeros.estado]}). Ruim abaixo de ${formatRatio(FAIXAS_ROAS.mediano, 1)} · Mediano até ${formatRatio(FAIXAS_ROAS.otimo, 0)} · Ótimo de ${formatRatio(FAIXAS_ROAS.otimo, 0)} para cima. Clique para ver todas as métricas e o gráfico.`}
+                      title={`Investimento ${formatCurrency(numeros.investimentoCents / 100)} · Receita ${formatCurrency(numeros.receitaCents / 100)} · ROAS ${formatRatio(numeros.roas)} (${ROTULO_DO_ROAS[numeros.estado]}). Semáforo: verde = lucro, laranja = empate (±5% do investimento), vermelha = prejuízo, com a taxa do gateway (${gatewayPercentual}%). Clique para ver todas as métricas e o gráfico.`}
                       draggable={false}
                       onDragStart={(e) => { e.preventDefault(); e.stopPropagation(); }}
                       onPointerDown={(e) => e.stopPropagation()}
@@ -925,7 +930,7 @@ export function ClassBoard({
                     >
                       <b>{formatCompactCurrency(numeros.investimentoCents / 100)}</b>
                       <i aria-hidden="true" />
-                      <b>{formatRatio(numeros.roas, 1)}</b>
+                      <Semaforo saude={saudeDoConjunto(cartoes.map((c) => c.metrics), gatewayPercentual)} rotulo={`Saúde do bloco ${nome}`} />
                     </button>
                   )}
                   <span className="class-board-pilar-contagem bg-muted text-muted-foreground shrink-0 rounded-md px-1.5 py-0.5 text-xs font-bold tabular-nums">{cartoes.length}</span>
@@ -1353,6 +1358,9 @@ function Cartao({
   /* Sem neon escolhido a faixa fica escura; o branco só entra quando escolhido. */
   const neon = notas.neon;
   const neonInfo = CORES_NEON.find((n) => n.id === neon);
+  /* A saúde da campanha (lucro com o gateway) no semáforo da faixa. */
+  const { gatewayPercentual } = useTaxas();
+  const saude = saudeDasMetricas(c.metrics, gatewayPercentual);
 
   const fechar = React.useCallback((restaurarFoco = false) => {
     setPreview(null);
@@ -1435,6 +1443,9 @@ function Cartao({
             </div>
           )}
         </button>
+        {/* O semáforo da campanha: verde (pulsando) = lucro, laranja =
+            empate, vermelha = prejuízo; sem investimento, as três apagadas. */}
+        <Semaforo className="class-board-cartao-semaforo" saude={saude} rotulo={`Saúde de ${c.name}`} titulo={descricaoDaSaude(c.metrics, gatewayPercentual)} />
         <Link href={href} aria-label={`Abrir campanha ${c.name}`} title="Abrir a campanha" className="class-board-cartao-abrir focus-visible:ring-ring outline-none focus-visible:ring-2">
           <ArrowRight className="size-4" />
         </Link>

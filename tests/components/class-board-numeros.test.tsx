@@ -48,7 +48,14 @@ describe("os números de cada bloco do quadro por classe", () => {
     const soma = somarMetricas(campanhas.map((c) => c.metrics));
     const roas = derivadas(soma).roas!;
     const numeros = within(escala.querySelector("header")!).getByRole("button", { name: /^Números do bloco/ });
-    expect(numeros.textContent).toBe(`${formatCompactCurrency(soma.spendCents / 100)}${formatRatio(roas, 1)}`);
+    // O número é só o investimento; o ROAS fica no rótulo e no lugar dele
+    // entra o semáforo (três bolinhas, uma acesa).
+    expect(numeros.textContent).toBe(formatCompactCurrency(soma.spendCents / 100));
+    expect(numeros.getAttribute("aria-label")).toContain(`ROAS ${formatRatio(roas)}`);
+    const semaforo = numeros.querySelector(".class-board-semaforo")!;
+    expect([...semaforo.querySelectorAll("i")].map((i) => i.getAttribute("data-cor"))).toEqual(["vermelha", "laranja", "verde"]);
+    expect(semaforo.querySelectorAll('i[data-acesa="true"]')).toHaveLength(1);
+    expect(numeros.getAttribute("data-saude")).toBe(semaforo.getAttribute("data-saude"));
     const esperado = estadoDoRoas(roas);
     expect(numeros.getAttribute("data-roas")).toBe(esperado);
     expect(escala.getAttribute("data-roas")).toBe(esperado);
@@ -70,11 +77,13 @@ describe("os números de cada bloco do quadro por classe", () => {
     const bloco = screen.getByRole("region", { name: "Outras campanhas 1" });
     expect(within(bloco).getAllByRole("article")).toHaveLength(2);
     const numeros = within(bloco.querySelector("header")!).getByRole("button", { name: /^Números do bloco/ });
-    expect(numeros.getAttribute("aria-label")).toMatch(/ROAS 0,90x, ruim$/);
+    expect(numeros.getAttribute("aria-label")).toMatch(/ROAS 0,90x, ruim, prejuízo$/);
     expect(numeros.getAttribute("aria-label")).toMatch(/investimento R\$\s200,/);
-    expect(numeros.getAttribute("title")).toContain("Ruim abaixo de 1,5x");
+    expect(numeros.getAttribute("title")).toContain("Semáforo: verde = lucro");
     expect(bloco.getAttribute("data-roas")).toBe("ruim");
-    expect(numeros.textContent).toBe(`${formatCompactCurrency(200)}${formatRatio(0.9, 1)}`);
+    expect(numeros.textContent).toBe(formatCompactCurrency(200));
+    // Retorno 180 − tráfego 200 = −20 (10% do investimento): vermelha acesa.
+    expect(numeros.querySelector('.class-board-semaforo > i[data-acesa="true"]')?.getAttribute("data-cor")).toBe("vermelha");
   });
 
   it("clicar nos números abre o painel com todas as métricas somadas do bloco e o gráfico do ROAS ao vivo", () => {

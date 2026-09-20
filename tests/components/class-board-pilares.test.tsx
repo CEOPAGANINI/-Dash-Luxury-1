@@ -51,8 +51,9 @@ describe("ordem dos pilares do quadro por classe", () => {
     render(<ClassBoard tree={tree} regras={GUARDRAILS_PADRAO} network="meta" />);
     const roasDe = (nome: string) => {
       const s = screen.getByRole("region", { name: new RegExp(`^${nome}$`) });
-      const n = s.querySelector(".class-board-pilar-numeros > b:last-child")?.textContent ?? "";
-      return n ? Number(n.replace("x", "").replace(",", ".")) : null;
+      // O ROAS do bloco está no rótulo dos números (o semáforo não tem texto).
+      const n = /ROAS ([\d.,]+)x/.exec(s.querySelector(".class-board-pilar-numeros")?.getAttribute("aria-label") ?? "")?.[1] ?? "";
+      return n ? Number(n.replace(/\./g, "").replace(",", ".")) : null;
     };
     const lista = nomes().map((n) => roasDe(n!));
     const comRoas = lista.filter((r): r is number => r !== null);

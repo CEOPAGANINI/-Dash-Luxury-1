@@ -4123,3 +4123,93 @@ html[data-tema="branco"] .dash-skin .class-board-pilar-cabecalho[data-tag="true"
 .dash-skin .class-board-quadro { grid-template-rows: minmax(auto, 1fr) !important; row-gap: 0 !important; }
 .dash-skin .class-board-quadro > .class-board-pilares { grid-row: 1 !important; }
 .dash-skin .class-board-quadro > [role="status"] { position: absolute; }
+
+/* =====================================================================
+   Semáforo de saúde: três bolinhas neon escuro, cada uma num soquete
+   fundo (um buraco com profundidade). Só uma acende: vermelha =
+   prejuízo, laranja = empate, verde = lucro (pulsando devagar). Sem
+   investimento, as três ficam apagadas. Fica na faixa de cada campanha
+   (antes da seta) e no cabeçalho do bloco, no lugar do número do ROAS.
+   ===================================================================== */
+.dash-skin .class-board-semaforo {
+  --soquete: 12px;
+  --led: 7px;
+  --verde: #12c957;
+  --laranja: #ff7a12;
+  --vermelha: #ff2a3c;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  padding: 0 2px;
+  line-height: 0;
+}
+.dash-skin .class-board-semaforo > i {
+  position: relative;
+  display: block;
+  width: var(--soquete);
+  height: var(--soquete);
+  border-radius: 50%;
+  /* O buraco: mais escuro que a faixa, com sombra por dentro (borda de
+     cima escura, fio de luz embaixo) para parecer fundo. */
+  background: radial-gradient(circle at 50% 40%, rgb(0 0 0 / 70%), rgb(0 0 0 / 88%));
+  box-shadow:
+    inset 0 2px 3px rgb(0 0 0 / 85%),
+    inset 0 -1px 0 rgb(255 255 255 / 10%),
+    0 1px 0 rgb(255 255 255 / 6%);
+}
+.dash-skin .class-board-semaforo > i::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: var(--led);
+  height: var(--led);
+  border-radius: 50%;
+  /* Apagada: a cor bem escura, quase preta, sem brilho. */
+  background: color-mix(in srgb, var(--cor) 22%, #050505);
+  box-shadow: inset 0 1px 1px rgb(0 0 0 / 60%);
+  transition: background-color 240ms ease, box-shadow 240ms ease;
+}
+.dash-skin .class-board-semaforo > i[data-cor="verde"] { --cor: var(--verde); }
+.dash-skin .class-board-semaforo > i[data-cor="laranja"] { --cor: var(--laranja); }
+.dash-skin .class-board-semaforo > i[data-cor="vermelha"] { --cor: var(--vermelha); }
+/* Acesa: neon escuro (a cor cheia com um miolo mais claro) e o brilho
+   saindo do buraco. */
+.dash-skin .class-board-semaforo > i[data-acesa="true"]::after {
+  background: radial-gradient(circle at 40% 35%, color-mix(in srgb, var(--cor) 70%, #ffffff), var(--cor) 55%, color-mix(in srgb, var(--cor) 75%, #000000));
+  box-shadow:
+    0 0 4px var(--cor),
+    0 0 9px color-mix(in srgb, var(--cor) 70%, transparent),
+    0 0 16px color-mix(in srgb, var(--cor) 35%, transparent);
+}
+/* A verde pulsa devagar (2s): lucro entrando. */
+@keyframes class-board-semaforo-pulso {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+.dash-skin .class-board-semaforo > i[data-cor="verde"][data-acesa="true"]::after {
+  animation: class-board-semaforo-pulso 2s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .dash-skin .class-board-semaforo > i[data-cor="verde"][data-acesa="true"]::after { animation: none; }
+}
+/* Na faixa da campanha: entre o nome e a seta, com um respiro. */
+.dash-skin .class-board-cartao .class-board-cartao-semaforo { padding: 0 6px 0 2px; align-self: center; }
+/* No cabeçalho do bloco: no lugar do número do ROAS. */
+.dash-skin .class-board-pilar-cabecalho > .class-board-pilar-numeros > .class-board-semaforo { --soquete: 11px; --led: 6px; }
+/* Tema branco: o buraco continua escuro (é um buraco), com o fio da
+   borda em cinza para se ver sobre o branco. */
+html[data-tema="branco"] .dash-skin .class-board-semaforo > i {
+  background: radial-gradient(circle at 50% 40%, rgb(0 0 0 / 62%), rgb(0 0 0 / 82%));
+  box-shadow:
+    inset 0 2px 3px rgb(0 0 0 / 70%),
+    inset 0 -1px 0 rgb(255 255 255 / 20%),
+    0 0 0 1px rgb(0 0 0 / 12%);
+}
+/* O nome nunca vaza pelos lados quando a faixa aperta (o semáforo tira
+   espaço): encolhe até a largura do meio e termina em reticências. */
+.class-board-cartao .class-board-cartao-meio > .class-board-cartao-nome { max-width: 100%; min-width: 0; }
+/* Na faixa da campanha o semáforo é compacto (40px), para sobrar espaço
+   para o nome. */
+.dash-skin .class-board-cartao .class-board-cartao-semaforo { --soquete: 10px; --led: 6px; gap: 3px; padding: 0 5px 0 2px; }
