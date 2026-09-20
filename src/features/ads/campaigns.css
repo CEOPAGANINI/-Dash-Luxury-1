@@ -4213,3 +4213,78 @@ html[data-tema="branco"] .dash-skin .class-board-semaforo > i {
 /* Na faixa da campanha o semáforo é compacto (40px), para sobrar espaço
    para o nome. */
 .dash-skin .class-board-cartao .class-board-cartao-semaforo { --soquete: 10px; --led: 6px; gap: 3px; padding: 0 5px 0 2px; }
+
+/* ---------------------------------------------------------------------
+   Semáforo, desenho refinado. O soquete é um rebaixo no próprio material
+   da faixa: no tema preto, grafite (não preto) com sombra por dentro; no
+   tema branco, cinza-claro afundado no branco, com a sombra em cima e a
+   luz embaixo (como um botão pressionado), sem nada preto. A bolinha é
+   uma lente: reflexo de luz em cima, cor no miolo, e, acesa, o neon com
+   halo saindo do rebaixo.
+   ------------------------------------------------------------------- */
+.dash-skin .class-board-semaforo > i {
+  background: radial-gradient(circle at 50% 30%, #141416, #1f1f22 70%, #26262a);
+  box-shadow:
+    inset 0 1.5px 2.5px rgb(0 0 0 / 70%),
+    inset 0 -1px 1px rgb(255 255 255 / 9%),
+    0 1px 0 rgb(255 255 255 / 6%);
+}
+/* O reflexo de luz na lente (em cima, à esquerda). */
+.dash-skin .class-board-semaforo > i::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  top: 50%;
+  width: calc(var(--led) * 0.55);
+  height: calc(var(--led) * 0.32);
+  margin-left: calc(var(--led) * -0.36);
+  margin-top: calc(var(--led) * -0.44);
+  border-radius: 50%;
+  background: linear-gradient(180deg, rgb(255 255 255 / 70%), rgb(255 255 255 / 0%));
+  opacity: 0.35;
+  pointer-events: none;
+}
+.dash-skin .class-board-semaforo > i[data-acesa="true"]::before { opacity: 0.85; }
+/* Apagada: uma lente escura na cor, fosca. */
+.dash-skin .class-board-semaforo > i::after {
+  background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--cor) 34%, #2a2a2e), color-mix(in srgb, var(--cor) 22%, #141416) 75%);
+  box-shadow: inset 0 1px 1px rgb(0 0 0 / 55%), inset 0 -0.5px 0 rgb(255 255 255 / 10%);
+}
+/* Acesa: o miolo mais claro, a borda mais funda, e o halo em três camadas. */
+.dash-skin .class-board-semaforo > i[data-acesa="true"]::after {
+  background: radial-gradient(circle at 45% 40%, color-mix(in srgb, var(--cor) 55%, #ffffff), var(--cor) 45%, color-mix(in srgb, var(--cor) 72%, #000000) 100%);
+  box-shadow:
+    inset 0 -1px 1px rgb(0 0 0 / 35%),
+    0 0 3px color-mix(in srgb, var(--cor) 90%, transparent),
+    0 0 7px color-mix(in srgb, var(--cor) 70%, transparent),
+    0 0 14px color-mix(in srgb, var(--cor) 40%, transparent);
+}
+/* O pulso da verde: o halo respira junto com a luz. */
+@keyframes class-board-semaforo-pulso {
+  0%, 100% { opacity: 1; filter: brightness(1); }
+  50% { opacity: 0.55; filter: brightness(0.8); }
+}
+
+/* Tema branco: rebaixo cinza-claro no branco, com profundidade e nada
+   de preto. */
+html[data-tema="branco"] .dash-skin .class-board-semaforo > i {
+  background: radial-gradient(circle at 50% 30%, #d6d6db, #e6e6ea 65%, #f0f0f3);
+  box-shadow:
+    inset 0 1.5px 3px rgb(0 0 0 / 22%),
+    inset 0 -1px 1px rgb(255 255 255 / 95%),
+    0 1px 0 #ffffff,
+    0 0 0 1px rgb(0 0 0 / 6%);
+}
+html[data-tema="branco"] .dash-skin .class-board-semaforo > i::after {
+  background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--cor) 40%, #d4d4d9), color-mix(in srgb, var(--cor) 28%, #b9b9c0) 75%);
+  box-shadow: inset 0 1px 1px rgb(0 0 0 / 22%), inset 0 -0.5px 0 rgb(255 255 255 / 60%);
+}
+html[data-tema="branco"] .dash-skin .class-board-semaforo > i[data-acesa="true"]::after {
+  background: radial-gradient(circle at 45% 40%, color-mix(in srgb, var(--cor) 55%, #ffffff), var(--cor) 45%, color-mix(in srgb, var(--cor) 78%, #000000) 100%);
+  box-shadow:
+    inset 0 -1px 1px rgb(0 0 0 / 30%),
+    0 0 3px color-mix(in srgb, var(--cor) 90%, transparent),
+    0 0 7px color-mix(in srgb, var(--cor) 60%, transparent),
+    0 0 12px color-mix(in srgb, var(--cor) 30%, transparent);
+}
