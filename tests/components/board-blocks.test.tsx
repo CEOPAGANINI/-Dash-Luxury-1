@@ -138,6 +138,7 @@ describe("criar, apagar e redimensionar os blocos do quadro", () => {
     expect(screen.getAllByRole("button", { name: /^Novo bloco na vaga/ })).toHaveLength(1);
 
     const outro = abrirMenu("Explosiva");
+    fireEvent.click(within(outro).getByRole("button", { name: /^Restaurar bloco apagado/ }));
     fireEvent.click(within(outro).getByRole("button", { name: "Restaurar bloco Escala" }));
     expect(blocos()).toHaveLength(15);
     expect(within(screen.getByRole("region", { name: "Escala" })).getByRole("article", { name: "Cartão Escala Produto A" })).toBeTruthy();
@@ -269,7 +270,9 @@ describe("criar, apagar e redimensionar os blocos do quadro", () => {
     expect(screen.getByRole("region", { name: "Outras campanhas 2" }).getAttribute("data-area")).toBe("1 / 1");
     const guardado = restoreBoardBlocks(localStorage.getItem(BLOCOS_KEY)!)!;
     expect(guardado.removidos.length).toBeGreaterThan(0);
-    expect(within(abrirMenu("Outras campanhas 2")).getAllByRole("button", { name: /^Restaurar bloco/ }).length).toBe(guardado.removidos.length);
+    const menuRestaurar = abrirMenu("Outras campanhas 2");
+    fireEvent.click(within(menuRestaurar).getByRole("button", { name: /^Restaurar bloco apagado/ }));
+    expect(within(menuRestaurar).getAllByRole("button", { name: /^Restaurar bloco [^a]/ }).length).toBe(guardado.removidos.length);
   });
 
   it("cada faixa tem a sua barra (nome, contagem, '+ Bloco', 'Apagar faixa'); 'Nova faixa' no fim do quadro cria a seguinte", () => {

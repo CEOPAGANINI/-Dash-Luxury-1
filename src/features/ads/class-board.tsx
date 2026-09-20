@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowRight, Megaphone, Pin, Plus } from "lucide-react";
+import { ArrowRight, ChevronDown, Megaphone, Pin, Plus } from "lucide-react";
 
 import type { ProfitGuardrails } from "@/features/guardrails/rules";
 import { cn } from "@/lib/utils";
@@ -1103,9 +1103,11 @@ function MenuDoBloco({
   aoApagarFaixa: (faixa: number) => void;
 }) {
   const passo = (campo: keyof Tamanho, delta: -1 | 1) => aoRedimensionar({ ...tamanho, [campo]: tamanho[campo] + delta });
+  /* A lista de blocos apagados fica recolhida: um botão a abre. */
+  const [restaurarAberto, setRestaurarAberto] = React.useState(false);
   return (
-    <div className="class-board-bloco-secao" role="group" aria-label={`Bloco ${rotulo}`}>
-      <div className="class-board-bloco-tamanho">
+    <div className="class-board-bloco-secao class-board-menu-secao" role="group" aria-label={`Bloco ${rotulo}`}>
+      <div className="class-board-bloco-tamanho class-board-menu-linha class-board-menu-linha-2">
         <div className="class-board-bloco-passo" role="group" aria-label="Largura do bloco">
           <button type="button" aria-label="Menos largo" disabled={tamanho.largura <= 1} onClick={() => passo("largura", -1)}>−</button>
           <span>Largura · {tamanho.largura}</span>
@@ -1117,7 +1119,7 @@ function MenuDoBloco({
           <button type="button" aria-label="Mais alto" disabled={tamanho.altura >= ALTURA_MAXIMA} onClick={() => passo("altura", 1)}>+</button>
         </div>
       </div>
-      <div className="class-board-bloco-acoes">
+      <div className="class-board-bloco-acoes class-board-menu-linha class-board-menu-linha-2">
         <button type="button" onClick={aoCriar}>Novo bloco</button>
         <button type="button" className="class-board-bloco-apagar" disabled={!podeApagar} onClick={aoApagar}>Apagar bloco</button>
         <button type="button" title="Cria uma fileira nova com cinco blocos, embaixo de tudo" onClick={aoCriarFaixa}>Nova faixa</button>
@@ -1125,11 +1127,25 @@ function MenuDoBloco({
       </div>
       {restauraveis.length > 0 && (
         <div className="class-board-bloco-restaurar" role="group" aria-label="Blocos apagados">
-          {restauraveis.map((r) => (
-            <button key={r.id} type="button" aria-label={`Restaurar bloco ${r.label}`} onClick={() => aoRestaurar(r.id)}>
-              Restaurar {r.label}
-            </button>
-          ))}
+          <button
+            type="button"
+            className="class-board-menu-toggle"
+            aria-expanded={restaurarAberto}
+            onClick={() => setRestaurarAberto((v) => !v)}
+          >
+            <span>Restaurar bloco apagado</span>
+            <b>{restauraveis.length}</b>
+            <ChevronDown aria-hidden="true" />
+          </button>
+          {restaurarAberto && (
+            <div className="class-board-menu-lista-restaurar">
+              {restauraveis.map((r) => (
+                <button key={r.id} type="button" aria-label={`Restaurar bloco ${r.label}`} onClick={() => aoRestaurar(r.id)}>
+                  {r.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

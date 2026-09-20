@@ -86,9 +86,10 @@ export function TituloDoBloco({
         )}
       </button>
       {ancora && (
-        <PainelFlutuante id={idPainel} ancora={ancora} rotulo={`Bloco ${rotulo}`} onClose={fechar} larguraMinima={320} className="class-board-tags">
+        <PainelFlutuante id={idPainel} ancora={ancora} rotulo={`Bloco ${rotulo}`} onClose={fechar} larguraMinima={320} className="class-board-tags class-board-menu">
+          {/* As tags criadas, uma por linha (a do bloco marcada), e "Sem tag". */}
           {tags.length > 0 && (
-            <ul className="class-board-tags-lista" aria-label="Tags criadas">
+            <ul className="class-board-tags-lista class-board-menu-lista" aria-label="Tags criadas">
               {tags.map((t) => (
                 <li key={t.id} className={cn(tag?.id === t.id && "is-atual")}>
                   <button
@@ -107,27 +108,33 @@ export function TituloDoBloco({
                   </button>
                 </li>
               ))}
+              {tag && (
+                <li>
+                  <button type="button" className="class-board-tags-usar class-board-tags-limpar" onClick={() => { atribuir(pilar, null); setAncora(null); }}>
+                    <span aria-hidden="true" />
+                    <span className="min-w-0 truncate">Sem tag</span>
+                  </button>
+                </li>
+              )}
             </ul>
           )}
-          {tag && (
-            <button type="button" className="class-board-tags-limpar" onClick={() => { atribuir(pilar, null); setAncora(null); }}>
-              Sem tag
-            </button>
-          )}
-          <form className="class-board-tags-nova" onSubmit={criarEUsar} aria-label="Criar tag">
-            <label className="class-board-tags-campo">
-              <Tag className="size-3.5" aria-hidden="true" />
-              <input
-                value={nome}
-                maxLength={24}
-                placeholder="Nova tag…"
-                aria-label="Nome da nova tag"
-                autoFocus={tags.length === 0}
-                onChange={(e) => { setNome(e.target.value); setErro(""); }}
-              />
-            </label>
-            {/* As cores da tag são faixas com nome, iguais às do neon da campanha. */}
-            <div role="radiogroup" aria-label="Cor da tag" className="class-board-neon-cores class-board-tags-cores">
+          {/* Tag nova: o nome e "Criar e usar" numa linha; as quinze cores numa fila de quadradinhos. */}
+          <form className="class-board-tags-nova class-board-menu-secao" onSubmit={criarEUsar} aria-label="Criar tag">
+            <div className="class-board-menu-linha">
+              <label className="class-board-tags-campo">
+                <Tag className="size-3.5" aria-hidden="true" />
+                <input
+                  value={nome}
+                  maxLength={24}
+                  placeholder="Nova tag…"
+                  aria-label="Nome da nova tag"
+                  autoFocus={tags.length === 0}
+                  onChange={(e) => { setNome(e.target.value); setErro(""); }}
+                />
+              </label>
+              <button type="submit" className="class-board-tags-criar">Criar e usar</button>
+            </div>
+            <div role="radiogroup" aria-label="Cor da tag" className="class-board-neon-cores class-board-tags-cores class-board-menu-cores">
               {CORES_TAG.map((c) => (
                 <button
                   key={c.id}
@@ -140,11 +147,9 @@ export function TituloDoBloco({
                   onClick={() => setCor(c.id)}
                 >
                   <span aria-hidden="true" />
-                  {c.label}
                 </button>
               ))}
             </div>
-            <button type="submit" className="class-board-tags-criar">Criar e usar</button>
             {(erro || notice) && <p role="alert" className="class-board-tags-erro">{erro || notice}</p>}
           </form>
           {extra?.(fechar)}

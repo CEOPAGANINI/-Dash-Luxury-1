@@ -4464,3 +4464,143 @@ html[data-tema="branco"] .dash-skin .class-board-semaforo > i { background: #e2e
 }
 /* A barra da faixa no fundo da página (não na cor das linhas da grade). */
 .dash-skin .class-board-quadro .class-board-pilares > .class-board-faixa-barra { background: var(--camada-0, #09090b); }
+
+/* =====================================================================
+   Menu do bloco (tag, tamanho, bloco, faixa, restaurar), minimalista e
+   padronizado: uma altura só de controle (32px), um vão só (6px), a
+   margem do painel (8px) alinhando todas as bordas, fontes de 12px.
+   Seções separadas por um fio. As quinze cores viram uma fila de
+   quadradinhos; a lista de blocos apagados fica recolhida num botão.
+   ===================================================================== */
+.class-board-painel-cartao.class-board-menu {
+  --menu-h: 32px;
+  --menu-vao: 6px;
+  --menu-fio: rgb(255 255 255 / 9%);
+  --menu-fundo: rgb(255 255 255 / 5%);
+  --menu-fundo-hover: rgb(255 255 255 / 10%);
+  --menu-texto: #f5f5f5;
+  --menu-texto-2: #9e9e9e;
+  --menu-cheio: #f5f5f5;
+  --menu-cheio-texto: #0a0a0a;
+  width: 320px;
+  gap: 8px !important;
+  padding: 8px !important;
+  font-size: 0.75rem;
+}
+html[data-tema="branco"] .class-board-painel-cartao.class-board-menu {
+  --menu-fio: rgb(0 0 0 / 10%);
+  --menu-fundo: rgb(0 0 0 / 4%);
+  --menu-fundo-hover: rgb(0 0 0 / 9%);
+  --menu-texto: #0a0a0a;
+  --menu-texto-2: #6b6b70;
+  --menu-cheio: #0a0a0a;
+  --menu-cheio-texto: #ffffff;
+}
+/* Todo controle do menu: a mesma caixa. */
+.class-board-painel-cartao.class-board-menu :is(button, input, label.class-board-tags-campo, .class-board-bloco-passo) {
+  box-sizing: border-box;
+  margin: 0;
+  border: 0 !important;
+  border-radius: 0 !important;
+  font: inherit;
+  font-size: 0.75rem;
+  line-height: 1;
+}
+.class-board-painel-cartao.class-board-menu :is(.class-board-tags-usar, .class-board-tags-apagar, .class-board-tags-campo, .class-board-tags-criar, .class-board-bloco-passo, .class-board-bloco-acoes > button, .class-board-menu-toggle) {
+  height: var(--menu-h) !important;
+  min-height: 0 !important;
+  max-height: none !important;
+}
+/* Seções: um fio em cima, o mesmo respiro. */
+.class-board-painel-cartao.class-board-menu .class-board-menu-secao { display: grid; gap: var(--menu-vao); padding: 8px 0 0 !important; margin: 0 !important; box-shadow: inset 0 1px 0 var(--menu-fio) !important; background: transparent !important; }
+.class-board-painel-cartao.class-board-menu > .class-board-menu-secao:first-child { padding-top: 0 !important; box-shadow: none !important; }
+/* Uma linha: campo que estica + botão fixo; ou duas colunas iguais. */
+.class-board-painel-cartao.class-board-menu .class-board-menu-linha { display: grid !important; grid-template-columns: minmax(0, 1fr) auto; gap: var(--menu-vao) !important; align-items: stretch; }
+.class-board-painel-cartao.class-board-menu .class-board-menu-linha-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+/* A lista de tags: uma tag por linha, com o X no fim. */
+.class-board-painel-cartao.class-board-menu .class-board-menu-lista { display: grid !important; gap: var(--menu-vao) !important; margin: 0 !important; padding: 0 !important; list-style: none; }
+.class-board-painel-cartao.class-board-menu .class-board-menu-lista > li { display: grid !important; grid-template-columns: minmax(0, 1fr) var(--menu-h); gap: var(--menu-vao) !important; margin: 0 !important; padding: 0 !important; }
+.class-board-painel-cartao.class-board-menu .class-board-tags-usar {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 0 10px !important;
+  color: var(--menu-texto) !important;
+  background: var(--menu-fundo) !important;
+  box-shadow: none !important;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+.class-board-painel-cartao.class-board-menu .class-board-tags-usar:hover { background: var(--menu-fundo-hover) !important; }
+.class-board-painel-cartao.class-board-menu .class-board-tags-usar > span:first-child { flex: none; width: 3px; height: 14px; background: var(--neon); box-shadow: 0 0 6px var(--neon); }
+.class-board-painel-cartao.class-board-menu .class-board-tags-lista > li.is-atual .class-board-tags-usar { color: var(--menu-cheio-texto) !important; background: var(--menu-cheio) !important; }
+.class-board-painel-cartao.class-board-menu .class-board-tags-limpar > span:first-child { background: transparent; box-shadow: inset 0 0 0 1px var(--menu-texto-2); }
+.class-board-painel-cartao.class-board-menu .class-board-tags-limpar { grid-column: 1 / -1; color: var(--menu-texto-2) !important; }
+.class-board-painel-cartao.class-board-menu .class-board-tags-apagar { display: grid !important; place-items: center; width: var(--menu-h); padding: 0 !important; color: var(--menu-texto-2) !important; background: var(--menu-fundo) !important; box-shadow: none !important; cursor: pointer; }
+.class-board-painel-cartao.class-board-menu .class-board-tags-apagar:hover { color: #ff1e3c !important; background: var(--menu-fundo-hover) !important; }
+/* O campo da tag nova e "Criar e usar". */
+.class-board-painel-cartao.class-board-menu .class-board-tags-campo { display: flex !important; align-items: center; gap: 8px; min-width: 0; padding: 0 10px !important; color: var(--menu-texto-2) !important; background: var(--menu-fundo) !important; box-shadow: none !important; }
+.class-board-painel-cartao.class-board-menu .class-board-tags-campo > input { flex: 1 1 auto; min-width: 0; height: 100%; padding: 0 !important; color: var(--menu-texto) !important; background: transparent !important; box-shadow: none !important; outline: none; font-weight: 600; }
+.class-board-painel-cartao.class-board-menu .class-board-tags-campo > input::placeholder { color: var(--menu-texto-2); }
+.class-board-painel-cartao.class-board-menu .class-board-tags-campo:focus-within { box-shadow: inset 0 0 0 1px var(--menu-texto) !important; }
+.class-board-painel-cartao.class-board-menu .class-board-tags-criar { padding: 0 12px !important; color: var(--menu-cheio-texto) !important; background: var(--menu-cheio) !important; box-shadow: none !important; font-size: 0.6875rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; cursor: pointer; }
+.class-board-painel-cartao.class-board-menu .class-board-tags-criar:hover { opacity: 0.88; }
+/* As quinze cores: uma fila de quadradinhos da largura do painel. */
+.class-board-painel-cartao.class-board-menu .class-board-menu-cores { display: grid !important; grid-template-columns: repeat(15, minmax(0, 1fr)) !important; gap: 4px !important; }
+.class-board-painel-cartao.class-board-menu .class-board-menu-cores > [role="radio"] {
+  display: grid !important;
+  place-items: center;
+  height: 22px !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  color: transparent;
+  background: var(--menu-fundo) !important;
+  box-shadow: none !important;
+  overflow: hidden;
+  cursor: pointer;
+}
+.class-board-painel-cartao.class-board-menu .class-board-menu-cores > [role="radio"] > span { width: 6px !important; height: 14px !important; background: var(--neon); box-shadow: 0 0 5px var(--neon); transform: none !important; }
+.class-board-painel-cartao.class-board-menu .class-board-menu-cores > [role="radio"]:hover { background: var(--menu-fundo-hover) !important; }
+.class-board-painel-cartao.class-board-menu .class-board-menu-cores > [role="radio"][aria-checked="true"] { background: var(--menu-cheio) !important; box-shadow: none !important; }
+.class-board-painel-cartao.class-board-menu .class-board-menu-cores > [role="radio"][aria-checked="true"] > span { box-shadow: 0 0 6px var(--neon), 0 0 12px var(--neon); }
+.class-board-painel-cartao.class-board-menu .class-board-tags-erro { margin: 0; color: #ff8a00; font-size: 0.6875rem; font-weight: 600; }
+/* Tamanho: [−] Largura · 1 [+], os dois lado a lado. */
+.class-board-painel-cartao.class-board-menu .class-board-bloco-passo { display: grid !important; grid-template-columns: var(--menu-h) minmax(0, 1fr) var(--menu-h); align-items: stretch; gap: 0 !important; padding: 0 !important; color: var(--menu-texto) !important; background: var(--menu-fundo) !important; box-shadow: none !important; }
+.class-board-painel-cartao.class-board-menu .class-board-bloco-passo > span { display: grid; place-items: center; min-width: 0; font-size: 0.6875rem; font-weight: 800; letter-spacing: 0.04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.class-board-painel-cartao.class-board-menu .class-board-bloco-passo > button { height: 100% !important; padding: 0 !important; color: var(--menu-texto-2) !important; background: transparent !important; box-shadow: none !important; font-size: 0.875rem; font-weight: 700; cursor: pointer; }
+.class-board-painel-cartao.class-board-menu .class-board-bloco-passo > button:hover:not(:disabled) { color: var(--menu-texto) !important; background: var(--menu-fundo-hover) !important; }
+.class-board-painel-cartao.class-board-menu .class-board-bloco-passo > button:disabled { opacity: 0.3; cursor: default; }
+/* Bloco e faixa: quatro botões em duas colunas. */
+.class-board-painel-cartao.class-board-menu .class-board-bloco-acoes > button { display: grid !important; place-items: center; min-width: 0; padding: 0 8px !important; color: var(--menu-texto) !important; background: var(--menu-fundo) !important; box-shadow: none !important; font-size: 0.6875rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+.class-board-painel-cartao.class-board-menu .class-board-bloco-acoes > button:hover:not(:disabled) { background: var(--menu-fundo-hover) !important; }
+.class-board-painel-cartao.class-board-menu .class-board-bloco-acoes > button.class-board-bloco-apagar:hover:not(:disabled) { color: #ff1e3c !important; }
+.class-board-painel-cartao.class-board-menu .class-board-bloco-acoes > button:disabled { opacity: 0.3; cursor: default; }
+/* Restaurar: um botão que abre a lista, com a contagem. */
+.class-board-painel-cartao.class-board-menu .class-board-bloco-restaurar { display: grid; gap: var(--menu-vao); margin: 0 !important; padding: 0 !important; }
+.class-board-painel-cartao.class-board-menu .class-board-menu-toggle { display: grid !important; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 8px; padding: 0 10px !important; color: var(--menu-texto) !important; background: var(--menu-fundo) !important; box-shadow: none !important; font-size: 0.6875rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; text-align: left; cursor: pointer; }
+.class-board-painel-cartao.class-board-menu .class-board-menu-toggle:hover { background: var(--menu-fundo-hover) !important; }
+.class-board-painel-cartao.class-board-menu .class-board-menu-toggle > b { min-width: 18px; height: 18px; display: grid; place-items: center; padding: 0 5px; color: var(--menu-cheio-texto); background: var(--menu-cheio); font-size: 0.625rem; font-variant-numeric: tabular-nums; }
+.class-board-painel-cartao.class-board-menu .class-board-menu-toggle > svg { width: 14px; height: 14px; color: var(--menu-texto-2); transition: transform 160ms ease; }
+.class-board-painel-cartao.class-board-menu .class-board-menu-toggle[aria-expanded="true"] > svg { transform: rotate(180deg); }
+.class-board-painel-cartao.class-board-menu .class-board-menu-lista-restaurar { display: grid; gap: 4px; max-height: 150px; overflow-y: auto; scrollbar-width: thin; }
+.class-board-painel-cartao.class-board-menu .class-board-menu-lista-restaurar > button { display: flex !important; align-items: center; height: 28px !important; min-height: 0 !important; padding: 0 10px !important; color: var(--menu-texto) !important; background: var(--menu-fundo) !important; box-shadow: none !important; font-size: 0.75rem; font-weight: 600; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+.class-board-painel-cartao.class-board-menu .class-board-menu-lista-restaurar > button:hover { background: var(--menu-fundo-hover) !important; }
+
+/* =====================================================================
+   Cada bloco cabe pelo menos quatro campanhas por página, com faixas de
+   32px e vãos de 6px: a altura mínima do bloco é o cabeçalho (uma
+   faixa) + o respiro do corpo + quatro faixas. Se a tela for baixa, o
+   quadro cresce e a página rola, em vez de espremer as faixas.
+   ===================================================================== */
+@container (min-width: 1001px) {
+  .dash-skin .class-board-quadro .class-board-pilares > section.class-board-pilar {
+    /* 10px de margem do bloco em cima e embaixo + cabeçalho (uma faixa) +
+       respiro do corpo (6px + 4px) + quatro faixas com três vãos de 6px. */
+    min-height: calc(20px + var(--icone, 2rem) + 10px + var(--icone, 2rem) * 4 + 3 * 6px);
+  }
+}
+/* O contador do "Restaurar bloco apagado" lê a cor de contraste (a regra
+   geral do tema branco faz todo texto herdar o preto da pele). */
+.class-board-painel-cartao.class-board-menu .class-board-menu-toggle > b { color: var(--menu-cheio-texto) !important; }
