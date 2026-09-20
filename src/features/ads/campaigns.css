@@ -4373,3 +4373,16 @@ html[data-tema="branco"] .dash-skin .class-board-semaforo > i[data-acesa="true"]
    por dentro (borda de cima escura, fio de luz embaixo). */
 .dash-skin .class-board-semaforo > i { background: #1c1c1f; }
 html[data-tema="branco"] .dash-skin .class-board-semaforo > i { background: #e2e2e6; }
+
+/* Toda bolinha acesa pisca (verde, laranja e vermelha): a luz e o halo
+   apagam e acendem num ciclo de 1,6s. Quem pede menos movimento vê fixa. */
+@keyframes class-board-semaforo-pulso {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+.dash-skin .class-board-semaforo > i[data-acesa="true"]::after {
+  animation: class-board-semaforo-pulso 1.6s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .dash-skin .class-board-semaforo > i[data-acesa="true"]::after { animation: none; }
+}
