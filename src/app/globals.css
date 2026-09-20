@@ -6213,3 +6213,17 @@ html[data-tema="branco"] .dash-skin :is(.dash-sidebar, .sessoes-lateral-caixa) i
 /* Tema branco: as iniciais do avatar em preto sobre um véu cinza (antes
    ficavam claras sobre claro). */
 html[data-tema="branco"] .dash-skin [data-slot="avatar-fallback"] { background: rgb(0 0 0 / 8%) !important; color: #0a0a0a !important; }
+
+/* =====================================================================
+   Ícones em negrito. Os ícones (Lucide) são vetores: engrossar o traço
+   é só mudar o stroke-width, sem perder nitidez em nenhum tamanho de
+   tela. O desenho fica com o mesmo tamanho; só a linha fica mais forte.
+   Os gráficos não mudam (não são ícones).
+   ===================================================================== */
+.dash-skin svg.lucide {
+  stroke-width: 2.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  overflow: visible;
+  shape-rendering: geometricPrecision;
+}
