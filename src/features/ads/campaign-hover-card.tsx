@@ -4,6 +4,8 @@ import * as React from "react";
 import { createPortal } from "react-dom";
 
 import { formatCompactCurrency, formatCurrency, formatPercent, formatRatio } from "@/features/unified-dashboard/formatters";
+import { GraficoRoas, JANELAS_MINUTO } from "./block-metrics-panel";
+import { INTERVALO_MINUTO_MS, chaveDaCampanhaNoHistorico, useCampaignRoasHistory } from "./campaign-roas-history-store";
 import { corDaEtiqueta, useCardNotes } from "./card-notes-store";
 import { lucroDaCampanha, useTaxas } from "./fees-store";
 import { derivadas, type CampaignRow } from "./types";
@@ -33,11 +35,14 @@ export function CampaignHoverCard({
   preview,
   campanha: c,
   id,
+  escopo = "todas",
   onClose,
 }: {
   preview: CampaignPreview;
   campanha: CampaignRow;
   id: string;
+  /** A rede da página: a mesma campanha tem histórico por página. */
+  escopo?: string;
   onClose: (restoreFocus?: boolean) => void;
 }) {
   const ref = React.useRef<HTMLDivElement>(null);
@@ -136,6 +141,9 @@ export function CampaignHoverCard({
 
   const { notas } = useCardNotes(c.id);
   const d = derivadas(c.metrics);
+  /* O histórico do ROAS desta campanha, uma leitura por minuto. */
+  const historico = useCampaignRoasHistory();
+  const amostras = historico.historicoDe(chaveDaCampanhaNoHistorico(escopo, c.id));
   /* A taxa do gateway (a mesma para todas as campanhas) e o lucro. */
   const { gatewayPercentual, definirGateway } = useTaxas();
   const lucro = lucroDaCampanha(c.metrics, gatewayPercentual);
@@ -171,6 +179,8 @@ export function CampaignHoverCard({
           </ul>
         )}
         {notas.texto && <p className="campanha-card-flutuante-nota">{notas.texto}</p>}
+        {/* O ROAS desta campanha ao vivo, uma leitura por minuto. */}
+        <GraficoRoas amostras={amostras} rotulo={c.name} janelas={JANELAS_MINUTO} intervaloMs={INTERVALO_MINUTO_MS} cadencia="1 minuto" compacto />
         <dl className="campanha-card-flutuante-metricas">
           {linhas.map(([rotulo, valor]) => (
             <div key={rotulo} data-lucro={rotulo === "Lucro" ? (lucro.lucroCents < 0 ? "negativo" : lucro.lucroCents > 0 ? "positivo" : "zero") : undefined}>

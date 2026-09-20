@@ -53,6 +53,7 @@ import { useTaxas } from "./fees-store";
 import { QuadroAoVivo } from "./class-board-live";
 import { PainelDoBloco } from "./block-metrics-panel";
 import { INTERVALO_AMOSTRA_MS, chaveDoHistorico, registrarRoasDoBloco, useRoasHistory } from "./roas-history-store";
+import { INTERVALO_MINUTO_MS, chaveDaCampanhaNoHistorico, registrarRoasDaCampanha } from "./campaign-roas-history-store";
 import { PainelFlutuante } from "./painel-flutuante";
 import { useCampaignDemo } from "./demo-store";
 import {
@@ -355,6 +356,24 @@ export function ClassBoard({
     const timer = window.setInterval(gravar, INTERVALO_AMOSTRA_MS);
     return () => window.clearInterval(timer);
   }, [assinaturaDosRoas, escopoDoHistorico]);
+  /* O histórico do ROAS de cada campanha (uma leitura por minuto)
+     alimenta o gráfico do card que abre no megafone. */
+  const assinaturaDasCampanhas = tree.campanhas
+    .map((c) => `${c.id}=${derivadas(c.metrics).roas ?? "-"}`)
+    .join(",");
+  React.useEffect(() => {
+    const gravar = () => {
+      for (const par of assinaturaDasCampanhas.split(",")) {
+        const corte = par.lastIndexOf("=");
+        const id = corte > 0 ? par.slice(0, corte) : "";
+        const valor = corte > 0 ? par.slice(corte + 1) : "";
+        if (id && valor && valor !== "-") registrarRoasDaCampanha(chaveDaCampanhaNoHistorico(escopoDoHistorico, id), Number(valor));
+      }
+    };
+    gravar();
+    const timer = window.setInterval(gravar, INTERVALO_MINUTO_MS);
+    return () => window.clearInterval(timer);
+  }, [assinaturaDasCampanhas, escopoDoHistorico]);
   /* O painel dos números de um bloco (um de cada vez), preso ao cabeçalho. */
   const [painelDeNumeros, setPainelDeNumeros] = React.useState<{ id: string; ancora: HTMLElement } | null>(null);
   const fecharNumeros = React.useCallback(() => setPainelDeNumeros(null), []);
@@ -1000,6 +1019,7 @@ export function ClassBoard({
                         key={c.id}
                         campanha={c}
                         modo={tree.modo}
+                        escopo={escopoDoHistorico}
                         aoArrastar={(ativo) => { setArrastando(ativo ? c.id : null); if (!ativo) setSobre(null); }}
                         aoRenomear={(nome) => renomear(c, nome)}
                       />
@@ -1417,11 +1437,14 @@ function EditarNotas({
 function Cartao({
   campanha: c,
   modo,
+  escopo,
   aoArrastar,
   aoRenomear,
 }: {
   campanha: CampaignRow;
   modo: CampaignTree["modo"];
+  /** A rede da página, para o histórico do ROAS desta campanha. */
+  escopo: string;
   aoArrastar: (ativo: boolean) => void;
   /** Troca o nome da campanha; devolve a mensagem de erro, ou nada. */
   aoRenomear: (nome: string) => Promise<string | null>;
@@ -1580,6 +1603,7 @@ function Cartao({
           preview={preview}
           campanha={c}
           id={cardId}
+          escopo={escopo}
           onClose={fechar}
         />
       )}

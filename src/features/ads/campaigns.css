@@ -4604,3 +4604,12 @@ html[data-tema="branco"] .class-board-painel-cartao.class-board-menu {
 /* O contador do "Restaurar bloco apagado" lê a cor de contraste (a regra
    geral do tema branco faz todo texto herdar o preto da pele). */
 .class-board-painel-cartao.class-board-menu .class-board-menu-toggle > b { color: var(--menu-cheio-texto) !important; }
+
+/* O gráfico do ROAS dentro do card da campanha (megafone): mais baixo
+   que o do painel do bloco, com as pílulas de período menores, para
+   caber nos 288px do card sem apertar as métricas. */
+.campanha-card-flutuante .class-board-grafico[data-compacto="true"] { gap: 6px; }
+.campanha-card-flutuante .class-board-grafico[data-compacto="true"] .class-board-grafico-janelas > button { min-height: 1.5rem; padding: 0 8px; font-size: 0.625rem; }
+.campanha-card-flutuante .class-board-grafico[data-compacto="true"] .class-board-grafico-cartao { padding: 5px 7px; font-size: 0.625rem; }
+.campanha-card-flutuante .class-board-grafico[data-compacto="true"] .class-board-grafico-cartao-valor { font-size: 0.8125rem; }
+.campanha-card-flutuante .class-board-grafico[data-compacto="true"] .class-board-grafico-vazio { font-size: 0.6875rem; }

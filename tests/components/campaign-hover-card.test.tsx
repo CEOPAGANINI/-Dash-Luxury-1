@@ -33,13 +33,16 @@ describe("card dos números da campanha no quadro por classe", () => {
     const aberto = card()!;
     expect(aberto.getAttribute("aria-label")).toBe(`Detalhes da campanha: ${campanha.name}`);
     expect(megafone(campanha.name).getAttribute("aria-expanded")).toBe("true");
-    // Só números: sem nome, sem estado, sem veredito, sem título, sem fechar.
+    // Gráfico e números: sem nome, sem estado, sem veredito, sem título,
+    // sem fechar. O nome só existe nos rótulos de leitor de tela do
+    // gráfico, e os únicos botões são os períodos dele.
     expect(aberto.textContent).toContain("Retorno total");
     expect(aberto.textContent).toContain("Lucro");
     expect(aberto.textContent).toContain("ROAS");
-    expect(aberto.textContent).not.toContain(campanha.name);
-    expect(aberto.textContent).not.toMatch(/Ativa|Pausada|Desativada|escalar|conjunto/i);
-    expect(within(aberto).queryByRole("button")).toBeNull();
+    const visivel = [...aberto.querySelectorAll("*")].filter((el) => !el.closest(".sr-only") && el.children.length === 0).map((el) => el.textContent).join(" ");
+    expect(visivel).not.toContain(campanha.name);
+    expect(visivel).not.toMatch(/Ativa|Pausada|Desativada|escalar|conjunto/i);
+    expect(within(aberto).getAllByRole("button").map((b) => b.textContent)).toEqual(["15m", "1h", "3h", "6h"]);
     expect(within(aberto).queryByRole("heading")).toBeNull();
     // Fica fora do quadro (portal no body), nunca dentro da coluna.
     expect(aberto.closest("section[aria-label]")).toBeNull();

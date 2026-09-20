@@ -62,9 +62,12 @@ describe("o lucro da campanha no card dos números", () => {
     expect(paresDepois.Lucro).toBe(comTaxa.lucroCents < 0 ? `−${reais(-comTaxa.lucroCents)}` : reais(comTaxa.lucroCents));
     expect(within(card).getByLabelText("Conta do lucro").textContent).toContain(`gateway 4,99% (${reais(comTaxa.gatewayCents)})`);
     expect(restoreTaxas(localStorage.getItem(TAXAS_KEY)!)).toEqual({ version: 1, gatewayPercentual: 4.99 });
-    // O card continua sem botões, nome ou estado.
-    expect(within(card).queryByRole("button")).toBeNull();
-    expect(card.textContent).not.toContain(campanha.name);
+    // O card continua sem nome nem estado à vista (o nome só existe nos
+    // rótulos de leitor de tela do gráfico) e sem botões além dos
+    // períodos do gráfico.
+    const visivel = [...card.querySelectorAll("*")].filter((el) => !el.closest(".sr-only") && el.children.length === 0).map((el) => el.textContent).join(" ");
+    expect(visivel).not.toContain(campanha.name);
+    expect(within(card).getAllByRole("button").map((b) => b.textContent)).toEqual(["15m", "1h", "3h", "6h"]);
   });
 
   it("um retorno menor que o tráfego dá lucro negativo, marcado em vermelho", () => {

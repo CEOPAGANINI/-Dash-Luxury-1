@@ -242,7 +242,15 @@ export const JANELAS = [
   { id: "12h", rotulo: "12h", ms: 12 * 60 * 60_000 },
   { id: "24h", rotulo: "24h", ms: 24 * 60 * 60_000 },
 ] as const;
-export type JanelaId = (typeof JANELAS)[number]["id"];
+export type JanelaId = string;
+/** As janelas do gráfico por minuto (o card da campanha). */
+export const JANELAS_MINUTO = [
+  { id: "15m", rotulo: "15m", ms: 15 * 60_000 },
+  { id: "1h", rotulo: "1h", ms: 60 * 60_000 },
+  { id: "3h", rotulo: "3h", ms: 3 * 60 * 60_000 },
+  { id: "6h", rotulo: "6h", ms: 6 * 60 * 60_000 },
+] as const;
+export type Janela = { id: string; rotulo: string; ms: number };
 const COR_DA_FAIXA = { sem: "#f4f4f5", ruim: "#ff3b3b", mediano: "#ffd60a", otimo: "#3dff6a" } as const;
 const dataHora = (t: number) =>
   new Date(t).toLocaleString("pt-BR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }).replace(" de ", " ").replace(".,", " ·").replace(",", " ·");
@@ -250,20 +258,40 @@ const variacao = (de: number, para: number) => (de > 0 ? ((para - de) / de) * 10
 const percentualComSinal = (v: number) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`;
 
 /** As leituras dentro da janela (as últimas N horas até a mais nova). */
-export function leiturasDaJanela(amostras: readonly Amostra[], janela: JanelaId): Amostra[] {
-  const ms = JANELAS.find((j) => j.id === janela)?.ms ?? JANELAS[3].ms;
+export function leiturasDaJanela(amostras: readonly Amostra[], janela: JanelaId, janelas: readonly Janela[] = JANELAS): Amostra[] {
+  const ms = janelas.find((j) => j.id === janela)?.ms ?? janelas[janelas.length - 1].ms;
   const fim = amostras.length ? amostras[amostras.length - 1].t : 0;
   return amostras.filter((a) => a.t >= fim - ms);
 }
 
-export function GraficoRoas({ amostras, rotulo }: { amostras: readonly Amostra[]; rotulo: string }) {
-  const [janela, setJanela] = React.useState<JanelaId>("24h");
+export function GraficoRoas({
+  amostras,
+  rotulo,
+  janelas = JANELAS,
+  intervaloMs = INTERVALO_AMOSTRA_MS,
+  cadencia = "5 minutos",
+  compacto = false,
+}: {
+  amostras: readonly Amostra[];
+  rotulo: string;
+  /** Os períodos do gráfico (o card da campanha usa os de minuto). */
+  janelas?: readonly Janela[];
+  /** O passo entre leituras, para o eixo do tempo não colapsar com uma só. */
+  intervaloMs?: number;
+  /** De quanto em quanto tempo entra uma leitura, por extenso. */
+  cadencia?: string;
+  /** No card da campanha o gráfico é mais baixo e com menos margem. */
+  compacto?: boolean;
+}) {
+  const [janela, setJanela] = React.useState<JanelaId>(janelas[janelas.length - 1].id);
   const [ativo, setAtivo] = React.useState<number | null>(null);
   const idGradiente = React.useId();
-  const visiveis = leiturasDaJanela(amostras, janela);
+  const visiveis = leiturasDaJanela(amostras, janela, janelas);
   const n = visiveis.length;
-  const largura = LARGURA - MARGEM.esquerda - MARGEM.direita;
-  const altura = ALTURA - MARGEM.cima - MARGEM.baixo;
+  const ALTURA_USADA = compacto ? 150 : ALTURA;
+  const MARGEM_USADA = compacto ? { cima: 12, direita: 10, baixo: 22, esquerda: 38 } : MARGEM;
+  const largura = LARGURA - MARGEM_USADA.esquerda - MARGEM_USADA.direita;
+  const altura = ALTURA_USADA - MARGEM_USADA.cima - MARGEM_USADA.baixo;
   const valores = visiveis.map((a) => a.roas);
   const maximo = n ? Math.max(...valores) : 0;
   const minimo = n ? Math.min(...valores) : 0;
@@ -275,12 +303,12 @@ export function GraficoRoas({ amostras, rotulo }: { amostras: readonly Amostra[]
   const passos: number[] = [];
   for (let v = base; v <= topo + 1e-9; v += passo) passos.push(Math.round(v * 1000) / 1000);
   const t0 = n ? visiveis[0].t : 0;
-  const t1 = n ? Math.max(visiveis[n - 1].t, t0 + INTERVALO_AMOSTRA_MS) : 0;
-  const x = (t: number) => MARGEM.esquerda + (n <= 1 ? 0 : ((t - t0) / (t1 - t0)) * largura);
-  const y = (v: number) => MARGEM.cima + altura - ((v - base) / (topo - base)) * altura;
+  const t1 = n ? Math.max(visiveis[n - 1].t, t0 + intervaloMs) : 0;
+  const x = (t: number) => MARGEM_USADA.esquerda + (n <= 1 ? 0 : ((t - t0) / (t1 - t0)) * largura);
+  const y = (v: number) => MARGEM_USADA.cima + altura - ((v - base) / (topo - base)) * altura;
   const pontos = visiveis.map((a) => ({ ...a, x: x(a.t), y: y(a.roas) }));
   const caminho = pontos.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
-  const area = n > 1 ? `${caminho} L${pontos[n - 1].x.toFixed(1)} ${(MARGEM.cima + altura).toFixed(1)} L${pontos[0].x.toFixed(1)} ${(MARGEM.cima + altura).toFixed(1)} Z` : "";
+  const area = n > 1 ? `${caminho} L${pontos[n - 1].x.toFixed(1)} ${(MARGEM_USADA.cima + altura).toFixed(1)} L${pontos[0].x.toFixed(1)} ${(MARGEM_USADA.cima + altura).toFixed(1)} Z` : "";
   const ultimo = pontos[pontos.length - 1];
   const primeiro = pontos[0];
   /* O cursor, o ponto e o cartão só existem com o mouse sobre a linha. */
@@ -298,11 +326,11 @@ export function GraficoRoas({ amostras, rotulo }: { amostras: readonly Amostra[]
     setAtivo(melhor);
   }
   return (
-    <figure className="class-board-grafico" aria-label={`ROAS de ${rotulo} a cada cinco minutos`} style={{ ["--serie" as string]: cor }} data-faixa={faixa}>
+    <figure className="class-board-grafico" aria-label={`ROAS de ${rotulo} a cada ${cadencia}`} style={{ ["--serie" as string]: cor }} data-faixa={faixa} data-compacto={compacto ? "true" : undefined}>
       <div className="class-board-grafico-topo">
-        <figcaption className="sr-only">ROAS a cada 5 minutos, ao vivo</figcaption>
+        <figcaption className="sr-only">ROAS a cada {cadencia}, ao vivo</figcaption>
         <div className="class-board-grafico-janelas" role="group" aria-label="Período do gráfico">
-          {JANELAS.map((j) => (
+          {janelas.map((j) => (
             <button key={j.id} type="button" aria-pressed={janela === j.id} onClick={() => { setJanela(j.id); setAtivo(null); }}>
               {j.rotulo}
             </button>
@@ -310,11 +338,11 @@ export function GraficoRoas({ amostras, rotulo }: { amostras: readonly Amostra[]
         </div>
       </div>
       {n === 0 ? (
-        <p className="class-board-grafico-vazio">Ainda sem leituras: a primeira entra assim que houver investimento, e depois uma a cada 5 minutos.</p>
+        <p className="class-board-grafico-vazio">Ainda sem leituras: a primeira entra assim que houver investimento, e depois uma a cada {cadencia}.</p>
       ) : (
         <div className="class-board-grafico-area">
           <svg
-            viewBox={`0 0 ${LARGURA} ${ALTURA}`}
+            viewBox={`0 0 ${LARGURA} ${ALTURA_USADA}`}
             role="img"
             aria-label={`${n} leituras; a mais nova ${formatRatio(ultimo.roas)} às ${hora(ultimo.t)}`}
             data-pontos={n}
@@ -330,21 +358,21 @@ export function GraficoRoas({ amostras, rotulo }: { amostras: readonly Amostra[]
             {/* Grade recessiva e o eixo dos valores à esquerda. */}
             {passos.map((v) => (
               <g key={v}>
-                <line x1={MARGEM.esquerda} x2={MARGEM.esquerda + largura} y1={y(v)} y2={y(v)} className="class-board-grafico-grade" />
-                <text x={MARGEM.esquerda - 8} y={y(v)} className="class-board-grafico-eixo" textAnchor="end" dominantBaseline="middle">{formatRatio(v, passo < 0.5 ? 2 : 1)}</text>
+                <line x1={MARGEM_USADA.esquerda} x2={MARGEM_USADA.esquerda + largura} y1={y(v)} y2={y(v)} className="class-board-grafico-grade" />
+                <text x={MARGEM_USADA.esquerda - 8} y={y(v)} className="class-board-grafico-eixo" textAnchor="end" dominantBaseline="middle">{formatRatio(v, passo < 0.5 ? 2 : 1)}</text>
               </g>
             ))}
             {/* As faixas (1,5x e 2x), quando caem dentro do eixo. */}
             {([["mediano", FAIXAS_DO_GRAFICO.mediano], ["otimo", FAIXAS_DO_GRAFICO.otimo]] as const)
               .filter(([, v]) => v > base && v < topo)
               .map(([id, v]) => (
-                <line key={id} x1={MARGEM.esquerda} x2={MARGEM.esquerda + largura} y1={y(v)} y2={y(v)} className="class-board-grafico-faixa" data-faixa={id} />
+                <line key={id} x1={MARGEM_USADA.esquerda} x2={MARGEM_USADA.esquerda + largura} y1={y(v)} y2={y(v)} className="class-board-grafico-faixa" data-faixa={id} />
               ))}
             {n > 1 && <path d={area} className="class-board-grafico-sombra" fill={`url(#${idGradiente})`} />}
             {n > 1 && <path d={caminho} className="class-board-grafico-linha" />}
             {escolhido && (
               <>
-                <line x1={escolhido.x} x2={escolhido.x} y1={MARGEM.cima} y2={MARGEM.cima + altura} className="class-board-grafico-cursor" />
+                <line x1={escolhido.x} x2={escolhido.x} y1={MARGEM_USADA.cima} y2={MARGEM_USADA.cima + altura} className="class-board-grafico-cursor" />
                 <circle cx={escolhido.x} cy={escolhido.y} r={5} className="class-board-grafico-ponto" data-atual="true" data-faixa={faixaDoRoas(escolhido.roas)} />
               </>
             )}
@@ -352,7 +380,7 @@ export function GraficoRoas({ amostras, rotulo }: { amostras: readonly Amostra[]
               <text
                 key={i}
                 x={x(t)}
-                y={ALTURA - 8}
+                y={ALTURA_USADA - 8}
                 className="class-board-grafico-eixo"
                 textAnchor={i === 0 ? "start" : i === marcas.length - 1 ? "end" : "middle"}
               >
