@@ -6227,3 +6227,26 @@ html[data-tema="branco"] .dash-skin [data-slot="avatar-fallback"] { background: 
   overflow: visible;
   shape-rendering: geometricPrecision;
 }
+
+/* =====================================================================
+   Gaveta do menu no celular/tablet (a folha que abre pelo botão do
+   topo): fundo sólido. Os véus translúcidos do menu fixo do desktop
+   funcionam porque ele fica sobre o fundo da página; a folha flutua
+   sobre o conteúdo e, com véu, as páginas de baixo apareciam através
+   dela, misturadas aos itens do menu.
+   ===================================================================== */
+body:has(.dash-skin) [data-slot="sheet-content"].dash-skin,
+body:has(.dash-skin) [data-slot="sheet-content"].dash-skin .dash-sidebar {
+  background: #0f0f11 !important;
+  background-image: none !important;
+}
+body:has(.dash-skin) [data-slot="sheet-content"].dash-skin .dash-sidebar-tray { background: #141416 !important; }
+html[data-tema="branco"] body:has(.dash-skin) [data-slot="sheet-content"].dash-skin,
+html[data-tema="branco"] body:has(.dash-skin) [data-slot="sheet-content"].dash-skin .dash-sidebar,
+html[data-tema="branco"] body:has(.dash-skin) [data-slot="sheet-content"].dash-skin .dash-sidebar-tray { background: #ffffff !important; }
+/* Tema branco: o ícone da marca no topo das gavetas em preto (era
+   branco sobre branco na gaveta do celular). */
+html[data-tema="branco"] .dash-skin .dash-sidebar-cabecalho :is(.text-primary-foreground, svg) { color: #0a0a0a !important; }
+html[data-tema="branco"] .dash-skin .dash-sidebar-cabecalho .bg-primary.text-primary-foreground,
+html[data-tema="branco"] .dash-skin .dash-sidebar-cabecalho .bg-primary.text-primary-foreground > svg,
+html[data-tema="branco"] .dash-skin .dash-sidebar-cabecalho .bg-primary.text-primary-foreground:has(> svg:only-child) { color: #0a0a0a !important; }
