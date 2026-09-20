@@ -6247,6 +6247,7 @@ html[data-tema="branco"] body:has(.dash-skin) [data-slot="sheet-content"].dash-s
 /* Tema branco: o ícone da marca no topo das gavetas em preto (era
    branco sobre branco na gaveta do celular). */
 html[data-tema="branco"] .dash-skin .dash-sidebar-cabecalho :is(.text-primary-foreground, svg) { color: #0a0a0a !important; }
-html[data-tema="branco"] .dash-skin .dash-sidebar-cabecalho .bg-primary.text-primary-foreground,
-html[data-tema="branco"] .dash-skin .dash-sidebar-cabecalho .bg-primary.text-primary-foreground > svg,
-html[data-tema="branco"] .dash-skin .dash-sidebar-cabecalho .bg-primary.text-primary-foreground:has(> svg:only-child) { color: #0a0a0a !important; }
+html[data-tema="branco"] .dash-skin .dash-sidebar-cabecalho .bg-primary.text-primary-foreground:has(> svg:only-child),
+html[data-tema="branco"] .dash-skin .dash-sidebar-cabecalho .bg-primary.text-primary-foreground:has(> svg:only-child) > svg { color: #0a0a0a !important; }
+/* A letra da marca (D, M…) fica branca sobre o quadrado preto. */
+html[data-tema="branco"] .dash-skin .dash-sidebar-cabecalho .bg-primary.text-primary-foreground:not(:has(> svg)) { background: #0a0a0a !important; color: #ffffff !important; }

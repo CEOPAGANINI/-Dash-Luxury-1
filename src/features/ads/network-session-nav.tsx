@@ -1,18 +1,32 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import * as React from "react";
 
-import { PageSessionMenu } from "@/components/dashboard/page-session-menu";
+import { useRouter, useSearchParams } from "next/navigation";
+import { BarChart3, Calculator, Columns3, LayoutGrid, Megaphone, Search, Table2, Video } from "lucide-react";
+
+import { PageSessionMenu, type PastaLateral } from "@/components/dashboard/page-session-menu";
 import { BlockPicker } from "@/components/ui/block-picker";
 import { NETWORK_MANAGERS } from "./manager-model";
 import { SESSOES_DA_REDE, type SessaoDaRedeId } from "./network-sessions-model";
 import type { AdNetwork } from "./types";
 
+/* Os ícones das redes e das páginas da rede (os mesmos do menu da esquerda). */
+const ICONE_DA_REDE: Record<AdNetwork, React.ReactNode> = { meta: <Megaphone />, google: <Search />, youtube: <Video /> };
+const ICONE_DA_SESSAO: Record<SessaoDaRedeId, React.ReactNode> = {
+  classes: <LayoutGrid />,
+  tabela: <Table2 />,
+  gerenciador: <Columns3 />,
+  metricas: <BarChart3 />,
+  calculadora: <Calculator />,
+};
+
 /**
- * Navegação da rede de tráfego, toda no menu recolhível da borda direita:
- * primeiro as redes (Meta, Google, YouTube e o quadro de todas), depois as
- * páginas desta rede. No celular vira uma fila de blocos. Cada escolha
- * abre um endereço próprio; o `?modo=real` vai junto.
+ * Navegação da rede de tráfego, toda no menu recolhível da borda direita,
+ * que funciona como o menu da esquerda: as redes são pastas (Meta, Google,
+ * YouTube e o quadro de todas); abrir uma pasta mostra só as páginas dela.
+ * No celular vira uma fila de blocos. Cada escolha abre um endereço
+ * próprio; o `?modo=real` vai junto.
  */
 export function NetworkSessionNav({
   rede,
@@ -35,17 +49,28 @@ export function NetworkSessionNav({
     router.push(`/campanhas/${rede}/${id}${sufixo}`);
   }
 
-  const redes = (Object.keys(NETWORK_MANAGERS) as AdNetwork[]).map((n) => ({
-    href: `/campanhas/${n}/${sessao}${sufixo}`,
-    short: NETWORK_MANAGERS[n].label,
-    label: NETWORK_MANAGERS[n].description,
-    active: n === rede,
+  /* Cada rede é uma pasta com as cinco páginas dela; "Todas as redes" é
+     uma pasta com o quadro geral. */
+  const pastas: PastaLateral[] = (Object.keys(NETWORK_MANAGERS) as AdNetwork[]).map((n) => ({
+    id: n,
+    label: NETWORK_MANAGERS[n].label,
+    legenda: NETWORK_MANAGERS[n].description,
+    icon: ICONE_DA_REDE[n],
+    atual: n === rede,
+    paginas: SESSOES_DA_REDE.map((s) => ({
+      label: s.label,
+      short: s.short,
+      href: `/campanhas/${n}/${s.id}${sufixo}`,
+      active: n === rede && s.id === sessao,
+      icon: ICONE_DA_SESSAO[s.id],
+    })),
   }));
-  redes.push({
-    href: `/campanhas/quadro${sufixo}`,
-    short: "Todas as redes",
-    label: "Quadro geral com as três redes",
-    active: false,
+  pastas.push({
+    id: "quadro",
+    label: "Todas as redes",
+    legenda: "Quadro geral com as três redes",
+    icon: <Megaphone />,
+    paginas: [{ label: "Quadro geral com as três redes", short: "Quadro geral", href: `/campanhas/quadro${sufixo}`, icon: <LayoutGrid /> }],
   });
 
   return (
@@ -82,8 +107,8 @@ export function NetworkSessionNav({
         onSelect={(index) => abrir(SESSOES_DA_REDE[index].id)}
         ariaLabel={ariaLabel}
         title={title}
-        groups={[{ title: "Rede de tráfego", items: redes }]}
-        sectionTitle="Páginas desta rede"
+        pastas={pastas}
+        rotuloDasPastas="Redes de tráfego"
       />
     </>
   );
