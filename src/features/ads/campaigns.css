@@ -4115,3 +4115,11 @@ html[data-tema="branco"] .dash-skin .class-board-pilar-cabecalho > .class-board-
 html[data-tema="branco"] .dash-skin .class-board-pilar-cabecalho > .class-board-pilar-contagem,
 html[data-tema="branco"] .dash-skin .class-board-pilar-cabecalho[data-tag="true"] > .class-board-pilar-contagem { color: #0a0a0a !important; }
 .dash-skin .class-board-pilar > .class-board-pilar-cabecalho:not([data-tag="true"]) { box-shadow: none !important; }
+
+/* O aviso só para leitores de tela ("Bloco fixado nesta vaga", "campanha
+   movida") não ocupa fileira da grade: antes, ao fixar um bloco, ele
+   entrava numa fileira de 0px e o espaçamento entre fileiras abria um
+   vão de 16px no topo do quadro. */
+.dash-skin .class-board-quadro { grid-template-rows: minmax(auto, 1fr) !important; row-gap: 0 !important; }
+.dash-skin .class-board-quadro > .class-board-pilares { grid-row: 1 !important; }
+.dash-skin .class-board-quadro > [role="status"] { position: absolute; }
