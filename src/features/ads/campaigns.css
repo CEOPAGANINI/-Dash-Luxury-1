@@ -4350,3 +4350,21 @@ html[data-tema="branco"] .dash-skin .class-board-semaforo > i[data-acesa="false"
 .class-board-cartao .class-board-cartao-sub { justify-content: flex-start !important; }
 .class-board-cartao .class-board-cartao-sub .class-board-etiquetas { justify-content: flex-start !important; }
 .class-board-cartao .class-board-cartao-texto { text-align: left !important; }
+
+/* Neon bem sólido: cores puras e vivas, sem anel escuro na borda (que
+   apagava a cor) e halo mais forte. */
+.dash-skin .class-board-semaforo { --verde: #1eff5a; --laranja: #ff8a00; --vermelha: #ff1e3c; }
+.dash-skin .class-board-semaforo > i[data-acesa="true"]::after,
+html[data-tema="branco"] .dash-skin .class-board-semaforo > i[data-acesa="true"]::after {
+  background: var(--cor);
+  outline: 1px solid var(--cor);
+  outline-offset: -1px;
+  box-shadow:
+    0 0 3px var(--cor),
+    0 0 8px color-mix(in srgb, var(--cor) 85%, transparent),
+    0 0 16px color-mix(in srgb, var(--cor) 50%, transparent);
+}
+@keyframes class-board-semaforo-pulso {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
