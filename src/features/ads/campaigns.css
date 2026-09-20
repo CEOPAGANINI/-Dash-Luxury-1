@@ -4368,3 +4368,8 @@ html[data-tema="branco"] .dash-skin .class-board-semaforo > i[data-acesa="true"]
   0%, 100% { opacity: 1; }
   50% { opacity: 0.6; }
 }
+
+/* O rebaixo em cor lisa, sem degradê: a profundidade vem só da sombra
+   por dentro (borda de cima escura, fio de luz embaixo). */
+.dash-skin .class-board-semaforo > i { background: #1c1c1f; }
+html[data-tema="branco"] .dash-skin .class-board-semaforo > i { background: #e2e2e6; }
