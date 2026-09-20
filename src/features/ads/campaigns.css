@@ -4323,3 +4323,30 @@ html[data-tema="branco"] .dash-skin .class-board-semaforo > i[data-acesa="true"]
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
 }
+
+/* Bolinha acesa: cor neon sólida, sem degradê e sem ponto de reflexo;
+   só a cor cheia com o halo saindo do rebaixo. */
+.dash-skin .class-board-semaforo > i::before { display: none; }
+.dash-skin .class-board-semaforo > i[data-acesa="true"]::after,
+html[data-tema="branco"] .dash-skin .class-board-semaforo > i[data-acesa="true"]::after {
+  background: var(--cor);
+  outline-color: color-mix(in srgb, var(--cor) 60%, #000000);
+  box-shadow:
+    0 0 2px var(--cor),
+    0 0 6px color-mix(in srgb, var(--cor) 75%, transparent),
+    0 0 12px color-mix(in srgb, var(--cor) 40%, transparent);
+}
+/* Apagada (tema preto): a cor escurecida, também sólida. */
+.dash-skin .class-board-semaforo > i[data-acesa="false"]::after {
+  background: color-mix(in srgb, var(--cor) 28%, #1a1a1d);
+  box-shadow: inset 0 1px 1px rgb(0 0 0 / 55%);
+}
+html[data-tema="branco"] .dash-skin .class-board-semaforo > i[data-acesa="false"]::after { background: transparent; box-shadow: none; outline: none; }
+
+/* O título da campanha alinhado à esquerda (como texto de livro), não
+   no meio da faixa; as etiquetas e a descrição seguem o título. */
+.class-board-cartao .class-board-cartao-meio { align-items: flex-start !important; justify-content: center; text-align: left; }
+.class-board-cartao .class-board-cartao-meio > .class-board-cartao-nome { text-align: left !important; width: 100%; }
+.class-board-cartao .class-board-cartao-sub { justify-content: flex-start !important; }
+.class-board-cartao .class-board-cartao-sub .class-board-etiquetas { justify-content: flex-start !important; }
+.class-board-cartao .class-board-cartao-texto { text-align: left !important; }
