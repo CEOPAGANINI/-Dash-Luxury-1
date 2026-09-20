@@ -4288,3 +4288,7 @@ html[data-tema="branco"] .dash-skin .class-board-semaforo > i[data-acesa="true"]
     0 0 7px color-mix(in srgb, var(--cor) 60%, transparent),
     0 0 12px color-mix(in srgb, var(--cor) 30%, transparent);
 }
+/* Tema branco: a bolinha apagada não aparece; fica só o rebaixo fundo no
+   branco, sem nenhum tom da cor. A cor entra apenas quando acende. */
+html[data-tema="branco"] .dash-skin .class-board-semaforo > i[data-acesa="false"]::after { background: transparent; box-shadow: none; }
+html[data-tema="branco"] .dash-skin .class-board-semaforo > i[data-acesa="false"]::before { opacity: 0; }
