@@ -1,0 +1,341 @@
+.root {
+  --color-success: #eee;
+  --color-warning: #aaa;
+  --color-destructive: #999;
+  --color-primary: #fff;
+  min-width: 0;
+  color: #f4f4f4;
+  font-family: var(--font-montserrat), system-ui, sans-serif;
+}
+.root :global(.board-pager-content) {
+  container: acquisition-page / inline-size;
+}
+.root *,
+.root *::before,
+.root *::after {
+  box-sizing: border-box;
+}
+.header {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.heading {
+  display: grid;
+  gap: 0.35rem;
+  text-align: left;
+}
+.heading h1 {
+  font-size: clamp(1.35rem, 2.4vw, 2rem);
+  line-height: 1.25;
+  font-weight: 800;
+}
+.heading p {
+  color: #bebebe;
+  font-size: 0.875rem;
+}
+.heading .eyebrow {
+  color: #d9d9d9;
+  font-size: 0.6875rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+:is(.header, .panel) :is(button, select, input) {
+  min-width: 0;
+  max-width: 100%;
+  min-height: 2.5rem;
+  background: var(--camada-2);
+  color: #f5f5f5;
+  border: 0;
+  border-radius: 0;
+  padding: 0.6rem 0.75rem;
+  font: inherit;
+  font-size: 0.75rem;
+}
+:is(.header, .panel) button {
+  cursor: pointer;
+  font-weight: 700;
+}
+:is(.header, .panel) button:hover {
+  background: var(--camada-4);
+}
+:is(.header, .panel) button[aria-pressed="true"] {
+  background: #f5f5f5;
+  color: #111;
+  box-shadow: var(--dash-shadow-control) !important;
+}
+.root :is(button, a, input, select, summary):focus-visible {
+  outline: 2px solid #fff !important;
+  outline-offset: 3px;
+}
+.filters {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1.2fr auto;
+  align-items: end;
+  gap: 0.75rem;
+  padding: 0.875rem;
+  background: var(--camada-1);
+  box-shadow: var(--dash-shadow-card);
+}
+.filters label,
+.filters .field,
+.comparisonFilters label {
+  display: grid;
+  gap: 0.35rem;
+  color: #bebebe;
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+.comparisonFilters {
+  display: grid;
+  grid-template-columns: 1fr 1fr 2fr;
+  gap: 0.75rem;
+  align-items: end;
+  padding: 0.875rem;
+  background: var(--camada-1);
+}
+.comparisonFilters p {
+  font-size: 0.75rem;
+  color: #bebebe;
+}
+.source {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.35rem 1rem;
+  font-size: 0.75rem;
+  color: #bebebe;
+}
+.source small {
+  font-size: 0.6875rem;
+}
+.pageStack {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+.panel {
+  background: var(--camada-1);
+  padding: clamp(0.875rem, 1.5vw, 1.25rem);
+  box-shadow: var(--dash-shadow-card);
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+.sectionHead {
+  display: grid;
+  gap: 0.35rem;
+}
+.sectionHead h2 {
+  font-size: 1rem;
+  font-weight: 800;
+}
+.sectionHead p,
+.note {
+  font-size: 0.75rem;
+  line-height: 1.6;
+  color: #b7b7b7;
+}
+.channelChoices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.channelChoices label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 650;
+}
+.channelChoices input {
+  accent-color: #fff;
+  min-height: 1rem;
+  width: 1rem;
+}
+.channelCharts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+.channelCard {
+  background: var(--camada-2);
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+  min-width: 0;
+  box-shadow: var(--dash-shadow-control);
+}
+.channelCard h3 {
+  font-size: 1rem;
+  font-weight: 800;
+  text-align: center;
+}
+.chartRow {
+  display: grid;
+  gap: 0.5rem;
+}
+.chartRow > div:first-child {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+}
+.chartRow b {
+  font-variant-numeric: tabular-nums;
+}
+.track {
+  height: 0.5rem;
+  background: var(--camada-0);
+}
+.track span {
+  display: block;
+  height: 100%;
+}
+.channelMetrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+.channelMetrics div {
+  display: grid;
+  gap: 0.375rem;
+  text-align: center;
+}
+.channelMetrics dt {
+  font-size: 0.6875rem;
+  color: #bebebe;
+}
+.channelMetrics dd {
+  font-size: 0.8125rem;
+  font-weight: 750;
+  overflow-wrap: anywhere;
+}
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #eee;
+}
+.links a {
+  text-decoration: underline;
+  text-underline-offset: 0.25rem;
+}
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+  gap: 0.75rem;
+}
+.summaryCard {
+  padding: 1.25rem 0.75rem;
+  min-width: 0;
+  display: grid;
+  gap: 0.75rem;
+  text-align: center;
+  background: var(--camada-2);
+}
+.summaryCard h3 {
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+.summaryCard strong {
+  font-size: clamp(1.1rem, 1.6vw, 1.5rem);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.summaryCard span {
+  font-size: 0.6875rem;
+  color: #bebebe;
+}
+.comparisonRows {
+  display: grid;
+  gap: 0.5rem;
+}
+.comparisonRow {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr 1.2fr;
+  gap: 0.75rem;
+  align-items: center;
+  background: var(--camada-2);
+  padding: 1rem;
+  min-width: 0;
+}
+.comparisonRow h3 {
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.comparisonRow small {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: #bebebe;
+}
+.comparisonRow > div {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+  font-size: 0.8rem;
+  text-align: center;
+}
+.comparisonRow span {
+  font-size: 0.6875rem;
+  color: #bebebe;
+}
+.comparisonRow b {
+  overflow-wrap: anywhere;
+}
+.comparisonRow p {
+  font-size: 0.75rem;
+  text-align: center;
+}
+.empty {
+  padding: 2rem;
+  color: #bebebe;
+  text-align: center;
+}
+@container acquisition-page (min-width: 1050px) {
+  .header {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
+    align-items: center;
+  }
+  .heading h1 {
+    font-size: 1.65rem;
+  }
+  .heading p {
+    font-size: 0.75rem;
+  }
+  .comparisonFilters,
+  .source {
+    grid-column: 1/-1;
+  }
+}
+@media (max-width: 70rem) {
+  .channelCharts {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 48rem) {
+  .filters {
+    grid-template-columns: 1fr 1fr;
+  }
+  .comparisonFilters {
+    grid-template-columns: 1fr 1fr;
+  }
+  .comparisonFilters p {
+    grid-column: 1/-1;
+  }
+  .comparisonRow {
+    grid-template-columns: 1fr 1fr;
+  }
+  .comparisonRow h3,
+  .comparisonRow p {
+    grid-column: 1/-1;
+    text-align: center;
+  }
+}

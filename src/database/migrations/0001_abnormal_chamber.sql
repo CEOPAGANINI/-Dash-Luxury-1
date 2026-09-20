@@ -1,0 +1,1 @@
+ALTER TABLE "products" ADD COLUMN "landing_content" jsonb;

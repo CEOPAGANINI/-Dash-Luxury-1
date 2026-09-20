@@ -1,0 +1,190 @@
+.page {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+  font-family: inherit;
+  text-align: center;
+}
+.controls {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+  min-width: 0;
+}
+.controls h2 {
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+.controls p,
+.heading p,
+.caption,
+.note,
+.method {
+  color: #bdbdbd;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+}
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+}
+.filters .field {
+  display: grid;
+  gap: 0.5rem;
+  min-width: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: center;
+}
+.context {
+  margin: 0;
+  max-width: 76rem;
+  justify-self: center;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  align-items: stretch;
+}
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 1rem;
+  min-width: 0;
+  padding: clamp(0.875rem, 1.5vw, 1.5rem);
+  background: var(--camada-1);
+  box-shadow:
+    0 3px 0 #0c0c0c,
+    0 10px 16px -8px #000;
+}
+.wide {
+  grid-column: 1 / -1;
+}
+.single {
+  grid-template-columns: minmax(0, 1fr);
+}
+.heading {
+  display: grid;
+  gap: 0.5rem;
+  text-align: center;
+  min-width: 0;
+}
+.heading h3 {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.4;
+  font-weight: 800;
+}
+.result {
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  font-weight: 800;
+  color: #f5f5f5;
+  overflow-wrap: anywhere;
+}
+.chart {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+}
+.chartRow {
+  display: grid;
+  gap: 0.25rem;
+}
+.chartLabel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  text-align: left;
+}
+.chartLabel span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.chartLabel strong {
+  white-space: nowrap;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+.chartRow small {
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  color: #aaa;
+  text-align: left;
+}
+.track {
+  height: 0.5rem;
+  background: var(--camada-3);
+}
+.bar {
+  display: block;
+  height: 100%;
+  background: #e5e5e5;
+}
+.empty {
+  display: grid;
+  align-content: center;
+  min-height: 8rem;
+  padding: 1rem;
+  background: var(--camada-2);
+  color: #bdbdbd;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+.caption strong {
+  color: #f5f5f5;
+  font-variant-numeric: tabular-nums;
+}
+.note {
+  margin-top: auto;
+}
+.bestDays {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+.dayGroup {
+  padding: 1rem;
+  display: grid;
+  gap: 0.75rem;
+  align-content: start;
+  background: var(--camada-2);
+  min-width: 0;
+}
+.dayGroup h4 {
+  font-size: 0.9375rem;
+  font-weight: 800;
+}
+.method {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  background: var(--camada-0);
+}
+@media (max-width: 800px) {
+  .grid,
+  .bestDays {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .wide {
+    grid-column: auto;
+  }
+}
+@media (max-width: 400px) {
+  .filters {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .chartLabel {
+    font-size: 0.6875rem;
+  }
+}

@@ -1,0 +1,285 @@
+.root {
+  container: demo-diagnostics / inline-size;
+  display: grid;
+  min-width: 0;
+  gap: 1rem;
+  color: #f5f5f5;
+  font-family: var(--font-montserrat), system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+.root * {
+  box-sizing: border-box;
+}
+.header,
+.panel,
+.campaign {
+  min-width: 0;
+  padding: 1rem;
+  background: var(--camada-1);
+  box-shadow: var(--dash-shadow-card);
+}
+.header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 1rem;
+}
+.heading {
+  display: grid;
+  justify-items: start;
+  gap: 0.45rem;
+}
+.heading h2 {
+  font-size: clamp(1.125rem, 2vw, 1.5rem);
+  line-height: 1.3;
+  font-weight: 800;
+}
+.heading p,
+.disclaimer,
+.note,
+.panelHeading p {
+  font-size: 0.75rem;
+  line-height: 1.6;
+  color: #bdbdbd;
+}
+.badge {
+  padding: 0.35rem 0.55rem;
+  background: #ededed;
+  color: #171717;
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+.metric {
+  min-width: 0;
+  padding: 1rem 0.75rem;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 0.45rem;
+  text-align: center;
+  background: var(--camada-2);
+}
+.metric dt {
+  color: #bebebe;
+  font-size: 0.6875rem;
+  line-height: 1.5;
+}
+.metric dd {
+  font-size: clamp(1rem, 2vw, 1.4rem);
+  line-height: 1.3;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+.panelHeading {
+  display: grid;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+}
+.panelHeading h3,
+.campaign h3 {
+  font-size: 0.9375rem;
+  font-weight: 750;
+  line-height: 1.4;
+}
+.funnel {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.funnel li {
+  display: grid;
+  grid-template-columns: minmax(8rem, 0.6fr) minmax(0, 1.4fr) minmax(
+      7rem,
+      0.45fr
+    );
+  align-items: center;
+  gap: 1rem;
+  padding: 0.8rem;
+  background: var(--camada-2);
+}
+.funnelValue,
+.conversion {
+  display: grid;
+  gap: 0.3rem;
+}
+.funnelValue span,
+.conversion span {
+  font-size: 0.6875rem;
+  line-height: 1.5;
+  color: #c2c2c2;
+}
+.funnelValue strong {
+  font-size: 1rem;
+  font-weight: 800;
+}
+.conversion {
+  text-align: right;
+}
+.conversion strong {
+  font-size: 0.875rem;
+  font-weight: 750;
+}
+.track {
+  width: 100%;
+  height: 0.55rem;
+  background: var(--camada-3);
+}
+.track > span {
+  display: block;
+  height: 100%;
+}
+.audienceGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+.ageList {
+  display: grid;
+  gap: 1rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.ageList li {
+  display: grid;
+  gap: 0.55rem;
+}
+.ageList li > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.75rem;
+}
+.ageList strong {
+  font-weight: 700;
+}
+.customerSplit {
+  display: flex;
+  width: 100%;
+  height: 3rem;
+  background: var(--camada-3);
+  margin-block: 1.5rem;
+}
+.customerSplit > span:first-child {
+  background: #e5e5e5;
+}
+.customerSplit > span:last-child {
+  background: #858585;
+}
+.customerLegend {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.creatives {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+.campaign {
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+}
+.campaign header {
+  display: flex;
+  gap: 0.7rem;
+  align-items: center;
+}
+.campaign header > div {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
+}
+.campaign header p,
+.campaign header div > span {
+  color: #bdbdbd;
+  font-size: 0.625rem;
+  line-height: 1.4;
+}
+.campaignNumber {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  background: var(--camada-3);
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+.campaignMetrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+.campaignMetrics .metric {
+  padding: 0.75rem 0.5rem;
+}
+.campaignMetrics .metric dd {
+  font-size: 1rem;
+}
+.campaignComparison {
+  display: grid;
+  gap: 0.5rem;
+}
+.campaignComparison > div:not(.track) {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.625rem;
+  color: #ccc;
+}
+.campaignComparison strong {
+  font-weight: 750;
+}
+@container demo-diagnostics (max-width: 800px) {
+  .header,
+  .audienceGrid,
+  .creatives {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .campaignMetrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@container demo-diagnostics (max-width: 520px) {
+  .summary {
+    gap: 0.35rem;
+  }
+  .summary .metric {
+    padding: 0.75rem 0.4rem;
+  }
+  .summary .metric dd {
+    font-size: 0.9375rem;
+  }
+  .funnel li {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0.5rem;
+  }
+  .funnel li > .track {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .conversion {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .campaignMetrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .header,
+  .panel,
+  .campaign {
+    padding: 0.75rem;
+  }
+}

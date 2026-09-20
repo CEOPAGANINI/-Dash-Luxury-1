@@ -1,0 +1,34 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1785226953476,
+      "tag": "0000_burly_dagger",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1785293491465,
+      "tag": "0001_abnormal_chamber",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1785310526398,
+      "tag": "0002_aromatic_war_machine",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1785312136667,
+      "tag": "0003_slow_wild_child",
+      "breakpoints": true
+    }
+  ]
+}

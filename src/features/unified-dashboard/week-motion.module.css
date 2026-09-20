@@ -1,0 +1,42 @@
+/* Só a lista de dias se move; cabeçalhos, foco e rolagem ficam estáveis. */
+.frame {
+  min-width: 0;
+  overflow: clip;
+  overflow-clip-margin: 4px;
+}
+
+.days[data-direction="1"] {
+  animation: week-forward 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.days[data-direction="-1"] {
+  animation: week-backward 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes week-forward {
+  from {
+    transform: translateY(3rem);
+    opacity: 0.3;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes week-backward {
+  from {
+    transform: translateY(-3rem);
+    opacity: 0.3;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .days[data-direction] {
+    animation: none;
+  }
+}

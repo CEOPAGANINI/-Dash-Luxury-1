@@ -1,0 +1,505 @@
+.root {
+  min-width: 0;
+  container: acquisition-calendar / inline-size;
+  color: #f5f5f5;
+  font-variant-numeric: tabular-nums;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.calendarColumn {
+  display: grid;
+  min-width: 0;
+  gap: 0.75rem;
+}
+
+.calendar,
+.efficiency {
+  min-width: 0;
+  padding: clamp(0.5rem, 1.2vw, 1rem);
+  background: var(--camada-1);
+  box-shadow: var(--dash-shadow-card);
+}
+
+.calendarHeading,
+.efficiencyHeading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.calendarHeading h2,
+.efficiencyHeading h3,
+.hourly h4 {
+  font-size: 0.9375rem;
+  line-height: 1.4;
+  font-weight: 750;
+}
+
+.calendarHeading h2 {
+  text-transform: capitalize;
+}
+
+.calendarHeading > span,
+.efficiencyHeading p,
+.note,
+.empty,
+.hourly > p,
+.rules,
+.stripPreview {
+  color: #b5b5b5;
+  font-size: 0.75rem;
+  line-height: 1.55;
+}
+
+.gridFrame {
+  min-width: 0;
+}
+
+.weekdays,
+.days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.375rem;
+}
+
+.weekdays {
+  padding-block: 0.375rem 0.625rem;
+  text-align: center;
+  color: #bbb;
+  font-size: 0.625rem;
+  font-weight: 750;
+}
+
+.root .day {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-width: 0;
+  min-height: 5.25rem;
+  padding: 0.4rem;
+  gap: 0.2rem;
+  text-align: center;
+  background: var(--camada-2);
+  color: #f5f5f5;
+  border: 0;
+  border-radius: 0;
+  cursor: pointer;
+  box-shadow: inset 0 -2px var(--efficiency) !important;
+}
+
+.day:hover {
+  background: var(--camada-3);
+}
+
+.root button:focus-visible,
+.root summary:focus-visible {
+  outline: 2px solid #ffffff !important;
+  outline-offset: 2px;
+}
+
+.root .day[data-selected="true"],
+.root .strip button[data-selected="true"] {
+  outline: 2px solid #ffffff !important;
+  outline-offset: -2px;
+  background: var(--camada-4);
+}
+
+.day[data-status="Futuro"] {
+  background: var(--camada-2);
+}
+
+.dayTop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem;
+}
+
+.dayTop strong {
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.mobileWeekday {
+  display: none;
+}
+
+.adjacentMonth {
+  color: #d4d4d4;
+  font-size: 0.625rem;
+  font-weight: 650;
+}
+
+.dayState {
+  color: #bbb;
+  font-size: 0.625rem;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.revenue {
+  margin-top: auto;
+  font-size: clamp(0.65rem, 0.95vw, 0.875rem);
+  font-weight: 750;
+  overflow-wrap: anywhere;
+}
+
+.roas,
+.efficiencyLabel {
+  font-size: 0.625rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.efficiencyLabel {
+  color: #ccc;
+  margin-top: auto;
+}
+
+.weekControls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.6875rem;
+}
+
+.weekControls p {
+  color: #aaa;
+  text-align: center;
+}
+
+.weekControls button {
+  min-height: 2.5rem;
+  padding: 0.5rem;
+  font-weight: 650;
+  background: var(--camada-3);
+}
+
+.weekControls button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(1.65rem, 1fr));
+  gap: 0.3rem;
+}
+
+.root .strip button {
+  min-width: 0;
+  min-height: 2.35rem;
+  padding: 0.5rem 0.1rem;
+  color: #eee;
+  background: var(--camada-2);
+  box-shadow: inset 0 -4px var(--efficiency) !important;
+  font-size: 0.65rem;
+  font-weight: 700;
+}
+
+.stripPreview {
+  margin-block: 0.75rem;
+  min-height: 2.25rem;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.legend > span {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding: 0.4rem 0.5rem;
+  background: var(--camada-2);
+  font-size: 0.625rem;
+}
+
+.legend i {
+  width: 0.45rem;
+  height: 0.45rem;
+}
+
+.legend strong {
+  font-weight: 750;
+}
+
+.rules {
+  margin-top: 0.75rem;
+}
+
+.rules summary,
+.hourlyTable summary,
+.campaigns summary {
+  cursor: pointer;
+  padding-block: 0.375rem;
+  font-weight: 650;
+}
+
+.rules p {
+  margin-top: 0.375rem;
+}
+
+.popover {
+  position: fixed;
+  z-index: 1000;
+  visibility: hidden;
+  width: min(25rem, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  background: var(--camada-1);
+  color: #f5f5f5;
+  border: 0;
+  border-radius: 0;
+  box-shadow: 0 12px 36px #0009;
+  font-family: var(--font-montserrat), sans-serif;
+  font-variant-numeric: tabular-nums;
+  scrollbar-width: thin;
+  scrollbar-color: #737373 #171717;
+}
+
+.popoverHeading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.9rem;
+  background: var(--camada-2);
+  font-size: 0.8125rem;
+  font-weight: 750;
+}
+
+.popoverHeading button {
+  min-height: 2.75rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--camada-4);
+  color: #fff;
+  cursor: pointer;
+}
+
+.popover :is(button, summary):focus-visible {
+  outline: 2px solid white;
+  outline-offset: -2px;
+}
+
+.detailContent {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.9rem;
+}
+
+.date {
+  font-size: 0.875rem;
+  font-weight: 750;
+  text-transform: capitalize;
+}
+
+.status {
+  color: #ccc;
+  font-size: 0.6875rem;
+  font-weight: 650;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.metrics > div {
+  padding: 0.65rem 0.4rem;
+  background: var(--camada-2);
+  text-align: center;
+  min-width: 0;
+}
+
+.metrics > div:first-child {
+  grid-column: 1 / -1;
+}
+
+.metrics dt {
+  color: #b5b5b5;
+  font-size: 0.625rem;
+  line-height: 1.5;
+}
+
+.metrics dd {
+  margin-top: 0.3rem;
+  font-size: 1rem;
+  font-weight: 750;
+  overflow-wrap: anywhere;
+}
+
+.hourlyBars {
+  display: grid;
+  grid-template-columns: repeat(24, minmax(0, 1fr));
+  height: 7rem;
+  gap: 0.125rem;
+  margin-top: 0.65rem;
+  align-items: end;
+}
+
+.hourBar {
+  height: 100%;
+  display: flex;
+  align-items: end;
+  min-width: 0;
+}
+
+.hourBar span {
+  display: block;
+  width: 100%;
+  background: #e5e5e5;
+}
+
+.axis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.35rem;
+  color: #aaa;
+  font-size: 0.5625rem;
+}
+
+.peak {
+  margin-top: 0.5rem;
+}
+
+.hourlyTable,
+.campaigns {
+  font-size: 0.6875rem;
+  line-height: 1.55;
+}
+
+.hourlyTable dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.375rem;
+}
+
+.hourlyTable dl > div {
+  padding: 0.3rem;
+  background: var(--camada-2);
+}
+
+.hourlyTable dd {
+  font-weight: 750;
+}
+
+.campaigns li {
+  padding: 0.3rem;
+  overflow-wrap: anywhere;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 600px) {
+  .calendar,
+  .efficiency {
+    padding: 0.5rem;
+  }
+
+  .weekdays,
+  .days {
+    gap: 0.2rem;
+  }
+
+  .root .day {
+    padding: 0.3rem 0.15rem;
+    min-height: 6.7rem;
+  }
+
+  .dayTop {
+    justify-content: center;
+  }
+
+  .dayState {
+    width: 100%;
+    font-size: 0.5rem;
+  }
+
+  .revenue {
+    font-size: 0.59rem;
+  }
+
+  .roas,
+  .efficiencyLabel {
+    font-size: 0.5rem;
+  }
+
+  .weekControls p {
+    order: 3;
+    width: 100%;
+  }
+
+  .strip {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
+
+  .gridFrame[data-view="week"] .weekdays {
+    display: none;
+  }
+
+  .days[data-view="week"] {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.375rem;
+  }
+
+  .days[data-view="week"] .day {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    min-height: 4.25rem;
+    padding: 0.5rem;
+    align-items: center;
+  }
+
+  .days[data-view="week"] .mobileWeekday {
+    display: inline;
+  }
+
+  .days[data-view="week"] .dayTop {
+    grid-row: span 2;
+    gap: 0.35rem;
+  }
+
+  .days[data-view="week"] .dayTop strong,
+  .days[data-view="week"] .revenue {
+    font-size: 0.875rem;
+  }
+
+  .days[data-view="week"] .dayState,
+  .days[data-view="week"] .roas,
+  .days[data-view="week"] .efficiencyLabel {
+    font-size: 0.6875rem;
+  }
+
+  .days[data-view="week"] .efficiencyLabel {
+    grid-column: 1 / -1;
+  }
+}

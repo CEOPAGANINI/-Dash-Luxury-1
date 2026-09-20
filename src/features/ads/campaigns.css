@@ -1,0 +1,4072 @@
+.campaign-workspace {
+  container-type: inline-size;
+  width: 100%;
+  min-width: 0;
+  margin-inline: auto;
+  color: #f5f5f5;
+}
+.campaign-manager {
+  display: grid;
+  gap: 12px;
+}
+.campaign-manager .campaign-page-heading h1 {
+  font-size: clamp(1.65rem, 2.5cqi, 2rem);
+}
+.campaign-manager .campaign-source {
+  padding: 12px 16px;
+}
+.campaign-manager .campaign-source-context {
+  gap: 8px;
+}
+.campaign-manager .campaign-filters {
+  margin: 12px 0;
+}
+.campaign-class-select {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  width: 100%;
+  padding: 8px;
+  margin-block: 8px;
+  background: var(--camada-3);
+  text-align: left;
+}
+.campaign-class-select > span {
+  color: #bbb;
+  font-size: 0.625rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.campaign-class-select strong {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 36px;
+  padding: 6px;
+  border: 0;
+  border-radius: 0;
+  background: var(--camada-2);
+  color: #f5f5f5;
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+.campaign-class-help,
+.campaign-class-notice {
+  margin-block: 8px;
+  color: #bbb;
+  font-size: 0.75rem;
+  line-height: 1.6;
+}
+.campaign-class-notice {
+  padding: 10px 12px;
+  background: var(--camada-2);
+  color: #eee;
+}
+.campaign-board-toolbar,
+.campaign-view-switch {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.campaign-view-switch button {
+  min-height: 40px;
+  padding: 10px 16px;
+  background: var(--camada-2);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.campaign-view-switch button[aria-pressed="true"] {
+  color: #111;
+  background: #eee;
+}
+.campaign-board-help,
+.campaign-board-notice {
+  font-size: 0.75rem;
+  line-height: 1.7;
+  color: #bbb;
+}
+.campaign-board-notice {
+  padding: 12px 16px;
+  background: var(--camada-3);
+  color: #eee;
+}
+.campaign-board-scroll {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  padding-bottom: 12px;
+  scrollbar-width: thin;
+  scrollbar-color: #666 #171717;
+}
+.campaign-board {
+  font-family: var(--font-montserrat), sans-serif;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(290px, 1fr));
+  align-items: stretch;
+  gap: 16px;
+  min-width: 902px;
+}
+.campaign-board-column {
+  background: var(--camada-1);
+  padding: 10px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.campaign-board-column[data-drop-active="true"] {
+  background: var(--camada-4);
+}
+.campaign-board-column-heading {
+  padding: 8px 10px;
+}
+.campaign-board-column-heading > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.campaign-board-column-heading h3 {
+  font-size: 1rem;
+  font-weight: 800;
+}
+.campaign-board-count {
+  display: grid;
+  place-items: center;
+  min-width: 28px;
+  height: 28px;
+  background: var(--camada-4);
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.campaign-board-column-heading p {
+  margin-top: 4px;
+  color: #aaa;
+  font-size: 0.6875rem;
+}
+.campaign-board-column-heading dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+.campaign-board-column-heading dt,
+.campaign-board-card-metrics dt {
+  font-size: 0.625rem;
+  color: #aaa;
+  margin-bottom: 4px;
+}
+.campaign-board-column-heading dd {
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.campaign-board-cards {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  height: clamp(440px, 68dvh, 820px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #666 #191919;
+  padding: 2px;
+}
+.campaign-board-card {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px;
+  background: var(--camada-2);
+}
+.campaign-board-card[data-selected="true"] {
+  background: var(--camada-4);
+}
+.campaign-board-card-top,
+.campaign-board-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.campaign-board-card-top > span {
+  overflow-wrap: anywhere;
+}
+.campaign-board-card-footer {
+  min-height: 40px;
+}
+.campaign-board-move {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 32px;
+  padding: 6px;
+  background: var(--camada-3);
+  font-size: 0.625rem;
+  color: #ccc;
+  cursor: grab;
+}
+.campaign-board-move:active {
+  cursor: grabbing;
+}
+.campaign-board-card h4 {
+  min-height: 40px;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  font-weight: 750;
+  overflow-wrap: anywhere;
+}
+.campaign-board-card h4 button {
+  width: 100%;
+  text-align: left;
+}
+.campaign-board-origin {
+  font-size: 0.625rem;
+  color: #aaa;
+}
+.campaign-board-card-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+.campaign-board-card-metrics > div {
+  min-width: 0;
+  background: var(--camada-2);
+  padding: 6px 4px;
+  text-align: center;
+}
+.campaign-board-card-metrics dd {
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.campaign-board-budget {
+  display: grid;
+  gap: 2px;
+  padding: 6px;
+  text-align: center;
+  background: var(--camada-3);
+  min-width: 0;
+}
+.campaign-board-budget > span,
+.campaign-board-card-footer > span {
+  font-size: 0.625rem;
+  color: #bbb;
+}
+.campaign-board-card .campaign-inline-budget,
+.campaign-board-card .campaign-budget-form {
+  width: 100%;
+  min-width: 0;
+}
+.campaign-board-card .campaign-budget-trigger {
+  width: 100%;
+  min-height: 34px;
+  padding: 4px;
+  font-size: 0.875rem;
+  justify-content: center;
+  background: var(--camada-3);
+}
+.campaign-board-card .campaign-inline-message {
+  max-width: 100%;
+  font-size: 0.6875rem;
+  line-height: 1.5;
+}
+.campaign-board-card .campaign-status-action {
+  flex: 1 1 100px;
+}
+.campaign-board-card .campaign-status-action button {
+  min-height: 32px;
+  font-size: 0.6875rem;
+  margin-left: auto;
+}
+.campaign-board-card-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+.campaign-board-card-actions button,
+.campaign-workspace .campaign-board-card-actions .campaign-analyze-button {
+  margin: 0;
+  min-height: 40px;
+  padding: 8px 6px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+.campaign-board-card-actions > button:last-child {
+  background: var(--camada-4);
+}
+.campaign-board-empty {
+  display: grid;
+  place-content: center;
+  text-align: center;
+  gap: 8px;
+  min-height: 170px;
+  padding: 20px;
+  color: #aaa;
+  font-size: 0.75rem;
+  background: var(--camada-2);
+}
+.campaign-board-empty p {
+  font-size: 0.6875rem;
+  line-height: 1.6;
+}
+.campaign-board :is(button, input),
+.campaign-view-switch button,
+.campaign-move-dialog,
+.campaign-move-dialog * {
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background-image: none !important;
+}
+.campaign-board :is(button, input):focus-visible,
+.campaign-board-scroll:focus-visible,
+.campaign-board-cards:focus-visible,
+.campaign-view-switch button:focus-visible,
+.campaign-move-dialog :is(button, select, input):focus-visible {
+  outline: 2px solid #eee;
+  outline-offset: 2px;
+}
+.campaign-move-overlay {
+  position: fixed;
+  inset: 0;
+  background: #000b;
+  z-index: 200;
+}
+.campaign-move-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 201;
+  width: min(480px, calc(100vw - 32px));
+  max-height: calc(100dvh - 48px);
+  overflow: auto;
+  padding: 24px;
+  color: #eee;
+  background: var(--camada-2);
+  font-family: var(--font-montserrat), sans-serif;
+}
+.campaign-move-dialog h2 {
+  font-size: 1.125rem;
+  font-weight: 800;
+}
+.campaign-move-dialog p {
+  margin-top: 10px;
+  font-size: 0.8125rem;
+  line-height: 1.7;
+  color: #ccc;
+}
+.campaign-move-dialog form {
+  display: grid;
+  gap: 12px;
+  margin-top: 20px;
+}
+.campaign-move-dialog label {
+  font-size: 0.8125rem;
+}
+.campaign-move-dialog select {
+  width: 100%;
+  min-height: 44px;
+  background: var(--camada-3);
+  color: #fff;
+  padding: 10px;
+}
+.campaign-move-dialog form > div {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.campaign-move-dialog button {
+  min-height: 44px;
+  padding: 10px 14px;
+  background: var(--camada-3);
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex: 1;
+}
+.campaign-move-dialog button[type="submit"] {
+  background: #eee;
+  color: #111;
+}
+.campaign-move-dialog button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.campaign-move-dialog .campaign-move-approval {
+  display: flex;
+  align-items: start;
+  gap: 8px;
+}
+.campaign-move-approval input {
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+@container (max-width: 700px) {
+  .campaign-board {
+    grid-template-columns: repeat(3, 282px);
+    min-width: 878px;
+  }
+  .campaign-board-toolbar,
+  .campaign-view-switch {
+    width: 100%;
+  }
+  .campaign-view-switch button {
+    flex: 1;
+  }
+}
+.campaign-workspace .campaign-analyze-button {
+  display: block;
+  padding: 6px 10px;
+  margin-top: 8px;
+  min-height: 34px;
+  color: #151515;
+  background: #eee;
+  font-size: 0.75rem;
+  font-weight: 750;
+}
+.campaign-insights,
+.campaign-insight-view {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+}
+.campaign-insights {
+  margin-top: 20px;
+}
+#campaign-selected-details {
+  scroll-margin-top: 76px;
+}
+.campaign-insights :is(button, input),
+.campaign-workspace .campaign-analyze-button {
+  box-shadow: none !important;
+  background-image: none !important;
+  border-radius: 0 !important;
+}
+.campaign-insight-nav {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.campaign-insight-nav button,
+.campaign-scenario-inputs > button {
+  padding: 14px 12px;
+  min-height: 44px;
+  background: var(--camada-3);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+.campaign-insight-nav button[aria-pressed="true"] {
+  background: #eee;
+  color: #111;
+}
+.campaign-insight-view h4 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 800;
+}
+.campaign-insight-view h5 {
+  font-size: 0.875rem;
+  font-weight: 750;
+}
+.campaign-insight-view header p,
+.campaign-findings p,
+.campaign-funnel-caption p {
+  color: #bbb;
+  font-size: 0.8125rem;
+  line-height: 1.7;
+  margin-top: 6px;
+}
+.campaign-insight-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.campaign-insight-metrics > div {
+  background: var(--camada-2);
+  min-width: 0;
+  padding: 20px 14px;
+  text-align: center;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+.campaign-insight-metrics dt {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: #ccc;
+}
+.campaign-insight-metrics dd {
+  font-size: clamp(1.125rem, 2cqi, 1.75rem);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.campaign-insight-metrics p {
+  font-size: 0.6875rem;
+  color: #aaa;
+}
+.campaign-findings {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.campaign-findings > div {
+  padding: 20px;
+  background: var(--camada-1);
+  min-width: 0;
+}
+.campaign-scenario-layout {
+  display: grid;
+  grid-template-columns: minmax(230px, 1fr) minmax(0, 2fr);
+  gap: 20px;
+  align-items: start;
+}
+.campaign-scenario-inputs {
+  display: grid;
+  gap: 16px;
+  background: var(--camada-1);
+  padding: 20px;
+}
+.campaign-scenario-field {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+.campaign-workspace .campaign-scenario-inputs input {
+  width: 100%;
+  min-width: 0;
+  height: 44px;
+  background: var(--camada-3);
+  color: #fff;
+  padding: 10px 12px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  border: 0;
+}
+.campaign-scenario-inputs small {
+  color: #ddd;
+  line-height: 1.5;
+}
+.campaign-scenario-results {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.campaign-scenario-results .campaign-insight-metrics {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.campaign-funnel {
+  display: grid;
+  gap: 16px;
+}
+.campaign-funnel > li {
+  background: var(--camada-2);
+  padding: 20px;
+}
+.campaign-funnel-caption {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+.campaign-funnel-caption strong {
+  font-size: 1.75rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.campaign-funnel-track {
+  height: 22px;
+  margin-top: 16px;
+  background: var(--camada-4);
+  display: flex;
+  justify-content: center;
+}
+.campaign-funnel-track span {
+  display: block;
+  background: #eee;
+}
+.campaign-insight-warning {
+  background: var(--camada-3);
+  color: #eee;
+  font-size: 0.8125rem;
+  padding: 16px;
+  line-height: 1.7;
+}
+.campaign-insights :is(button, input):focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+@container (max-width: 850px) {
+  .campaign-findings {
+    grid-template-columns: 1fr;
+  }
+  .campaign-scenario-layout {
+    grid-template-columns: 1fr;
+  }
+  .campaign-scenario-inputs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@container (max-width: 520px) {
+  .campaign-insight-nav {
+    grid-template-columns: 1fr;
+  }
+  .campaign-insight-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .campaign-scenario-inputs {
+    grid-template-columns: 1fr;
+  }
+  .campaign-funnel-caption {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+  .campaign-scenario-results .campaign-insight-metrics {
+    grid-template-columns: 1fr;
+  }
+  .campaign-insight-metrics > div {
+    padding: 16px 10px;
+  }
+}
+.campaign-demo-controls {
+  display: grid;
+  gap: 12px;
+}
+.campaign-demo-confirm {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  background: var(--camada-2);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+}
+.campaign-page-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+.campaign-manager .campaign-page-heading {
+  margin-bottom: 0;
+}
+.campaign-page-heading > div {
+  min-width: 0;
+}
+.campaign-page-heading h1 {
+  font-size: clamp(1.65rem, 3cqi, 2.4rem);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.04em;
+  margin: 8px 0;
+}
+.campaign-page-heading p,
+.campaign-section-heading p {
+  color: #aaa;
+  font-size: 0.8125rem;
+  line-height: 1.7;
+}
+.campaign-workspace .campaign-eyebrow {
+  color: #aaa;
+  font-size: 0.625rem;
+  line-height: 1.7;
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+.campaign-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.campaign-toolbar form {
+  flex-wrap: wrap;
+}
+.campaign-toolbar button {
+  min-height: 42px;
+}
+.campaign-source {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  background: var(--camada-0);
+  padding: 18px 20px;
+}
+.campaign-source > div:first-child {
+  flex: 1 1 360px;
+}
+.campaign-source strong {
+  display: block;
+  font-size: 0.8125rem;
+  margin-bottom: 4px;
+}
+.campaign-source p,
+.campaign-source-context {
+  color: #aaa;
+  font-size: 0.75rem;
+  line-height: 1.7;
+}
+.campaign-source-context {
+  display: grid;
+  gap: 2px;
+}
+.campaign-source a,
+.campaign-note a {
+  color: #eee;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.campaign-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+.campaign-metrics > div {
+  display: grid;
+  align-content: center;
+  gap: 10px;
+  min-height: 108px;
+  min-width: 0;
+  text-align: center;
+  padding: 18px 12px;
+  background: var(--camada-2);
+}
+.campaign-metrics dt {
+  color: #aaa;
+  font-size: 0.6875rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.campaign-metrics dd {
+  font-size: clamp(1.25rem, 2.1cqi, 1.875rem);
+  line-height: 1.15;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+}
+.campaign-surface {
+  background: var(--camada-0);
+  padding: 20px;
+  min-width: 0;
+}
+.campaign-surface h2,
+.campaign-section-heading :is(h1, h2) {
+  font-size: 1rem;
+  line-height: 1.5;
+  font-weight: 750;
+}
+.campaign-surface > h2 {
+  margin-bottom: 18px;
+}
+.campaign-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+.campaign-section-heading > div {
+  min-width: 0;
+}
+.campaign-section-heading h3 {
+  font-size: 0.9375rem;
+  font-weight: 750;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.campaign-section-heading p {
+  font-size: 0.6875rem;
+}
+.campaign-state {
+  background: var(--camada-3);
+  padding: 7px 12px;
+  flex-shrink: 0;
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+.campaign-filters {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 20px 0;
+}
+.campaign-filters > label:first-child {
+  grid-column: 1 / -1;
+}
+.campaign-filters :is(label, .campaign-filter) {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  font-size: 0.6875rem;
+  font-weight: 650;
+  color: #bbb;
+}
+.campaign-filters :is(input, select),
+.campaign-control {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  padding: 10px 12px;
+  background: var(--camada-2);
+  border: 0;
+  color: #eee;
+  border-radius: 0;
+  font: inherit;
+  font-size: 0.75rem;
+}
+.campaign-control {
+  width: auto;
+  cursor: pointer;
+  font-weight: 650;
+}
+.campaign-control:hover {
+  background: var(--camada-3);
+}
+.campaign-list {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.campaign-table-help,
+.campaign-table-footnote {
+  color: #b8b8b8;
+  font-size: 0.6875rem;
+  line-height: 1.7;
+}
+.campaign-table-scroll {
+  width: 100%;
+  min-width: 0;
+  max-height: 680px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-color: #777 #202020;
+  scrollbar-width: auto;
+  background: var(--camada-1);
+}
+.campaign-workspace .campaign-table {
+  width: 100%;
+  min-width: 2380px;
+  border-collapse: separate;
+  border-spacing: 0 4px;
+  table-layout: auto;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+}
+.campaign-table :is(th, td) {
+  padding: 14px 16px;
+  min-width: 120px;
+  height: 88px;
+  text-align: center;
+  vertical-align: middle;
+  white-space: nowrap;
+  background: var(--camada-2);
+  border: 0;
+  font-weight: 550;
+}
+.campaign-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  height: 66px;
+  color: #c6c6c6;
+  background: var(--camada-3);
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+.campaign-table thead button {
+  min-height: 44px;
+  width: 100%;
+  cursor: pointer;
+  font: inherit;
+}
+.campaign-table thead small {
+  display: block;
+  color: #fff;
+  font-size: 0.5625rem;
+  font-weight: 600;
+}
+.campaign-table .campaign-status-column {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  min-width: 130px;
+  width: 130px;
+  max-width: 130px;
+}
+.campaign-table .campaign-name-column {
+  position: sticky;
+  left: 130px;
+  z-index: 2;
+  width: 280px;
+  min-width: 280px;
+  max-width: 280px;
+  white-space: normal;
+  text-align: left;
+}
+.campaign-table thead :is(.campaign-status-column, .campaign-name-column) {
+  z-index: 4;
+}
+.campaign-table .campaign-budget-column {
+  min-width: 200px;
+  width: 200px;
+}
+.campaign-table tbody tr:nth-child(even) :is(td, th) {
+  background: var(--camada-2);
+}
+.campaign-table
+  tbody
+  tr:is(:hover, :focus-within, [data-selected])
+  :is(td, th) {
+  background: var(--camada-3);
+}
+.campaign-table tfoot :is(td, th) {
+  height: 80px;
+  background: var(--camada-4);
+  font-weight: 750;
+}
+.campaign-table .campaign-name-button {
+  display: block;
+  width: 100%;
+  min-height: 26px;
+  text-align: left;
+  font-weight: 750;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+.campaign-table-secondary {
+  display: block;
+  color: #aaa;
+  margin-top: 4px;
+  font-size: 0.625rem;
+  font-weight: 500;
+}
+.campaign-details-button {
+  display: block;
+  min-height: 28px;
+  font-size: 0.625rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.campaign-delivery {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  font-size: 0.625rem;
+  color: #bcbcbc;
+}
+.campaign-delivery > span {
+  width: 6px;
+  height: 6px;
+  background: #737373;
+}
+.campaign-delivery[data-status="active"] {
+  color: #fff;
+}
+.campaign-delivery[data-status="active"] > span {
+  background: #fff;
+}
+.campaign-status-action {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+}
+.campaign-status-action button {
+  min-height: 36px;
+  font-size: 0.6875rem;
+}
+.campaign-status-column .campaign-inline-message {
+  max-width: 98px;
+}
+.campaign-inline-budget {
+  min-width: 0;
+}
+.campaign-budget-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 42px;
+  padding: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  background: var(--camada-4);
+}
+.campaign-budget-trigger[hidden] {
+  display: none;
+}
+.campaign-budget-form {
+  display: grid;
+  gap: 10px;
+  width: 180px;
+  margin: auto;
+}
+.campaign-budget-form label {
+  display: grid;
+  gap: 6px;
+  color: #ccc;
+  font-size: 0.625rem;
+  text-align: left;
+  white-space: normal;
+}
+.campaign-budget-form input[type="number"] {
+  appearance: textfield;
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  background: var(--camada-0);
+  padding: 8px;
+  color: #fff;
+  font: inherit;
+  font-size: 0.8125rem;
+}
+.campaign-budget-form input::-webkit-inner-spin-button,
+.campaign-budget-form input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.campaign-budget-buttons {
+  display: flex;
+  gap: 6px;
+}
+.campaign-budget-buttons button {
+  min-height: 36px;
+  flex: 1;
+  padding: 6px;
+  cursor: pointer;
+  font-size: 0.625rem;
+  font-weight: 700;
+  background: #fff;
+  color: #111;
+}
+.campaign-budget-buttons button[type="button"] {
+  background: var(--camada-4);
+  color: #fff;
+}
+.campaign-budget-buttons button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+.campaign-budget-form .campaign-budget-approval {
+  display: flex;
+  align-items: start;
+}
+.campaign-budget-approval input {
+  margin-top: 3px;
+  accent-color: #fff;
+}
+.campaign-inline-message {
+  display: block;
+  max-width: 180px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  font-size: 0.625rem;
+  line-height: 1.5;
+  text-align: left;
+  color: #ddd;
+  margin: 6px auto 0;
+}
+.campaign-workspace
+  :is(
+    .campaign-table-scroll,
+    .campaign-table button,
+    .campaign-table input
+  ):focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: -2px;
+}
+.campaign-structure-heading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 14px;
+  font-size: 0.75rem;
+  background: var(--camada-3);
+}
+@container (max-width: 700px) {
+  .campaign-table :is(.campaign-status-column, .campaign-name-column) {
+    position: static;
+  }
+  .campaign-table thead :is(.campaign-status-column, .campaign-name-column) {
+    position: sticky;
+    left: auto;
+  }
+  .campaign-table-scroll {
+    max-height: 620px;
+  }
+}
+.campaign-row {
+  min-width: 0;
+  padding: 20px;
+  background: var(--camada-1);
+  display: grid;
+  gap: 16px;
+}
+.campaign-metrics-compact > div {
+  background: var(--camada-2);
+  padding: 12px 8px;
+  min-height: 74px;
+  gap: 8px;
+}
+.campaign-metrics-compact dd {
+  font-size: 1.125rem;
+}
+.campaign-metrics-compact dt {
+  font-size: 0.625rem;
+}
+.campaign-disclosure,
+.campaign-child {
+  min-width: 0;
+  background: var(--camada-1);
+}
+.campaign-workspace summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  min-height: 46px;
+  padding: 12px 14px;
+  list-style: none;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 650;
+  background: var(--camada-3);
+}
+.campaign-workspace summary::-webkit-details-marker {
+  display: none;
+}
+.campaign-workspace summary::marker {
+  content: "";
+}
+.campaign-workspace summary span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.campaign-workspace summary span + span {
+  color: #aaa;
+  font-size: 0.6875rem;
+  text-align: right;
+}
+.campaign-workspace details[open] > summary {
+  background: var(--camada-4);
+}
+.campaign-workspace summary:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+.campaign-detail-content {
+  display: grid;
+  gap: 16px;
+  padding: 16px;
+}
+.campaign-detail-content h4 {
+  font-size: 0.75rem;
+  font-weight: 750;
+}
+.campaign-detail-content > p {
+  color: #aaa;
+  font-size: 0.75rem;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.campaign-detail-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.campaign-detail-metrics > div {
+  display: grid;
+  align-content: center;
+  gap: 8px;
+  text-align: center;
+  min-width: 0;
+  padding: 12px 8px;
+  background: var(--camada-2);
+}
+.campaign-detail-metrics dt {
+  font-size: 0.625rem;
+  line-height: 1.5;
+  color: #aaa;
+}
+.campaign-detail-metrics dd {
+  font-size: 0.8125rem;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.campaign-entity {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+.campaign-entity-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+}
+.campaign-entity-actions > .campaign-note {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex: 1 1 250px;
+}
+.campaign-note {
+  color: #aaa;
+  font-size: 0.6875rem;
+  line-height: 1.8;
+}
+.campaign-edit-form {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr auto;
+  align-items: end;
+  gap: 12px;
+}
+.campaign-edit-form label {
+  min-width: 0;
+}
+.campaign-create-form {
+  grid-template-columns: 2fr 1.4fr 1fr 1fr auto;
+}
+.campaign-edit-form input,
+.campaign-edit-form select {
+  min-width: 0;
+  min-height: 42px;
+}
+.campaign-edit-form > p,
+.campaign-edit-form > label:has([type="checkbox"]) {
+  grid-column: 1 / -1;
+}
+.campaign-empty {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  padding: 40px 16px;
+  text-align: center;
+  background: var(--camada-1);
+}
+.campaign-empty h3 {
+  font-size: 1rem;
+  font-weight: 700;
+}
+.campaign-empty p {
+  color: #aaa;
+  font-size: 0.8125rem;
+  line-height: 1.7;
+}
+.campaign-example-tools p {
+  padding: 14px;
+  color: #aaa;
+  font-size: 0.75rem;
+}
+.campaign-example-tools form {
+  padding: 0 14px 14px;
+}
+.campaign-network-comparison {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.campaign-network-comparison article {
+  display: grid;
+  align-content: start;
+  gap: 20px;
+  min-width: 0;
+  padding: 20px;
+  background: var(--camada-1);
+}
+.campaign-network-comparison h2 {
+  font-size: 1rem;
+  font-weight: 750;
+}
+.campaign-network-comparison a {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  font-size: 0.75rem;
+}
+.campaign-network-comparison .campaign-metrics {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.campaign-share {
+  display: grid;
+  gap: 8px;
+  font-size: 0.6875rem;
+  color: #aaa;
+}
+.campaign-share > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.campaign-share-track {
+  height: 8px;
+  background: var(--camada-3);
+}
+.campaign-share-track > span {
+  display: block;
+  height: 100%;
+  background: #eee;
+}
+@container (max-width: 850px) {
+  .campaign-filters,
+  .campaign-edit-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .campaign-network-comparison {
+    grid-template-columns: 1fr;
+  }
+  .campaign-network-comparison .campaign-metrics {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+@container (max-width: 520px) {
+  .campaign-manager {
+    gap: 14px;
+  }
+  .campaign-page-heading {
+    gap: 14px;
+  }
+  .campaign-surface,
+  .campaign-row {
+    padding: 12px;
+  }
+  .campaign-source {
+    padding: 14px;
+  }
+  .campaign-metrics,
+  .campaign-detail-metrics,
+  .campaign-network-comparison .campaign-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .campaign-metrics > div {
+    min-height: 85px;
+    padding: 12px 8px;
+  }
+  .campaign-metrics-compact > div {
+    min-height: 68px;
+  }
+  .campaign-filters {
+    grid-template-columns: 1fr;
+  }
+  .campaign-edit-form {
+    grid-template-columns: 1fr;
+  }
+  .campaign-section-heading {
+    align-items: start;
+    flex-wrap: wrap;
+  }
+  .campaign-section-heading > div {
+    flex: 1 1 170px;
+  }
+  .campaign-detail-content {
+    padding: 10px;
+  }
+  .campaign-workspace summary {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .campaign-workspace summary span + span {
+    text-align: left;
+  }
+}
+
+/* Pager numerado: um bloco por campanha acima das colunas, no trilho
+   claro; setas ao lado e o nome da campanha em foco. */
+.campaign-pager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0;
+}
+.campaign-pager-seta {
+  display: grid;
+  place-items: center;
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+  padding: 0;
+  background: #f4f4f4;
+  color: #111;
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+}
+.campaign-pager-seta:hover:not(:disabled) {
+  background: #dcdcdc;
+}
+.campaign-pager-seta:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.campaign-pager-nome {
+  flex: 1 1 12rem;
+  min-width: 0;
+  color: #bbb;
+  font-size: 0.75rem;
+  font-weight: 650;
+  text-align: center;
+}
+
+/* ---------------------------------------------------------------------
+   Cartões do gerenciador: sem rolagem na coluna, tamanho padrão e tudo
+   dentro de blocos em camadas — coluna (1) › cartão (2) › bloco (3) ›
+   célula ou botão (botão/4). Nenhuma informação solta.
+   --------------------------------------------------------------------- */
+.campaign-board { align-items: start; }
+.campaign-board-column { background: var(--camada-1); }
+.campaign-board-cards {
+  height: auto;
+  max-height: none;
+  overflow: visible;
+  padding: 0;
+  gap: 12px;
+}
+.campaign-board-card {
+  gap: 8px;
+  min-height: 34rem;
+  padding: 10px;
+  background: var(--camada-2);
+  border: 1px solid var(--fio-forte);
+  grid-template-rows: auto auto auto auto 1fr auto auto auto;
+}
+.campaign-board-card > * {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 8px 10px;
+  background: var(--camada-3);
+  border: 1px solid var(--fio);
+}
+.campaign-board-card > .campaign-board-card-top { min-height: 48px; }
+.campaign-board-card > h4 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 64px;
+  text-align: center;
+}
+.campaign-board-card > .campaign-board-origin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  text-align: center;
+}
+.campaign-board-card > .campaign-class-select { background: var(--camada-3); }
+.campaign-board-card > .campaign-board-card-metrics { padding: 8px; gap: 6px; align-content: start; }
+.campaign-board-card-metrics > div {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 56px;
+  background: var(--botao);
+  border: 1px solid var(--fio);
+}
+.campaign-board-card > .campaign-board-budget { min-height: 72px; }
+.campaign-board-card .campaign-budget-trigger,
+.campaign-board-card .campaign-status-action button,
+.campaign-board-card .campaign-board-move,
+.campaign-board-card-actions button,
+.campaign-workspace .campaign-board-card-actions .campaign-analyze-button {
+  background: var(--botao);
+  border: 1px solid var(--fio-forte) !important;
+}
+.campaign-board-card .campaign-budget-trigger:hover,
+.campaign-board-card .campaign-status-action button:hover,
+.campaign-board-card .campaign-board-move:hover,
+.campaign-board-card-actions button:hover {
+  background: var(--botao-hover);
+}
+.campaign-board-card > .campaign-board-card-footer { min-height: 52px; }
+.campaign-board-card-footer > span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 8px;
+  background: var(--botao);
+  border: 1px solid var(--fio);
+}
+.campaign-board-card > .campaign-board-card-actions { padding: 8px; }
+.campaign-board-card-actions > button:last-child { background: var(--camada-4); }
+.campaign-board-empty { min-height: 34rem; }
+
+/* ---------------------------------------------------------------------
+   Menu do gerenciador, mínimo e padronizado: uma linha de título, um
+   campo de busca, quatro filtros na mesma grade e o pager — tudo com a
+   mesma altura (36px), o mesmo espaçamento (8px) e o mesmo tom.
+   --------------------------------------------------------------------- */
+.campaign-manager .campaign-inventory { padding: 12px; }
+.campaign-manager .campaign-toolbar-linha { min-height: 36px; gap: 8px; }
+.campaign-manager .campaign-toolbar-linha h1 { font-size: 0.9375rem; line-height: 1.3; }
+.campaign-manager .campaign-toolbar-linha p { margin: 0; font-size: 0.6875rem; line-height: 1.4; }
+.campaign-manager .campaign-board-toolbar { gap: 6px; }
+.campaign-manager .campaign-control {
+  min-height: 36px;
+  padding: 0 12px;
+  background: var(--botao);
+  border: 1px solid var(--fio-forte);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.campaign-manager .campaign-control:hover { background: var(--botao-hover); }
+.campaign-manager .campaign-filters {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr) minmax(0, 1.6fr);
+  align-items: stretch;
+  gap: 8px;
+  margin: 12px 0 0;
+}
+.campaign-manager .campaign-filters > .campaign-busca,
+.campaign-manager .campaign-filters > .campaign-filter-classe { grid-column: 1 / -1; }
+.campaign-manager .campaign-filters > .campaign-filter-classe { order: 2; }
+.campaign-manager .campaign-filters .campaign-busca input {
+  min-height: 36px;
+  padding: 0 12px;
+  background: var(--camada-0);
+  border: 1px solid var(--fio-forte);
+  font-size: 0.75rem;
+  text-align: center;
+}
+.campaign-manager .campaign-filters .campaign-filter {
+  align-content: start;
+  gap: 6px;
+  padding: 8px;
+  background: var(--camada-1);
+  border: 1px solid var(--fio);
+}
+.campaign-manager .campaign-filters .campaign-filter > .block-picker {
+  align-self: start;
+  align-content: flex-start;
+}
+.campaign-manager .campaign-filters .campaign-filter > span {
+  color: #9e9e9e;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.campaign-manager .campaign-filters .block-picker[data-tone="claro"] {
+  gap: 4px;
+  padding: 4px;
+  box-shadow: none;
+}
+.campaign-manager .campaign-filters .block-picker[data-tone="claro"][data-size="sm"] > [role="radio"] {
+  min-height: 28px;
+  padding: 0 10px;
+  font-size: 0.6875rem;
+}
+.campaign-manager .campaign-pager {
+  gap: 6px;
+  margin: 8px 0 0;
+  padding: 8px;
+  background: var(--camada-1);
+  border: 1px solid var(--fio);
+}
+.campaign-manager .campaign-pager .block-picker[data-tone="claro"] { gap: 4px; padding: 4px; box-shadow: none; }
+.campaign-manager .campaign-pager .block-picker[data-tone="claro"][data-size="sm"] > [role="radio"] { min-height: 28px; min-width: 28px; padding: 0 8px; font-size: 0.6875rem; }
+.campaign-manager .campaign-pager-seta { width: 36px; min-height: 36px; height: 36px; font-size: 16px; }
+.campaign-manager .campaign-pager-nome { font-size: 0.6875rem; }
+.campaign-manager .campaign-board-help { display: none; }
+.campaign-manager .campaign-class-notice { margin: 8px 0 0; }
+@container (max-width: 1100px) {
+  .campaign-manager .campaign-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@container (max-width: 640px) {
+  .campaign-manager .campaign-filters { grid-template-columns: 1fr; }
+}
+
+/* ---------------------------------------------------------------------
+   Página da campanha: à esquerda o bloco grande de métricas (cada número
+   num bloco menor), à direita o relatório; embaixo a faixa completa com
+   Campanha › Conjuntos › Anúncios, como no Gerenciador de Anúncios.
+   Camadas: página (0) › bloco grande (1) › bloco menor (2) › célula (3).
+   --------------------------------------------------------------------- */
+.campanha-painel {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+.campanha-bloco {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  min-width: 0;
+  padding: 12px;
+  background: var(--camada-1);
+  border: 1px solid var(--fio);
+}
+.campanha-bloco-cabecalho {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  text-align: center;
+  background: var(--camada-2);
+  border: 1px solid var(--fio);
+}
+.campanha-bloco-cabecalho h3 {
+  font-size: 0.9375rem;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+}
+.campanha-bloco-cabecalho p {
+  color: #9e9e9e;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+/* 12 métricas: 6, 4, 3 ou 2 por linha conforme a largura da seção —
+   sempre linhas completas; as linhas esticam até o fundo da seção. */
+.campanha-metricas-grade {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-auto-rows: minmax(0, 1fr);
+  align-content: stretch;
+  gap: 8px;
+}
+@container (max-width: 1500px) {
+  .campanha-metricas-grade { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@container (max-width: 900px) {
+  .campanha-metricas-grade { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@container (max-width: 560px) {
+  .campanha-metricas-grade { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+/* Cada métrica é um bloco: nunca menor que um quadrado razoável, e
+   cresce para preencher a seção. */
+.campanha-numero {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 10px;
+  min-height: 150px;
+  min-width: 0;
+  padding: 16px 12px;
+  text-align: center;
+  background-color: var(--camada-2);
+  background-image: var(--material);
+  box-shadow: var(--material-sombra);
+  border: 0;
+}
+.campanha-numero:hover { background-image: var(--material-hover); }
+.campanha-numero-rotulo {
+  color: #9e9e9e;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  line-height: 1.4;
+}
+.campanha-numero-valor {
+  font-family: var(--font-display), var(--font-sans), sans-serif;
+  font-size: clamp(1.5rem, 2.6cqi, var(--numero-max, 2.25rem));
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.campanha-numero[data-tom="success"] .campanha-numero-valor { color: var(--success, #7ddc8a); }
+.campanha-numero[data-tom="warning"] .campanha-numero-valor { color: var(--warning, #f0c266); }
+.campanha-numero[data-tom="destructive"] .campanha-numero-valor { color: var(--destructive, #f07a7a); }
+.campanha-numero-nota {
+  color: #8a8a8a;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+.campanha-relatorio-grade {
+  display: grid;
+  grid-template-columns: minmax(0, 0.7fr) repeat(3, minmax(0, 1fr));
+  grid-auto-rows: minmax(0, 1fr);
+  align-content: stretch;
+  gap: 8px;
+}
+@container (max-width: 1100px) {
+  .campanha-relatorio-grade { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@container (max-width: 640px) {
+  .campanha-relatorio-grade { grid-template-columns: 1fr; }
+}
+.campanha-relatorio-nota {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 4px;
+  padding: 14px 12px;
+  text-align: center;
+  background-color: var(--camada-2);
+  background-image: var(--material);
+  box-shadow: var(--material-sombra);
+}
+.campanha-relatorio-nota-valor {
+  font-family: var(--font-display), var(--font-sans), sans-serif;
+  font-size: 2.25rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.campanha-relatorio-nota-selo {
+  display: inline-block;
+  padding: 4px 10px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background-color: var(--botao);
+  background-image: var(--material);
+  box-shadow: var(--material-sombra);
+}
+.campanha-relatorio-nota[data-rotulo="Saudável"] .campanha-relatorio-nota-selo { color: var(--success, #7ddc8a); }
+.campanha-relatorio-nota[data-rotulo="Atenção"] .campanha-relatorio-nota-selo { color: var(--warning, #f0c266); }
+.campanha-relatorio-nota[data-rotulo="Crítico"] .campanha-relatorio-nota-selo { color: var(--destructive, #f07a7a); }
+.campanha-relatorio-secao {
+  display: grid;
+  align-content: center;
+  gap: 8px;
+  padding: 12px;
+  background-color: var(--camada-2);
+  background-image: var(--material);
+  box-shadow: var(--material-sombra);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+}
+.campanha-relatorio-secao h4 {
+  font-size: 0.6875rem;
+  font-weight: 750;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-align: center;
+  color: #bdbdbd;
+}
+.campanha-relatorio-secao > p { text-align: center; }
+.campanha-relatorio-nota-texto { color: #9e9e9e; font-size: 0.75rem; }
+.campanha-relatorio-achados {
+  display: grid;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.campanha-relatorio-achado {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  background-color: var(--camada-3);
+  background-image: var(--material);
+  box-shadow: var(--material-sombra);
+  box-shadow: var(--material-sombra), inset 3px 0 0 var(--fio-forte);
+}
+.campanha-relatorio-achado[data-gravidade="falha"] { box-shadow: var(--material-sombra), inset 3px 0 0 var(--destructive, #f07a7a); }
+.campanha-relatorio-achado[data-gravidade="fraco"] { box-shadow: var(--material-sombra), inset 3px 0 0 var(--warning, #f0c266); }
+.campanha-relatorio-achado[data-gravidade="forte"] { box-shadow: var(--material-sombra), inset 3px 0 0 var(--success, #7ddc8a); }
+.campanha-relatorio-achado-tipo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #9e9e9e;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.campanha-relatorio-achado-titulo { font-weight: 700; }
+.campanha-relatorio-achado-texto,
+.campanha-relatorio-achado-acao { color: #bdbdbd; font-size: 0.75rem; line-height: 1.5; }
+.campanha-relatorio-estrutura {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.campanha-relatorio-estrutura span {
+  display: grid;
+  gap: 2px;
+  padding: 10px 6px;
+  text-align: center;
+  color: #9e9e9e;
+  font-size: 0.6875rem;
+  background-color: var(--camada-3);
+  background-image: var(--material);
+  box-shadow: var(--material-sombra);
+}
+.campanha-relatorio-estrutura b {
+  color: #fff;
+  font-family: var(--font-display), var(--font-sans), sans-serif;
+  font-size: 1.125rem;
+}
+
+/* As três faixas: Campanha › Conjuntos › Anúncios, dentro do bloco de
+   métricas — faixa (2) › cabeçalho e tabela (3) › célula (4). */
+.campanha-faixas { display: grid; gap: 12px; }
+.campanha-bloco > * { min-width: 0; }
+.campaign-drill[data-ativa="true"] { border-color: rgb(255 255 255 / 45%); }
+.campaign-drill-cabecalho { justify-items: center; }
+.campaign-drill-numero-faixa {
+  display: inline-block;
+  padding: 3px 10px;
+  color: #9e9e9e;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  background: var(--camada-3);
+  border: 1px solid var(--fio);
+}
+.campaign-drill-contagem {
+  display: inline-block;
+  padding: 4px 10px;
+  color: #ddd;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  background: var(--botao);
+  border: 1px solid var(--fio-forte);
+}
+.campaign-drill-numero { font-variant-numeric: tabular-nums; white-space: nowrap; }
+@media (max-width: 1100px) {
+  .campanha-painel { grid-template-columns: 1fr; }
+  }
+/* Linhas das faixas: bloco do nome à esquerda e, à direita, as métricas
+   em quadrados iguais (rótulo em cima, valor embaixo). Camadas: faixa
+   (2) › linha (3) › quadrado (4). */
+.campaign-drill-linhas { display: grid; align-content: start; gap: 8px; min-width: 0; }
+.campaign-drill-linha {
+  display: grid;
+  grid-template-columns: minmax(200px, 260px) minmax(0, 1fr);
+  gap: 8px;
+  padding: 8px;
+  background-color: var(--camada-2);
+  background-image: var(--material);
+  box-shadow: var(--material-sombra);
+}
+.campaign-drill-linha[data-aberto="true"] { box-shadow: var(--material-sombra), inset 0 0 0 1px rgb(255 255 255 / 45%); }
+.campaign-drill-linha[data-sub] { margin-left: 16px; background: var(--camada-3); }
+.campaign-drill-nome {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  min-width: 0;
+  padding: 10px 12px;
+  background-color: var(--camada-4);
+  background-image: var(--material);
+  box-shadow: var(--material-sombra);
+}
+.campaign-drill-nome > b { font-size: 0.8125rem; font-weight: 700; overflow-wrap: anywhere; }
+.campaign-drill-nome > small { color: #9e9e9e; font-size: 0.6875rem; line-height: 1.4; }
+.campaign-drill-ramo { color: #8a8a8a; font-weight: 400; }
+.campaign-drill-criativo {
+  display: grid;
+  gap: 2px;
+  margin-top: 4px;
+  padding: 8px 10px;
+  font-size: 0.6875rem;
+  background-color: var(--camada-3);
+  background-image: var(--material);
+  box-shadow: var(--material-sombra);
+}
+.campaign-drill-criativo small {
+  color: #9e9e9e;
+  font-size: 0.5625rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.campaign-drill-criativo em { color: #bdbdbd; font-style: normal; }
+.campaign-drill-abrir {
+  justify-self: start;
+  margin-top: 6px;
+  min-height: 32px;
+  padding: 0 12px;
+  color: #121212;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  white-space: nowrap;
+  background: #fff;
+  border: 1px solid #fff;
+  cursor: pointer;
+}
+.campaign-drill-abrir:hover { background: #e6e6e6; }
+/* 12 quadrados por linha de faixa: 6, 4, 3 ou 2 por linha conforme a
+   largura, sempre linhas completas; o quadrado cresce com a tela. */
+.campaign-drill-celulas { container-type: inline-size; min-width: 0; }
+.campaign-drill-grade {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 8px;
+  align-content: start;
+}
+@container (max-width: 1100px) {
+  .campaign-drill-grade { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+}
+@container (max-width: 560px) {
+  .campaign-drill-grade { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@container (max-width: 380px) {
+  .campaign-drill-grade { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@container (max-width: 260px) {
+  .campaign-drill-grade { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.campaign-drill-celula {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 6px;
+  aspect-ratio: 1 / 1;
+  border: 0;
+  min-width: 0;
+  padding: 6px;
+  text-align: center;
+  background-color: var(--camada-4);
+  background-image: var(--material);
+  box-shadow: var(--material-sombra);
+}
+.campaign-drill-celula > span {
+  color: #9e9e9e;
+  font-size: 0.5625rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+.campaign-drill-celula:hover { background-image: var(--material-hover); }
+.campaign-drill-celula > b {
+  font-family: var(--font-display), var(--font-sans), sans-serif;
+  font-size: clamp(0.8125rem, 1.4cqi, 1.125rem);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.campaign-drill-estado {
+  display: inline-block;
+  padding: 4px 8px;
+  font-family: var(--font-sans), sans-serif;
+  font-size: 0.625rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.campaign-drill-grupo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 8px 12px;
+  color: #ddd;
+  font-size: 0.8125rem;
+  background-color: var(--botao);
+  background-image: var(--material);
+  box-shadow: var(--material-sombra);
+}
+.campaign-drill-grupo > span {
+  color: #9e9e9e;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.campaign-drill-vazio {
+  padding: 16px;
+  color: #9e9e9e;
+  font-size: 0.75rem;
+  text-align: center;
+  background-color: var(--camada-3);
+  background-image: var(--material);
+  box-shadow: var(--material-sombra);
+}
+@media (max-width: 640px) {
+  .campaign-drill-linha { grid-template-columns: 1fr; }
+  .campaign-drill-linha[data-sub] { margin-left: 8px; }
+}
+
+/* Diário de mudanças em linhas-bloco. */
+.campanha-diario { display: grid; gap: 6px; list-style: none; margin: 0; padding: 0; font-size: 0.8125rem; }
+.campanha-diario li {
+  display: grid;
+  grid-template-columns: 10rem minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: baseline;
+  padding: 8px 12px;
+  background-color: var(--camada-3);
+  background-image: var(--material);
+  box-shadow: var(--material-sombra);
+}
+.campanha-diario-quando, .campanha-diario-quem { color: #9e9e9e; font-size: 0.6875rem; font-variant-numeric: tabular-nums; }
+@media (max-width: 640px) { .campanha-diario li { grid-template-columns: 1fr; gap: 4px; } }
+
+/* Relatório: cada bloco é uma coluna que preenche a seção — título, o
+   principal e, embaixo, os quadradinhos das métricas relacionadas, em
+   linhas sempre completas (3 por linha; 2 no diagnóstico). */
+.campanha-relatorio-grade { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.campanha-relatorio-secao { display: flex; flex-direction: column; gap: 8px; }
+.campanha-relatorio-secao > * { min-width: 0; }
+.campanha-relatorio-secao h4 { flex: none; }
+.campanha-relatorio-principal {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 10px;
+  text-align: center;
+  background-color: var(--camada-3);
+  background-image: var(--material);
+  box-shadow: var(--material-sombra);
+}
+.campanha-relatorio-secao .campanha-relatorio-nota { flex: none; padding: 10px; }
+.campanha-relatorio-mini {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-rows: minmax(0, 1fr);
+  align-content: stretch;
+  gap: 6px;
+}
+.campanha-relatorio-mini[data-colunas="2"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.campanha-relatorio-mini-item {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 3px;
+  min-height: 72px;
+  min-width: 0;
+  padding: 8px 6px;
+  text-align: center;
+  background-color: var(--camada-3);
+  background-image: var(--material);
+  box-shadow: var(--material-sombra);
+}
+.campanha-relatorio-mini-item:hover { background-image: var(--material-hover); }
+.campanha-relatorio-mini-item .campanha-numero-rotulo { font-size: 0.5625rem; letter-spacing: 0.1em; line-height: 1.3; }
+.campanha-relatorio-mini-item > b {
+  font-family: var(--font-display), var(--font-sans), sans-serif;
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.campanha-relatorio-mini-item[data-texto] > b { font-size: 0.75rem; font-weight: 700; }
+.campanha-relatorio-mini-item > small { color: #8a8a8a; font-size: 0.625rem; line-height: 1.3; }
+.campanha-relatorio-mini-item[data-tom="success"] > b { color: var(--success, #7ddc8a); }
+.campanha-relatorio-mini-item[data-tom="warning"] > b { color: var(--warning, #f0c266); }
+.campanha-relatorio-mini-item[data-tom="destructive"] > b { color: var(--destructive, #f07a7a); }
+.campanha-relatorio-secao .campanha-relatorio-achados { flex: 1 1 auto; grid-auto-rows: minmax(0, 1fr); align-content: stretch; }
+.campanha-relatorio-secao .campanha-relatorio-achado { align-content: center; }
+@container (max-width: 1100px) {
+  .campanha-relatorio-grade { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@container (max-width: 640px) {
+  .campanha-relatorio-grade { grid-template-columns: 1fr; }
+}
+
+/* Quadro por classe numa tela só: quinze pilares do mesmo tamanho em
+   cinco colunas e três fileiras iguais, ocupando exatamente a altura que
+   sobra da janela (--quadro-altura, medida pelo componente). Nada de
+   rolagem lateral; cada pilar pagina por dentro quando tem mais cartões
+   do que cabe. Em telas estreitas (2 ou 1 por linha) a altura volta a
+   ser natural. */
+.class-board-quadro {
+  container-type: inline-size;
+  display: grid;
+  grid-template-rows: auto minmax(auto, 1fr);
+  gap: 16px;
+  min-width: 0;
+  /* Preenche a tela (altura medida pelo componente), mas nunca fica
+     menor que o conteúdo: antes de cortar um cartão, a página cresce. */
+  min-height: var(--quadro-altura, auto);
+}
+.class-board-quadro > [role="status"] { grid-row: 1; }
+.class-board-quadro > .class-board-pilares { grid-row: 2; }
+.class-board-quadro:not(:has(> [role="status"])) { grid-template-rows: minmax(auto, 1fr); }
+.class-board-quadro:not(:has(> [role="status"])) > .class-board-pilares { grid-row: 1; }
+.class-board-pilares {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  /* Fileiras iguais, mas nunca mais baixas que o pilar precisa
+     (cabeçalho + um cartão inteiro + "Adicionar"). */
+  grid-template-rows: repeat(3, minmax(auto, 1fr));
+  gap: 16px;
+  min-width: 0;
+  min-height: 0;
+}
+.class-board-pilares > * { min-width: 0; min-height: auto; }
+/* Uma lista que peça duas colunas põe os cartões lado a lado. */
+.class-board-lista-cartoes[data-colunas="2"] > .class-board-pagina {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: max-content;
+  align-content: start;
+}
+.class-board-pilar { min-height: 0; }
+.class-board-pilar-cabecalho { flex: none; }
+.class-board-pilar-corpo { min-height: 0; overflow: hidden; }
+/* Lista paginada: os cartões ocupam a altura que sobra; o pager e o
+   "Adicionar" ficam presos embaixo. */
+.class-board-lista { display: flex; flex: 1 1 0; flex-direction: column; gap: 8px; min-height: 0; }
+/* contain: size — a lista não empurra o pilar com todos os cartões de
+   uma vez (senão a fileira cresceria até caber tudo e nunca paginaria);
+   o mínimo dela é um cartão inteiro, medido pelo componente. */
+.class-board-lista-cartoes { display: flex; flex: 1 1 0; flex-direction: column; gap: 8px; min-height: 0; overflow: hidden; contain: size; }
+/* O seletor de classe do cartão fica mais baixo para o cartão caber. */
+.class-board-cartao-classe .block-picker-toggle,
+.class-board-cartao-classe .block-picker[data-size="sm"] > [role="radio"] { min-height: 26px; padding-top: 0; padding-bottom: 0; font-size: 0.6875rem; }
+.class-board-pager {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) 34px;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  padding: 3px;
+  background: var(--camada-3);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.class-board-pager button {
+  min-height: 26px;
+  color: #121212;
+  font-size: 1.125rem;
+  line-height: 1;
+  background: #fff;
+  cursor: pointer;
+}
+.class-board-pager button:hover:not(:disabled) { background: #e6e6e6; }
+.class-board-pager button:disabled { opacity: 0.3; cursor: default; }
+.class-board-faixa { flex: 1 1 0; min-height: 0; }
+@container (max-width: 1000px) {
+  .class-board-quadro { height: auto; }
+  .class-board-pilares { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: none; grid-auto-rows: auto; }
+  /* A vaga fixa à esquerda não vale aqui: os blocos seguem a ordem. */
+  .class-board-pilares > [data-pilar-fixo] { grid-area: auto !important; }
+  .class-board-pilar { min-height: 50vh; }
+  .class-board-pilar-corpo { overflow: visible; }
+  .class-board-lista, .class-board-lista-cartoes, .class-board-faixa { flex: 0 0 auto; overflow: visible; }
+  .class-board-lista-cartoes { contain: none; min-height: 0 !important; }
+}
+@container (max-width: 439px) {
+  .class-board-pilares { grid-template-columns: 1fr; }
+}
+/* O pilar com especificações (vídeo, imagem) é um bloco único com uma
+   página por especificação: abas em cima, a página aberta embaixo. */
+.class-board-paginas {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 2px;
+  flex: none;
+  min-width: 0;
+  padding: 2px;
+  background: var(--camada-3);
+}
+.class-board-paginas > [role="tab"] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 0;
+  min-height: 24px;
+  padding: 2px 5px;
+  color: #cfcfcf;
+  background: var(--camada-2);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.15;
+  text-align: center;
+  cursor: pointer;
+}
+.class-board-paginas > [role="tab"] > b { min-width: 0; font-weight: inherit; }
+.class-board-paginas > [role="tab"] > span {
+  flex: none;
+  min-width: 20px;
+  padding: 1px 5px;
+  color: #ddd;
+  background: var(--camada-4);
+  font-variant-numeric: tabular-nums;
+}
+.class-board-paginas > [role="tab"]:hover { color: #fff; background: var(--camada-4); }
+.class-board-paginas > [role="tab"][aria-selected="true"] { color: var(--selecionado-texto, #fff); background: var(--selecionado, #f5f5f5); }
+.class-board-paginas > [role="tab"][aria-selected="true"] > span { color: #fff; background: rgb(255 255 255 / 18%); }
+.class-board-paginas > [role="tab"]:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }
+.class-board-faixa {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+}
+.class-board-faixa[data-drop-active="true"] { box-shadow: inset 0 0 0 2px rgb(255 255 255 / 45%); }
+/* Arrasto dos pilares: o pilar arrastado fica translúcido; o pilar de
+   destino ganha uma moldura clara. */
+.class-board-pilares > [data-pilar-arrastando="true"] { opacity: 0.55; }
+.class-board-pilares > [data-pilar-sobre="true"] { box-shadow: inset 0 0 0 2px rgb(255 255 255 / 55%); }
+.class-board-pilar-alca { touch-action: none; }
+
+/* Janelas baixas (720p): o cabeçalho do pilar perde a linha de gasto e
+   receita e o pager fica mais baixo, para caberem dois cartões. */
+@media (max-height: 780px) {
+  .class-board-pilar-cabecalho { padding-top: 6px; padding-bottom: 4px; }
+  .class-board-pilar-cabecalho p { display: none; }
+  .class-board-pager { padding: 2px; font-size: 0.625rem; }
+  .class-board-pager button { min-height: 18px; font-size: 0.875rem; }
+  .class-board-pilar-corpo { gap: 4px; }
+  .class-board-lista, .class-board-lista-cartoes { gap: 4px; }
+  .class-board-lista > button { min-height: 22px; padding-top: 0; padding-bottom: 0; }
+  .class-board-cartao-topo { padding-top: 3px; }
+  .class-board-cartao-classe { padding-bottom: 3px; }
+  .class-board-cartao-classe .block-picker-toggle,
+  .class-board-cartao-classe .block-picker[data-size="sm"] > [role="radio"] { min-height: 22px; }
+  .class-board-faixa { gap: 4px; }
+  .class-board-paginas > [role="tab"] { min-height: 22px; }
+  /* O nome do cartão fica menor e em no máximo duas linhas (o nome
+     inteiro está no title e no card flutuante). */
+  .class-board-cartao-nome {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    font-size: 0.75rem;
+  }
+}
+
+/* Cartões no jeito do Trello: etiquetas coloridas no topo, nome, texto
+   livre, e o editor dentro do próprio cartão. */
+.class-board-etiquetas { display: flex; flex-wrap: wrap; gap: 4px; margin: 0; padding: 6px 8px 0; list-style: none; }
+.class-board-etiquetas li {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 18px;
+  padding: 1px 8px;
+  color: #101010;
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.class-board-etiquetas li button { color: inherit; font-size: 0.75rem; line-height: 1; cursor: pointer; }
+.class-board-cartao-texto { color: #cfcfcf; }
+.class-board-editor { display: grid; gap: 6px; margin: 0 8px 6px; padding: 8px; background: var(--camada-3); box-shadow: var(--material-sombra); }
+.class-board-editor-campo { display: grid; gap: 4px; }
+.class-board-editor-campo > span { color: #9e9e9e; font-size: 0.5625rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
+.class-board-editor textarea,
+.class-board-editor-nova input {
+  width: 100%;
+  min-width: 0;
+  padding: 6px 8px;
+  color: #f5f5f5;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  background: var(--camada-0);
+  border: 1px solid var(--fio-forte);
+  border-radius: 0;
+  resize: vertical;
+}
+.class-board-editor .class-board-etiquetas { padding: 0; }
+.class-board-editor-nova { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px; }
+.class-board-editor-nova button {
+  min-height: 28px;
+  padding: 0 10px;
+  color: #ddd;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  background: var(--botao);
+  cursor: pointer;
+}
+.class-board-editor-nova button:disabled { opacity: 0.4; cursor: default; }
+.class-board-editor-cores { display: flex; flex-wrap: wrap; gap: 4px; }
+.class-board-editor-cores button { width: 22px; height: 22px; cursor: pointer; box-shadow: var(--material-sombra); }
+.class-board-editor-cores button[aria-checked="true"] { outline: 0; transform: scale(1.1); }
+.class-board-editor-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.class-board-editor-acoes .campaign-drill-abrir { margin-top: 0; }
+.class-board-editor-acoes button:not(.campaign-drill-abrir) {
+  min-height: 32px;
+  padding: 0 10px;
+  color: #ddd;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  background: var(--botao);
+  cursor: pointer;
+}
+.class-board-editor-acoes small { color: #8a8a8a; font-size: 0.625rem; }
+
+/* Cabeçalhos dos pilares com a mesma altura em toda a grade: os cartões
+   de uma fileira começam na mesma linha. O nome tem a largura toda do
+   pilar (alça e contagem na linha de cima) e quebra só entre palavras,
+   em uma ou duas linhas. A linha de gasto e receita só aparece quando a
+   coluna é larga o bastante para ela caber inteira. */
+.class-board-pilar-cabecalho { min-height: 2.5rem; }
+.class-board-pilar-nome, .class-board-cartao-nome { overflow-wrap: normal; word-break: normal; hyphens: manual; }
+.class-board-pilar-somas { display: none; white-space: nowrap; }
+/* Colunas estreitas (quadro com menos de ~1100px, cinco colunas abaixo
+   de 220px): o "Adicionar" encurta e o cartão fica mais baixo. */
+.class-board-adicionar-longo { display: none; }
+.class-board-adicionar-curto { display: inline; }
+/* A linha de números do cartão quebra em duas quando não cabe (o tema
+   deixa .tabular-nums numa linha só; aqui só os dígitos são tabulares). */
+.class-board-cartao-estado { padding-top: 2px; padding-bottom: 2px; font-variant-numeric: tabular-nums; white-space: normal; }
+.class-board-cartao-classe .block-picker-toggle,
+.class-board-cartao-classe .block-picker[data-size="sm"] > [role="radio"] { min-height: 22px; }
+@container (min-width: 1100px) {
+  .class-board-pilar-somas { display: block; }
+  .class-board-adicionar-longo { display: inline; }
+  .class-board-adicionar-curto { display: none; }
+  .class-board-cartao-estado { padding-top: 4px; padding-bottom: 4px; }
+  .class-board-cartao-classe .block-picker-toggle,
+  .class-board-cartao-classe .block-picker[data-size="sm"] > [role="radio"] { min-height: 26px; }
+}
+@media (max-height: 780px) { .class-board-pilar-cabecalho { min-height: 2.5rem; } }
+/* Colunas mais estreitas (quadro até ~1250px): o nome do pilar encolhe um
+   ponto para caber numa linha e todos os cabeçalhos ficarem iguais. */
+@container (max-width: 1450px) { .class-board-pilar-nome { font-size: 0.75rem; } }
+/* Quadro estreito: o nome pode ocupar duas linhas; todos os cabeçalhos
+   ganham a mesma altura de duas linhas para as fileiras alinharem. */
+@container (max-width: 1300px) { .class-board-pilar-cabecalho { min-height: 3.75rem; } }
+@container (max-width: 1000px) {
+  .class-board-pilar-cabecalho { min-height: 0; }
+  .class-board-pilar-somas { display: block; }
+  .class-board-adicionar-longo { display: inline; }
+  .class-board-adicionar-curto { display: none; }
+}
+
+/* Card flutuante da campanha (quadro por classe), clone do "Detalhes do
+   dia" do calendário: portal em posição fixa, ancorado ao cartão. */
+.campanha-card-flutuante {
+  position: fixed;
+  z-index: 1000;
+  visibility: hidden;
+  width: min(18rem, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  /* Opaco de propósito: fica por cima de outros blocos, então não pode
+     ser translúcido como as camadas. */
+  background: var(--material, none), #0d0d0f;
+  color: #f5f5f5;
+  border: 0;
+  border-radius: 0;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 8%), inset 0 1px 0 rgb(255 255 255 / 10%), 0 16px 40px rgb(0 0 0 / 70%);
+  font-family: var(--font-montserrat), var(--font-sans), sans-serif;
+  font-variant-numeric: tabular-nums;
+  scrollbar-width: thin;
+  scrollbar-color: #737373 #171717;
+}
+.campanha-card-flutuante-cabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.4rem 0.4rem 0.7rem;
+  background: rgb(255 255 255 / 4%);
+  box-shadow: inset 0 -1px 0 rgb(0 0 0 / 45%);
+  font-size: 0.6875rem;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.campanha-card-flutuante-cabecalho button {
+  min-height: 1.5rem;
+  padding: 0 0.5rem;
+  background: rgb(255 255 255 / 6%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 10%);
+  color: #fff;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0;
+  cursor: pointer;
+}
+.campanha-card-flutuante :is(button, summary):focus-visible {
+  outline: 2px solid white;
+  outline-offset: -2px;
+}
+.campanha-card-flutuante-conteudo {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.6rem 0.7rem 0.7rem;
+}
+.campanha-card-flutuante-nome { font-size: 0.8125rem; font-weight: 750; overflow-wrap: anywhere; }
+.campanha-card-flutuante-estado { color: #bbb; font-size: 0.625rem; font-weight: 650; line-height: 1.7; }
+.campanha-card-flutuante-selo { display: inline-block; padding: 1px 6px; font-weight: 700; }
+.campanha-card-flutuante-metricas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.375rem;
+}
+.campanha-card-flutuante-metricas > div {
+  min-width: 0;
+  padding: 0.4rem 0.3rem;
+  background: rgb(255 255 255 / 4%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 6%);
+  text-align: center;
+}
+.campanha-card-flutuante-metricas dt { color: #a3a3a3; font-size: 0.5625rem; line-height: 1.4; text-transform: uppercase; letter-spacing: 0.04em; }
+.campanha-card-flutuante-metricas dd { margin-top: 0.15rem; font-size: 0.8125rem; font-weight: 750; overflow-wrap: anywhere; }
+.campanha-card-flutuante-nota { color: #b3b3b3; font-size: 0.625rem; line-height: 1.5; }
+.campanha-card-flutuante-conjuntos { font-size: 0.6875rem; line-height: 1.55; }
+.campanha-card-flutuante-conjuntos summary { cursor: pointer; padding: 0.4rem 0.5rem; background: var(--camada-2); font-weight: 700; }
+.campanha-card-flutuante-conjuntos ul { display: grid; gap: 0.25rem; margin-top: 0.4rem; padding: 0; list-style: none; }
+.campanha-card-flutuante-conjuntos li { padding: 0.35rem 0.5rem; background: var(--camada-2); overflow-wrap: anywhere; }
+/* As etiquetas do cartão, repetidas no card flutuante. */
+.campanha-card-flutuante-etiquetas { padding: 0; }
+
+
+/* Cartão em linha (desenho de referência): azulejo verde à esquerda, nome
+   e linha cinza no meio, lápis discreto e seta de abrir à direita. */
+.class-board-cartao-linha {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 8px 8px 8px;
+  text-align: left;
+}
+.class-board-cartao-linha :is(b, p, ul) { text-align: left; }
+.dash-skin .class-board-pilar-cabecalho .class-board-pilar-nome { text-align: left; }
+.class-board-cartao-tile,
+.class-board-cartao-abrir,
+.class-board-cartao-editar {
+  display: grid;
+  flex: none;
+  place-items: center;
+  border: 0;
+  border-radius: 0;
+  cursor: pointer;
+}
+.class-board-cartao-tile {
+  width: 2.25rem;
+  height: 2.25rem;
+  color: var(--brilho-texto, #f5f5f5);
+  background: rgb(255 255 255 / 4%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 9%);
+}
+.class-board-cartao-tile:hover { background: rgb(255 255 255 / 8%); color: #ffffff; }
+.class-board-cartao-abrir {
+  width: 2rem;
+  height: 2rem;
+  color: #fff;
+  background: rgb(255 255 255 / 3%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 8%);
+  transition: background-color 160ms ease, transform 160ms ease;
+}
+.class-board-cartao-abrir:hover { background: rgb(255 255 255 / 7%); transform: translateX(2px); }
+.class-board-cartao-editar {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: #8a8a8a;
+  background: transparent;
+}
+.class-board-cartao-editar:hover, .class-board-cartao-editar[aria-expanded="true"] { color: #fff; background: rgb(255 255 255 / 8%); }
+.class-board-cartao-ponto {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 5px;
+  vertical-align: middle;
+  border-radius: 0;
+}
+.class-board-cartao-estado { padding: 0; }
+@media (max-height: 780px) {
+  .class-board-cartao-linha { gap: 8px; padding: 6px; }
+  .class-board-cartao-tile { width: 2rem; height: 2rem; }
+  .class-board-cartao-abrir { width: 1.75rem; height: 1.75rem; }
+}
+
+
+/* Tracinhos de página no topo da lista e rodapé com Anterior / + / Próxima
+   (desenho de referência). */
+.class-board-passos {
+  display: flex;
+  flex: none;
+  justify-content: center;
+  gap: 6px;
+  min-height: 10px;
+  padding: 2px 0;
+}
+.class-board-passos > button {
+  width: 26px;
+  height: 4px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: rgb(255 255 255 / 8%);
+  cursor: pointer;
+  transition: background-color 160ms ease, width 160ms ease;
+}
+.class-board-passos > button:hover { background: rgb(255 255 255 / 20%); }
+.dash-skin .class-board-passos > button[aria-current="page"] {
+  width: 32px;
+  background: var(--brilho, #e5e5e5) !important;
+  box-shadow: 0 0 10px rgb(255 255 255 / 45%) !important;
+}
+.class-board-passos > button:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.class-board-rodape {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.class-board-rodape-botao {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 2rem;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 0;
+  color: #cfcfcf;
+  background: rgb(255 255 255 / 2.5%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 7%);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+.class-board-rodape-botao:hover:not(:disabled) { color: #fff; background: rgb(255 255 255 / 6%); }
+.class-board-rodape-botao:disabled { opacity: 0.35; cursor: default; }
+.class-board-adicionar {
+  display: grid;
+  flex: none;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border: 0;
+  border-radius: 0;
+  color: var(--brilho-texto, #f5f5f5);
+  background: rgb(255 255 255 / 4%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 9%);
+  cursor: pointer;
+}
+.class-board-adicionar:hover { background: rgb(255 255 255 / 8%); color: #ffffff; }
+/* O formulário de nova campanha ocupa a linha inteira do rodapé. */
+.class-board-adicionar-form { order: 1; flex-basis: 100%; }
+@media (max-height: 780px) {
+  .class-board-rodape-botao { min-height: 1.75rem; padding: 0 8px; }
+  .class-board-adicionar { width: 1.75rem; height: 1.75rem; }
+}
+
+
+.class-board-rodape { justify-content: center; }
+
+
+/* Página de cartões: entra deslizando com fade na direção da troca. */
+.class-board-pagina {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  transition: transform 160ms ease;
+  will-change: transform;
+}
+.class-board-pagina[data-direcao="avanca"] { animation: class-board-entra-direita 280ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.class-board-pagina[data-direcao="volta"] { animation: class-board-entra-esquerda 280ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+@keyframes class-board-entra-direita { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
+@keyframes class-board-entra-esquerda { from { opacity: 0; transform: translateX(-28px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .class-board-pagina { animation: none !important; transition: none; } }
+
+/* Cabeçalho como alça: o cursor mostra que o bloco se move. */
+.class-board-pilar-alca { cursor: grab; }
+.class-board-pilar-alca:active { cursor: grabbing; }
+.class-board-pilar-alca:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }
+
+/* Título do bloco = tag: botão discreto; abre o seletor de tags embaixo. */
+.class-board-titulo { position: relative; }
+.class-board-titulo-botao {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  min-width: 0;
+  padding: 2px 4px;
+  border: 0;
+  border-radius: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  line-height: 1.2;
+  text-align: left;
+  cursor: pointer;
+}
+.class-board-titulo-botao:hover, .class-board-titulo-botao[aria-expanded="true"] { background: rgb(255 255 255 / 5%); }
+@container (max-width: 1450px) { .class-board-titulo-botao { font-size: 0.75rem; } }
+.class-board-titulo-botao > span:last-child { overflow-wrap: anywhere; }
+.class-board-tag-cor { display: inline-block; width: 8px; height: 8px; flex: none; border-radius: 0; }
+.class-board-tags {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 40;
+  display: grid;
+  gap: 6px;
+  width: 15rem;
+  max-width: calc(100vw - 24px);
+  padding: 8px;
+  background: #0d0d0f;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 8%), 0 16px 40px rgb(0 0 0 / 70%);
+  cursor: default;
+  font-weight: 500;
+  text-align: left;
+}
+.class-board-tags-lista { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.class-board-tags-lista > li { display: flex; align-items: center; gap: 4px; }
+.class-board-tags-usar {
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 1.75rem;
+  padding: 0 8px;
+  border: 0;
+  color: #eee;
+  background: rgb(255 255 255 / 3%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 6%);
+  font-size: 0.75rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+.class-board-tags-usar:hover { background: rgb(255 255 255 / 7%); }
+.class-board-tags-lista > li.is-atual .class-board-tags-usar { background: rgb(255 255 255 / 9%); }
+.class-board-tags-apagar {
+  display: grid;
+  flex: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  place-items: center;
+  border: 0;
+  color: #8a8a8a;
+  background: transparent;
+  cursor: pointer;
+}
+.class-board-tags-apagar:hover { color: #fff; background: rgb(255 255 255 / 7%); }
+.class-board-tags-limpar {
+  min-height: 1.75rem;
+  padding: 0 8px;
+  border: 0;
+  color: #bdbdbd;
+  background: rgb(255 255 255 / 3%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 6%);
+  font-size: 0.6875rem;
+  text-align: left;
+  cursor: pointer;
+}
+.class-board-tags-limpar:hover { color: #fff; }
+.class-board-tags-nova { display: grid; gap: 6px; padding-top: 6px; box-shadow: inset 0 1px 0 rgb(255 255 255 / 8%); }
+.class-board-tags-campo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 1.75rem;
+  padding: 0 8px;
+  color: #bdbdbd;
+  background: rgb(0 0 0 / 40%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 8%);
+}
+.class-board-tags-campo input { flex: 1 1 0; min-width: 0; border: 0; background: transparent; color: #fff; font: inherit; font-size: 0.75rem; outline: none; }
+.class-board-tags-cores { display: flex; gap: 4px; }
+.class-board-tags-cores > [role="radio"] {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 0;
+  border-radius: 0;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 40%);
+  cursor: pointer;
+}
+.dash-skin .class-board-tags-cores > [role="radio"][aria-checked="true"] { outline: 0; transform: scale(1.1); }
+.class-board-tags-criar {
+  min-height: 1.75rem;
+  border: 0;
+  color: #0a0a0a;
+  background: #f5f5f5;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.class-board-tags-erro { margin: 0; color: #f59e0b; font-size: 0.6875rem; }
+
+/* ---------------------------------------------------------------------
+   Blocos padronizados: sem título, quatro faixas iguais por página e o
+   neon de cada campanha na borda esquerda da faixa. As regras abaixo
+   valem sobre as mais antigas deste arquivo.
+   ------------------------------------------------------------------- */
+/* Cabeçalho baixo: alfinete, tag (ícone) e contagem numa linha só. */
+.class-board-pilar-cabecalho { min-height: 0 !important; padding: 6px 8px 4px; gap: 6px; }
+.class-board-pilar-cabecalho p { display: none; }
+.class-board-titulo-botao[data-com-tag="false"] { color: #6f6f6f; min-height: 1.375rem; padding: 0 4px; }
+.class-board-titulo-botao[data-com-tag="false"]:hover { color: #fff; }
+.class-board-pilar-corpo { gap: 4px; padding-bottom: 6px; }
+.class-board-lista { gap: 4px; }
+/* A lista é uma grade de uma célula que a página preenche; a página
+   tem sempre quatro faixas da mesma altura. */
+.class-board-lista-cartoes {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  flex: 1 1 0;
+  gap: 0;
+  min-height: 0 !important;
+  overflow: hidden;
+  contain: size;
+}
+.class-board-pagina {
+  display: grid;
+  grid-template-rows: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: 0;
+  gap: 4px;
+  min-height: 0;
+  overflow: hidden;
+}
+/* A faixa da campanha: cabe na sua fileira (nunca a empurra) e é um
+   contêiner de tamanho — a linha de etiquetas some quando não cabe. */
+.class-board-cartao {
+  display: grid;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  container-type: size;
+  background: rgb(255 255 255 / 3%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 5%);
+  transition: background-color 160ms ease;
+}
+.class-board-cartao:hover { background: rgb(255 255 255 / 6%); }
+.class-board-cartao-linha {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 0;
+  min-width: 0;
+  padding: 0 6px 0 0;
+}
+.class-board-cartao-meio {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+  overflow: hidden;
+}
+/* O nome: uma linha com reticências na faixa baixa; até duas linhas
+   (quebrando só entre palavras) quando a faixa tem altura para isso. */
+.class-board-cartao .class-board-cartao-nome {
+  display: block !important;
+  overflow: hidden;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow-wrap: normal;
+  word-break: normal;
+  -webkit-line-clamp: unset;
+}
+@container (min-height: 30px) {
+  .class-board-cartao .class-board-cartao-nome {
+    display: -webkit-box !important;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    white-space: normal;
+  }
+}
+.class-board-cartao-sub { display: none; align-items: center; gap: 6px; min-width: 0; overflow: hidden; }
+.class-board-cartao-sub .class-board-etiquetas { flex: none; flex-wrap: nowrap; max-width: 100%; padding: 0; overflow: hidden; }
+.class-board-cartao-sub .class-board-etiquetas li { min-height: 14px; padding: 0 5px; font-size: 0.5625rem; white-space: nowrap; }
+.class-board-cartao-sub .class-board-cartao-texto { min-width: 0; margin: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+/* Etiquetas e texto só quando cabem embaixo de duas linhas de nome. */
+@container (min-height: 60px) and (min-width: 150px) { .class-board-cartao-sub { display: flex; } }
+/* Megafone e seta acompanham a altura da faixa (quadrado, no máximo 2.25rem). */
+.class-board-cartao .class-board-cartao-tile {
+  align-self: center;
+  width: auto;
+  height: 2.25rem;
+  min-width: 1.5rem;
+  max-height: 100%;
+  margin: 0;
+  aspect-ratio: 1 / 1;
+}
+.class-board-cartao .class-board-cartao-abrir { align-self: center; width: 1.75rem; height: 1.75rem; max-height: 100%; }
+.class-board-cartao .class-board-cartao-tile > svg,
+.class-board-cartao .class-board-cartao-abrir > svg { display: block; margin: auto; }
+/* O neon: uma barra fina na borda esquerda, pulsando devagar. Clique para trocar a cor. */
+.dash-skin .class-board-cartao-neon,
+.class-board-cartao-neon {
+  flex: none;
+  align-self: stretch;
+  width: 5px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: var(--neon, #f4f4f5) !important;
+  box-shadow: 0 0 5px var(--neon, #f4f4f5), 0 0 12px color-mix(in srgb, var(--neon, #f4f4f5) 55%, transparent) !important;
+  cursor: pointer;
+  animation: class-board-neon 2.4s ease-in-out infinite;
+}
+.dash-skin .class-board-cartao-neon:hover,
+.dash-skin .class-board-cartao-neon[aria-expanded="true"] {
+  background: var(--neon, #f4f4f5) !important;
+  box-shadow: 0 0 8px var(--neon, #f4f4f5), 0 0 22px var(--neon, #f4f4f5), 0 0 40px color-mix(in srgb, var(--neon, #f4f4f5) 60%, transparent) !important;
+  animation: none;
+}
+.class-board-cartao-neon:focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
+@keyframes class-board-neon {
+  0%, 100% { opacity: 0.72; box-shadow: 0 0 4px var(--neon, #f4f4f5), 0 0 10px color-mix(in srgb, var(--neon, #f4f4f5) 45%, transparent); }
+  50% { opacity: 1; box-shadow: 0 0 8px var(--neon, #f4f4f5), 0 0 20px var(--neon, #f4f4f5), 0 0 34px color-mix(in srgb, var(--neon, #f4f4f5) 60%, transparent); }
+}
+@media (prefers-reduced-motion: reduce) { .class-board-cartao-neon { animation: none; } }
+/* Telas estreitas (blocos com altura natural): faixas de altura fixa. */
+@container (max-width: 1000px) {
+  .class-board-lista-cartoes { display: grid; flex: 0 0 auto; overflow: visible; contain: none; }
+  .class-board-pagina { grid-template-rows: repeat(4, 2.75rem); }
+}
+/* O painel do neon (portal fora do quadro, preso ao cartão). */
+.class-board-painel-cartao {
+  position: fixed;
+  z-index: 70;
+  display: grid;
+  gap: 8px;
+  padding: 8px;
+  color: #f5f5f5;
+  background: #0d0d0f;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 8%), 0 16px 40px rgb(0 0 0 / 70%);
+  visibility: hidden;
+  text-align: left;
+  font-weight: 500;
+}
+.class-board-neon-cores { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
+.class-board-painel-cartao .class-board-neon-cores > [role="radio"] {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  min-height: 1.75rem;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 0;
+  color: #e5e5e5;
+  background: rgb(255 255 255 / 3%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 6%);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+.class-board-painel-cartao .class-board-neon-cores > [role="radio"]:hover { background: rgb(255 255 255 / 7%); color: #fff; }
+.class-board-painel-cartao .class-board-neon-cores > [role="radio"][aria-checked="true"] { background: rgb(255 255 255 / 9%); }
+.class-board-painel-cartao .class-board-neon-cores > [role="radio"][aria-checked="true"] > span { transform: scaleY(1.35); box-shadow: 0 0 8px var(--neon), 0 0 18px var(--neon); }
+.class-board-neon-cores > [role="radio"] > span {
+  flex: none;
+  width: 4px;
+  height: 14px;
+  background: var(--neon);
+  box-shadow: 0 0 5px var(--neon), 0 0 10px color-mix(in srgb, var(--neon) 55%, transparent);
+}
+/* Etiquetas e texto dentro do painel do neon: sem caixa própria. */
+.class-board-neon-notas { margin: 0; padding: 0; background: transparent; box-shadow: none; }
+.class-board-neon-notas .class-board-etiquetas { padding: 0; }
+.class-board-neon-classe { display: grid; gap: 4px; }
+.class-board-neon-classe > span { color: #9e9e9e; font-size: 0.5625rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
+.class-board-neon-classe .block-picker-toggle,
+.class-board-neon-classe .block-picker[data-size="sm"] > [role="radio"] { min-height: 24px; padding-top: 0; padding-bottom: 0; font-size: 0.6875rem; }
+
+/* A tag do bloco pinta a faixa inteira do cabeçalho com o seu neon; o
+   texto e os controles ficam escuros por cima. */
+.dash-skin .class-board-pilar-cabecalho[data-tag="true"] {
+  color: #0a0a0a;
+  background: var(--tag-neon) !important;
+  box-shadow: 0 0 10px color-mix(in srgb, var(--tag-neon) 55%, transparent), 0 0 26px color-mix(in srgb, var(--tag-neon) 30%, transparent);
+}
+.dash-skin .class-board-pilar-cabecalho[data-tag="true"] .class-board-titulo-botao { color: #0a0a0a; }
+.dash-skin .class-board-pilar-cabecalho[data-tag="true"] .class-board-titulo-botao:hover,
+.dash-skin .class-board-pilar-cabecalho[data-tag="true"] .class-board-titulo-botao[aria-expanded="true"] { background: rgb(0 0 0 / 14%); }
+.dash-skin .class-board-pilar-cabecalho[data-tag="true"] .class-board-titulo-botao > .class-board-tag-cor { display: none; }
+/* Contagem e alfinete: sempre pretos com o ícone/número claro, com ou sem tag. */
+.dash-skin .class-board-pilar-contagem,
+.dash-skin .class-board-pilar-cabecalho[data-tag="true"] .class-board-pilar-contagem { color: #fff !important; background: #0a0a0a !important; box-shadow: none !important; }
+.dash-skin .class-board-pilar-cabecalho > .class-board-pilar-fixo[data-fixo="true"],
+.dash-skin .class-board-pilar-cabecalho[data-tag="true"] > .class-board-pilar-fixo[data-fixo="true"] { color: #ef4444 !important; background: #0a0a0a !important; box-shadow: none !important; }
+.dash-skin .class-board-pilar-cabecalho > .class-board-pilar-fixo[data-fixo="false"],
+.dash-skin .class-board-pilar-cabecalho[data-tag="true"] > .class-board-pilar-fixo[data-fixo="false"] { color: #9a9a9a !important; background: #0a0a0a !important; box-shadow: none !important; }
+.dash-skin .class-board-pilar-cabecalho > .class-board-pilar-fixo[data-fixo="false"]:hover { color: #ef4444 !important; }
+/* O seletor de tags continua escuro, mesmo aberto numa faixa colorida. */
+.dash-skin .class-board-tags { color: #eee; }
+.class-board-tags-cores [role="radio"] { box-shadow: 0 0 6px color-mix(in srgb, currentColor 0%, transparent); }
+
+/* ---------------------------------------------------------------------
+   Menus animados: o seletor de tags do bloco e o painel do neon entram
+   deslizando, e cada opção reage ao mouse (acende, cresce, desliza).
+   ------------------------------------------------------------------- */
+@keyframes class-board-menu-entra { from { opacity: 0; transform: translateY(-6px) scale(0.98); } to { opacity: 1; transform: none; } }
+.class-board-tags,
+.class-board-painel-cartao { animation: class-board-menu-entra 200ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+/* Ícone de tag no cabeçalho: vira e acende ao passar o mouse. */
+.class-board-titulo-botao > svg { transition: transform 220ms cubic-bezier(0.2, 0.7, 0.2, 1), filter 220ms ease; }
+.class-board-titulo-botao:hover > svg { transform: rotate(-12deg) scale(1.2); filter: drop-shadow(0 0 6px currentColor); }
+/* Opções do seletor de tags: deslizam e acendem. */
+.class-board-tags-usar,
+.class-board-tags-limpar,
+.class-board-tags-criar,
+.class-board-tags-apagar { transition: transform 180ms cubic-bezier(0.2, 0.7, 0.2, 1), background-color 180ms ease, box-shadow 180ms ease, color 180ms ease; }
+.dash-skin .class-board-tags-usar:hover { transform: translateX(3px) !important; }
+.class-board-tags-usar:hover > .class-board-tag-cor { transform: scale(1.5); box-shadow: 0 0 8px currentColor; }
+.class-board-tags-usar > .class-board-tag-cor { transition: transform 180ms cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 180ms ease; }
+.dash-skin .class-board-tags-apagar:hover { transform: rotate(90deg) !important; }
+.dash-skin .class-board-tags-limpar:hover,
+.dash-skin .class-board-tags-criar:hover { transform: translateY(-2px) !important; }
+/* Amostras de cor (tags do bloco, etiquetas e neon): crescem e brilham na cor. */
+.class-board-tags-cores [role="radio"],
+.class-board-editor-cores [role="radio"] { transition: transform 180ms cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 180ms ease; }
+.dash-skin .class-board-tags-cores [role="radio"]:hover,
+.dash-skin .class-board-editor-cores [role="radio"]:hover { transform: scale(1.25) !important; z-index: 1; }
+.dash-skin .class-board-tags-cores [role="radio"][aria-checked="true"],
+.dash-skin .class-board-editor-cores [role="radio"][aria-checked="true"] { transform: scale(1.1); }
+.class-board-painel-cartao .class-board-neon-cores > [role="radio"] { transition: transform 180ms cubic-bezier(0.2, 0.7, 0.2, 1), background-color 180ms ease, box-shadow 180ms ease, color 180ms ease; }
+.class-board-painel-cartao .class-board-neon-cores > [role="radio"]:hover { transform: translateY(-2px) !important; }
+.class-board-neon-cores > [role="radio"] > span { transition: transform 180ms cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 180ms ease; }
+.class-board-neon-cores > [role="radio"]:hover > span { transform: scaleY(1.35); box-shadow: 0 0 8px var(--neon), 0 0 18px var(--neon); }
+/* Botões do painel (Salvar, Adicionar) e o seletor de bloco. */
+.class-board-neon-notas .class-board-editor-acoes button,
+.class-board-neon-notas .class-board-editor-nova button { transition: transform 180ms cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 180ms ease, background-color 180ms ease; }
+.class-board-painel-cartao .class-board-neon-notas .class-board-editor-acoes button:hover,
+.class-board-painel-cartao .class-board-neon-notas .class-board-editor-nova button:hover:not(:disabled) { transform: translateY(-2px) !important; }
+.class-board-neon-notas .class-board-etiquetas li { transition: transform 180ms cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 180ms ease; }
+.class-board-neon-notas .class-board-etiquetas li:hover { transform: translateY(-2px); }
+@media (prefers-reduced-motion: reduce) {
+  .class-board-tags, .class-board-painel-cartao { animation: none; }
+  .class-board-tags *, .class-board-painel-cartao *, .class-board-titulo-botao > svg { transition: none !important; transform: none !important; }
+}
+
+/* ---------------------------------------------------------------------
+   Etiquetas da campanha: mesma animação de mouse dos menus (sobem e
+   brilham na própria cor), na faixa, na notificação e no painel.
+   ------------------------------------------------------------------- */
+.class-board-etiquetas li {
+  transition: transform 180ms cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 180ms ease, filter 180ms ease;
+  cursor: default;
+}
+.class-board-etiquetas li:hover {
+  transform: translateY(-2px) scale(1.06);
+  filter: brightness(1.08);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 45%);
+}
+/* Na notificação (clique no megafone): etiquetas e descrição legíveis. */
+.campanha-card-flutuante-etiquetas { gap: 6px; margin: 0 0 2px; }
+.campanha-card-flutuante-etiquetas li {
+  min-height: 22px;
+  padding: 3px 10px;
+  color: #0a0a0a;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  line-height: 1.3;
+  text-transform: none;
+  box-shadow: 0 1px 0 rgb(255 255 255 / 25%) inset, 0 0 10px color-mix(in srgb, currentColor 0%, transparent);
+}
+.campanha-card-flutuante-nota {
+  margin: 0;
+  padding: 8px 10px;
+  color: #f0f0f0;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.55;
+  letter-spacing: 0.005em;
+  background: rgb(255 255 255 / 4%);
+  box-shadow: inset 2px 0 0 rgb(255 255 255 / 35%);
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+.campanha-card-flutuante-conteudo { gap: 10px; }
+
+/* ---------------------------------------------------------------------
+   Neon escolhido (verde, amarelo ou vermelho) pinta a faixa inteira da
+   campanha; o branco padrão fica só na barra.
+   ------------------------------------------------------------------- */
+.dash-skin .class-board-cartao[data-neon]:not([data-neon="nenhum"]) {
+  color: #0a0a0a;
+  background: var(--neon) !important;
+  box-shadow: 0 0 10px color-mix(in srgb, var(--neon) 55%, transparent), 0 0 24px color-mix(in srgb, var(--neon) 28%, transparent) !important;
+}
+.dash-skin .class-board-cartao[data-neon]:not([data-neon="nenhum"]):hover { background: var(--neon) !important; filter: brightness(1.06); }
+.class-board-cartao[data-neon]:not([data-neon="nenhum"]) .class-board-cartao-nome,
+.class-board-cartao[data-neon]:not([data-neon="nenhum"]) .class-board-cartao-texto { color: #0a0a0a; }
+.class-board-cartao[data-neon]:not([data-neon="nenhum"]) .class-board-cartao-tile,
+.class-board-cartao[data-neon]:not([data-neon="nenhum"]) .class-board-cartao-abrir {
+  color: #0a0a0a;
+  background: rgb(0 0 0 / 22%);
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 28%);
+}
+.class-board-cartao[data-neon]:not([data-neon="nenhum"]) .class-board-cartao-tile:hover,
+.class-board-cartao[data-neon]:not([data-neon="nenhum"]) .class-board-cartao-abrir:hover { color: #000; background: rgb(0 0 0 / 34%); }
+.dash-skin .class-board-cartao[data-neon]:not([data-neon="nenhum"]) .class-board-cartao-neon {
+  background: rgb(0 0 0 / 40%) !important;
+  box-shadow: none !important;
+  animation: none;
+}
+.dash-skin .class-board-cartao[data-neon]:not([data-neon="nenhum"]) .class-board-cartao-neon:hover { background: rgb(0 0 0 / 55%) !important; }
+
+/* ---------------------------------------------------------------------
+   Faixa sem sobras: barra do neon colada à esquerda, megafone com a
+   altura exata da faixa logo depois, e a seta colada à direita, também
+   com a altura da faixa. Sem vãos entre eles.
+   ------------------------------------------------------------------- */
+.class-board-cartao .class-board-cartao-linha { gap: 0; padding: 0; }
+.class-board-cartao .class-board-cartao-meio { padding: 0 8px; }
+.class-board-cartao .class-board-cartao-tile,
+.class-board-cartao .class-board-cartao-abrir {
+  align-self: stretch;
+  width: auto;
+  height: auto;
+  min-width: 0;
+  max-height: none;
+  margin: 0;
+  aspect-ratio: 1 / 1;
+}
+.class-board-cartao .class-board-cartao-abrir:hover { transform: none; }
+.class-board-cartao .class-board-cartao-abrir > svg { transition: transform 160ms ease; }
+.class-board-cartao .class-board-cartao-abrir:hover > svg { transform: translateX(2px); }
+
+/* O miolo da faixa é um botão (abre o painel de edição), sem cara de botão. */
+.dash-skin .class-board-cartao-meio {
+  border: 0;
+  border-radius: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.dash-skin .class-board-cartao-meio:hover,
+.dash-skin .class-board-cartao-meio[aria-expanded="true"] { transform: none !important; filter: none !important; background: rgb(255 255 255 / 4%); }
+.dash-skin .class-board-cartao[data-neon]:not([data-neon="nenhum"]) .class-board-cartao-meio:hover { background: rgb(0 0 0 / 10%); }
+.class-board-cartao-meio:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }
+
+/* ---------------------------------------------------------------------
+   Movimento ao passar o mouse: a faixa da campanha desliza para a
+   direita e sobe de leve; o bloco inteiro sobe 2px com sombra mais
+   funda. (Os blocos não ganham transform enquanto arrastados.)
+   ------------------------------------------------------------------- */
+.class-board-cartao { transition: transform 200ms cubic-bezier(0.2, 0.7, 0.2, 1), background-color 160ms ease, box-shadow 200ms ease, filter 160ms ease; }
+.class-board-cartao:hover { transform: translateX(3px) translateY(-1px); box-shadow: 0 8px 20px rgb(0 0 0 / 45%); }
+.dash-skin .class-board-cartao[data-neon]:not([data-neon="nenhum"]):hover {
+  box-shadow: 0 8px 20px rgb(0 0 0 / 45%), 0 0 14px color-mix(in srgb, var(--neon) 60%, transparent), 0 0 30px color-mix(in srgb, var(--neon) 30%, transparent) !important;
+}
+.class-board-pilar { transition: transform 220ms cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 220ms ease, filter 160ms ease; }
+.dash-skin .class-board-pilar:hover:not([data-pilar-arrastando="true"]) {
+  transform: translateY(-2px);
+  box-shadow: var(--vidro-sombra, 0 2px 6px rgb(0 0 0 / 42%)), 0 14px 32px rgb(0 0 0 / 50%) !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .class-board-cartao, .class-board-pilar { transition: none; }
+  .class-board-cartao:hover, .dash-skin .class-board-pilar:hover:not([data-pilar-arrastando="true"]) { transform: none; }
+}
+
+/* ---------------------------------------------------------------------
+   Ícones nas pontas, texto no centro. Cabeçalho do bloco: alfinete
+   colado à esquerda e contagem colada à direita, ambos quadrados pretos
+   com desenho branco e a altura exata da faixa; a tag no centro. Faixa
+   da campanha: megafone e seta nas pontas, mesmo padrão; nome no centro.
+   ------------------------------------------------------------------- */
+.dash-skin .class-board-pilar-cabecalho { min-height: 1.75rem !important; padding: 0 !important; gap: 0; }
+.dash-skin .class-board-pilar-cabecalho > .class-board-pilar-fixo,
+.dash-skin .class-board-pilar-cabecalho > .class-board-pilar-contagem,
+.dash-skin .class-board-pilar-cabecalho[data-tag="true"] > .class-board-pilar-fixo,
+.dash-skin .class-board-pilar-cabecalho[data-tag="true"] > .class-board-pilar-contagem {
+  flex: none;
+  align-self: stretch;
+  width: 1.75rem !important;
+  height: 1.75rem !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: grid;
+  place-items: center;
+  border-radius: 0;
+  color: #fff !important;
+  background: #0a0a0a !important;
+  box-shadow: none !important;
+  font-size: 0.6875rem;
+  font-weight: 800;
+}
+.dash-skin .class-board-pilar-cabecalho { height: 1.75rem; }
+.dash-skin .class-board-pilar-cabecalho > .class-board-pilar-fixo[data-fixo="false"] { color: rgb(255 255 255 / 55%) !important; }
+.dash-skin .class-board-pilar-cabecalho > .class-board-pilar-fixo[data-fixo="false"]:hover,
+.dash-skin .class-board-pilar-cabecalho > .class-board-pilar-fixo[data-fixo="true"] { color: #fff !important; }
+.dash-skin .class-board-pilar-cabecalho > .class-board-pilar-fixo:hover { background: #1a1a1a !important; }
+.class-board-titulo { display: flex; justify-content: center; align-items: center; min-width: 0; }
+.class-board-titulo-botao { justify-content: center; text-align: center; }
+.class-board-titulo-botao > span:last-child { text-align: center; }
+.dash-skin .class-board-pilar-cabecalho .class-board-pilar-nome { text-align: center; }
+/* Faixa da campanha: megafone e seta pretos com desenho branco, nome centrado. */
+.dash-skin .class-board-cartao .class-board-cartao-tile,
+.dash-skin .class-board-cartao .class-board-cartao-abrir,
+.dash-skin .class-board-cartao[data-neon]:not([data-neon="nenhum"]) .class-board-cartao-tile,
+.dash-skin .class-board-cartao[data-neon]:not([data-neon="nenhum"]) .class-board-cartao-abrir {
+  color: #fff !important;
+  background: #0a0a0a !important;
+  box-shadow: none !important;
+}
+.dash-skin .class-board-cartao .class-board-cartao-tile:hover,
+.dash-skin .class-board-cartao .class-board-cartao-abrir:hover { background: #1a1a1a !important; }
+.class-board-cartao .class-board-cartao-meio { align-items: center; text-align: center; }
+.class-board-cartao .class-board-cartao-nome { text-align: center; }
+.class-board-cartao .class-board-cartao-sub { justify-content: center; }
+/* Sem a barrinha: o neon branco (padrão) é um brilho suave na faixa. */
+.class-board-cartao-neon { display: none; }
+.dash-skin .class-board-cartao[data-neon="nenhum"] { box-shadow: inset 0 0 0 1px rgb(255 255 255 / 10%), 0 0 8px rgb(255 255 255 / 6%); }
+.dash-skin .class-board-cartao[data-neon="nenhum"]:hover { box-shadow: inset 0 0 0 1px rgb(255 255 255 / 18%), 0 8px 20px rgb(0 0 0 / 45%), 0 0 12px rgb(255 255 255 / 10%); }
+
+/* ---------------------------------------------------------------------
+   Faixas com a largura inteira do bloco (sem margem lateral) e neon de
+   verdade: tubo com brilho no centro, aresta luminosa e pulso suave.
+   ------------------------------------------------------------------- */
+.dash-skin .class-board-pilar-corpo { padding: 0 0 4px !important; }
+.class-board-lista, .class-board-lista-cartoes, .class-board-pagina { padding-left: 0; padding-right: 0; }
+.dash-skin .class-board-cartao[data-neon]:not([data-neon="nenhum"]) {
+  background-color: var(--neon) !important;
+  background-image: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--neon) 70%, #ffffff) 0%,
+    var(--neon) 38%,
+    var(--neon) 62%,
+    color-mix(in srgb, var(--neon) 78%, #000000) 100%
+  ) !important;
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--neon) 55%, #ffffff),
+    inset 0 0 14px color-mix(in srgb, var(--neon) 60%, #ffffff),
+    0 0 12px color-mix(in srgb, var(--neon) 70%, transparent),
+    0 0 26px color-mix(in srgb, var(--neon) 40%, transparent) !important;
+  animation: class-board-neon-faixa 2.6s ease-in-out infinite;
+}
+.dash-skin .class-board-cartao[data-neon]:not([data-neon="nenhum"]):hover {
+  animation: none;
+  filter: brightness(1.12) saturate(1.1);
+}
+@keyframes class-board-neon-faixa {
+  0%, 100% { filter: brightness(0.96) saturate(1); }
+  50% { filter: brightness(1.1) saturate(1.15); }
+}
+/* O nome ganha um leve brilho escuro para ler bem sobre o neon. */
+.dash-skin .class-board-cartao[data-neon]:not([data-neon="nenhum"]) .class-board-cartao-nome { text-shadow: 0 1px 0 color-mix(in srgb, var(--neon) 60%, #ffffff); }
+@media (prefers-reduced-motion: reduce) { .dash-skin .class-board-cartao[data-neon]:not([data-neon="nenhum"]) { animation: none; } }
+
+/* ---------------------------------------------------------------------
+   Colunas de ícones alinhadas: o alfinete e a contagem do cabeçalho e o
+   megafone e a seta das faixas têm a mesma largura (--icone). O
+   cabeçalho tem essa altura; as faixas usam a altura delas.
+   ------------------------------------------------------------------- */
+.class-board-pilar { --icone: 2.25rem; }
+.dash-skin .class-board-pilar-cabecalho { height: var(--icone); min-height: var(--icone) !important; }
+.dash-skin .class-board-pilar-cabecalho > .class-board-pilar-fixo,
+.dash-skin .class-board-pilar-cabecalho > .class-board-pilar-contagem,
+.dash-skin .class-board-pilar-cabecalho[data-tag="true"] > .class-board-pilar-fixo,
+.dash-skin .class-board-pilar-cabecalho[data-tag="true"] > .class-board-pilar-contagem { width: var(--icone) !important; height: var(--icone) !important; }
+.class-board-cartao .class-board-cartao-tile,
+.class-board-cartao .class-board-cartao-abrir { width: var(--icone) !important; min-width: var(--icone); aspect-ratio: auto; }
+/* Ao passar o mouse na faixa: só o movimento, sem brilho nem clarear. */
+.class-board-cartao:hover { background: rgb(255 255 255 / 3%); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 5%); filter: none; }
+.dash-skin .class-board-cartao[data-neon="nenhum"]:hover { box-shadow: inset 0 0 0 1px rgb(255 255 255 / 10%), 0 0 8px rgb(255 255 255 / 6%); }
+.dash-skin .class-board-cartao[data-neon]:not([data-neon="nenhum"]):hover {
+  filter: none;
+  animation: class-board-neon-faixa 2.6s ease-in-out infinite;
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--neon) 55%, #ffffff),
+    inset 0 0 14px color-mix(in srgb, var(--neon) 60%, #ffffff),
+    0 0 12px color-mix(in srgb, var(--neon) 70%, transparent),
+    0 0 26px color-mix(in srgb, var(--neon) 40%, transparent) !important;
+}
+.dash-skin .class-board-cartao-meio:hover,
+.dash-skin .class-board-cartao-meio[aria-expanded="true"] { background: transparent; }
+.dash-skin .class-board-cartao[data-neon]:not([data-neon="nenhum"]) .class-board-cartao-meio:hover { background: transparent; }
+.dash-skin .class-board-cartao .class-board-cartao-tile:hover,
+.dash-skin .class-board-cartao .class-board-cartao-abrir:hover { background: #0a0a0a !important; }
+
+/* ---------------------------------------------------------------------
+   Separação clara entre faixas: o brilho do neon fica só por dentro da
+   faixa (nada vaza para o vão), e o vão entre as faixas fica um pouco
+   maior, sempre escuro.
+   ------------------------------------------------------------------- */
+.class-board-pagina { gap: 6px; }
+.dash-skin .class-board-cartao[data-neon]:not([data-neon="nenhum"]),
+.dash-skin .class-board-cartao[data-neon]:not([data-neon="nenhum"]):hover {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--neon) 55%, #ffffff),
+    inset 0 0 14px color-mix(in srgb, var(--neon) 60%, #ffffff),
+    inset 0 -2px 0 color-mix(in srgb, var(--neon) 70%, #000000) !important;
+}
+.dash-skin .class-board-cartao[data-neon="nenhum"],
+.dash-skin .class-board-cartao[data-neon="nenhum"]:hover { box-shadow: inset 0 0 0 1px rgb(255 255 255 / 10%); }
+
+/* ---------------------------------------------------------------------
+   Painel de edição da campanha com folga: cores do neon em duas
+   colunas, campos maiores, nada cortado; tudo se move ao passar o mouse.
+   ------------------------------------------------------------------- */
+.class-board-painel-cartao { gap: 10px; padding: 10px; }
+.class-board-painel-cartao .class-board-neon-cores { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.class-board-painel-cartao .class-board-neon-cores > .class-board-neon-sem-cor { grid-column: 1 / -1; }
+.class-board-painel-cartao .class-board-neon-cores > .class-board-neon-sem-cor > span { background: transparent; box-shadow: inset 0 0 0 1px rgb(255 255 255 / 45%); }
+.class-board-painel-cartao .class-board-neon-cores > [role="radio"] { min-height: 2.25rem; padding: 0 10px; gap: 8px; font-size: 0.8125rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.class-board-painel-cartao .class-board-neon-cores > [role="radio"] > span { width: 5px; height: 18px; }
+.class-board-painel-cartao .class-board-neon-notas { gap: 10px; }
+.class-board-painel-cartao .class-board-editor-campo > span { font-size: 0.625rem; }
+.class-board-painel-cartao .class-board-editor textarea,
+.class-board-painel-cartao .class-board-editor-nova input { min-height: 2.25rem; padding: 8px 10px; font-size: 0.8125rem; transition: transform 180ms cubic-bezier(0.2, 0.7, 0.2, 1), border-color 180ms ease; }
+.class-board-painel-cartao .class-board-editor textarea:hover,
+.class-board-painel-cartao .class-board-editor-nova input:hover { transform: translateX(2px); border-color: rgb(255 255 255 / 25%); }
+.class-board-painel-cartao .class-board-editor-nova button { min-height: 2.25rem; padding: 0 12px; font-size: 0.8125rem; white-space: nowrap; }
+.class-board-painel-cartao .class-board-editor-cores { gap: 6px; }
+.class-board-painel-cartao .class-board-editor-cores button { width: 26px; height: 26px; }
+.class-board-painel-cartao .class-board-editor-acoes { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.class-board-painel-cartao .class-board-editor-acoes button { min-height: 2.25rem; padding: 0 16px; font-size: 0.8125rem; }
+.class-board-painel-cartao .class-board-editor-acoes small { font-size: 0.75rem; color: #a3a3a3; }
+
+/* ---------------------------------------------------------------------
+   Neon seco: a cor chapada, sem degradê, sem brilho, sem pulso. O nome
+   fica em preto limpo, sem sombra. Vale para as faixas e para a tag do
+   cabeçalho.
+   ------------------------------------------------------------------- */
+.dash-skin .class-board-cartao[data-neon]:not([data-neon="nenhum"]),
+.dash-skin .class-board-cartao[data-neon]:not([data-neon="nenhum"]):hover {
+  background: var(--neon) !important;
+  box-shadow: none !important;
+  animation: none !important;
+  filter: none !important;
+}
+.dash-skin .class-board-cartao[data-neon]:not([data-neon="nenhum"]) .class-board-cartao-nome {
+  color: #0a0a0a;
+  font-weight: 700;
+  text-shadow: none;
+}
+.dash-skin .class-board-pilar-cabecalho[data-tag="true"] { box-shadow: none !important; }
+.dash-skin .class-board-cartao[data-neon="nenhum"],
+.dash-skin .class-board-cartao[data-neon="nenhum"]:hover { box-shadow: none; }
+
+/* Faixa da campanha = faixa da tag do bloco: a mesma letra (peso 800,
+   mesmo tamanho) e a mesma resposta ao mouse; clicar abre o menu. */
+.class-board-cartao .class-board-cartao-nome { font-size: 0.8125rem; font-weight: 800; line-height: 1.2; }
+@container (max-width: 1450px) { .class-board-cartao .class-board-cartao-nome { font-size: 0.75rem; } }
+.dash-skin .class-board-cartao-meio:hover,
+.dash-skin .class-board-cartao[data-neon]:not([data-neon="nenhum"]) .class-board-cartao-meio:hover { background: rgb(0 0 0 / 10%); }
+.dash-skin .class-board-cartao[data-neon="nenhum"] .class-board-cartao-meio:hover { background: rgb(255 255 255 / 5%); }
+
+/* ---------------------------------------------------------------------
+   Título da campanha numa linha só, centrado, com limite de caracteres
+   (o resto vira reticências). Faixas todas com a mesma altura e largura.
+   ------------------------------------------------------------------- */
+.class-board-cartao .class-board-cartao-nome {
+  display: block !important;
+  -webkit-line-clamp: unset !important;
+  white-space: nowrap !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+@container (min-height: 30px) {
+  .class-board-cartao .class-board-cartao-nome { display: block !important; white-space: nowrap !important; }
+}
+
+/* ---------------------------------------------------------------------
+   A faixa inteira é o botão: na tag do bloco, o botão da tag ocupa todo
+   o espaço entre o alfinete e a contagem; na campanha, o miolo ocupa
+   todo o espaço entre o megafone e a seta. Sem seleção de texto.
+   ------------------------------------------------------------------- */
+.class-board-pilar-cabecalho,
+.class-board-cartao { user-select: none; -webkit-user-select: none; }
+.class-board-titulo { align-self: stretch; display: flex; flex: 1 1 0; min-width: 0; }
+.class-board-titulo-botao {
+  display: flex !important;
+  flex: 1 1 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  justify-content: center;
+  align-items: center;
+  padding: 0 8px;
+  cursor: pointer;
+}
+.class-board-cartao .class-board-cartao-meio { align-self: stretch; height: auto; cursor: pointer; }
+
+/* Vão entre a faixa da tag do bloco e a primeira campanha: o mesmo vão
+   que separa as campanhas entre si. */
+.dash-skin .class-board-pilar-corpo { padding-top: 6px !important; }
+
+/* ---------------------------------------------------------------------
+   Blocos sem fundo: só a faixa da tag e as faixas das campanhas sobre o
+   fundo da página. Sem material, sem sombra, sem borda.
+   ------------------------------------------------------------------- */
+.dash-skin .class-board-quadro .class-board-pilares > section.class-board-pilar[aria-label],
+.dash-skin .class-board-quadro .class-board-pilares > section.class-board-pilar[aria-label]:hover,
+.dash-skin .class-board-pilares > .class-board-pilar:hover:not([data-pilar-arrastando="true"]) {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  filter: none !important;
+}
+.dash-skin .class-board-pilares > [data-pilar-sobre="true"] { box-shadow: inset 0 0 0 2px rgb(255 255 255 / 55%) !important; }
+.dash-skin .class-board-pilares > .class-board-pilar[data-drop-active="true"] { box-shadow: inset 0 0 0 2px rgb(255 255 255 / 40%) !important; }
+
+/* ---------------------------------------------------------------------
+   Faixas das campanhas com a mesma altura da faixa da tag (2,25rem),
+   todas iguais; em telas baixas encolhem juntas para caberem as quatro.
+   ------------------------------------------------------------------- */
+.class-board-pagina { grid-template-rows: repeat(4, minmax(0, var(--icone, 2.25rem))); align-content: start; }
+/* Janelas baixas: tag e faixas encolhem juntas (2rem), sempre iguais. */
+@media (max-height: 780px) { .class-board-pilar { --icone: 2rem; } }
+
+/* ---------------------------------------------------------------------
+   Separação dos blocos como numa tabela: linhas brancas de 1px entre as
+   células (e em volta), sem vãos. Cada célula tem o fundo da página e um
+   respiro interno; o movimento do hover fica no conteúdo, não na célula,
+   para as linhas não se mexerem.
+   ------------------------------------------------------------------- */
+.dash-skin .class-board-quadro .class-board-pilares {
+  /* Linha bem fina e discreta, mas visível: branco a 24%. */
+  --linha-tabela: rgb(255 255 255 / 24%);
+  gap: 1px !important;
+  background: var(--linha-tabela);
+  box-shadow: 0 0 0 1px var(--linha-tabela);
+}
+.dash-skin .class-board-quadro .class-board-pilares > section.class-board-pilar[aria-label],
+.dash-skin .class-board-quadro .class-board-pilares > section.class-board-pilar[aria-label]:hover {
+  background: var(--camada-0, #09090b) !important;
+  padding: 10px;
+  /* Sem !important: a animação de troca de lugar (Web Animations) precisa
+     poder mover a célula. */
+  transform: none;
+}
+.dash-skin .class-board-pilares > .class-board-pilar:hover:not([data-pilar-arrastando="true"]) { transform: none; }
+.class-board-pilar > header,
+.class-board-pilar > .class-board-pilar-corpo { transition: transform 220ms cubic-bezier(0.2, 0.7, 0.2, 1); }
+.dash-skin .class-board-pilar:hover:not([data-pilar-arrastando="true"]) > header,
+.dash-skin .class-board-pilar:hover:not([data-pilar-arrastando="true"]) > .class-board-pilar-corpo { transform: translateY(-2px); }
+/* Célula alvo de um arrasto: aresta clara por dentro, sem cobrir as linhas. */
+.dash-skin .class-board-pilares > [data-pilar-sobre="true"],
+.dash-skin .class-board-pilares > .class-board-pilar[data-drop-active="true"] { box-shadow: inset 0 0 0 2px rgb(255 255 255 / 55%) !important; }
+@media (prefers-reduced-motion: reduce) {
+  .dash-skin .class-board-pilar:hover > header, .dash-skin .class-board-pilar:hover > .class-board-pilar-corpo { transform: none; }
+}
+
+/* ---------------------------------------------------------------------
+   Descrição: a caixa cresce conforme o texto; sem alça de redimensionar.
+   ------------------------------------------------------------------- */
+.class-board-painel-cartao .class-board-editor textarea.class-board-descricao {
+  resize: none;
+  overflow: hidden;
+  min-height: 2.25rem;
+  max-height: none;
+  box-sizing: border-box;
+}
+
+/* ---------------------------------------------------------------------
+   Um só tom para todos os ícones do quadro: megafone, seta, tag e
+   alfinete. Acendem em branco ao passar o mouse; o alfinete fixo fica
+   vermelho.
+   ------------------------------------------------------------------- */
+.class-board-pilar { --icone-cor: rgb(255 255 255 / 62%); }
+.dash-skin .class-board-cartao .class-board-cartao-tile,
+.dash-skin .class-board-cartao .class-board-cartao-abrir,
+.dash-skin .class-board-cartao[data-neon]:not([data-neon="nenhum"]) .class-board-cartao-tile,
+.dash-skin .class-board-cartao[data-neon]:not([data-neon="nenhum"]) .class-board-cartao-abrir,
+.dash-skin .class-board-pilar-cabecalho > .class-board-pilar-fixo[data-fixo="false"],
+.dash-skin .class-board-pilar-cabecalho[data-tag="true"] > .class-board-pilar-fixo[data-fixo="false"],
+.dash-skin .class-board-titulo-botao[data-com-tag="false"] { color: var(--icone-cor) !important; }
+.dash-skin .class-board-cartao .class-board-cartao-tile:hover,
+.dash-skin .class-board-cartao .class-board-cartao-abrir:hover,
+.dash-skin .class-board-pilar-cabecalho > .class-board-pilar-fixo[data-fixo="false"]:hover,
+.dash-skin .class-board-titulo-botao[data-com-tag="false"]:hover { color: #ffffff !important; }
+.dash-skin .class-board-pilar-cabecalho > .class-board-pilar-fixo[data-fixo="true"] { color: #ef4444 !important; }
+/* O cabeçalho fica acima da lista: o seletor de tags, que abre para
+   baixo, não pode ficar por trás das faixas (o hover dá transform ao
+   cabeçalho e à lista, criando contextos de empilhamento). */
+.dash-skin .class-board-pilar > .class-board-pilar-cabecalho { position: relative; z-index: 5; }
+
+/* ---------------------------------------------------------------------
+   Faixas de 2rem (tag e campanhas), quantas couberem por página: a
+   lista mede a altura e mostra só as que cabem inteiras.
+   ------------------------------------------------------------------- */
+.class-board-pilar { --icone: 2rem; }
+.class-board-pagina { grid-template-rows: none; grid-auto-rows: var(--icone, 2rem); align-content: start; }
+@container (max-width: 1000px) { .class-board-pagina { grid-template-rows: none; grid-auto-rows: 2.75rem; } }
+
+/* ---------------------------------------------------------------------
+   Seletor de tags do bloco: painel flutuante (portal) no mesmo desenho
+   do painel da campanha. As tags criadas e as quinze cores são faixas
+   com a cor e o nome.
+   ------------------------------------------------------------------- */
+.class-board-painel-cartao.class-board-tags {
+  position: fixed;
+  top: auto;
+  left: auto;
+  z-index: 70;
+  width: auto;
+  max-width: none;
+  gap: 10px;
+  padding: 10px;
+  background: #0d0d0f;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 8%), 0 16px 40px rgb(0 0 0 / 70%);
+}
+.class-board-tags .class-board-tags-lista { display: grid; gap: 6px; }
+.class-board-tags .class-board-tags-lista > li { display: grid; grid-template-columns: minmax(0, 1fr) 2.25rem; gap: 6px; align-items: stretch; }
+.class-board-tags .class-board-tags-usar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 2.25rem;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 0;
+  color: #e5e5e5;
+  background: rgb(255 255 255 / 3%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 6%);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+.class-board-tags .class-board-tags-usar > span:first-child {
+  flex: none;
+  width: 5px;
+  height: 18px;
+  background: var(--neon);
+  box-shadow: 0 0 5px var(--neon), 0 0 10px color-mix(in srgb, var(--neon) 55%, transparent);
+}
+.class-board-tags .class-board-tags-usar:hover { background: rgb(255 255 255 / 7%); color: #fff; }
+.class-board-tags .class-board-tags-lista > li.is-atual .class-board-tags-usar { background: rgb(255 255 255 / 9%); }
+.class-board-tags .class-board-tags-apagar {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 100%;
+  min-height: 2.25rem;
+  border: 0;
+  border-radius: 0;
+  color: rgb(255 255 255 / 62%);
+  background: rgb(255 255 255 / 3%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 6%);
+  cursor: pointer;
+}
+.class-board-tags .class-board-tags-apagar:hover { color: #fff; background: rgb(255 255 255 / 7%); }
+.class-board-tags .class-board-tags-limpar {
+  min-height: 2.25rem;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 0;
+  color: #e5e5e5;
+  background: rgb(255 255 255 / 3%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 6%);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+.class-board-tags .class-board-tags-limpar:hover { color: #fff; background: rgb(255 255 255 / 7%); }
+.class-board-tags .class-board-tags-nova { display: grid; gap: 8px; padding-top: 8px; box-shadow: inset 0 1px 0 rgb(255 255 255 / 8%); }
+.class-board-tags .class-board-tags-campo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 2.25rem;
+  padding: 0 10px;
+  color: rgb(255 255 255 / 62%);
+  background: var(--camada-0, #09090b);
+  border: 1px solid var(--fio-forte, rgb(255 255 255 / 9%));
+}
+.class-board-tags .class-board-tags-campo input { font-size: 0.8125rem; }
+.class-board-tags .class-board-neon-cores.class-board-tags-cores { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.class-board-tags .class-board-neon-cores.class-board-tags-cores > [role="radio"] {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: auto;
+  height: auto;
+  min-width: 0;
+  min-height: 2rem;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 0;
+  color: #e5e5e5;
+  background: rgb(255 255 255 / 3%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 6%);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition: transform 180ms cubic-bezier(0.2, 0.7, 0.2, 1), background-color 180ms ease;
+}
+.class-board-tags .class-board-neon-cores.class-board-tags-cores > [role="radio"] > span {
+  flex: none;
+  width: 5px;
+  height: 16px;
+  background: var(--neon);
+  box-shadow: 0 0 5px var(--neon), 0 0 10px color-mix(in srgb, var(--neon) 55%, transparent);
+}
+.class-board-tags .class-board-neon-cores.class-board-tags-cores > [role="radio"]:hover { transform: translateY(-2px) !important; background: rgb(255 255 255 / 7%); color: #fff; }
+.class-board-tags .class-board-neon-cores.class-board-tags-cores > [role="radio"][aria-checked="true"] { background: rgb(255 255 255 / 9%); transform: none; }
+.class-board-tags .class-board-neon-cores.class-board-tags-cores > [role="radio"][aria-checked="true"] > span { transform: scaleY(1.35); box-shadow: 0 0 8px var(--neon), 0 0 18px var(--neon); }
+.class-board-tags .class-board-tags-criar {
+  min-height: 2.25rem;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 0;
+  color: #0a0a0a;
+  background: #f5f5f5;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.class-board-tags .class-board-tags-erro { margin: 0; color: #f59e0b; font-size: 0.75rem; }
+
+/* Título da campanha: Montserrat, peso médio, minimalista. */
+.class-board-cartao .class-board-cartao-nome {
+  font-family: var(--font-display, var(--font-montserrat), sans-serif);
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.01em;
+}
+
+/* Os blocos deslizam só pela animação de troca (sem transição CSS de
+   transform por cima, que atrapalharia o encadeamento fluido). */
+.dash-skin .class-board-pilares > .class-board-pilar { transition: box-shadow 220ms ease; }
+
+/* Nome da campanha no painel: campo como os outros do painel. */
+.class-board-painel-cartao .class-board-editor input.class-board-nome-campanha {
+  width: 100%;
+  min-width: 0;
+  min-height: 2.25rem;
+  padding: 8px 10px;
+  color: #f5f5f5;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  background: var(--camada-0, #09090b);
+  border: 1px solid var(--fio-forte, rgb(255 255 255 / 9%));
+  border-radius: 0;
+  transition: transform 180ms cubic-bezier(0.2, 0.7, 0.2, 1), border-color 180ms ease;
+}
+.class-board-painel-cartao .class-board-editor input.class-board-nome-campanha:hover { transform: translateX(2px); border-color: rgb(255 255 255 / 25%); }
+
+/* Ao arrastar um bloco só há o movimento: o bloco arrastado continua
+   inteiro (sem ficar cinza) e o destino não ganha moldura nem "bloco de
+   exemplo". */
+.dash-skin .class-board-pilares > [data-pilar-arrastando="true"] { opacity: 1; }
+.dash-skin .class-board-pilares > [data-pilar-sobre="true"] { box-shadow: none !important; }
+
+/* ---------------------------------------------------------------------
+   Blocos do usuário: a grade tem cinco colunas e as fileiras que os
+   blocos precisarem (três por padrão); cada bloco ocupa a largura e a
+   altura escolhidas, em células. As células que sobram são um "+" para
+   criar um bloco ali. Em telas estreitas tudo volta a ser uma fila.
+   ------------------------------------------------------------------- */
+.dash-skin .class-board-quadro .class-board-pilares { grid-template-rows: repeat(var(--fileiras, 3), minmax(auto, 1fr)); }
+.dash-skin .class-board-quadro .class-board-pilares > .class-board-vaga-livre {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  color: var(--icone-cor, rgb(255 255 255 / 62%));
+  background: var(--camada-0, #09090b);
+  cursor: pointer;
+  transition: color 160ms ease;
+}
+.dash-skin .class-board-quadro .class-board-pilares > .class-board-vaga-livre > svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  transition: transform 220ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.dash-skin .class-board-quadro .class-board-pilares > .class-board-vaga-livre:hover { color: #fff; }
+.dash-skin .class-board-quadro .class-board-pilares > .class-board-vaga-livre:hover > svg { transform: translateY(-2px) scale(1.15); }
+.dash-skin .class-board-quadro .class-board-pilares > .class-board-vaga-livre[data-drop-active="true"] { color: #fff; box-shadow: inset 0 0 0 2px rgb(255 255 255 / 40%); }
+.dash-skin .class-board-quadro .class-board-pilares > .class-board-vaga-livre:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }
+@container (max-width: 1000px) {
+  .dash-skin .class-board-quadro .class-board-pilares { grid-template-rows: none; grid-auto-rows: auto; }
+  .class-board-pilares > [data-pilar] { grid-area: auto !important; }
+  .dash-skin .class-board-quadro .class-board-pilares > .class-board-vaga-livre { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dash-skin .class-board-quadro .class-board-pilares > .class-board-vaga-livre:hover > svg { transform: none; }
+}
+
+/* O menu do bloco, por baixo das tags: largura e altura (− e +), novo
+   bloco, apagar e restaurar os blocos de fábrica apagados. */
+.class-board-tags .class-board-bloco-secao { display: grid; gap: 8px; padding-top: 8px; box-shadow: inset 0 1px 0 rgb(255 255 255 / 8%); }
+.class-board-tags .class-board-bloco-tamanho { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.class-board-tags .class-board-bloco-passo {
+  display: grid;
+  grid-template-columns: 2.25rem minmax(0, 1fr) 2.25rem;
+  align-items: stretch;
+  min-height: 2.25rem;
+  color: #e5e5e5;
+  background: rgb(255 255 255 / 3%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 6%);
+  font-size: 0.75rem;
+  font-weight: 700;
+  transition: transform 180ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.class-board-tags .class-board-bloco-passo:hover { transform: translateY(-2px); }
+.class-board-tags .class-board-bloco-passo > span { display: grid; place-items: center; min-width: 0; padding: 0 4px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.class-board-tags .class-board-bloco-passo > button {
+  border: 0;
+  border-radius: 0;
+  color: rgb(255 255 255 / 62%);
+  background: transparent;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+.class-board-tags .class-board-bloco-passo > button:hover:not(:disabled) { color: #fff; background: rgb(255 255 255 / 7%); }
+.class-board-tags .class-board-bloco-passo > button:disabled { opacity: 0.3; cursor: default; }
+.class-board-tags .class-board-bloco-acoes,
+.class-board-tags .class-board-bloco-restaurar { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.class-board-tags .class-board-bloco-restaurar { grid-template-columns: minmax(0, 1fr); }
+.class-board-tags .class-board-bloco-acoes > button,
+.class-board-tags .class-board-bloco-restaurar > button {
+  min-height: 2.25rem;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 0;
+  color: #e5e5e5;
+  background: rgb(255 255 255 / 3%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 6%);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition: transform 180ms cubic-bezier(0.2, 0.7, 0.2, 1), background-color 180ms ease;
+}
+.class-board-tags .class-board-bloco-acoes > button:hover:not(:disabled),
+.class-board-tags .class-board-bloco-restaurar > button:hover { color: #fff; background: rgb(255 255 255 / 7%); transform: translateY(-2px); }
+.class-board-tags .class-board-bloco-acoes > button.class-board-bloco-apagar:hover:not(:disabled) { color: #ff3b3b; }
+.class-board-tags .class-board-bloco-acoes > button:disabled { opacity: 0.3; cursor: default; }
+@media (prefers-reduced-motion: reduce) {
+  .class-board-tags .class-board-bloco-passo:hover,
+  .class-board-tags .class-board-bloco-acoes > button:hover,
+  .class-board-tags .class-board-bloco-restaurar > button:hover { transform: none; }
+}
+
+/* ---------------------------------------------------------------------
+   Números do bloco no cabeçalho: investimento somado e ROAS da soma,
+   num quadrado preto ao lado da contagem (mesma altura, letra branca,
+   sem mudar com a tag). O número do ROAS tem a cor neon da faixa:
+   vermelho ruim (abaixo de 1,5x), amarelo mediano (1,5x a 2x), verde
+   ótimo (2x para cima). Nada mais no bloco muda de cor.
+   ------------------------------------------------------------------- */
+.dash-skin .class-board-pilar-cabecalho > .class-board-pilar-numeros,
+.dash-skin .class-board-pilar-cabecalho[data-tag="true"] > .class-board-pilar-numeros {
+  flex: none;
+  align-self: stretch;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: var(--icone) !important;
+  min-width: 0;
+  padding: 0 8px;
+  color: #fff !important;
+  background: #0a0a0a !important;
+  box-shadow: none !important;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+  transition: transform 220ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.dash-skin .class-board-pilar-cabecalho > .class-board-pilar-numeros > b { font-weight: 800; }
+.dash-skin .class-board-pilar-cabecalho > .class-board-pilar-numeros > i {
+  width: 1px;
+  height: 0.875rem;
+  background: rgb(255 255 255 / 24%);
+}
+.dash-skin .class-board-pilar-cabecalho > .class-board-pilar-numeros[data-roas="ruim"] > b:last-child { color: #ff3b3b; }
+.dash-skin .class-board-pilar-cabecalho > .class-board-pilar-numeros[data-roas="mediano"] > b:last-child { color: #ffd60a; }
+.dash-skin .class-board-pilar-cabecalho > .class-board-pilar-numeros[data-roas="otimo"] > b:last-child { color: #3dff6a; }
+.dash-skin .class-board-pilar-cabecalho > .class-board-pilar-numeros:hover { transform: translateY(-2px); }
+/* Sem traço no rodapé do bloco: a faixa do ROAS aparece só na cor neon
+   do número, no cabeçalho. */
+.dash-skin .class-board-quadro .class-board-pilares > section.class-board-pilar[aria-label] { position: relative; }
+/* Em blocos estreitos o cabeçalho não pode cortar: os números somem
+   quando a largura for pequena (a tag e a contagem ficam). */
+@container (max-width: 1250px) {
+  .dash-skin .class-board-pilar-cabecalho > .class-board-pilar-numeros > b:first-child,
+  .dash-skin .class-board-pilar-cabecalho > .class-board-pilar-numeros > i { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dash-skin .class-board-pilar-cabecalho > .class-board-pilar-numeros:hover { transform: none; }
+}
+
+/* ---------------------------------------------------------------------
+   Painel dos números do bloco: abre ao clicar no quadrado dos números.
+   Todas as métricas somadas em quadradinhos (três por linha) e o
+   gráfico do ROAS ao vivo: linha fina, pontos, as faixas 1,5x e 2x ao
+   fundo e a leitura mais nova com o valor. Texto sempre em branco ou
+   cinza; a cor da faixa fica só no ponto mais novo.
+   ------------------------------------------------------------------- */
+.dash-skin .class-board-pilar-cabecalho > .class-board-pilar-numeros { border: 0; border-radius: 0; cursor: pointer; }
+.dash-skin .class-board-pilar-cabecalho > .class-board-pilar-numeros:hover,
+.dash-skin .class-board-pilar-cabecalho > .class-board-pilar-numeros[aria-expanded="true"] { background: #1a1a1a !important; }
+.dash-skin .class-board-pilar-cabecalho > .class-board-pilar-numeros:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }
+.class-board-bloco-numeros.class-board-tags { gap: 10px; }
+.class-board-bloco-numeros .class-board-bloco-numeros-titulo { margin: 0; color: #a3a3a3; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+.class-board-bloco-numeros .class-board-bloco-numeros-titulo > b { color: #fff; font-weight: 800; }
+.class-board-bloco-numeros .class-board-bloco-metricas { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; font-variant-numeric: tabular-nums; }
+.class-board-bloco-numeros .class-board-bloco-metricas > div {
+  padding: 8px 6px;
+  background: rgb(255 255 255 / 3%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 6%);
+  transition: transform 180ms cubic-bezier(0.2, 0.7, 0.2, 1), background-color 180ms ease;
+}
+.class-board-bloco-numeros .class-board-bloco-metricas > div:hover { transform: translateY(-2px); background: rgb(255 255 255 / 7%); }
+.class-board-bloco-numeros .class-board-bloco-metricas dt { color: #a3a3a3; font-size: 0.5625rem; line-height: 1.4; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.class-board-bloco-numeros .class-board-bloco-metricas dd { margin: 2px 0 0; color: #fff; font-size: 0.8125rem; font-weight: 750; overflow-wrap: anywhere; }
+.class-board-bloco-numeros .class-board-grafico { display: grid; gap: 6px; margin: 0; padding-top: 8px; box-shadow: inset 0 1px 0 rgb(255 255 255 / 8%); }
+.class-board-bloco-numeros .class-board-grafico > figcaption { color: #a3a3a3; font-size: 0.6875rem; font-weight: 600; }
+.class-board-bloco-numeros .class-board-grafico > figcaption b { color: #fff; font-weight: 800; }
+.class-board-bloco-numeros .class-board-grafico-vazio { margin: 0; color: #a3a3a3; font-size: 0.75rem; line-height: 1.5; }
+.class-board-bloco-numeros .class-board-grafico-area { position: relative; }
+.class-board-bloco-numeros .class-board-grafico-area > svg { display: block; width: 100%; height: auto; overflow: visible; touch-action: none; }
+.class-board-grafico-grade { stroke: rgb(255 255 255 / 10%); stroke-width: 1; }
+.class-board-grafico-faixa { stroke-width: 1; }
+.class-board-grafico-faixa[data-faixa="mediano"] { stroke: rgb(255 214 10 / 45%); }
+.class-board-grafico-faixa[data-faixa="otimo"] { stroke: rgb(61 255 106 / 45%); }
+.class-board-grafico-linha { fill: none; stroke: #f5f5f5; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.class-board-grafico-cursor { stroke: rgb(255 255 255 / 35%); stroke-width: 1; }
+.class-board-grafico-ponto { fill: #f5f5f5; stroke: #0d0d0f; stroke-width: 2; transition: r 120ms ease; }
+.class-board-grafico-ponto[data-ativo="true"] { r: 6; }
+.class-board-grafico-ponto[data-atual="true"][data-faixa="ruim"] { fill: #ff3b3b; }
+.class-board-grafico-ponto[data-atual="true"][data-faixa="mediano"] { fill: #ffd60a; }
+.class-board-grafico-ponto[data-atual="true"][data-faixa="otimo"] { fill: #3dff6a; }
+.class-board-grafico-eixo { fill: #8a8a8a; font-size: 9px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.class-board-grafico-valor { fill: #fff; font-size: 11px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.class-board-bloco-numeros .class-board-grafico-dica {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  padding: 3px 8px;
+  color: #fff;
+  background: #0a0a0a;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 12%);
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.class-board-bloco-numeros .class-board-grafico-dica > b { font-weight: 800; }
+.class-board-bloco-numeros .class-board-grafico-dica > span { color: #a3a3a3; margin-left: 4px; }
+@media (prefers-reduced-motion: reduce) {
+  .class-board-bloco-numeros .class-board-bloco-metricas > div:hover { transform: none; }
+}
+
+/* ---------------------------------------------------------------------
+   Card da campanha: investimento total, retorno total, ROAS e lucro
+   (retorno − taxa do gateway − tráfego). O lucro fica verde quando
+   positivo e vermelho quando negativo; a conta vem escrita embaixo e a
+   taxa do gateway se edita ali mesmo.
+   ------------------------------------------------------------------- */
+.campanha-card-flutuante-metricas > div[data-lucro="positivo"] dd { color: #3dff6a; }
+.campanha-card-flutuante-metricas > div[data-lucro="negativo"] dd { color: #ff3b3b; }
+.campanha-card-flutuante-conta {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 6px 8px;
+  color: #b3b3b3;
+  background: rgb(255 255 255 / 3%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 6%);
+  font-size: 0.625rem;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+}
+.campanha-card-flutuante-conta > span:last-child { color: #fff; }
+.campanha-card-flutuante-conta b { font-weight: 800; }
+.campanha-card-flutuante-taxa {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 5rem;
+  align-items: center;
+  gap: 8px;
+  color: #a3a3a3;
+  font-size: 0.625rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.campanha-card-flutuante-taxa input {
+  min-height: 1.75rem;
+  padding: 0 8px;
+  color: #fff;
+  background: var(--camada-0, #09090b);
+  border: 1px solid var(--fio-forte, rgb(255 255 255 / 9%));
+  border-radius: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  transition: border-color 180ms ease, transform 180ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.campanha-card-flutuante-taxa input:hover { border-color: rgb(255 255 255 / 25%); transform: translateX(-2px); }
+.campanha-card-flutuante-taxa input:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }
+@media (prefers-reduced-motion: reduce) { .campanha-card-flutuante-taxa input:hover { transform: none; } }
+/* O lucro é o número de destaque do card: ocupa a largura toda, maior. */
+.campanha-card-flutuante-metricas > div[data-lucro] { grid-column: 1 / -1; padding: 0.55rem 0.4rem; }
+.campanha-card-flutuante-metricas > div[data-lucro] dd { font-size: 1.125rem; font-weight: 800; }
+
+/* ---------------------------------------------------------------------
+   Gráfico do ROAS no desenho de cotação: linha em neon (a cor da faixa
+   da leitura mais nova) com sombra em degradê; pílulas de período;
+   cursor tracejado com ponto; cartão fixo no canto com data, valor
+   grande, variação, máximo e mínimo.
+   ------------------------------------------------------------------- */
+.class-board-bloco-numeros .class-board-bloco-metricas { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.class-board-bloco-numeros .class-board-grafico-topo { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
+.class-board-bloco-numeros .class-board-grafico-janelas { display: flex; gap: 4px; }
+.class-board-bloco-numeros .class-board-grafico-janelas > button {
+  min-width: 2.5rem;
+  min-height: 1.75rem;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 0;
+  color: rgb(255 255 255 / 62%);
+  background: rgb(255 255 255 / 3%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 6%);
+  font-size: 0.6875rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 180ms cubic-bezier(0.2, 0.7, 0.2, 1), background-color 180ms ease, color 180ms ease;
+}
+.class-board-bloco-numeros .class-board-grafico-janelas > button:hover { color: #fff; background: rgb(255 255 255 / 7%); transform: translateY(-2px); }
+.class-board-bloco-numeros .class-board-grafico-janelas > button[aria-pressed="true"] { color: #0a0a0a; background: #f5f5f5; transform: none; }
+.class-board-bloco-numeros .class-board-grafico-janelas > button:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }
+.class-board-bloco-numeros .class-board-grafico-area > svg { background: rgb(255 255 255 / 2%); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 5%); }
+.class-board-grafico-linha { stroke: var(--serie, #f5f5f5); filter: drop-shadow(0 0 4px color-mix(in srgb, var(--serie, #fff) 55%, transparent)); }
+.class-board-grafico-sombra { stroke: none; }
+.class-board-grafico-cursor { stroke: color-mix(in srgb, var(--serie, #fff) 70%, transparent); stroke-width: 1; stroke-dasharray: 3 3; }
+.class-board-grafico-ponto { fill: var(--serie, #f5f5f5); stroke: #0d0d0f; stroke-width: 2; }
+.class-board-grafico-ponto[data-atual="true"][data-faixa="ruim"],
+.class-board-grafico-ponto[data-atual="true"][data-faixa="mediano"],
+.class-board-grafico-ponto[data-atual="true"][data-faixa="otimo"] { fill: var(--serie, #f5f5f5); }
+.class-board-bloco-numeros .class-board-grafico-cartao {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  display: grid;
+  gap: 2px;
+  min-width: 11rem;
+  padding: 10px 12px;
+  color: #d4d4d4;
+  background: rgb(13 13 15 / 92%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 10%), 0 8px 24px rgb(0 0 0 / 50%);
+  font-size: 0.6875rem;
+  line-height: 1.35;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+.class-board-bloco-numeros .class-board-grafico-cartao-quando { color: #a3a3a3; font-size: 0.625rem; }
+.class-board-bloco-numeros .class-board-grafico-cartao-valor { color: var(--serie, #fff); font-size: 1.25rem; font-weight: 800; line-height: 1.1; }
+.class-board-bloco-numeros .class-board-grafico-cartao-variacao { color: #d4d4d4; }
+.class-board-bloco-numeros .class-board-grafico-cartao-variacao[data-sinal="sobe"] { color: #3dff6a; }
+.class-board-bloco-numeros .class-board-grafico-cartao-variacao[data-sinal="desce"] { color: #ff3b3b; }
+.class-board-bloco-numeros .class-board-grafico-cartao-extremos { color: #a3a3a3; }
+.class-board-bloco-numeros .class-board-grafico-dica { display: none; }
+@media (prefers-reduced-motion: reduce) { .class-board-bloco-numeros .class-board-grafico-janelas > button:hover { transform: none; } }
+
+/* ---------------------------------------------------------------------
+   Painel do bloco: gráfico primeiro; depois o cabeçalho com a contagem e
+   o filtro por página; depois as doze métricas em quatro colunas, cada
+   quadradinho arrastável (sem quadrado cinza, só o movimento).
+   ------------------------------------------------------------------- */
+.class-board-bloco-numeros .class-board-bloco-numeros-cabecalho { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 8px; box-shadow: inset 0 1px 0 rgb(255 255 255 / 8%); }
+.class-board-bloco-numeros .class-board-bloco-numeros-titulo { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.class-board-bloco-numeros .class-board-bloco-paginas { flex: none; }
+.class-board-bloco-numeros .class-board-bloco-metricas > div { cursor: grab; user-select: none; -webkit-user-select: none; }
+.class-board-bloco-numeros .class-board-bloco-metricas > div:active { cursor: grabbing; }
+.class-board-bloco-numeros .class-board-bloco-metricas > div[data-arrastando="true"] { opacity: 1; transform: none; background: rgb(255 255 255 / 9%); }
+.class-board-bloco-numeros .class-board-bloco-metricas > div:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }
+.class-board-bloco-numeros .class-board-bloco-metricas dd[data-lucro="positivo"] { color: #3dff6a; }
+.class-board-bloco-numeros .class-board-bloco-metricas dd[data-lucro="negativo"] { color: #ff3b3b; }
+.class-board-bloco-numeros .class-board-grafico { padding-top: 0; box-shadow: none; }
+
+/* ---------------------------------------------------------------------
+   Tag do bloco em neon, não em cor sólida: a faixa continua preta; o
+   nome da tag acende na cor (com brilho de letreiro) e um filete de
+   neon corre na base da faixa. Alfinete, números e contagem não mudam.
+   ------------------------------------------------------------------- */
+.dash-skin .class-board-pilar-cabecalho[data-tag="true"] {
+  color: var(--tag-neon);
+  background: transparent !important;
+  box-shadow: inset 0 -2px 0 var(--tag-neon), 0 3px 12px -3px color-mix(in srgb, var(--tag-neon) 70%, transparent) !important;
+}
+.dash-skin .class-board-pilar-cabecalho[data-tag="true"] .class-board-titulo-botao {
+  color: var(--tag-neon);
+  text-shadow: 0 0 6px color-mix(in srgb, var(--tag-neon) 75%, transparent), 0 0 16px color-mix(in srgb, var(--tag-neon) 45%, transparent);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.dash-skin .class-board-pilar-cabecalho[data-tag="true"] .class-board-titulo-botao:hover,
+.dash-skin .class-board-pilar-cabecalho[data-tag="true"] .class-board-titulo-botao[aria-expanded="true"] {
+  background: rgb(255 255 255 / 5%);
+  text-shadow: 0 0 8px var(--tag-neon), 0 0 22px color-mix(in srgb, var(--tag-neon) 60%, transparent);
+}
+
+/* =====================================================================
+   Tema branco com preto no quadro por classe e nos painéis: fundo
+   branco, texto preto, véus pretos no lugar dos véus brancos. Os
+   quadrados pretos (megafone, seta, alfinete, números, contagem) ficam
+   pretos com o desenho branco, como os botões da referência; os neons
+   não mudam.
+   ===================================================================== */
+html[data-tema="branco"] .class-board-pilar { --icone-cor: rgb(0 0 0 / 62%); }
+html[data-tema="branco"] .dash-skin .class-board-quadro .class-board-pilares { --linha-tabela: rgb(0 0 0 / 16%); }
+html[data-tema="branco"] .dash-skin .class-board-quadro .class-board-pilares > section.class-board-pilar[aria-label],
+html[data-tema="branco"] .dash-skin .class-board-quadro .class-board-pilares > section.class-board-pilar[aria-label]:hover { background: #ffffff !important; }
+html[data-tema="branco"] .dash-skin .class-board-quadro .class-board-pilares > .class-board-vaga-livre { background: #ffffff; color: rgb(0 0 0 / 50%); }
+html[data-tema="branco"] .dash-skin .class-board-quadro .class-board-pilares > .class-board-vaga-livre:hover { color: #0a0a0a; }
+/* Quadrados pretos: desenho branco por cima. */
+html[data-tema="branco"] .dash-skin .class-board-cartao .class-board-cartao-tile,
+html[data-tema="branco"] .dash-skin .class-board-cartao .class-board-cartao-abrir,
+html[data-tema="branco"] .dash-skin .class-board-cartao[data-neon]:not([data-neon="nenhum"]) .class-board-cartao-tile,
+html[data-tema="branco"] .dash-skin .class-board-cartao[data-neon]:not([data-neon="nenhum"]) .class-board-cartao-abrir,
+html[data-tema="branco"] .dash-skin .class-board-pilar-cabecalho > .class-board-pilar-fixo[data-fixo="false"] { color: rgb(255 255 255 / 75%) !important; }
+html[data-tema="branco"] .dash-skin .class-board-cartao .class-board-cartao-tile:hover,
+html[data-tema="branco"] .dash-skin .class-board-cartao .class-board-cartao-abrir:hover,
+html[data-tema="branco"] .dash-skin .class-board-pilar-cabecalho > .class-board-pilar-fixo[data-fixo="false"]:hover { color: #ffffff !important; }
+/* A faixa da tag e o miolo da campanha: véu preto, texto preto. */
+html[data-tema="branco"] .dash-skin .class-board-titulo-botao { background: rgb(0 0 0 / 4%); color: rgb(0 0 0 / 62%); }
+html[data-tema="branco"] .dash-skin .class-board-titulo-botao[data-com-tag="false"] { color: rgb(0 0 0 / 62%) !important; }
+html[data-tema="branco"] .dash-skin .class-board-titulo-botao[data-com-tag="false"]:hover { color: #0a0a0a !important; }
+html[data-tema="branco"] .dash-skin .class-board-titulo-botao:hover,
+html[data-tema="branco"] .dash-skin .class-board-titulo-botao[aria-expanded="true"] { background: rgb(0 0 0 / 8%); }
+html[data-tema="branco"] .dash-skin .class-board-cartao[data-neon="nenhum"] .class-board-cartao-meio { background: rgb(0 0 0 / 4%); color: #0a0a0a; }
+html[data-tema="branco"] .dash-skin .class-board-cartao[data-neon="nenhum"] .class-board-cartao-meio:hover { background: rgb(0 0 0 / 8%); }
+html[data-tema="branco"] .dash-skin .class-board-cartao[data-neon="nenhum"] .class-board-cartao-nome { color: #0a0a0a; }
+html[data-tema="branco"] .dash-skin .class-board-cartao[data-neon="nenhum"] .class-board-cartao-texto { color: #6b6b70; }
+/* Painéis flutuantes (tags, campanha, números do bloco, card da campanha): brancos. */
+html[data-tema="branco"] .class-board-painel-cartao,
+html[data-tema="branco"] .class-board-painel-cartao.class-board-tags,
+html[data-tema="branco"] .campanha-card-flutuante {
+  color: #0a0a0a;
+  background: #ffffff;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 8%), 0 16px 40px rgb(0 0 0 / 18%);
+}
+html[data-tema="branco"] :is(.class-board-painel-cartao, .campanha-card-flutuante) :is(
+  .class-board-tags-usar, .class-board-tags-limpar, .class-board-tags-apagar, .class-board-tags-campo,
+  .class-board-bloco-passo, .class-board-bloco-acoes > button, .class-board-bloco-restaurar > button,
+  .class-board-neon-cores > [role="radio"], .class-board-bloco-metricas > div, .campanha-card-flutuante-metricas > div,
+  .campanha-card-flutuante-conta, .class-board-grafico-janelas > button, .class-board-editor-nova button,
+  input, textarea
+) { color: #0a0a0a; background: rgb(0 0 0 / 4%); box-shadow: inset 0 0 0 1px rgb(0 0 0 / 8%); border-color: rgb(0 0 0 / 12%); }
+html[data-tema="branco"] :is(.class-board-painel-cartao, .campanha-card-flutuante) :is(
+  .class-board-tags-usar:hover, .class-board-tags-limpar:hover, .class-board-tags-apagar:hover,
+  .class-board-bloco-acoes > button:hover:not(:disabled), .class-board-bloco-restaurar > button:hover,
+  .class-board-neon-cores > [role="radio"]:hover, .class-board-bloco-metricas > div:hover, .class-board-grafico-janelas > button:hover
+) { color: #0a0a0a; background: rgb(0 0 0 / 8%); }
+html[data-tema="branco"] :is(.class-board-painel-cartao, .campanha-card-flutuante) :is(
+  .class-board-bloco-passo > button, .class-board-tags-apagar, .class-board-grafico-janelas > button
+) { color: rgb(0 0 0 / 62%); }
+html[data-tema="branco"] :is(.class-board-painel-cartao, .campanha-card-flutuante) :is(.class-board-bloco-passo > button, .class-board-tags-apagar):hover:not(:disabled) { color: #0a0a0a; background: rgb(0 0 0 / 8%); }
+html[data-tema="branco"] :is(.class-board-painel-cartao, .campanha-card-flutuante) :is(
+  dt, .class-board-bloco-numeros-titulo, .class-board-editor-campo > span, .class-board-tags-campo,
+  .campanha-card-flutuante-conta, .campanha-card-flutuante-taxa, .campanha-card-flutuante-nota,
+  .class-board-grafico-cartao-quando, .class-board-grafico-cartao-extremos, .class-board-editor-acoes small
+) { color: #6b6b70; }
+html[data-tema="branco"] :is(.class-board-painel-cartao, .campanha-card-flutuante) :is(dd, b, .class-board-bloco-numeros-titulo > b, .campanha-card-flutuante-conta > span:last-child) { color: #0a0a0a; }
+html[data-tema="branco"] .class-board-painel-cartao .class-board-bloco-numeros-cabecalho,
+html[data-tema="branco"] .class-board-painel-cartao .class-board-tags-nova,
+html[data-tema="branco"] .class-board-painel-cartao .class-board-bloco-secao { box-shadow: inset 0 1px 0 rgb(0 0 0 / 8%); }
+/* Selecionado nos painéis: preto com texto branco (os botões da referência). */
+html[data-tema="branco"] :is(.class-board-painel-cartao, .campanha-card-flutuante) :is(
+  .class-board-grafico-janelas > button[aria-pressed="true"], .class-board-neon-cores > [role="radio"][aria-checked="true"],
+  .class-board-tags-lista > li.is-atual .class-board-tags-usar, .class-board-tags-criar, .campaign-drill-abrir
+) { color: #ffffff; background: #0a0a0a; box-shadow: none; }
+/* Gráfico: grade e ponto no branco. */
+html[data-tema="branco"] .class-board-bloco-numeros .class-board-grafico-area > svg { background: rgb(0 0 0 / 3%); box-shadow: inset 0 0 0 1px rgb(0 0 0 / 6%); }
+html[data-tema="branco"] .class-board-grafico-grade { stroke: rgb(0 0 0 / 10%); }
+html[data-tema="branco"] .class-board-grafico-ponto { stroke: #ffffff; }
+html[data-tema="branco"] .class-board-grafico-eixo { fill: #6b6b70; }
+html[data-tema="branco"] .class-board-bloco-numeros .class-board-grafico-cartao { color: #333338; background: rgb(255 255 255 / 94%); box-shadow: inset 0 0 0 1px rgb(0 0 0 / 10%), 0 8px 24px rgb(0 0 0 / 15%); }
+/* Números do bloco: o quadrado continua preto; o investimento em branco, o ROAS na cor da faixa. */
+html[data-tema="branco"] .dash-skin .class-board-pilar-cabecalho > .class-board-pilar-numeros > b:first-child { color: #ffffff; }
+html[data-tema="branco"] .dash-skin .class-board-pilar-cabecalho > .class-board-pilar-numeros > i { background: rgb(255 255 255 / 30%); }
+
+/* ---------------------------------------------------------------------
+   Seta, megafone e alfinete sem o quadrado preto: só o ícone, no mesmo
+   lugar e com a mesma largura (o alinhamento das faixas não muda). Em
+   faixa com neon, o ícone fica preto sobre a cor. A contagem e os
+   números continuam no quadrado preto.
+   ------------------------------------------------------------------- */
+.dash-skin .class-board-cartao .class-board-cartao-tile,
+.dash-skin .class-board-cartao .class-board-cartao-abrir,
+.dash-skin .class-board-cartao[data-neon]:not([data-neon="nenhum"]) .class-board-cartao-tile,
+.dash-skin .class-board-cartao[data-neon]:not([data-neon="nenhum"]) .class-board-cartao-abrir,
+.dash-skin .class-board-pilar-cabecalho > .class-board-pilar-fixo,
+.dash-skin .class-board-pilar-cabecalho[data-tag="true"] > .class-board-pilar-fixo,
+.dash-skin .class-board-pilar-cabecalho > .class-board-pilar-fixo[data-fixo="false"],
+.dash-skin .class-board-pilar-cabecalho > .class-board-pilar-fixo[data-fixo="true"],
+.dash-skin .class-board-pilar-cabecalho[data-tag="true"] > .class-board-pilar-fixo[data-fixo="false"],
+.dash-skin .class-board-pilar-cabecalho[data-tag="true"] > .class-board-pilar-fixo[data-fixo="true"] {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.dash-skin .class-board-pilar-cabecalho > .class-board-pilar-fixo:hover { background: transparent !important; }
+.dash-skin .class-board-cartao[data-neon]:not([data-neon="nenhum"]) .class-board-cartao-tile,
+.dash-skin .class-board-cartao[data-neon]:not([data-neon="nenhum"]) .class-board-cartao-abrir { color: rgb(0 0 0 / 72%) !important; }
+.dash-skin .class-board-cartao[data-neon]:not([data-neon="nenhum"]) .class-board-cartao-tile:hover,
+.dash-skin .class-board-cartao[data-neon]:not([data-neon="nenhum"]) .class-board-cartao-abrir:hover { color: #0a0a0a !important; }
+/* No tema branco os ícones soltos ficam pretos (o mesmo tom dos outros ícones). */
+html[data-tema="branco"] .dash-skin .class-board-cartao[data-neon="nenhum"] .class-board-cartao-tile,
+html[data-tema="branco"] .dash-skin .class-board-cartao[data-neon="nenhum"] .class-board-cartao-abrir,
+html[data-tema="branco"] .dash-skin .class-board-pilar-cabecalho > .class-board-pilar-fixo[data-fixo="false"] { color: rgb(0 0 0 / 62%) !important; }
+html[data-tema="branco"] .dash-skin .class-board-cartao[data-neon="nenhum"] .class-board-cartao-tile:hover,
+html[data-tema="branco"] .dash-skin .class-board-cartao[data-neon="nenhum"] .class-board-cartao-abrir:hover,
+html[data-tema="branco"] .dash-skin .class-board-pilar-cabecalho > .class-board-pilar-fixo[data-fixo="false"]:hover { color: #0a0a0a !important; }
+/* A faixa da tag sem véu: o ícone da tag fica solto; o véu só no hover. */
+.dash-skin .class-board-titulo-botao[data-com-tag="false"] { background: transparent !important; }
+.dash-skin .class-board-titulo-botao[data-com-tag="false"]:hover,
+.dash-skin .class-board-titulo-botao[data-com-tag="false"][aria-expanded="true"] { background: rgb(255 255 255 / 5%) !important; }
+html[data-tema="branco"] .dash-skin .class-board-titulo-botao[data-com-tag="false"]:hover,
+html[data-tema="branco"] .dash-skin .class-board-titulo-botao[data-com-tag="false"][aria-expanded="true"] { background: rgb(0 0 0 / 6%) !important; }
+/* Tema branco, menu da tag: as cores em texto preto e "Criar e usar" preto. */
+html[data-tema="branco"] .class-board-tags .class-board-neon-cores.class-board-tags-cores > [role="radio"] { color: #0a0a0a !important; background: rgb(0 0 0 / 4%) !important; box-shadow: inset 0 0 0 1px rgb(0 0 0 / 8%) !important; }
+html[data-tema="branco"] .class-board-tags .class-board-neon-cores.class-board-tags-cores > [role="radio"][aria-checked="true"] { color: #ffffff !important; background: #0a0a0a !important; }
+html[data-tema="branco"] .class-board-tags .class-board-tags-criar { color: #ffffff !important; background: #0a0a0a !important; }
+html[data-tema="branco"] .class-board-tags .class-board-tags-usar { color: #0a0a0a !important; }
