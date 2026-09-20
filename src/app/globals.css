@@ -6109,29 +6109,13 @@ html[data-tema="branco"] .dash-skin :is(
    já seguem as variáveis; aqui, os tons fixos mais comuns da pele). */
 html[data-tema="branco"] .dash-skin :is(h1, h2, h3, h4, strong, b, th, dd) { color: inherit; }
 html[data-tema="branco"] .dash-skin :is(.text-white, .text-foreground) { color: #0a0a0a; }
-/* O menu da esquerda e a gaveta da direita continuam pretos, como na
-   referência: texto branco, blocos pretos com fio claro. */
-html[data-tema="branco"] .dash-skin :is(.dash-sidebar, .dash-sidebar-tray, .sessoes-lateral-caixa) {
-  --camada-0: #0a0a0a;
-  --camada-1: #101012;
-  --camada-2: rgb(255 255 255 / 3%);
-  --camada-3: rgb(255 255 255 / 5%);
-  --camada-4: rgb(255 255 255 / 7%);
-  --fio: rgb(255 255 255 / 8%);
-  --fio-forte: rgb(255 255 255 / 14%);
-  --selecionado: #ffffff;
-  --selecionado-texto: #0a0a0a;
-  --foreground: #f5f5f5;
-  --muted-foreground: #a3a3a3;
-  --border: var(--fio);
-  --background: #0a0a0a;
-  color: #f5f5f5;
-  background: #0a0a0a;
-  color-scheme: dark;
-}
-html[data-tema="branco"] .dash-skin .dash-sidebar { border-color: rgb(0 0 0 / 10%); box-shadow: 6px 0 24px -12px rgb(0 0 0 / 35%); }
-html[data-tema="branco"] .dash-skin :is(.dash-sidebar, .dash-sidebar-tray, .sessoes-lateral-caixa) .dash-sidebar-block { background: #101012; border-color: rgb(255 255 255 / 8%); color: #f5f5f5; }
-html[data-tema="branco"] .dash-skin :is(.dash-sidebar, .dash-sidebar-tray, .sessoes-lateral-caixa) .dash-sidebar-block :is(.text-muted-foreground, small, p) { color: #a3a3a3; }
+/* Os menus laterais no tema branco: brancos, com texto e ícones pretos
+   e um fio cinza para se destacarem da página. */
+html[data-tema="branco"] .dash-skin :is(.dash-sidebar, .dash-sidebar-tray, .sessoes-lateral-caixa) { background: #ffffff; color: #0a0a0a; border-color: var(--fio-forte); }
+html[data-tema="branco"] .dash-skin .dash-sidebar { box-shadow: 1px 0 0 var(--fio-forte); }
+html[data-tema="branco"] .dash-skin :is(.dash-sidebar, .dash-sidebar-tray, .sessoes-lateral-caixa) .dash-sidebar-block { background: #ffffff; border-color: var(--fio-forte); color: #0a0a0a; }
+html[data-tema="branco"] .dash-skin :is(.dash-sidebar, .dash-sidebar-tray, .sessoes-lateral-caixa) .dash-sidebar-block:hover { background: rgb(0 0 0 / 4%); }
+html[data-tema="branco"] .dash-skin :is(.dash-sidebar, .dash-sidebar-tray, .sessoes-lateral-caixa) .dash-sidebar-block:is([aria-current="page"], .is-active, .is-current) { background: #0a0a0a; color: #ffffff; }
 /* Botões principais: pretos com texto branco, como na referência. */
 html[data-tema="branco"] .dash-skin :is(.bg-primary, [data-slot="button"][data-variant="default"]) { background: #0a0a0a; color: #ffffff; }
 /* Campos: brancos com fio cinza. */
@@ -6152,5 +6136,80 @@ html[data-tema="branco"] .dash-skin :is(input, textarea)::placeholder { color: #
   box-shadow: none !important;
 }
 .dash-skin :is(.bg-primary, .bg-foreground, .bg-white, .bg-black, .text-primary-foreground):has(> svg:only-child) { color: inherit; }
-/* No tema branco, o menu da esquerda e a gaveta da direita são pretos de verdade. */
-html[data-tema="branco"] .dash-skin :is(.dash-sidebar, .dash-sidebar-tray, .sessoes-lateral-caixa) { background: #0a0a0a !important; background-image: none !important; }
+
+/* =====================================================================
+   Tema branco: todas as fontes e ícones pretos. O painel tem muitas
+   cores de texto fixas (brancos e cinzas claros do tema preto); aqui,
+   no branco, tudo o que é texto herda o preto da pele. Ficam de fora
+   as cores de estado e os neons: utilitários de cor do Tailwind
+   (text-*), cores em estilo inline, o quadro por classe e os gráficos,
+   que já têm as suas regras. Ícones seguem a cor do texto.
+   ===================================================================== */
+html[data-tema="branco"] .dash-skin { color: #0a0a0a; }
+html[data-tema="branco"] .dash-skin :is(h1, h2, h3, h4, h5, h6, p, span, b, strong, em, i, small, label, li, td, th, dt, dd, legend, figcaption, a, button, summary, time, div, section, article, header, footer, nav, aside, main, input, textarea, select)
+  :not([class*="text-"]):not([style*="color"]):not([data-neon]):not(.dash-sidebar-selo):not(.class-board-quadro *):not(.class-board-painel-cartao *):not(.campanha-card-flutuante *):not([data-slot="badge"]):not([data-slot="badge"] *):not(.recharts-wrapper *):not(svg *):not([aria-pressed="true"]):not([aria-selected="true"]):not([aria-current="page"]):not(.is-active):not(.bg-primary):not(.bg-primary *):not(.bg-foreground):not(.bg-foreground *) {
+  color: inherit !important;
+}
+html[data-tema="branco"] .dash-skin :is(h1, h2, h3, h4, h5, h6, p, span, b, strong, em, i, small, label, li, td, th, dt, dd, legend, figcaption, a, button, summary, time, div, section, article, header, footer, nav, aside, main, input, textarea, select)
+  :is(.text-white, .text-neutral-50, .text-neutral-100, .text-neutral-200, .text-neutral-300, .text-zinc-50, .text-zinc-100, .text-zinc-200, .text-zinc-300, .text-slate-50, .text-slate-100, .text-slate-200, .text-slate-300, .text-gray-50, .text-gray-100, .text-gray-200, .text-gray-300, .text-stone-100, .text-stone-200)
+  :not(.bg-primary *):not(.bg-foreground *):not([aria-pressed="true"] *):not([aria-selected="true"] *):not([aria-current="page"] *):not(.is-active *):not(.class-board-quadro *) { color: #0a0a0a !important; }
+html[data-tema="branco"] .dash-skin :is([class*="text-white/"], .text-neutral-400, .text-zinc-400, .text-gray-400, .text-slate-400):not(.class-board-quadro *) { color: rgb(0 0 0 / 62%) !important; }
+/* Selecionado e botões principais: preto com texto branco, como na referência. */
+html[data-tema="branco"] .dash-skin :is([aria-pressed="true"], [aria-selected="true"], [aria-current="page"], .is-active, .bg-primary, .bg-foreground):not(.class-board-quadro *):not(.rounded-full) { color: #ffffff; background-color: #0a0a0a; }
+html[data-tema="branco"] .dash-skin :is([aria-pressed="true"], [aria-selected="true"], [aria-current="page"], .is-active, .bg-primary, .bg-foreground):not(.class-board-quadro *) :is(span, b, small, svg, p) { color: #ffffff !important; }
+
+/* =====================================================================
+   Menus laterais (esquerda e direita): o mesmo desenho, sem linhas.
+   Os dois usam a mesma caixa, o mesmo cabeçalho de 4rem, a mesma
+   bandeja e os mesmos blocos; muda só o conteúdo (pastas de um lado,
+   sessões da página do outro). Nenhuma linha de separação: nem o filete
+   claro em cima de cada bloco, nem as linhas do cabeçalho e do rodapé.
+   ===================================================================== */
+.dash-skin :is(.dash-sidebar, .sessoes-lateral-caixa) .dash-sidebar-block,
+.dash-skin :is(.dash-sidebar, .sessoes-lateral-caixa) .dash-sidebar-block:is([aria-current="page"], .is-active, .is-current),
+.dash-skin :is(.dash-sidebar, .sessoes-lateral-caixa) .dash-sidebar-block:hover {
+  box-shadow: none !important;
+}
+.dash-skin :is(.dash-sidebar, .sessoes-lateral-caixa) :is(.dash-sidebar-cabecalho, .dash-sidebar-rodape, .dash-sidebar-tray) {
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+/* O cabeçalho das duas gavetas: a mesma altura, as mesmas fontes. */
+.dash-skin :is(.dash-sidebar, .sessoes-lateral-caixa) .dash-sidebar-cabecalho { min-height: 4rem; }
+/* O selecionado nos dois menus: a página atual (direita) e a pasta da
+   página atual (esquerda) com o mesmo bloco cheio, texto e ícone na cor
+   de contraste. Antes, a pasta atual ficava com texto escuro sobre o
+   fundo escuro. */
+.dash-skin :is(.dash-sidebar, .sessoes-lateral-caixa) .dash-sidebar-block:is([aria-current="page"], .is-active, .is-current) {
+  background: var(--selecionado, #f5f5f5) !important;
+  color: var(--selecionado-texto, #0a0a0a) !important;
+  border-color: transparent !important;
+}
+.dash-skin :is(.dash-sidebar, .sessoes-lateral-caixa) .dash-sidebar-block:is([aria-current="page"], .is-active, .is-current) :is(span, b, small, p, svg) {
+  color: var(--selecionado-texto, #0a0a0a) !important;
+}
+.dash-skin :is(.dash-sidebar, .sessoes-lateral-caixa) .dash-sidebar-block:is([aria-current="page"], .is-active, .is-current) .dash-sidebar-legenda { opacity: 0.62; }
+.dash-skin :is(.dash-sidebar, .sessoes-lateral-caixa) .dash-sidebar-block:is([aria-current="page"], .is-active, .is-current) .sessoes-lateral-numero { opacity: 0.6; }
+/* Ícones dos blocos: a mesma opacidade nos dois menus. */
+.dash-skin :is(.dash-sidebar, .sessoes-lateral-caixa) .dash-sidebar-block > svg,
+.dash-skin :is(.dash-sidebar, .sessoes-lateral-caixa) .dash-sidebar-block > .sessoes-lateral-icone > svg { opacity: 0.8 !important; }
+.dash-skin .sessoes-lateral-icone { opacity: 1 !important; }
+
+/* Tema branco: os dois menus brancos de verdade (as regras antigas do
+   material usam !important), blocos num véu cinza mínimo, texto e ícones
+   pretos, marca e selos pretos com texto branco. */
+html[data-tema="branco"] .dash-skin :is(.dash-sidebar, .dash-sidebar-tray, .sessoes-lateral-caixa) {
+  background: #ffffff !important;
+  color: #0a0a0a !important;
+}
+html[data-tema="branco"] .dash-skin :is(.dash-sidebar, .sessoes-lateral-caixa) .dash-sidebar-block:not([aria-current="page"]):not(.is-active):not(.is-current) {
+  background: rgb(0 0 0 / 4%) !important;
+  color: #0a0a0a !important;
+}
+html[data-tema="branco"] .dash-skin :is(.dash-sidebar, .sessoes-lateral-caixa) .dash-sidebar-block:not([aria-current="page"]):not(.is-active):not(.is-current):hover { background: rgb(0 0 0 / 8%) !important; }
+html[data-tema="branco"] .dash-skin :is(.dash-sidebar, .sessoes-lateral-caixa) :is(.bg-primary, .dash-sidebar-selo) { background: #0a0a0a !important; color: #ffffff !important; }
+html[data-tema="branco"] .dash-skin :is(.dash-sidebar, .sessoes-lateral-caixa) .dash-sidebar-block:is([aria-current="page"], .is-active, .is-current) .dash-sidebar-selo { background: #ffffff !important; color: #0a0a0a !important; }
+html[data-tema="branco"] .dash-skin :is(.dash-sidebar, .sessoes-lateral-caixa) input { background: rgb(0 0 0 / 4%) !important; color: #0a0a0a !important; }
+/* Tema branco: as iniciais do avatar em preto sobre um véu cinza (antes
+   ficavam claras sobre claro). */
+html[data-tema="branco"] .dash-skin [data-slot="avatar-fallback"] { background: rgb(0 0 0 / 8%) !important; color: #0a0a0a !important; }

@@ -4070,3 +4070,48 @@ html[data-tema="branco"] .class-board-tags .class-board-neon-cores.class-board-t
 html[data-tema="branco"] .class-board-tags .class-board-neon-cores.class-board-tags-cores > [role="radio"][aria-checked="true"] { color: #ffffff !important; background: #0a0a0a !important; }
 html[data-tema="branco"] .class-board-tags .class-board-tags-criar { color: #ffffff !important; background: #0a0a0a !important; }
 html[data-tema="branco"] .class-board-tags .class-board-tags-usar { color: #0a0a0a !important; }
+
+/* ---------------------------------------------------------------------
+   Sem caixas em volta de nada: cada faixa de campanha é uma superfície
+   só (megafone, nome e seta no mesmo fundo, sem miolo mais claro nem
+   fio), e no cabeçalho o ROAS e a contagem são só o número, sem o
+   quadrado preto. O hover clareia a faixa inteira, não um pedaço.
+   ------------------------------------------------------------------- */
+.dash-skin .class-board-cartao[data-neon="nenhum"],
+.dash-skin .class-board-cartao[data-neon="nenhum"]:hover { background: rgb(255 255 255 / 4%) !important; background-image: none !important; box-shadow: none !important; }
+.dash-skin .class-board-cartao[data-neon="nenhum"]:hover { background: rgb(255 255 255 / 7%) !important; }
+.dash-skin .class-board-cartao[data-neon="nenhum"] .class-board-cartao-meio,
+.dash-skin .class-board-cartao[data-neon="nenhum"] .class-board-cartao-meio:hover,
+.dash-skin .class-board-cartao[data-neon="nenhum"] .class-board-cartao-meio[aria-expanded="true"] { background: transparent !important; box-shadow: none !important; }
+html[data-tema="branco"] .dash-skin .class-board-cartao[data-neon="nenhum"],
+html[data-tema="branco"] .dash-skin .class-board-cartao[data-neon="nenhum"]:hover { background: rgb(0 0 0 / 4%) !important; }
+html[data-tema="branco"] .dash-skin .class-board-cartao[data-neon="nenhum"]:hover { background: rgb(0 0 0 / 7%) !important; }
+/* ROAS e contagem soltos no cabeçalho: só o número. */
+.dash-skin .class-board-pilar-contagem,
+.dash-skin .class-board-pilar-cabecalho[data-tag="true"] .class-board-pilar-contagem,
+.dash-skin .class-board-pilar-cabecalho > .class-board-pilar-numeros,
+.dash-skin .class-board-pilar-cabecalho[data-tag="true"] > .class-board-pilar-numeros,
+.dash-skin .class-board-pilar-cabecalho > .class-board-pilar-numeros:hover,
+.dash-skin .class-board-pilar-cabecalho > .class-board-pilar-numeros[aria-expanded="true"] { background: transparent !important; box-shadow: none !important; }
+.dash-skin .class-board-pilar-contagem,
+.dash-skin .class-board-pilar-cabecalho[data-tag="true"] .class-board-pilar-contagem { color: var(--foreground, #f5f5f5) !important; }
+.dash-skin .class-board-pilar-cabecalho > .class-board-pilar-numeros > b:first-child { color: var(--foreground, #f5f5f5); }
+.dash-skin .class-board-pilar-cabecalho > .class-board-pilar-numeros > i { background: rgb(127 127 127 / 45%); }
+.dash-skin .class-board-pilar-cabecalho > .class-board-pilar-numeros:hover { opacity: 0.8; }
+html[data-tema="branco"] .dash-skin .class-board-pilar-contagem,
+html[data-tema="branco"] .dash-skin .class-board-pilar-cabecalho[data-tag="true"] .class-board-pilar-contagem,
+html[data-tema="branco"] .dash-skin .class-board-pilar-cabecalho > .class-board-pilar-numeros > b:first-child { color: #0a0a0a !important; }
+
+/* Contagem e números do bloco: nunca um quadrado (a regra dos ícones do
+   cabeçalho, mais específica, pintava a contagem de preto). E o
+   cabeçalho sem a linha escura de baixo (o sombreado padrão dos
+   cabeçalhos de bloco); com tag, o filete de neon fica. */
+.dash-skin .class-board-pilar-cabecalho > .class-board-pilar-contagem,
+.dash-skin .class-board-pilar-cabecalho[data-tag="true"] > .class-board-pilar-contagem,
+.dash-skin .class-board-pilar-cabecalho > .class-board-pilar-numeros,
+.dash-skin .class-board-pilar-cabecalho[data-tag="true"] > .class-board-pilar-numeros { background: transparent !important; box-shadow: none !important; }
+.dash-skin .class-board-pilar-cabecalho > .class-board-pilar-contagem,
+.dash-skin .class-board-pilar-cabecalho[data-tag="true"] > .class-board-pilar-contagem { color: #ffffff !important; }
+html[data-tema="branco"] .dash-skin .class-board-pilar-cabecalho > .class-board-pilar-contagem,
+html[data-tema="branco"] .dash-skin .class-board-pilar-cabecalho[data-tag="true"] > .class-board-pilar-contagem { color: #0a0a0a !important; }
+.dash-skin .class-board-pilar > .class-board-pilar-cabecalho:not([data-tag="true"]) { box-shadow: none !important; }

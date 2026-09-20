@@ -62,10 +62,14 @@ export function SidebarUtilities({
   const initials = userInitials(user.name);
 
   return (
-    <div className="dash-sidebar-list border-t p-3">
+    <div className="dash-sidebar-list dash-sidebar-rodape border-t p-3">
       <div className="dash-sidebar-block text-muted-foreground flex min-h-10 items-center gap-3 px-3 text-sm font-semibold">
         <span aria-hidden className="bg-success size-2 shrink-0 rounded-full" />
         <span className="truncate">Sistemas saudáveis</span>
+        {/* A versão publicada (commit), para conferir o que está no ar. */}
+        <span className="dash-versao ml-auto shrink-0 font-mono text-[0.625rem] font-semibold opacity-60" title={`Versão publicada: ${process.env.NEXT_PUBLIC_VERSAO ?? "local"}`}>
+          v{process.env.NEXT_PUBLIC_VERSAO ?? "local"}
+        </span>
       </div>
       {/* O tema do painel: preto (padrão) ou branco com preto. */}
       <ThemeToggle />
@@ -178,7 +182,7 @@ export function AppSidebar({ user, unreadCount }: SidebarProps) {
           <Link
             href="/dashboard"
             onClick={fechar}
-            className="flex h-16 items-center gap-3 border-b px-4"
+            className="dash-sidebar-cabecalho flex h-16 items-center gap-3 border-b px-4"
           >
             <span
               aria-hidden

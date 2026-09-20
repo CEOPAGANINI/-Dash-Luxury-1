@@ -56,7 +56,7 @@ export function Header({ user, unreadCount }: HeaderProps) {
           >
             <SheetTitle className="sr-only">Menu de navegação</SheetTitle>
             <div className="dash-sidebar dash-sidebar-scroll min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain">
-              <div className="flex h-16 items-center gap-2 px-4">
+              <div className="dash-sidebar-cabecalho flex h-16 items-center gap-2 px-4">
                 <div className="bg-primary text-primary-foreground flex size-8 shrink-0 items-center justify-center">
                   <Zap className="size-4.5" />
                 </div>

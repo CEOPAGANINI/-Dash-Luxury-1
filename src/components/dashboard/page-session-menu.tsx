@@ -119,6 +119,16 @@ export function PageSessionMenu({
         {/* A mesma caixa da gaveta da esquerda: fundo de camada 1, rolagem
             própria, e a bandeja com os blocos. */}
         <div className="dash-sidebar dash-sidebar-scroll sessoes-lateral-caixa h-full w-64 min-w-64 overflow-x-hidden overflow-y-auto overscroll-contain border-l">
+          {/* O mesmo cabeçalho da gaveta da esquerda (a marca lá; a página aqui). */}
+          <div className="dash-sidebar-cabecalho flex h-16 items-center gap-3 px-4" data-testid="sessoes-lateral-cabecalho">
+            <span
+              aria-hidden
+              className="bg-primary text-primary-foreground grid size-8 shrink-0 place-items-center font-display text-[15px] font-extrabold"
+            >
+              {title.charAt(0)}
+            </span>
+            <span className="min-w-0 flex-1 truncate font-display text-[15px] font-extrabold tracking-[-0.01em]">{title}</span>
+          </div>
           <nav id={menuId} className="dash-sidebar-tray sessoes-lateral m-3 flex min-h-0 flex-col gap-1.5 border p-2" aria-label={ariaLabel} data-titulo={title}>
             {groups.map((group) => (
               <div key={group.title} className="dash-sidebar-list sessoes-lateral-grupo">
