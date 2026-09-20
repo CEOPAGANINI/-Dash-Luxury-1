@@ -202,7 +202,7 @@ describe("o bloco Teste de criativos é uma lista só, sem abas", () => {
   it("os seis blocos 'Outras campanhas' ficam fixos à esquerda em duas colunas de três; os outros nove preenchem o resto", () => {
     render(<ClassBoard tree={tree} regras={GUARDRAILS_PADRAO} network="meta" />);
     expect(screen.getByRole("region", { name: "Quadro de classes" }).getAttribute("data-colunas")).toBe("5");
-    const vaga = (nome: string) => (screen.getByRole("region", { name: nome }) as HTMLElement).style.gridArea;
+    const vaga = (nome: string) => (screen.getByRole("region", { name: nome }) as HTMLElement).getAttribute("data-area");
     expect([1, 2, 3, 4, 5, 6].map((n) => vaga(`Outras campanhas ${n}`))).toEqual(["1 / 1", "2 / 1", "3 / 1", "1 / 2", "2 / 2", "3 / 2"]);
     for (const n of [1, 2, 3, 4, 5, 6]) {
       const bloco = screen.getByRole("region", { name: `Outras campanhas ${n}` });
@@ -240,7 +240,7 @@ describe("o bloco Teste de criativos é uma lista só, sem abas", () => {
 
   it("o alfinete fixa o bloco na vaga exata em que ele está, solta qualquer bloco, e guarda no navegador", () => {
     render(<ClassBoard tree={tree} regras={GUARDRAILS_PADRAO} network="meta" />);
-    const vaga = (nome: string) => (screen.getByRole("region", { name: new RegExp(`^${nome}$`) }) as HTMLElement).style.gridArea;
+    const vaga = (nome: string) => (screen.getByRole("region", { name: new RegExp(`^${nome}$`) }) as HTMLElement).getAttribute("data-area");
     fireEvent.click(screen.getByRole("button", { name: "Desafixar bloco Outras campanhas 3" }));
     const solto = screen.getByRole("region", { name: /^Outras campanhas 3$/ });
     expect(solto.getAttribute("data-pilar-fixo")).toBeNull();
@@ -263,7 +263,7 @@ describe("o bloco Teste de criativos é uma lista só, sem abas", () => {
     localStorage.setItem("dash-luxury:pilares-fixos:v1", JSON.stringify(["unclassified", "others-2"]));
     render(<ClassBoard tree={tree} regras={GUARDRAILS_PADRAO} network="meta" />);
     act(() => {});
-    const vaga = (nome: string) => (screen.getByRole("region", { name: new RegExp(`^${nome}$`) }) as HTMLElement).style.gridArea;
+    const vaga = (nome: string) => (screen.getByRole("region", { name: new RegExp(`^${nome}$`) }) as HTMLElement).getAttribute("data-area");
     expect(vaga("Outras campanhas 1")).toBe("1 / 1");
     expect(vaga("Outras campanhas 2")).toBe("2 / 1");
     expect(screen.getByRole("region", { name: /^Outras campanhas 3$/ }).getAttribute("data-pilar-fixo")).toBeNull();

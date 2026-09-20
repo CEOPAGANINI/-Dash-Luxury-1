@@ -198,6 +198,17 @@ export function vagasDaGrade(
 export function areaDaGrade(vaga: string, t: Tamanho): string {
   return t.largura === 1 && t.altura === 1 ? vaga : `${vaga} / span ${t.altura} / span ${t.largura}`;
 }
+/* A grade desenhada tem, antes de cada fileira de blocos, uma linha fina
+   com a barra da faixa ("Faixa 1 · 5 blocos", + Bloco, Apagar faixa):
+   a fileira lógica f fica na linha 2f da grade (a barra na 2f−1), e um
+   bloco de h fileiras atravessa 2h−1 linhas. */
+export function areaComFaixas(vaga: string, t: Tamanho): string {
+  const m = VAGA.exec(vaga);
+  if (!m) return vaga;
+  const fileira = Number(m[1]);
+  const coluna = Number(m[2]);
+  return `${fileira * 2} / ${coluna} / span ${t.altura * 2 - 1} / span ${t.largura}`;
+}
 /** Quantas fileiras a grade precisa: três, ou mais se os blocos descerem além. */
 export function fileirasDaGrade(vagas: ReadonlyMap<string, string>, tamanho: (id: string) => Tamanho): number {
   let fileiras: number = GRADE.fileiras;
@@ -768,6 +779,51 @@ export function ClassBoard({
         data-fileiras={fileiras}
         style={{ ["--fileiras" as string]: fileiras }}
       >
+          {/* A barra de cada faixa: o nome, quantos blocos tem, "+ Bloco"
+              (entra na primeira vaga livre da faixa) e "Apagar faixa". */}
+          {Array.from({ length: fileiras }, (_, i) => i + 1).map((f) => {
+            const naFaixa = ordemVisivel.filter((id) => Number(VAGA.exec(vagas.get(id) ?? "")?.[1]) === f).length;
+            const vagaLivre = livres.find((v) => Number(VAGA.exec(v)?.[1]) === f) ?? null;
+            const livresNaFaixa = livres.filter((v) => Number(VAGA.exec(v)?.[1]) === f).length;
+            return (
+              <div
+                key={`faixa-${f}`}
+                className="class-board-faixa-barra"
+                role="group"
+                aria-label={`Faixa ${f}`}
+                data-faixa={f}
+                data-blocos={naFaixa}
+                style={{ gridRow: f * 2 - 1, gridColumn: "1 / -1" }}
+              >
+                <span className="class-board-faixa-nome">Faixa {f}</span>
+                <span className="class-board-faixa-conta">
+                  {naFaixa} {naFaixa === 1 ? "bloco" : "blocos"}
+                  {livresNaFaixa > 0 ? ` · ${livresNaFaixa} ${livresNaFaixa === 1 ? "vaga livre" : "vagas livres"}` : ""}
+                </span>
+                <button
+                  type="button"
+                  className="class-board-faixa-acao"
+                  aria-label={`Adicionar bloco à faixa ${f}`}
+                  title={vagaLivre ? "Cria um bloco na primeira vaga livre desta faixa" : "Faixa cheia: apague um bloco para abrir vaga"}
+                  disabled={!vagaLivre}
+                  onClick={() => { if (vagaLivre) criarBloco(vagaLivre); }}
+                >
+                  <Plus aria-hidden="true" />
+                  Bloco
+                </button>
+                <button
+                  type="button"
+                  className="class-board-faixa-acao class-board-faixa-apagar"
+                  aria-label={`Apagar faixa ${f}`}
+                  title={naFaixa ? `Apaga os ${naFaixa} blocos desta faixa; as faixas de baixo sobem` : "Faixa vazia"}
+                  disabled={!naFaixa}
+                  onClick={() => apagarFaixa(f)}
+                >
+                  Apagar faixa
+                </button>
+              </div>
+            );
+          })}
           {ordemPorRoas.map((pilar) => {
             const classe = pilar;
             /* Um bloco, uma lista: o pilar de criativos junta vídeo, imagem
@@ -792,7 +848,9 @@ export function ClassBoard({
                 data-pilar-ordenado={automatico ? "true" : undefined}
                 data-largura={medida.largura}
                 data-altura={medida.altura}
-                style={vaga ? { gridArea: areaDaGrade(vaga, medida) } : undefined}
+                style={vaga ? { gridArea: areaComFaixas(vaga, medida) } : undefined}
+                data-vaga={vaga}
+                data-area={vaga ? areaDaGrade(vaga, medida) : undefined}
                 data-drop-active={sobre === classe || undefined}
                 data-pilar-fixo={fixo ? "true" : undefined}
                 data-pilar-sobre={sobrePilar === classe && arrastandoPilar !== classe ? "true" : undefined}
@@ -971,7 +1029,8 @@ export function ClassBoard({
               key={vaga}
               type="button"
               className="class-board-vaga-livre"
-              style={{ gridArea: vaga }}
+              style={{ gridArea: areaComFaixas(vaga, UM) }}
+              data-vaga={vaga}
               aria-label={`Novo bloco na vaga ${vaga.replace(" / ", ", ")}`}
               title="Criar um bloco aqui"
               data-drop-active={sobre === vaga || undefined}
@@ -997,6 +1056,17 @@ export function ClassBoard({
             </button>
           ))}
       </div>
+      {/* Uma faixa nova, com cinco blocos, embaixo de tudo. */}
+      <button
+        type="button"
+        className="class-board-nova-faixa"
+        aria-label="Criar nova faixa com 5 blocos"
+        title="Cria a faixa seguinte com cinco blocos fixados"
+        onClick={criarFaixa}
+      >
+        <Plus aria-hidden="true" />
+        Nova faixa
+      </button>
     </div>
   );
 }

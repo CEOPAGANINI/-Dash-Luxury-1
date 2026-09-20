@@ -4386,3 +4386,81 @@ html[data-tema="branco"] .dash-skin .class-board-semaforo > i { background: #e2e
 @media (prefers-reduced-motion: reduce) {
   .dash-skin .class-board-semaforo > i[data-acesa="true"]::after { animation: none; }
 }
+
+/* =====================================================================
+   Faixas visíveis no quadro por classe. A grade tem, antes de cada
+   fileira de blocos, uma linha fina com a barra da faixa: o nome
+   ("Faixa 1"), quantos blocos tem, "+ Bloco" (cria um bloco na primeira
+   vaga livre da faixa) e "Apagar faixa". Embaixo de tudo, "Nova faixa"
+   cria a faixa seguinte com cinco blocos. Os blocos ficam nas linhas
+   pares (2f) e a barra nas ímpares (2f−1).
+   ===================================================================== */
+.dash-skin .class-board-quadro { grid-template-rows: minmax(auto, 1fr) auto !important; }
+.dash-skin .class-board-quadro .class-board-pilares { grid-template-rows: repeat(var(--fileiras, 3), auto minmax(auto, 1fr)) !important; }
+.dash-skin .class-board-quadro .class-board-pilares > .class-board-faixa-barra {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  min-height: 1.75rem;
+  padding: 0 4px;
+  color: var(--muted-foreground, #9e9e9e);
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.dash-skin .class-board-quadro .class-board-pilares > .class-board-faixa-barra > .class-board-faixa-nome { color: var(--foreground, #f5f5f5); }
+.dash-skin .class-board-quadro .class-board-pilares > .class-board-faixa-barra > .class-board-faixa-conta { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.04em; text-transform: none; font-weight: 600; }
+.dash-skin .class-board-quadro .class-board-pilares > .class-board-faixa-barra > .class-board-faixa-acao {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 1.5rem;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 0;
+  background: var(--botao, rgb(255 255 255 / 6%));
+  color: var(--foreground, #f5f5f5);
+  font: inherit;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.dash-skin .class-board-quadro .class-board-pilares > .class-board-faixa-barra > .class-board-faixa-acao > svg { width: 0.875rem; height: 0.875rem; }
+.dash-skin .class-board-quadro .class-board-pilares > .class-board-faixa-barra > .class-board-faixa-acao:hover:not(:disabled) { background: var(--botao-hover, rgb(255 255 255 / 12%)); }
+.dash-skin .class-board-quadro .class-board-pilares > .class-board-faixa-barra > .class-board-faixa-acao:disabled { opacity: 0.35; cursor: default; }
+.dash-skin .class-board-quadro .class-board-pilares > .class-board-faixa-barra > .class-board-faixa-apagar:hover:not(:disabled) { color: #ff1e3c; }
+.dash-skin .class-board-quadro > .class-board-nova-faixa {
+  grid-row: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 2.25rem;
+  margin-top: 8px;
+  border: 1px dashed var(--fio-forte, rgb(255 255 255 / 18%));
+  border-radius: 0;
+  background: transparent;
+  color: var(--foreground, #f5f5f5);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+.dash-skin .class-board-quadro > .class-board-nova-faixa > svg { width: 1rem; height: 1rem; }
+.dash-skin .class-board-quadro > .class-board-nova-faixa:hover { background: var(--botao, rgb(255 255 255 / 6%)); border-color: var(--foreground, #f5f5f5); }
+/* Em telas estreitas a grade vira uma fila: as barras entram no fluxo. */
+@container (max-width: 1000px) {
+  .dash-skin .class-board-quadro .class-board-pilares { grid-template-rows: none !important; }
+  .dash-skin .class-board-quadro .class-board-pilares > .class-board-faixa-barra { grid-area: auto !important; grid-column: 1 / -1 !important; }
+  .dash-skin .class-board-quadro .class-board-pilares > .class-board-vaga-livre { grid-area: auto !important; }
+}
+/* A barra da faixa no fundo da página (não na cor das linhas da grade). */
+.dash-skin .class-board-quadro .class-board-pilares > .class-board-faixa-barra { background: var(--camada-0, #09090b); }

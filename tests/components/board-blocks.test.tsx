@@ -2,7 +2,7 @@ import * as React from "react";
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ClassBoard, FIXOS_KEY, ORDEM_PILARES_KEY, areaDaGrade, celulasLivres, fileirasDaGrade, vagasDaGrade } from "@/features/ads/class-board";
+import { ClassBoard, FIXOS_KEY, ORDEM_PILARES_KEY, areaComFaixas, areaDaGrade, celulasLivres, fileirasDaGrade, vagasDaGrade } from "@/features/ads/class-board";
 import { BLOCOS_KEY, restoreBoardBlocks } from "@/features/ads/board-blocks-store";
 import { demoCampaignRows } from "@/features/ads/demo-campaigns";
 import { GUARDRAILS_PADRAO } from "@/features/guardrails/rules";
@@ -15,7 +15,7 @@ const tree: CampaignTree = { campanhas: demoCampaignRows(), modo: "demo", metaCo
 const quadro = () => screen.getByRole("region", { name: "Quadro de classes" });
 const blocos = () => quadro().querySelectorAll(":scope > section");
 const nomes = () => [...blocos()].map((s) => s.getAttribute("aria-label"));
-const vaga = (nome: string) => (screen.getByRole("region", { name: new RegExp(`^${nome}$`) }) as HTMLElement).style.gridArea;
+const vaga = (nome: string) => (screen.getByRole("region", { name: new RegExp(`^${nome}$`) }) as HTMLElement).getAttribute("data-area");
 
 function abrirMenu(nome: string) {
   const bloco = screen.getByRole("region", { name: new RegExp(`^${nome}$`) });
@@ -73,7 +73,7 @@ describe("criar, apagar e redimensionar os blocos do quadro", () => {
     expect(nomes()[15]).toBe("Bloco 1");
     const novo = screen.getByRole("region", { name: "Bloco 1" });
     expect(novo.getAttribute("data-pilar")).toBe("bloco-1");
-    expect(novo.style.gridArea).toBe("4 / 1");
+    expect(novo.getAttribute("data-area")).toBe("4 / 1");
     expect(quadro().getAttribute("data-fileiras")).toBe("4");
     // As quatro células que sobraram na fileira nova são um "+".
     expect(screen.getAllByRole("button", { name: /^Novo bloco na vaga/ })).toHaveLength(4);
@@ -151,7 +151,7 @@ describe("criar, apagar e redimensionar os blocos do quadro", () => {
     const livre = screen.getByRole("button", { name: "Novo bloco na vaga 3, 5" });
     fireEvent.click(livre);
     const novo = screen.getByRole("region", { name: "Bloco 1" });
-    expect(novo.style.gridArea).toBe("3 / 5");
+    expect(novo.getAttribute("data-area")).toBe("3 / 5");
     expect(novo.getAttribute("data-pilar-fixo")).toBe("true");
     expect(JSON.parse(localStorage.getItem(FIXOS_KEY)!)["bloco-1"]).toBe("3 / 5");
 
@@ -193,7 +193,7 @@ describe("criar, apagar e redimensionar os blocos do quadro", () => {
     fireEvent.dragOver(livre, { dataTransfer });
     fireEvent.drop(livre, { dataTransfer });
     const novo = screen.getByRole("region", { name: "Bloco 1" });
-    expect(novo.style.gridArea).toBe("3 / 5");
+    expect(novo.getAttribute("data-area")).toBe("3 / 5");
     expect(within(novo).getByRole("article", { name: "Cartão Escala Produto A" })).toBeTruthy();
   });
 
@@ -239,7 +239,7 @@ describe("criar, apagar e redimensionar os blocos do quadro", () => {
     expect(quadro().getAttribute("data-fileiras")).toBe("4");
     for (let c = 1; c <= 5; c++) {
       const bloco = screen.getByRole("region", { name: `Bloco ${c}` });
-      expect(bloco.style.gridArea).toBe(`4 / ${c}`);
+      expect(bloco.getAttribute("data-area")).toBe(`4 / ${c}`);
       expect(bloco.getAttribute("data-pilar-fixo")).toBe("true");
     }
     expect(screen.queryAllByRole("button", { name: /^Novo bloco na vaga/ })).toHaveLength(0);
@@ -248,7 +248,7 @@ describe("criar, apagar e redimensionar os blocos do quadro", () => {
     // Mais uma faixa: fileira 5.
     fireEvent.click(within(abrirMenu("Bloco 3")).getByRole("button", { name: "Nova faixa" }));
     expect(blocos()).toHaveLength(25);
-    expect(screen.getByRole("region", { name: "Bloco 8" }).style.gridArea).toBe("5 / 3");
+    expect(screen.getByRole("region", { name: "Bloco 8" }).getAttribute("data-area")).toBe("5 / 3");
 
     // Apagar a faixa 4 pelo menu de um bloco dela: somem os cinco, e a faixa 5 vira 4.
     const menu = abrirMenu("Bloco 2");
@@ -256,19 +256,59 @@ describe("criar, apagar e redimensionar os blocos do quadro", () => {
     fireEvent.click(within(menu).getByRole("button", { name: "Apagar faixa 4" }));
     expect(blocos()).toHaveLength(20);
     expect(screen.queryByRole("region", { name: "Bloco 2" })).toBeNull();
-    expect(screen.getByRole("region", { name: "Bloco 8" }).style.gridArea).toBe("4 / 3");
+    expect(screen.getByRole("region", { name: "Bloco 8" }).getAttribute("data-area")).toBe("4 / 3");
     expect(quadro().getAttribute("data-fileiras")).toBe("4");
     expect(JSON.parse(localStorage.getItem(FIXOS_KEY)!)["bloco-8"]).toBe("4 / 3");
 
     // Apagar a faixa 1 (pilares de fábrica): os cinco somem (de fábrica ficam restauráveis) e a fileira 2 sobe.
-    const primeira = [...blocos()].filter((s) => (s as HTMLElement).style.gridArea.startsWith("1 /")).map((s) => s.getAttribute("aria-label"));
+    const primeira = [...blocos()].filter((s) => (s.getAttribute("data-area") ?? "").startsWith("1 /")).map((s) => s.getAttribute("aria-label"));
     expect(primeira).toHaveLength(5);
     fireEvent.click(within(abrirMenu(primeira[0]!)).getByRole("button", { name: "Apagar faixa 1" }));
     for (const nome of primeira) expect(screen.queryByRole("region", { name: nome! })).toBeNull();
     expect(blocos()).toHaveLength(15);
-    expect(screen.getByRole("region", { name: "Outras campanhas 2" }).style.gridArea).toBe("1 / 1");
+    expect(screen.getByRole("region", { name: "Outras campanhas 2" }).getAttribute("data-area")).toBe("1 / 1");
     const guardado = restoreBoardBlocks(localStorage.getItem(BLOCOS_KEY)!)!;
     expect(guardado.removidos.length).toBeGreaterThan(0);
     expect(within(abrirMenu("Outras campanhas 2")).getAllByRole("button", { name: /^Restaurar bloco/ }).length).toBe(guardado.removidos.length);
+  });
+
+  it("cada faixa tem a sua barra (nome, contagem, '+ Bloco', 'Apagar faixa'); 'Nova faixa' no fim do quadro cria a seguinte", () => {
+    render(<ClassBoard tree={tree} regras={GUARDRAILS_PADRAO} network="meta" />);
+    limparCofre();
+    const faixa = (f: number) => screen.getByRole("group", { name: `Faixa ${f}` });
+    // Três faixas cheias: "+ Bloco" desligado em todas; as barras ficam nas linhas ímpares da grade.
+    expect(screen.getAllByRole("group", { name: /^Faixa \d+$/ })).toHaveLength(3);
+    for (let f = 1; f <= 3; f++) {
+      expect(faixa(f).textContent).toContain("5 blocos");
+      expect((within(faixa(f)).getByRole("button", { name: `Adicionar bloco à faixa ${f}` }) as HTMLButtonElement).disabled).toBe(true);
+      expect(faixa(f).style.gridRow).toBe(String(f * 2 - 1));
+    }
+    // Os blocos ficam nas linhas pares: a fileira lógica 2 é a linha 4 da grade.
+    const escala = screen.getByRole("region", { name: "Escala" });
+    const [fileira, coluna] = escala.getAttribute("data-vaga")!.split(" / ").map(Number);
+    expect(escala.style.gridArea).toBe(`${fileira * 2} / ${coluna} / span 1 / span 1`);
+    expect(areaComFaixas("2 / 4", { largura: 2, altura: 2 })).toBe("4 / 4 / span 3 / span 2");
+
+    // "Nova faixa" (o botão embaixo do quadro) cria a faixa 4 com cinco blocos.
+    fireEvent.click(screen.getByRole("button", { name: "Criar nova faixa com 5 blocos" }));
+    expect(quadro().getAttribute("data-fileiras")).toBe("4");
+    expect(faixa(4).textContent).toContain("5 blocos");
+    expect(screen.getByRole("region", { name: "Bloco 3" }).getAttribute("data-area")).toBe("4 / 3");
+
+    // Apagar um bloco da faixa abre uma vaga: "+ Bloco" liga e cria um bloco fixado nela.
+    fireEvent.click(within(abrirMenu("Bloco 3")).getByRole("button", { name: "Apagar bloco" }));
+    expect(faixa(4).textContent).toContain("4 blocos · 1 vaga livre");
+    const adicionar = within(faixa(4)).getByRole("button", { name: "Adicionar bloco à faixa 4" }) as HTMLButtonElement;
+    expect(adicionar.disabled).toBe(false);
+    fireEvent.click(adicionar);
+    expect(faixa(4).textContent).toContain("5 blocos");
+    expect(screen.getByRole("region", { name: "Bloco 6" }).getAttribute("data-area")).toBe("4 / 3");
+    expect(screen.getByRole("region", { name: "Bloco 6" }).getAttribute("data-pilar-fixo")).toBe("true");
+
+    // "Apagar faixa" na barra apaga a faixa inteira.
+    fireEvent.click(within(faixa(4)).getByRole("button", { name: "Apagar faixa 4" }));
+    expect(blocos()).toHaveLength(15);
+    expect(quadro().getAttribute("data-fileiras")).toBe("3");
+    expect(screen.queryByRole("group", { name: "Faixa 4" })).toBeNull();
   });
 });
