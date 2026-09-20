@@ -10,7 +10,7 @@ import { campaignClass, pilarDaClasse } from "@/features/ads/campaign-classes";
 import { demoCampaignRows } from "@/features/ads/demo-campaigns";
 import { derivadas, somarMetricas, type CampaignRow, type CampaignTree } from "@/features/ads/types";
 import { GUARDRAILS_PADRAO } from "@/features/guardrails/rules";
-import { formatCompactCurrency, formatRatio } from "@/features/unified-dashboard/formatters";
+import { formatCurrency, formatRatio } from "@/features/unified-dashboard/formatters";
 
 afterEach(cleanup);
 
@@ -48,9 +48,10 @@ describe("os números de cada bloco do quadro por classe", () => {
     const soma = somarMetricas(campanhas.map((c) => c.metrics));
     const roas = derivadas(soma).roas!;
     const numeros = within(escala.querySelector("header")!).getByRole("button", { name: /^Números do bloco/ });
-    // O número é só o investimento; o ROAS fica no rótulo e no lugar dele
-    // entra o semáforo (três bolinhas, uma acesa).
-    expect(numeros.textContent).toBe(formatCompactCurrency(soma.spendCents / 100));
+    // Sem número no cabeçalho: investimento e ROAS ficam no rótulo e no
+    // painel; no lugar deles entra o semáforo (três bolinhas, uma acesa).
+    expect(numeros.textContent).toBe("");
+    expect(numeros.getAttribute("aria-label")).toContain(`investimento ${formatCurrency(soma.spendCents / 100)}`);
     expect(numeros.getAttribute("aria-label")).toContain(`ROAS ${formatRatio(roas)}`);
     const semaforo = numeros.querySelector(".class-board-semaforo")!;
     expect([...semaforo.querySelectorAll("i")].map((i) => i.getAttribute("data-cor"))).toEqual(["vermelha", "laranja", "verde"]);
@@ -81,7 +82,7 @@ describe("os números de cada bloco do quadro por classe", () => {
     expect(numeros.getAttribute("aria-label")).toMatch(/investimento R\$\s200,/);
     expect(numeros.getAttribute("title")).toContain("Semáforo: verde = lucro");
     expect(bloco.getAttribute("data-roas")).toBe("ruim");
-    expect(numeros.textContent).toBe(formatCompactCurrency(200));
+    expect(numeros.textContent).toBe("");
     // Retorno 180 − tráfego 200 = −20 (10% do investimento): vermelha acesa.
     expect(numeros.querySelector('.class-board-semaforo > i[data-acesa="true"]')?.getAttribute("data-cor")).toBe("vermelha");
   });

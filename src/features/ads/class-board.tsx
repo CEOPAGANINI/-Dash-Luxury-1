@@ -62,7 +62,7 @@ import {
   type CampaignRow,
   type CampaignTree,
 } from "./types";
-import { formatCompactCurrency, formatCurrency, formatRatio } from "@/features/unified-dashboard/formatters";
+import { formatCurrency, formatRatio } from "@/features/unified-dashboard/formatters";
 
 /* Os números de um bloco: a soma do investimento e da receita das
    campanhas dele e o ROAS dessa soma, em três faixas fixas:
@@ -907,9 +907,9 @@ export function ClassBoard({
                       />
                     )}
                   />
-                  {/* Os números do bloco: investimento somado e o semáforo da
-                      soma (lucro, empate ou prejuízo, com o gateway). Só quando
-                      há investimento; o ROAS fica no rótulo e no painel. */}
+                  {/* O semáforo do bloco: a soma das campanhas (lucro, empate ou
+                      prejuízo, com o gateway). Só quando há investimento; o
+                      investimento e o ROAS ficam no rótulo e no painel. */}
                   {numeros.estado !== "sem" && numeros.roas !== null && (
                     <button
                       type="button"
@@ -928,8 +928,6 @@ export function ClassBoard({
                         setPainelDeNumeros((atual) => (atual?.id === pilar ? null : { id: pilar, ancora: cabecalho }));
                       }}
                     >
-                      <b>{formatCompactCurrency(numeros.investimentoCents / 100)}</b>
-                      <i aria-hidden="true" />
                       <Semaforo saude={saudeDoConjunto(cartoes.map((c) => c.metrics), gatewayPercentual)} rotulo={`Saúde do bloco ${nome}`} />
                     </button>
                   )}
