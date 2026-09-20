@@ -71,6 +71,7 @@ describe("o semáforo de saúde da campanha", () => {
       const semaforo = within(cartao).getByRole("img", { name: new RegExp(`^Saúde de ${nome}:`) });
       // Antes da seta que abre a campanha.
       expect(semaforo.nextElementSibling?.getAttribute("aria-label")).toBe(`Abrir campanha ${nome}`);
+      expect(semaforo.nextElementSibling?.getAttribute("aria-expanded")).toBe("false");
       expect(semaforo.querySelectorAll("i")).toHaveLength(3);
       return { cor: semaforo.querySelector('i[data-acesa="true"]')?.getAttribute("data-cor") ?? null, rotulo: semaforo.getAttribute("aria-label"), titulo: semaforo.getAttribute("title") };
     };

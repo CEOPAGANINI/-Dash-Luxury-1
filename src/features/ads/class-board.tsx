@@ -34,6 +34,7 @@ import {
 } from "./card-notes-store";
 import { TituloDoBloco } from "./block-tag-picker";
 import { corDaTag, useBlockTags } from "./block-tags-store";
+import { NETWORK_MANAGERS } from "./manager-model";
 import {
   ALTURA_MAXIMA,
   GRADE,
@@ -49,21 +50,23 @@ import {
 } from "./board-blocks-store";
 import { CampaignHoverCard, type CampaignPreview } from "./campaign-hover-card";
 import { ROTULO_DA_SAUDE, Semaforo, descricaoDaSaude, saudeDasMetricas, saudeDoConjunto } from "./campaign-health";
-import { useTaxas } from "./fees-store";
+import { GraficoRoas, JANELAS_MINUTO } from "./block-metrics-panel";
+import { INTERVALO_MINUTO_MS, chaveDaCampanhaNoHistorico, registrarRoasDaCampanha, useCampaignRoasHistory } from "./campaign-roas-history-store";
+import { lucroDaCampanha, useTaxas } from "./fees-store";
 import { QuadroAoVivo } from "./class-board-live";
 import { PainelDoBloco } from "./block-metrics-panel";
 import { INTERVALO_AMOSTRA_MS, chaveDoHistorico, registrarRoasDoBloco, useRoasHistory } from "./roas-history-store";
-import { INTERVALO_MINUTO_MS, chaveDaCampanhaNoHistorico, registrarRoasDaCampanha } from "./campaign-roas-history-store";
 import { PainelFlutuante } from "./painel-flutuante";
 import { useCampaignDemo } from "./demo-store";
 import {
+  STATUS_LABEL,
   derivadas,
   somarMetricas,
   type AdNetwork,
   type CampaignRow,
   type CampaignTree,
 } from "./types";
-import { formatCurrency, formatRatio } from "@/features/unified-dashboard/formatters";
+import { formatCurrency, formatInteger, formatPercent, formatRatio } from "@/features/unified-dashboard/formatters";
 
 /* Os números de um bloco: a soma do investimento e da receita das
    campanhas dele e o ROAS dessa soma, em três faixas fixas:
@@ -374,6 +377,9 @@ export function ClassBoard({
     const timer = window.setInterval(gravar, INTERVALO_MINUTO_MS);
     return () => window.clearInterval(timer);
   }, [assinaturaDasCampanhas, escopoDoHistorico]);
+  /* A campanha aberta pela seta: os dados dela aparecem embaixo da faixa,
+     dentro do bloco (uma de cada vez em todo o quadro). */
+  const [campanhaAberta, setCampanhaAberta] = React.useState<string | null>(null);
   /* O painel dos números de um bloco (um de cada vez), preso ao cabeçalho. */
   const [painelDeNumeros, setPainelDeNumeros] = React.useState<{ id: string; ancora: HTMLElement } | null>(null);
   const fecharNumeros = React.useCallback(() => setPainelDeNumeros(null), []);
@@ -1011,22 +1017,50 @@ export function ClassBoard({
                   <span className="class-board-pilar-contagem bg-muted text-muted-foreground shrink-0 rounded-md px-1.5 py-0.5 text-xs font-bold tabular-nums">{cartoes.length}</span>
                 </header>
                 <div className="class-board-pilar-corpo flex flex-1 flex-col gap-2 px-2 pb-2">
-                  <ListaPaginada
-                    rotulo={nome}
-                    itens={cartoes}
-                    render={(c) => (
-                      <Cartao
-                        key={c.id}
-                        campanha={c}
-                        modo={tree.modo}
-                        escopo={escopoDoHistorico}
-                        aoArrastar={(ativo) => { setArrastando(ativo ? c.id : null); if (!ativo) setSobre(null); }}
-                        aoRenomear={(nome) => renomear(c, nome)}
+                  {(() => {
+                    /* Com a seta aberta, o bloco mostra só a faixa daquela
+                       campanha e, embaixo dela, todos os dados; a lista
+                       volta ao fechar. */
+                    const aberta = cartoes.find((c) => c.id === campanhaAberta);
+                    if (aberta) {
+                      return (
+                        <div className="class-board-aberta">
+                          <Cartao
+                            key={aberta.id}
+                            campanha={aberta}
+                            modo={tree.modo}
+                            escopo={escopoDoHistorico}
+                            aberto
+                            aoAbrir={() => setCampanhaAberta(null)}
+                            gateway={gatewayPercentual}
+                            aoArrastar={(ativo) => { setArrastando(ativo ? aberta.id : null); if (!ativo) setSobre(null); }}
+                            aoRenomear={(nome) => renomear(aberta, nome)}
+                          />
+                        </div>
+                      );
+                    }
+                    return (
+                      <ListaPaginada
+                        rotulo={nome}
+                        itens={cartoes}
+                        render={(c) => (
+                          <Cartao
+                            key={c.id}
+                            campanha={c}
+                            modo={tree.modo}
+                            escopo={escopoDoHistorico}
+                            aberto={false}
+                            aoAbrir={() => setCampanhaAberta(c.id)}
+                            gateway={gatewayPercentual}
+                            aoArrastar={(ativo) => { setArrastando(ativo ? c.id : null); if (!ativo) setSobre(null); }}
+                            aoRenomear={(nome) => renomear(c, nome)}
+                          />
+                        )}
+                        vazio={null}
+                        aoMedir={(n) => medirBloco(pilar, n)}
                       />
-                    )}
-                    vazio={null}
-                    aoMedir={(n) => medirBloco(pilar, n)}
-                  />
+                    );
+                  })()}
                 </div>
               </section>
             );
@@ -1096,6 +1130,70 @@ export function ClassBoard({
   bloco em células da grade (com − e +), um bloco novo, apagar este e
   restaurar os blocos de fábrica apagados.
 */
+/* Todos os dados de uma campanha, embaixo da faixa dela: o gráfico do
+   ROAS por minuto, o lucro com a taxa do gateway, as métricas da
+   plataforma e as derivadas, o estado, o orçamento, a rede, o objetivo e
+   a última sincronização — e o atalho para a página inteira. */
+function DadosDaCampanha({ campanha: c, escopo, gateway, href }: { campanha: CampaignRow; escopo: string; gateway: number; href: string }) {
+  const historico = useCampaignRoasHistory();
+  const amostras = historico.historicoDe(chaveDaCampanhaNoHistorico(escopo, c.id));
+  const d = derivadas(c.metrics);
+  const lucro = lucroDaCampanha(c.metrics, gateway);
+  const dinheiro = (v: number) => formatCurrency(v / 100, Math.abs(v) < 10_000 ? 2 : 0);
+  const dinheiroOuTraco = (v: number | null) => (v === null ? "—" : dinheiro(v));
+  const comSinal = (v: number) => (v < 0 ? `−${dinheiro(-v)}` : dinheiro(v));
+  const saude = saudeDasMetricas(c.metrics, gateway);
+  const numeros: [string, string][] = [
+    ["Investimento", dinheiro(c.metrics.spendCents)],
+    ["Retorno", dinheiro(c.metrics.revenueCents)],
+    ["ROAS", d.roas === null ? "—" : formatRatio(d.roas)],
+    ["Margem", d.margem === null ? "—" : formatPercent(d.margem, 1)],
+    ["Compras", formatInteger(c.metrics.purchases)],
+    ["CPA", dinheiroOuTraco(d.cpaCents)],
+    ["Impressões", formatInteger(c.metrics.impressions)],
+    ["Cliques", formatInteger(c.metrics.clicks)],
+    ["CTR", d.ctr === null ? "—" : formatPercent(d.ctr, 2)],
+    ["CPC", dinheiroOuTraco(d.cpcCents)],
+    ["CPM", dinheiroOuTraco(d.cpmCents)],
+    ["Orçamento diário", c.dailyBudgetCents === null ? "—" : dinheiro(c.dailyBudgetCents)],
+  ];
+  const fichas: [string, string][] = [
+    ["Estado", STATUS_LABEL[c.status]],
+    ["Rede", NETWORK_MANAGERS[c.network].label],
+    ["Objetivo", c.objective ?? "—"],
+    ["Conjuntos", formatInteger(c.adSets.length)],
+    ["Origem", c.source === "demo" ? "Demonstração" : c.source === "meta" ? "Meta" : "Manual"],
+    ["Sincronizada", c.syncedAt ? new Date(c.syncedAt).toLocaleString("pt-BR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "—"],
+  ];
+  return (
+    <div className="class-board-dados" role="group" aria-label={`Dados de ${c.name}`}>
+      <GraficoRoas amostras={amostras} rotulo={c.name} janelas={JANELAS_MINUTO} intervaloMs={INTERVALO_MINUTO_MS} cadencia="1 minuto" compacto />
+      <p className="class-board-dados-lucro" data-lucro={lucro.lucroCents < 0 ? "negativo" : lucro.lucroCents > 0 ? "positivo" : "zero"}>
+        <span>Lucro</span>
+        <b>{comSinal(lucro.lucroCents)}</b>
+        <small>retorno − gateway {gateway}% ({dinheiro(lucro.gatewayCents)}) − tráfego · {ROTULO_DA_SAUDE[saude]}</small>
+      </p>
+      <dl className="class-board-dados-numeros">
+        {numeros.map(([rotulo, valor]) => (
+          <div key={rotulo}>
+            <dt>{rotulo}</dt>
+            <dd>{valor}</dd>
+          </div>
+        ))}
+      </dl>
+      <dl className="class-board-dados-fichas">
+        {fichas.map(([rotulo, valor]) => (
+          <div key={rotulo}>
+            <dt>{rotulo}</dt>
+            <dd>{valor}</dd>
+          </div>
+        ))}
+      </dl>
+      <Link href={href} className="class-board-dados-pagina">Abrir a página da campanha</Link>
+    </div>
+  );
+}
+
 function MenuDoBloco({
   rotulo,
   tamanho,
@@ -1438,6 +1536,9 @@ function Cartao({
   campanha: c,
   modo,
   escopo,
+  aberto,
+  aoAbrir,
+  gateway,
   aoArrastar,
   aoRenomear,
 }: {
@@ -1445,6 +1546,12 @@ function Cartao({
   modo: CampaignTree["modo"];
   /** A rede da página, para o histórico do ROAS desta campanha. */
   escopo: string;
+  /** A seta está aberta: os dados aparecem embaixo da faixa. */
+  aberto: boolean;
+  /** Abre (ou fecha) os dados desta campanha dentro do bloco. */
+  aoAbrir: () => void;
+  /** A taxa do gateway, para o lucro nos dados abertos. */
+  gateway: number;
   aoArrastar: (ativo: boolean) => void;
   /** Troca o nome da campanha; devolve a mensagem de erro, ou nada. */
   aoRenomear: (nome: string) => Promise<string | null>;
@@ -1553,10 +1660,20 @@ function Cartao({
         {/* O semáforo da campanha: verde (pulsando) = lucro, laranja =
             empate, vermelha = prejuízo; sem investimento, as três apagadas. */}
         <Semaforo className="class-board-cartao-semaforo" saude={saude} rotulo={`Saúde de ${c.name}`} titulo={descricaoDaSaude(c.metrics, gatewayPercentual)} />
-        <Link href={href} aria-label={`Abrir campanha ${c.name}`} title="Abrir a campanha" className="class-board-cartao-abrir focus-visible:ring-ring outline-none focus-visible:ring-2">
-          <ArrowRight className="size-4" />
-        </Link>
+        <button
+          type="button"
+          aria-label={`${aberto ? "Fechar" : "Abrir"} campanha ${c.name}`}
+          aria-expanded={aberto}
+          title={aberto ? "Fechar os dados da campanha" : "Ver todos os dados da campanha aqui"}
+          className="class-board-cartao-abrir focus-visible:ring-ring outline-none focus-visible:ring-2"
+          onClick={() => { fechar(); setNeonAncora(null); aoAbrir(); }}
+        >
+          <ArrowRight className="size-4" aria-hidden="true" />
+        </button>
       </div>
+
+      {/* Todos os dados da campanha, embaixo da faixa dela. */}
+      {aberto && <DadosDaCampanha campanha={c} escopo={escopo} gateway={gateway} href={href} />}
 
       {neonAncora && (
         <PainelFlutuante ancora={neonAncora} rotulo={`Neon de ${c.name}`} onClose={fecharNeon}>
