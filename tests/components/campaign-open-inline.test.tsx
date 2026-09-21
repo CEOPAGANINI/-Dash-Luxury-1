@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ClassBoard } from "@/features/ads/class-board";
 import { CAMPANHAS_ROAS_KEY, INTERVALO_MINUTO_MS } from "@/features/ads/campaign-roas-history-store";
+import { ORDEM_PAINEL_KEY, restoreCampaignPanelOrder } from "@/features/ads/campaign-panel-order-store";
 import { demoCampaignRows } from "@/features/ads/demo-campaigns";
 import { TAXAS_KEY } from "@/features/ads/fees-store";
 import { GUARDRAILS_PADRAO } from "@/features/guardrails/rules";
@@ -95,6 +96,75 @@ describe("a seta abre os dados da campanha num bloco à direita do quadro", () =
     fireEvent.click(within(bloco).getByRole("button", { name: "Abrir campanha Alfa" }));
     fireEvent.click(within(bloco).getByRole("button", { name: "Fechar campanha Alfa" }));
     expect(screen.queryByRole("group", { name: "Dados de Alfa" })).toBeNull();
+  });
+
+  it("o painel traz o feed dos criativos, do que mais investiu para o que menos investiu", () => {
+    const comCriativos: CampaignTree = {
+      ...tree,
+      campanhas: [
+        {
+          ...tree.campanhas[0],
+          adSets: [
+            {
+              id: "s1", externalId: null, name: "Conjunto 1", status: "active", dailyBudgetCents: null,
+              metrics: { spendCents: 300_00, revenueCents: 0, impressions: 0, clicks: 0, purchases: 0 },
+              ads: [
+                { id: "a1", externalId: null, name: "Vídeo 30s", status: "active", creative: { title: "Olha isto", body: "Texto do anúncio" }, metrics: { spendCents: 100_00, revenueCents: 300_00, impressions: 1000, clicks: 50, purchases: 3 } },
+                { id: "a2", externalId: null, name: "Estático", status: "active", creative: {}, metrics: { spendCents: 200_00, revenueCents: 100_00, impressions: 2000, clicks: 40, purchases: 1 } },
+              ],
+            },
+          ],
+        },
+        tree.campanhas[1],
+      ],
+    };
+    render(<ClassBoard tree={comCriativos} regras={GUARDRAILS_PADRAO} network="meta" />);
+    fireEvent.click(screen.getByRole("button", { name: "Abrir campanha Alfa" }));
+    const feed = screen.getByRole("region", { name: "Criativos de Alfa" });
+    expect(within(feed).getByRole("heading", { name: "Criativos" })).toBeTruthy();
+    expect(feed.textContent).toContain("2 anúncios");
+    // Quem mais investiu vem primeiro.
+    const cartoes = [...feed.querySelectorAll("li.class-board-criativo")];
+    expect(cartoes.map((li) => li.querySelector("b")?.textContent)).toEqual(["Estático", "Vídeo 30s"]);
+    // Sem miniatura, o texto do criativo ocupa o lugar da arte.
+    expect(cartoes[1].querySelector('[data-arte="texto"] p')?.textContent).toBe("Texto do anúncio");
+    // As setas existem; com tudo à vista (jsdom não rola), ficam desligadas.
+    expect(within(feed).getByRole("button", { name: "Criativos anteriores" }).hasAttribute("disabled")).toBe(true);
+    expect(within(feed).getByRole("button", { name: "Próximos criativos" })).toBeTruthy();
+    // Cada criativo mostra o semáforo, o ROAS e o investimento.
+    expect(within(cartoes[0] as HTMLElement).getByRole("img", { name: /^Saúde do criativo Estático: / })).toBeTruthy();
+    expect(cartoes[0].querySelector(".class-board-criativo-numeros")?.textContent).toContain("0,50x");
+    expect(cartoes[1].querySelector(".class-board-criativo-numeros")?.textContent).toContain("3,00x");
+  });
+
+  it("as secções e os quadradinhos do painel arrastam-se, e a arrumação fica guardada", () => {
+    render(<ClassBoard tree={tree} regras={GUARDRAILS_PADRAO} network="meta" />);
+    fireEvent.click(screen.getByRole("button", { name: "Abrir campanha Alfa" }));
+    const dados = screen.getByRole("group", { name: "Dados de Alfa" });
+    const secoes = () => [...dados.querySelectorAll(".class-board-dados-secao")].map((s) => s.getAttribute("data-secao"));
+    expect(secoes()).toEqual(["grafico", "lucro", "numeros", "fichas", "criativos"]);
+
+    // As setas do teclado na pega descem a secção do gráfico.
+    fireEvent.keyDown(within(dados).getByRole("button", { name: "Mover a secção Gráfico do ROAS" }), { key: "ArrowDown" });
+    expect(secoes()).toEqual(["lucro", "grafico", "numeros", "fichas", "criativos"]);
+    expect(restoreCampaignPanelOrder(localStorage.getItem(ORDEM_PAINEL_KEY)!)?.secoes).toEqual(["lucro", "grafico", "numeros", "fichas", "criativos"]);
+
+    // Arrastar um quadradinho para cima de outro troca a ordem dos números.
+    const numeros = within(dados).getByRole("group", { name: "Números da campanha" });
+    const ordemDosNumeros = () => [...numeros.querySelectorAll("[data-item]")].map((x) => x.getAttribute("data-item"));
+    expect(ordemDosNumeros().slice(0, 3)).toEqual(["investimento", "retorno", "roas"]);
+    const dataTransfer = { effectAllowed: "", dropEffect: "", setData: () => {}, getData: () => "investimento" };
+    const investimento = numeros.querySelector('[data-item="investimento"]')!;
+    const roas = numeros.querySelector('[data-item="roas"]')!;
+    fireEvent.dragStart(investimento, { dataTransfer });
+    fireEvent.dragOver(roas, { dataTransfer });
+    fireEvent.drop(roas, { dataTransfer });
+    expect(ordemDosNumeros().slice(0, 3)).toEqual(["retorno", "roas", "investimento"]);
+    expect(restoreCampaignPanelOrder(localStorage.getItem(ORDEM_PAINEL_KEY)!)?.numeros.slice(0, 3)).toEqual(["retorno", "roas", "investimento"]);
+
+    // Uma arrumação estragada volta ao padrão, sem quebrar.
+    expect(restoreCampaignPanelOrder("{")).toBeNull();
+    expect(restoreCampaignPanelOrder(JSON.stringify({ version: 1, secoes: ["inventada", "lucro"] }))?.secoes).toEqual(["lucro", "grafico", "numeros", "fichas", "criativos"]);
   });
 
   it("à esquerda fica uma faixa de cada vez, trocada pelos botões — sem rolagem", () => {

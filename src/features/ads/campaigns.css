@@ -3766,17 +3766,24 @@
 .class-board-grafico-vazio { margin: 0; color: #a3a3a3; font-size: 0.75rem; line-height: 1.5; }
 .class-board-grafico-area { position: relative; }
 .class-board-grafico-area > svg { display: block; width: 100%; height: auto; overflow: visible; touch-action: none; }
+/* No modo compacto o desenho vale em pixels de verdade: a área tem uma
+   altura dada (nunca vinda do conteúdo) e o SVG preenche-a. */
+.class-board-grafico[data-compacto="true"] > .class-board-grafico-area { height: 116px; }
+.class-board-grafico[data-compacto="true"] > .class-board-grafico-area > svg { height: 100%; }
 .class-board-grafico-grade { stroke: rgb(255 255 255 / 10%); stroke-width: 1; }
 .class-board-grafico-faixa { stroke-width: 1; }
 .class-board-grafico-faixa[data-faixa="mediano"] { stroke: rgb(255 214 10 / 45%); }
 .class-board-grafico-faixa[data-faixa="otimo"] { stroke: rgb(61 255 106 / 45%); }
-.class-board-grafico-linha { fill: none; stroke: #f5f5f5; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+/* A linha é neutra e sem brilho: preta no tema branco, branca no tema
+   preto (onde preto sobre preto não se veria). Sem degradê por baixo. */
+.class-board-grafico-linha { fill: none; stroke: var(--grafico-tinta, #f5f5f5); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
 .class-board-grafico-cursor { stroke: rgb(255 255 255 / 35%); stroke-width: 1; }
-.class-board-grafico-ponto { fill: #f5f5f5; stroke: #0d0d0f; stroke-width: 2; transition: r 120ms ease; }
-.class-board-grafico-ponto[data-ativo="true"] { r: 6; }
-.class-board-grafico-ponto[data-atual="true"][data-faixa="ruim"] { fill: #ff3b3b; }
-.class-board-grafico-ponto[data-atual="true"][data-faixa="mediano"] { fill: #ffd60a; }
-.class-board-grafico-ponto[data-atual="true"][data-faixa="otimo"] { fill: #3dff6a; }
+/* Uma bolinha por leitura, na cor da classe do ROAS. */
+.class-board-grafico-bolinha { stroke: var(--grafico-fundo, #0d0d0f); stroke-width: 1.5; fill: #8a8a8a; transition: r 120ms ease; }
+.class-board-grafico-bolinha[data-faixa="ruim"] { fill: #ff3b3b; }
+.class-board-grafico-bolinha[data-faixa="mediano"] { fill: #ffd60a; }
+.class-board-grafico-bolinha[data-faixa="otimo"] { fill: #3dff6a; }
+.class-board-grafico-bolinha[data-ativo="true"] { r: 5; }
 .class-board-grafico-eixo { fill: #8a8a8a; font-size: 9px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .class-board-grafico-valor { fill: #fff; font-size: 11px; font-weight: 800; font-variant-numeric: tabular-nums; }
 .class-board-grafico-dica {
@@ -3878,13 +3885,7 @@
 .class-board-grafico-janelas > button[aria-pressed="true"] { color: #0a0a0a; background: #f5f5f5; transform: none; }
 .class-board-grafico-janelas > button:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }
 .class-board-grafico-area > svg { background: rgb(255 255 255 / 2%); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 5%); }
-.class-board-grafico-linha { stroke: var(--serie, #f5f5f5); filter: drop-shadow(0 0 4px color-mix(in srgb, var(--serie, #fff) 55%, transparent)); }
-.class-board-grafico-sombra { stroke: none; }
-.class-board-grafico-cursor { stroke: color-mix(in srgb, var(--serie, #fff) 70%, transparent); stroke-width: 1; stroke-dasharray: 3 3; }
-.class-board-grafico-ponto { fill: var(--serie, #f5f5f5); stroke: #0d0d0f; stroke-width: 2; }
-.class-board-grafico-ponto[data-atual="true"][data-faixa="ruim"],
-.class-board-grafico-ponto[data-atual="true"][data-faixa="mediano"],
-.class-board-grafico-ponto[data-atual="true"][data-faixa="otimo"] { fill: var(--serie, #f5f5f5); }
+.class-board-grafico-cursor { stroke: rgb(255 255 255 / 45%); stroke-width: 1; stroke-dasharray: 3 3; }
 .class-board-grafico-cartao {
   position: absolute;
   top: 10px;
@@ -4021,7 +4022,9 @@ html[data-tema="branco"] :is(.class-board-painel-cartao, .campanha-card-flutuant
 /* Gráfico: grade e ponto no branco. */
 html[data-tema="branco"] .class-board-grafico-area > svg { background: rgb(0 0 0 / 3%); box-shadow: inset 0 0 0 1px rgb(0 0 0 / 6%); }
 html[data-tema="branco"] .class-board-grafico-grade { stroke: rgb(0 0 0 / 10%); }
-html[data-tema="branco"] .class-board-grafico-ponto { stroke: #ffffff; }
+/* Tema branco: a linha preta e as bolinhas destacadas sobre o branco. */
+html[data-tema="branco"] .class-board-grafico { --grafico-tinta: #0a0a0a; --grafico-fundo: #ffffff; }
+html[data-tema="branco"] .class-board-grafico-cursor { stroke: rgb(0 0 0 / 35%); }
 html[data-tema="branco"] .class-board-grafico-eixo { fill: #6b6b70; }
 html[data-tema="branco"] .class-board-grafico-cartao { color: #333338; background: rgb(255 255 255 / 94%); box-shadow: inset 0 0 0 1px rgb(0 0 0 / 10%), 0 8px 24px rgb(0 0 0 / 15%); }
 /* Números do bloco: o quadrado continua preto; o investimento em branco, o ROAS na cor da faixa. */
@@ -4729,10 +4732,11 @@ html[data-tema="branco"] .dash-skin .class-board-faixa-pager .class-board-faixa-
   grid-column: 2;
   grid-row: 1 / -1;
   max-height: var(--quadro-altura, 100%);
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto auto auto 1fr;
-  grid-template-areas: "topo" "grafico" "numeros" "fichas";
+  /* Uma coluna: topo, gráfico, números e fichas, nesta ordem. O que
+     sobra de altura vai para o gráfico — e só até ao teto dele, para
+     nunca voltar a dominar o painel. */
+  display: flex;
+  flex-direction: column;
   gap: 8px;
   min-width: 0;
   min-height: 0;
@@ -4741,14 +4745,165 @@ html[data-tema="branco"] .dash-skin .class-board-faixa-pager .class-board-faixa-
   background: var(--camada-1, #131315);
   box-shadow: inset 0 0 0 1px var(--fio-forte, rgb(255 255 255 / 14%));
   scrollbar-width: thin;
-  align-content: start;
 }
+.dash-skin .class-board-dados > .class-board-dados-topo { flex: 0 0 auto; }
+/* Cada secção arrastável: a pega à esquerda e o conteúdo a ocupar o
+   resto da largura. Quem manda no lugar é a ordem da coluna — nada se
+   sobrepõe, e cada secção guarda a altura que precisa. */
+.dash-skin .class-board-dados > .class-board-dados-secao {
+  display: grid;
+  grid-template-columns: 1rem minmax(0, 1fr);
+  align-items: stretch;
+  gap: 6px;
+  flex: 0 0 auto;
+  min-width: 0;
+  min-height: 0;
+}
+.dash-skin .class-board-dados > .class-board-dados-secao[data-secao="criativos"] { flex: 1 1 auto; }
+.dash-skin .class-board-dados > .class-board-dados-secao[data-arrastando="true"] { opacity: 0.45; }
+.dash-skin .class-board-dados-pega {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted-foreground, #9e9e9e);
+  cursor: grab;
+}
+.dash-skin .class-board-dados-pega:active { cursor: grabbing; }
+.dash-skin .class-board-dados-pega > svg { width: 0.875rem; height: 0.875rem; }
+.dash-skin .class-board-dados-pega:hover { color: var(--foreground, #f5f5f5); }
+/* O conteúdo da secção é o segundo filho: nunca transborda a coluna. */
+.dash-skin .class-board-dados-secao > :nth-child(2) { min-width: 0; min-height: 0; }
+.dash-skin .class-board-dados-secao > .class-board-grafico { margin: 0; }
+/* Um quadradinho a ser arrastado fica apagado; o resto desliza. */
+.dash-skin :is(.class-board-dados-numeros, .class-board-dados-fichas) > div[data-arrastando="true"] { opacity: 0.4; }
+.dash-skin :is(.class-board-dados-numeros, .class-board-dados-fichas) > div[draggable="true"] { cursor: grab; }
+.dash-skin :is(.class-board-dados-numeros, .class-board-dados-fichas) > div[draggable="true"]:active { cursor: grabbing; }
+/* O feed dos criativos fica com a sobra da altura, no fim do painel. */
+.dash-skin .class-board-dados .class-board-dados-criativos {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  gap: 6px;
+  min-height: 7.5rem;
+}
+.dash-skin .class-board-dados-criativos-topo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.dash-skin .class-board-dados-criativos-topo > h3 {
+  margin: 0;
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.dash-skin .class-board-dados-criativos-topo > span {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: var(--muted-foreground, #9e9e9e);
+  font-size: 0.625rem;
+  font-weight: 700;
+}
+.dash-skin .class-board-dados-criativos-topo > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1px solid var(--fio-forte, rgb(255 255 255 / 18%));
+  border-radius: 0;
+  background: transparent;
+  color: var(--foreground, #f5f5f5);
+  cursor: pointer;
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+.dash-skin .class-board-dados-criativos-topo > button > svg { width: 0.875rem; height: 0.875rem; }
+.dash-skin .class-board-dados-criativos-topo > button:hover:not(:disabled) { background: var(--botao, rgb(255 255 255 / 6%)); border-color: var(--foreground, #f5f5f5); }
+.dash-skin .class-board-dados-criativos-topo > button:disabled { opacity: 0.3; cursor: not-allowed; }
+.dash-skin .class-board-dados-criativos-fila {
+  display: flex;
+  flex: 1 1 auto;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  min-height: 0;
+  list-style: none;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+  overscroll-behavior-x: contain;
+}
+/* Cada criativo: um cartão de largura fixa — todos do mesmo tamanho. */
+.dash-skin .class-board-criativo {
+  display: grid;
+  grid-template-rows: minmax(2.5rem, 1fr) auto auto;
+  flex: 0 0 auto;
+  width: 11rem;
+  min-width: 0;
+  gap: 4px;
+  padding: 6px;
+  background: var(--camada-2, rgb(255 255 255 / 4%));
+  scroll-snap-align: start;
+}
+.dash-skin .class-board-criativo-arte {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 6px;
+  min-height: 2.5rem;
+  padding: 8px;
+  overflow: hidden;
+  background: var(--camada-3, rgb(255 255 255 / 6%));
+  color: var(--muted-foreground, #9e9e9e);
+}
+.dash-skin .class-board-criativo-arte[data-arte="imagem"] { padding: 0; }
+.dash-skin .class-board-criativo-arte > img { width: 100%; height: 100%; object-fit: cover; }
+.dash-skin .class-board-criativo-arte > svg { width: 1.125rem; height: 1.125rem; }
+/* Sem miniatura, o texto do anúncio ocupa a arte (até cinco linhas). */
+.dash-skin .class-board-criativo-arte > p {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.35;
+  text-align: center;
+  text-wrap: balance;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+  line-clamp: 5;
+  overflow: hidden;
+}
+.dash-skin .class-board-criativo-texto { display: grid; gap: 1px; min-width: 0; }
+.dash-skin .class-board-criativo-texto > b { font-size: 0.6875rem; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dash-skin .class-board-criativo-texto > span { color: var(--muted-foreground, #9e9e9e); font-size: 0.5625rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dash-skin .class-board-criativo-numeros { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.dash-skin .class-board-criativo-numeros > .class-board-semaforo { flex: none; }
+.dash-skin .class-board-criativo-numeros > span {
+  min-width: 0;
+  font-size: 0.625rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dash-skin .class-board-criativo-numeros > span:last-child { margin-left: auto; color: var(--muted-foreground, #9e9e9e); font-weight: 700; }
+.dash-skin .class-board-dados-criativos-vazio { margin: 0; color: var(--muted-foreground, #9e9e9e); font-size: 0.6875rem; }
+html[data-tema="branco"] .dash-skin .class-board-dados-criativos-topo > button { border-color: rgb(0 0 0 / 16%); color: #101014; }
+html[data-tema="branco"] .dash-skin .class-board-criativo { background: rgb(0 0 0 / 3%); }
+html[data-tema="branco"] .dash-skin .class-board-criativo-arte { background: rgb(0 0 0 / 5%); }
 html[data-tema="branco"] .dash-skin .class-board-quadro > .class-board-dados {
   background: #ffffff;
   box-shadow: inset 0 0 0 1px rgb(0 0 0 / 10%);
 }
 .dash-skin .class-board-dados > .class-board-dados-topo {
-  grid-area: topo;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
   grid-template-areas: "nome semaforo fechar" "onde pagina pagina";
@@ -4779,12 +4934,23 @@ html[data-tema="branco"] .dash-skin .class-board-quadro > .class-board-dados {
 }
 .dash-skin .class-board-dados-fechar > svg { width: 0.875rem; height: 0.875rem; }
 .dash-skin .class-board-dados-fechar:hover { color: #ff1e3c; background: var(--botao-hover, rgb(255 255 255 / 12%)); }
-.dash-skin .class-board-dados > .class-board-grafico { grid-area: grafico; margin: 0; min-width: 0; }
-.dash-skin .class-board-dados > .class-board-grafico > .class-board-grafico-area { width: 100%; }
-.dash-skin .class-board-dados > .class-board-grafico svg[data-pontos] { width: 100%; height: auto; }
-.dash-skin .class-board-dados > .class-board-dados-coluna { grid-area: numeros; display: grid; gap: 6px; min-width: 0; align-content: start; }
+.dash-skin .class-board-dados .class-board-grafico {
+  margin: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  /* Uma faixa baixa e sempre igual: quem fica com a sobra da altura é o
+     feed dos criativos, não o gráfico. */
+  flex: 0 0 auto;
+  max-height: 11rem;
+}
+/* O gráfico é uma faixa baixa e sempre da mesma altura: o desenho
+   acompanha a largura em pixels de verdade, sem esticar letras. */
+.dash-skin .class-board-dados .class-board-grafico > .class-board-grafico-area { flex: 1 1 auto; width: 100%; height: 116px; min-height: 116px; }
+.dash-skin .class-board-dados .class-board-grafico svg[data-pontos] { width: 100%; height: 100%; }
 
-.dash-skin .class-board-dados-fichas { grid-area: fichas; }
 .dash-skin .class-board-dados-lucro {
   display: grid;
   gap: 2px;
@@ -4797,13 +4963,24 @@ html[data-tema="branco"] .dash-skin .class-board-quadro > .class-board-dados {
 .dash-skin .class-board-dados-lucro > small { color: var(--muted-foreground, #9e9e9e); font-size: 0.625rem; font-weight: 600; }
 .dash-skin .class-board-dados-lucro[data-lucro="positivo"] > b { color: #1eff5a; }
 .dash-skin .class-board-dados-lucro[data-lucro="negativo"] > b { color: #ff1e3c; }
-.dash-skin .class-board-dados-numeros { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; margin: 0; min-width: 0; }
-.dash-skin .class-board-dados-fichas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; margin: 0; min-width: 0; }
+/* Uma grade só para tudo: seis colunas e o mesmo passo, para os doze
+   números (duas linhas) e as seis fichas (uma linha) ficarem na mesma
+   régua — nada de colunas diferentes entre os dois blocos. */
+.dash-skin :is(.class-board-dados-numeros, .class-board-dados-fichas) {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-auto-rows: var(--ficha-altura, 2.75rem);
+  gap: var(--ficha-vao, 4px);
+  margin: 0;
+  min-width: 0;
+}
 .dash-skin :is(.class-board-dados-numeros, .class-board-dados-fichas) > div {
   display: grid;
+  grid-template-rows: auto auto;
+  align-content: center;
   gap: 1px;
   min-width: 0;
-  padding: 5px 8px;
+  padding: 0 8px;
   background: var(--camada-2, rgb(255 255 255 / 4%));
 }
 .dash-skin :is(.class-board-dados-numeros, .class-board-dados-fichas) dt { color: var(--muted-foreground, #9e9e9e); font-size: 0.5625rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -4831,8 +5008,9 @@ html[data-tema="branco"] .dash-skin .class-board-quadro > .class-board-dados {
   .dash-skin .class-board-quadro[data-campanha-aberta="true"] { grid-template-columns: minmax(0, 1fr) !important; }
   .dash-skin .class-board-quadro > .class-board-dados { grid-column: 1 !important; grid-row: auto !important; max-height: none; }
   .dash-skin .class-board-quadro[data-campanha-aberta="true"] > .class-board-pilares { overflow: visible; }
-  .dash-skin .class-board-dados > .class-board-dados-coluna { grid-template-columns: minmax(0, 1fr); }
-  .dash-skin :is(.class-board-dados-numeros, .class-board-dados-fichas) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* Três colunas: doze números e seis fichas continuam dando linhas
+     cheias, sem sobra no fim. */
+  .dash-skin :is(.class-board-dados-numeros, .class-board-dados-fichas) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
 /* Tema branco, gráfico dentro do bloco: as pílulas de período em cinza

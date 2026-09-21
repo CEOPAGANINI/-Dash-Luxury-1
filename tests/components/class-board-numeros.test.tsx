@@ -132,18 +132,23 @@ describe("os números de cada bloco do quadro por classe", () => {
     const painel = screen.getByRole("dialog", { name: /^Números do bloco/ });
     const svg = painel.querySelector("svg")!;
     expect(svg.getAttribute("data-pontos")).toBe("4");
-    // Linha em neon com a sombra em degradê; um ponto só, na leitura mostrada.
+    // Só a linha, sem degradê nenhum por baixo.
     expect(svg.querySelector("path.class-board-grafico-linha")).toBeTruthy();
-    expect(svg.querySelector("path.class-board-grafico-sombra")?.getAttribute("fill")).toMatch(/^url\(#/);
+    expect(svg.querySelector("path.class-board-grafico-sombra")).toBeNull();
+    expect(svg.querySelector("linearGradient")).toBeNull();
     expect(svg.querySelectorAll(".class-board-grafico-faixa")).toHaveLength(2);
-    // Sem mouse: só a linha, sem ponto, sem cursor, sem cartão, sem título visível.
-    expect(svg.querySelectorAll("circle")).toHaveLength(0);
+    // Uma bolinha por leitura, com a cor da classe do ROAS.
+    const bolinhas = [...svg.querySelectorAll("circle.class-board-grafico-bolinha")];
+    expect(bolinhas).toHaveLength(4);
+    expect(bolinhas.map((b) => b.getAttribute("data-faixa"))).toEqual(["ruim", "mediano", "mediano", "otimo"]);
+    // Sem mouse: sem cursor, sem cartão, sem título visível.
     expect(within(painel).queryByRole("status")).toBeNull();
     expect(painel.querySelector("figcaption")?.className).toContain("sr-only");
     expect(painel.querySelector(".class-board-bloco-numeros-titulo")?.textContent).not.toContain("ROAS");
-    // Com o mouse sobre a linha: cursor, ponto e o cartão da leitura mais próxima (a primeira, aqui), com a variação e o máximo e o mínimo.
+    // Com o mouse sobre a linha: cursor, a bolinha maior e o cartão da leitura mais próxima (a primeira, aqui), com a variação e o máximo e o mínimo.
     fireEvent.pointerMove(svg, { clientX: 0, clientY: 0 });
-    expect(svg.querySelectorAll("circle")).toHaveLength(1);
+    expect(svg.querySelectorAll("circle")).toHaveLength(4);
+    expect(svg.querySelector('circle[data-ativo="true"]')).toBeTruthy();
     expect(svg.querySelector("line.class-board-grafico-cursor")).toBeTruthy();
     const cartao = within(painel).getByRole("status");
     expect(cartao.querySelector(".class-board-grafico-cartao-valor")?.textContent).toBe("1,20x");

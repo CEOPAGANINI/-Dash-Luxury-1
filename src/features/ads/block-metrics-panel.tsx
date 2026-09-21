@@ -235,6 +235,8 @@ export function PainelDoBloco({
    para leitores de tela. */
 const LARGURA = 480;
 const ALTURA = 200;
+/** No painel da campanha o gráfico é uma faixa baixa e sempre igual. */
+const ALTURA_COMPACTA = 116;
 const MARGEM = { cima: 16, direita: 14, baixo: 26, esquerda: 44 };
 export const JANELAS = [
   { id: "1h", rotulo: "1h", ms: 60 * 60_000 },
@@ -285,12 +287,32 @@ export function GraficoRoas({
 }) {
   const [janela, setJanela] = React.useState<JanelaId>(janelas[janelas.length - 1].id);
   const [ativo, setAtivo] = React.useState<number | null>(null);
-  const idGradiente = React.useId();
   const visiveis = leiturasDaJanela(amostras, janela, janelas);
   const n = visiveis.length;
-  const ALTURA_USADA = compacto ? 150 : ALTURA;
-  const MARGEM_USADA = compacto ? { cima: 12, direita: 10, baixo: 22, esquerda: 38 } : MARGEM;
-  const largura = LARGURA - MARGEM_USADA.esquerda - MARGEM_USADA.direita;
+  /* O desenho vale em pixels de verdade: o viewBox acompanha a largura
+     medida, em vez de esticar um desenho de 480 para a largura do painel
+     (o que aumentava a linha e as letras junto). Altura sempre a mesma. */
+  const areaRef = React.useRef<HTMLDivElement>(null);
+  const [medida, setMedida] = React.useState<{ l: number; a: number } | null>(null);
+  React.useEffect(() => {
+    const el = areaRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const medir = () => {
+      const r = el.getBoundingClientRect();
+      const l = Math.round(r.width);
+      const a = Math.round(r.height);
+      if (l > 0 && a > 0) setMedida((atual) => (atual && atual.l === l && atual.a === a ? atual : { l, a }));
+    };
+    medir();
+    const observador = new ResizeObserver(medir);
+    observador.observe(el);
+    return () => observador.disconnect();
+  }, [n]);
+  const larguraMedida = medida?.l ?? null;
+  const ALTURA_USADA = compacto ? Math.max(medida?.a ?? ALTURA_COMPACTA, ALTURA_COMPACTA) : ALTURA;
+  const MARGEM_USADA = compacto ? { cima: 10, direita: 10, baixo: 18, esquerda: 34 } : MARGEM;
+  const LARGURA_USADA = Math.max(larguraMedida ?? LARGURA, MARGEM_USADA.esquerda + MARGEM_USADA.direita + 40);
+  const largura = LARGURA_USADA - MARGEM_USADA.esquerda - MARGEM_USADA.direita;
   const altura = ALTURA_USADA - MARGEM_USADA.cima - MARGEM_USADA.baixo;
   const valores = visiveis.map((a) => a.roas);
   const maximo = n ? Math.max(...valores) : 0;
@@ -308,7 +330,6 @@ export function GraficoRoas({
   const y = (v: number) => MARGEM_USADA.cima + altura - ((v - base) / (topo - base)) * altura;
   const pontos = visiveis.map((a) => ({ ...a, x: x(a.t), y: y(a.roas) }));
   const caminho = pontos.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
-  const area = n > 1 ? `${caminho} L${pontos[n - 1].x.toFixed(1)} ${(MARGEM_USADA.cima + altura).toFixed(1)} L${pontos[0].x.toFixed(1)} ${(MARGEM_USADA.cima + altura).toFixed(1)} Z` : "";
   const ultimo = pontos[pontos.length - 1];
   const primeiro = pontos[0];
   /* O cursor, o ponto e o cartão só existem com o mouse sobre a linha. */
@@ -320,7 +341,7 @@ export function GraficoRoas({
   function aoMover(e: React.PointerEvent<SVGSVGElement>) {
     if (!n) return;
     const r = e.currentTarget.getBoundingClientRect();
-    const px = ((e.clientX - r.left) / r.width) * LARGURA;
+    const px = ((e.clientX - r.left) / r.width) * LARGURA_USADA;
     let melhor = 0;
     for (let i = 1; i < pontos.length; i++) if (Math.abs(pontos[i].x - px) < Math.abs(pontos[melhor].x - px)) melhor = i;
     setAtivo(melhor);
@@ -340,21 +361,16 @@ export function GraficoRoas({
       {n === 0 ? (
         <p className="class-board-grafico-vazio">Ainda sem leituras: a primeira entra assim que houver investimento, e depois uma a cada {cadencia}.</p>
       ) : (
-        <div className="class-board-grafico-area">
+        <div className="class-board-grafico-area" ref={areaRef}>
           <svg
-            viewBox={`0 0 ${LARGURA} ${ALTURA_USADA}`}
+            viewBox={`0 0 ${LARGURA_USADA} ${ALTURA_USADA}`}
+            preserveAspectRatio="xMidYMid meet"
             role="img"
             aria-label={`${n} leituras; a mais nova ${formatRatio(ultimo.roas)} às ${hora(ultimo.t)}`}
             data-pontos={n}
             onPointerMove={aoMover}
             onPointerLeave={() => setAtivo(null)}
           >
-            <defs>
-              <linearGradient id={idGradiente} x1="0" x2="0" y1="0" y2="1">
-                <stop offset="0%" stopColor={cor} stopOpacity="0.38" />
-                <stop offset="100%" stopColor={cor} stopOpacity="0" />
-              </linearGradient>
-            </defs>
             {/* Grade recessiva e o eixo dos valores à esquerda. */}
             {passos.map((v) => (
               <g key={v}>
@@ -368,13 +384,23 @@ export function GraficoRoas({
               .map(([id, v]) => (
                 <line key={id} x1={MARGEM_USADA.esquerda} x2={MARGEM_USADA.esquerda + largura} y1={y(v)} y2={y(v)} className="class-board-grafico-faixa" data-faixa={id} />
               ))}
-            {n > 1 && <path d={area} className="class-board-grafico-sombra" fill={`url(#${idGradiente})`} />}
+            {/* Só a linha: sem degradê por baixo. */}
             {n > 1 && <path d={caminho} className="class-board-grafico-linha" />}
+            {/* Uma bolinha por leitura, na cor da classe do ROAS:
+                vermelha em baixo, amarela no meio, verde em cima. */}
+            {pontos.map((p, i) => (
+              <circle
+                key={p.t}
+                cx={p.x}
+                cy={p.y}
+                r={3}
+                className="class-board-grafico-bolinha"
+                data-faixa={faixaDoRoas(p.roas)}
+                data-ativo={i === ativo ? "true" : undefined}
+              />
+            ))}
             {escolhido && (
-              <>
-                <line x1={escolhido.x} x2={escolhido.x} y1={MARGEM_USADA.cima} y2={MARGEM_USADA.cima + altura} className="class-board-grafico-cursor" />
-                <circle cx={escolhido.x} cy={escolhido.y} r={5} className="class-board-grafico-ponto" data-atual="true" data-faixa={faixaDoRoas(escolhido.roas)} />
-              </>
+              <line x1={escolhido.x} x2={escolhido.x} y1={MARGEM_USADA.cima} y2={MARGEM_USADA.cima + altura} className="class-board-grafico-cursor" />
             )}
             {marcas.map((t, i) => (
               <text

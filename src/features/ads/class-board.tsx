@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowRight, ChevronDown, ChevronLeft, ChevronRight, Megaphone, Pin, Plus, X } from "lucide-react";
+import { ArrowRight, ChevronDown, ChevronLeft, ChevronRight, GripVertical, Megaphone, Pin, Plus, X } from "lucide-react";
 
 import type { ProfitGuardrails } from "@/features/guardrails/rules";
 import { cn } from "@/lib/utils";
@@ -53,6 +53,14 @@ import { ROTULO_DA_SAUDE, Semaforo, descricaoDaSaude, saudeDasMetricas, saudeDoC
 import { GraficoRoas, JANELAS_MINUTO } from "./block-metrics-panel";
 import { INTERVALO_MINUTO_MS, chaveDaCampanhaNoHistorico, registrarRoasDaCampanha, useCampaignRoasHistory } from "./campaign-roas-history-store";
 import { lucroDaCampanha, useTaxas } from "./fees-store";
+import {
+  SECOES_DO_PAINEL,
+  moverNaOrdem,
+  useCampaignPanelOrder,
+  type FichaId,
+  type NumeroId,
+  type SecaoId,
+} from "./campaign-panel-order-store";
 import { QuadroAoVivo } from "./class-board-live";
 import { PainelDoBloco } from "./block-metrics-panel";
 import { INTERVALO_AMOSTRA_MS, chaveDoHistorico, registrarRoasDoBloco, useRoasHistory } from "./roas-history-store";
@@ -1249,28 +1257,62 @@ function DadosDaCampanha({
   const dinheiroOuTraco = (v: number | null) => (v === null ? "—" : dinheiro(v));
   const comSinal = (v: number) => (v < 0 ? `−${dinheiro(-v)}` : dinheiro(v));
   const saude = saudeDasMetricas(c.metrics, gateway);
-  const numeros: [string, string][] = [
-    ["Investimento", dinheiro(c.metrics.spendCents)],
-    ["Retorno", dinheiro(c.metrics.revenueCents)],
-    ["ROAS", d.roas === null ? "—" : formatRatio(d.roas)],
-    ["Margem", d.margem === null ? "—" : formatPercent(d.margem, 1)],
-    ["Compras", formatInteger(c.metrics.purchases)],
-    ["CPA", dinheiroOuTraco(d.cpaCents)],
-    ["Impressões", formatInteger(c.metrics.impressions)],
-    ["Cliques", formatInteger(c.metrics.clicks)],
-    ["CTR", d.ctr === null ? "—" : formatPercent(d.ctr, 2)],
-    ["CPC", dinheiroOuTraco(d.cpcCents)],
-    ["CPM", dinheiroOuTraco(d.cpmCents)],
-    ["Orçamento diário", c.dailyBudgetCents === null ? "—" : dinheiro(c.dailyBudgetCents)],
-  ];
-  const fichas: [string, string][] = [
-    ["Estado", STATUS_LABEL[c.status]],
-    ["Rede", NETWORK_MANAGERS[c.network].label],
-    ["Objetivo", c.objective ?? "—"],
-    ["Conjuntos", formatInteger(c.adSets.length)],
-    ["Origem", c.source === "demo" ? "Demonstração" : c.source === "meta" ? "Meta" : "Manual"],
-    ["Sincronizada", c.syncedAt ? new Date(c.syncedAt).toLocaleString("pt-BR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "—"],
-  ];
+  const numeros: Record<NumeroId, [string, string]> = {
+    investimento: ["Investimento", dinheiro(c.metrics.spendCents)],
+    retorno: ["Retorno", dinheiro(c.metrics.revenueCents)],
+    roas: ["ROAS", d.roas === null ? "—" : formatRatio(d.roas)],
+    margem: ["Margem", d.margem === null ? "—" : formatPercent(d.margem, 1)],
+    compras: ["Compras", formatInteger(c.metrics.purchases)],
+    cpa: ["CPA", dinheiroOuTraco(d.cpaCents)],
+    impressoes: ["Impressões", formatInteger(c.metrics.impressions)],
+    cliques: ["Cliques", formatInteger(c.metrics.clicks)],
+    ctr: ["CTR", d.ctr === null ? "—" : formatPercent(d.ctr, 2)],
+    cpc: ["CPC", dinheiroOuTraco(d.cpcCents)],
+    cpm: ["CPM", dinheiroOuTraco(d.cpmCents)],
+    orcamento: ["Orçamento diário", c.dailyBudgetCents === null ? "—" : dinheiro(c.dailyBudgetCents)],
+  };
+  const fichas: Record<FichaId, [string, string]> = {
+    estado: ["Estado", STATUS_LABEL[c.status]],
+    rede: ["Rede", NETWORK_MANAGERS[c.network].label],
+    objetivo: ["Objetivo", c.objective ?? "—"],
+    conjuntos: ["Conjuntos", formatInteger(c.adSets.length)],
+    origem: ["Origem", c.source === "demo" ? "Demonstração" : c.source === "meta" ? "Meta" : "Manual"],
+    sincronizada: ["Sincronizada", c.syncedAt ? new Date(c.syncedAt).toLocaleString("pt-BR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "—"],
+  };
+  /* A arrumação é do usuário: arrasta as secções pela pega e arrasta os
+     quadradinhos uns para cima dos outros. Fica guardada no navegador. */
+  const { arrumacao, guardar } = useCampaignPanelOrder();
+  const secoes: Record<SecaoId, React.ReactNode> = {
+    grafico: (
+      <GraficoRoas amostras={amostras} rotulo={c.name} janelas={JANELAS_MINUTO} intervaloMs={INTERVALO_MINUTO_MS} cadencia="1 minuto" compacto />
+    ),
+    lucro: (
+      <p className="class-board-dados-lucro" data-lucro={lucro.lucroCents < 0 ? "negativo" : lucro.lucroCents > 0 ? "positivo" : "zero"}>
+        <span>Lucro</span>
+        <b>{comSinal(lucro.lucroCents)}</b>
+        <small>retorno − gateway {gateway}% ({dinheiro(lucro.gatewayCents)}) − tráfego · {ROTULO_DA_SAUDE[saude]}</small>
+      </p>
+    ),
+    numeros: (
+      <GradeArrastavel
+        className="class-board-dados-numeros"
+        rotulo="Números da campanha"
+        ordem={arrumacao.numeros}
+        itens={numeros}
+        aoGuardar={(ordem) => guardar({ numeros: ordem })}
+      />
+    ),
+    fichas: (
+      <GradeArrastavel
+        className="class-board-dados-fichas"
+        rotulo="Fichas da campanha"
+        ordem={arrumacao.fichas}
+        itens={fichas}
+        aoGuardar={(ordem) => guardar({ fichas: ordem })}
+      />
+    ),
+    criativos: <FeedDeCriativos campanha={c} gateway={gateway} />,
+  };
   return (
     <div
       className="class-board-dados"
@@ -1289,31 +1331,271 @@ function DadosDaCampanha({
           <X aria-hidden="true" />
         </button>
       </div>
-      <GraficoRoas amostras={amostras} rotulo={c.name} janelas={JANELAS_MINUTO} intervaloMs={INTERVALO_MINUTO_MS} cadencia="1 minuto" compacto />
-      <div className="class-board-dados-coluna">
-      <p className="class-board-dados-lucro" data-lucro={lucro.lucroCents < 0 ? "negativo" : lucro.lucroCents > 0 ? "positivo" : "zero"}>
-        <span>Lucro</span>
-        <b>{comSinal(lucro.lucroCents)}</b>
-        <small>retorno − gateway {gateway}% ({dinheiro(lucro.gatewayCents)}) − tráfego · {ROTULO_DA_SAUDE[saude]}</small>
-      </p>
-      <dl className="class-board-dados-numeros">
-        {numeros.map(([rotulo, valor]) => (
-          <div key={rotulo}>
-            <dt>{rotulo}</dt>
-            <dd>{valor}</dd>
-          </div>
-        ))}
-      </dl>
-      </div>
-      <dl className="class-board-dados-fichas">
-        {fichas.map(([rotulo, valor]) => (
-          <div key={rotulo}>
-            <dt>{rotulo}</dt>
-            <dd>{valor}</dd>
-          </div>
-        ))}
-      </dl>
+      <SecoesArrastaveis ordem={arrumacao.secoes} conteudo={secoes} aoGuardar={(ordem) => guardar({ secoes: ordem })} />
     </div>
+  );
+}
+
+/*
+  As secções do painel, na ordem do usuário: cada uma tem uma pega
+  (⠿) para arrastar e setas no teclado para subir e descer. Ao pousar
+  sobre outra secção, elas trocam de lugar — nunca se sobrepõem, porque
+  quem manda no lugar é sempre a ordem da coluna.
+*/
+function SecoesArrastaveis({
+  ordem,
+  conteudo,
+  aoGuardar,
+}: {
+  ordem: readonly SecaoId[];
+  conteudo: Record<SecaoId, React.ReactNode>;
+  aoGuardar: (ordem: SecaoId[]) => void;
+}) {
+  const [arrastando, setArrastando] = React.useState<SecaoId | null>(null);
+  const [viva, setViva] = React.useState<SecaoId[] | null>(null);
+  const visivel = viva ?? ordem;
+  function abrirEspaco(destino: SecaoId) {
+    if (!arrastando || arrastando === destino) return;
+    const nova = moverNaOrdem(visivel, arrastando, destino);
+    if (nova.join(",") !== visivel.join(",")) setViva(nova);
+  }
+  function terminar() {
+    if (arrastando && visivel.join(",") !== ordem.join(",")) aoGuardar([...visivel]);
+    setArrastando(null);
+    setViva(null);
+  }
+  function mover(id: SecaoId, passo: -1 | 1) {
+    const i = visivel.indexOf(id);
+    const j = i + passo;
+    if (i < 0 || j < 0 || j >= visivel.length) return;
+    const nova = [...visivel];
+    [nova[i], nova[j]] = [nova[j], nova[i]];
+    aoGuardar(nova);
+  }
+  return (
+    <>
+      {visivel.map((id) => {
+        const rotulo = SECOES_DO_PAINEL.find((s) => s.id === id)?.rotulo ?? id;
+        return (
+          <div
+            key={id}
+            className="class-board-dados-secao"
+            data-secao={id}
+            data-arrastando={arrastando === id ? "true" : undefined}
+            onDragOver={(e) => {
+              if (!arrastando) return;
+              e.preventDefault();
+              e.dataTransfer.dropEffect = "move";
+              abrirEspaco(id);
+            }}
+            onDrop={(e) => {
+              if (!arrastando) return;
+              e.preventDefault();
+              terminar();
+            }}
+          >
+            <button
+              type="button"
+              className="class-board-dados-pega"
+              aria-label={`Mover a secção ${rotulo}`}
+              title="Arraste para mudar a ordem; ou use as setas ↑ e ↓"
+              draggable
+              onDragStart={(e) => {
+                e.dataTransfer.effectAllowed = "move";
+                e.dataTransfer.setData("text/plain", id);
+                setArrastando(id);
+              }}
+              onDragEnd={terminar}
+              onKeyDown={(e) => {
+                if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+                  e.preventDefault();
+                  mover(id, e.key === "ArrowUp" ? -1 : 1);
+                }
+              }}
+            >
+              <GripVertical aria-hidden="true" />
+            </button>
+            {conteudo[id]}
+          </div>
+        );
+      })}
+    </>
+  );
+}
+
+/*
+  Uma grade de quadradinhos que se arrastam uns para cima dos outros: os
+  números e as fichas da campanha. A grade tem sempre as mesmas colunas e
+  a mesma altura de linha, por isso reordenar nunca encavala nem corta.
+*/
+function GradeArrastavel<T extends string>({
+  className,
+  rotulo,
+  ordem,
+  itens,
+  aoGuardar,
+}: {
+  className: string;
+  rotulo: string;
+  ordem: readonly T[];
+  itens: Record<T, [string, string]>;
+  aoGuardar: (ordem: T[]) => void;
+}) {
+  const [arrastando, setArrastando] = React.useState<T | null>(null);
+  const [viva, setViva] = React.useState<T[] | null>(null);
+  const visivel = viva ?? ordem;
+  function abrirEspaco(destino: T) {
+    if (!arrastando || arrastando === destino) return;
+    const nova = moverNaOrdem(visivel, arrastando, destino);
+    if (nova.join(",") !== visivel.join(",")) setViva(nova);
+  }
+  function terminar() {
+    if (arrastando && visivel.join(",") !== ordem.join(",")) aoGuardar([...visivel]);
+    setArrastando(null);
+    setViva(null);
+  }
+  function mover(id: T, passo: -1 | 1) {
+    const i = visivel.indexOf(id);
+    const j = i + passo;
+    if (i < 0 || j < 0 || j >= visivel.length) return;
+    const nova = [...visivel];
+    [nova[i], nova[j]] = [nova[j], nova[i]];
+    aoGuardar(nova);
+  }
+  return (
+    <dl className={className} role="group" aria-label={rotulo}>
+      {visivel.map((id) => {
+        const [nome, valor] = itens[id];
+        return (
+          <div
+            key={id}
+            data-item={id}
+            data-arrastando={arrastando === id ? "true" : undefined}
+            draggable
+            tabIndex={0}
+            role="group"
+            aria-label={`${nome}. Arraste, ou use ← e →, para mudar a ordem`}
+            onDragStart={(e) => {
+              e.dataTransfer.effectAllowed = "move";
+              e.dataTransfer.setData("text/plain", id);
+              setArrastando(id);
+            }}
+            onDragEnd={terminar}
+            onDragOver={(e) => {
+              if (!arrastando) return;
+              e.preventDefault();
+              e.dataTransfer.dropEffect = "move";
+              abrirEspaco(id);
+            }}
+            onDrop={(e) => {
+              if (!arrastando) return;
+              e.preventDefault();
+              terminar();
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+                e.preventDefault();
+                mover(id, e.key === "ArrowLeft" ? -1 : 1);
+              }
+            }}
+          >
+            <dt>{nome}</dt>
+            <dd>{valor}</dd>
+          </div>
+        );
+      })}
+    </dl>
+  );
+}
+
+/*
+  O feed dos criativos da campanha: uma fila que corre para a esquerda e
+  para a direita, um cartão por anúncio (a arte, o nome, o título do
+  criativo, o semáforo e os números que contam). As setas andam um cartão
+  de cada vez; a fila também aceita arrastar e a roda do rato.
+*/
+function FeedDeCriativos({ campanha: c, gateway }: { campanha: CampaignRow; gateway: number }) {
+  const filaRef = React.useRef<HTMLUListElement>(null);
+  const [pontas, setPontas] = React.useState({ inicio: true, fim: true });
+  /* Os anúncios de todos os conjuntos, do que mais investiu para o que
+     menos investiu: o criativo que está a gastar aparece primeiro. */
+  const criativos = React.useMemo(
+    () =>
+      c.adSets
+        .flatMap((s) => s.ads.map((a) => ({ ...a, conjunto: s.name })))
+        .sort((a, b) => b.metrics.spendCents - a.metrics.spendCents),
+    [c.adSets],
+  );
+  const medirPontas = React.useCallback(() => {
+    const el = filaRef.current;
+    if (!el) return;
+    const sobra = el.scrollWidth - el.clientWidth;
+    setPontas({ inicio: el.scrollLeft <= 1, fim: sobra <= 1 || el.scrollLeft >= sobra - 1 });
+  }, []);
+  React.useEffect(() => {
+    medirPontas();
+    const el = filaRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const observador = new ResizeObserver(medirPontas);
+    observador.observe(el);
+    return () => observador.disconnect();
+  }, [medirPontas, criativos.length]);
+  function andar(lado: 1 | -1) {
+    const el = filaRef.current;
+    if (!el) return;
+    const cartao = el.querySelector<HTMLElement>("li");
+    const passo = cartao ? cartao.getBoundingClientRect().width + 6 : el.clientWidth * 0.8;
+    el.scrollBy({ left: passo * lado, behavior: "smooth" });
+  }
+  const dinheiro = (v: number) => formatCurrency(v / 100, Math.abs(v) < 10_000 ? 2 : 0);
+  return (
+    <section className="class-board-dados-criativos" aria-label={`Criativos de ${c.name}`}>
+      <div className="class-board-dados-criativos-topo">
+        <h3>Criativos</h3>
+        <span>{criativos.length} {criativos.length === 1 ? "anúncio" : "anúncios"}</span>
+        <button type="button" aria-label="Criativos anteriores" title="Anda um criativo para a esquerda" disabled={pontas.inicio} onClick={() => andar(-1)}>
+          <ChevronLeft aria-hidden="true" />
+        </button>
+        <button type="button" aria-label="Próximos criativos" title="Anda um criativo para a direita" disabled={pontas.fim} onClick={() => andar(1)}>
+          <ChevronRight aria-hidden="true" />
+        </button>
+      </div>
+      {criativos.length === 0 ? (
+        <p className="class-board-dados-criativos-vazio">Esta campanha ainda não tem anúncios sincronizados.</p>
+      ) : (
+        <ul className="class-board-dados-criativos-fila" ref={filaRef} onScroll={medirPontas}>
+          {criativos.map((a) => {
+            const da = derivadas(a.metrics);
+            return (
+              <li key={a.id} className="class-board-criativo">
+                {/* A arte quando existe; sem ela, o texto do criativo — o
+                    espaço nunca fica a fazer de conta. */}
+                <div className="class-board-criativo-arte" data-arte={a.creative.thumbnailUrl ? "imagem" : "texto"}>
+                  {a.creative.thumbnailUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={a.creative.thumbnailUrl} alt={`Criativo de ${a.name}`} loading="lazy" />
+                  ) : (
+                    <>
+                      <Megaphone aria-hidden="true" />
+                      <p>{a.creative.body ?? a.creative.title ?? "Sem texto sincronizado"}</p>
+                    </>
+                  )}
+                </div>
+                <div className="class-board-criativo-texto">
+                  <b title={a.name}>{a.name}</b>
+                  <span title={a.creative.title ?? a.conjunto}>{a.creative.title ?? a.conjunto}</span>
+                </div>
+                <div className="class-board-criativo-numeros">
+                  <Semaforo saude={saudeDasMetricas(a.metrics, gateway)} rotulo={`Saúde do criativo ${a.name}`} />
+                  <span>{da.roas === null ? "—" : formatRatio(da.roas)}</span>
+                  <span>{dinheiro(a.metrics.spendCents)}</span>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
   );
 }
 
