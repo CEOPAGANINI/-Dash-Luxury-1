@@ -4625,43 +4625,104 @@ html[data-tema="branco"] .class-board-painel-cartao.class-board-menu {
 /* Com a campanha aberta o quadro parte em dois: as faixas à esquerda,
    com a largura de dois blocos (e rolagem própria para as de baixo), e o
    bloco da campanha à direita, com a largura de três blocos e a altura
-   de três. */
+   de três. À esquerda todos os blocos têm a mesma medida: a largura
+   inteira da coluna e um terço da altura da seção. */
 .dash-skin .class-board-quadro[data-campanha-aberta="true"] {
   grid-template-columns: minmax(0, 2fr) minmax(0, 3fr) !important;
-  grid-template-rows: minmax(0, 1fr) auto !important;
+  grid-template-rows: minmax(0, 1fr) auto auto !important;
   column-gap: 8px;
 }
+/* A esquerda mostra uma faixa de cada vez, inteira e sem rolagem: uma
+   coluna só, a barra com a altura dela e os blocos repartindo o resto em
+   partes iguais. Trocar de faixa é nos botões, embaixo. */
 .dash-skin .class-board-quadro[data-campanha-aberta="true"] > .class-board-pilares {
   grid-column: 1;
   grid-row: 1;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  grid-template-rows: none !important;
-  grid-auto-rows: auto;
+  display: flex !important;
+  flex-direction: column;
   min-height: 0;
-  /* A coluna das faixas rola por dentro: a seção não cresce. */
   max-height: calc(var(--quadro-altura, 100%) - 2.75rem);
-  overflow-y: auto;
-  scrollbar-width: thin;
-  align-content: start;
+  overflow: hidden;
 }
-.dash-skin .class-board-quadro[data-campanha-aberta="true"] > .class-board-nova-faixa { grid-column: 1; grid-row: 2; }
-/* Na coluna de dois blocos, cada bloco entra na ordem; a barra da faixa
-   atravessa as duas colunas. */
-.dash-skin .class-board-quadro[data-campanha-aberta="true"] .class-board-pilares > section.class-board-pilar { grid-area: auto !important; min-height: 0 !important; }
-/* Cada faixa cabe inteira na seção: a barra e três linhas de blocos, com
-   a altura repartida (a barra fica com a altura dela). */
-.dash-skin .class-board-quadro[data-campanha-aberta="true"] .class-board-pilares {
-  grid-auto-rows: auto;
-  scroll-snap-type: y proximity;
+.dash-skin .class-board-quadro[data-campanha-aberta="true"] > .class-board-faixa-pager { grid-column: 1; grid-row: 2; }
+.dash-skin .class-board-quadro[data-campanha-aberta="true"] > .class-board-nova-faixa { grid-column: 1; grid-row: 3; }
+/* Todos os blocos da esquerda com a mesma medida: a largura inteira da
+   coluna e uma fatia igual da altura. */
+.dash-skin .class-board-quadro[data-campanha-aberta="true"] .class-board-pilares > section.class-board-pilar,
+.dash-skin .class-board-quadro[data-campanha-aberta="true"] .class-board-pilares > .class-board-vaga-livre {
+  grid-area: auto !important;
+  width: 100%;
+  flex: 1 1 0;
+  min-height: 0 !important;
+  height: auto !important;
 }
-.dash-skin .class-board-quadro[data-campanha-aberta="true"] .class-board-pilares > section.class-board-pilar {
-  height: calc((var(--quadro-altura, 40rem) - 2.75rem - 1.75rem - 2rem) / 3);
+.dash-skin .class-board-quadro[data-campanha-aberta="true"] .class-board-pilares > .class-board-faixa-barra {
+  grid-area: auto !important;
+  width: 100%;
+  flex: 0 0 auto;
 }
-.dash-skin .class-board-quadro[data-campanha-aberta="true"] .class-board-pilares > .class-board-faixa-barra { scroll-snap-align: start; }
-/* O último bloco de uma faixa com número ímpar fecha a linha. */
-.dash-skin .class-board-quadro[data-campanha-aberta="true"] .class-board-pilares > section.class-board-pilar[data-preenche="true"] { grid-column: 1 / -1 !important; }
-.dash-skin .class-board-quadro[data-campanha-aberta="true"] .class-board-pilares > .class-board-faixa-barra { grid-area: auto !important; grid-column: 1 / -1 !important; }
-.dash-skin .class-board-quadro[data-campanha-aberta="true"] .class-board-pilares > .class-board-vaga-livre { grid-area: auto !important; min-height: 3rem; }
+/* Os botões que trocam de faixa: as setas nas pontas e o número de cada
+   faixa no meio; o escolhido fica cheio. Mesmo desenho quadrado do resto. */
+.dash-skin .class-board-quadro > .class-board-faixa-pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  margin-top: 8px;
+}
+.dash-skin .class-board-faixa-pager .class-board-faixa-passo,
+.dash-skin .class-board-faixa-pager .class-board-faixa-numeros > li > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0 6px;
+  border: 1px solid var(--fio-forte, rgb(255 255 255 / 18%));
+  border-radius: 0;
+  background: transparent;
+  color: var(--foreground, #f5f5f5);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+.dash-skin .class-board-faixa-pager .class-board-faixa-passo > svg { width: 1rem; height: 1rem; }
+.dash-skin .class-board-faixa-pager .class-board-faixa-numeros {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  list-style: none;
+}
+.dash-skin .class-board-faixa-pager .class-board-faixa-numeros::-webkit-scrollbar { display: none; }
+.dash-skin .class-board-faixa-pager button:hover:not(:disabled) {
+  background: var(--botao, rgb(255 255 255 / 6%));
+  border-color: var(--foreground, #f5f5f5);
+}
+.dash-skin .class-board-faixa-pager button:disabled { opacity: 0.35; cursor: not-allowed; }
+.dash-skin .class-board-faixa-pager .class-board-faixa-numeros > li > button[data-atual="true"] {
+  background: var(--foreground, #f5f5f5);
+  border-color: var(--foreground, #f5f5f5);
+  color: var(--background, #0f0f11);
+}
+html[data-tema="branco"] .dash-skin .class-board-faixa-pager .class-board-faixa-passo,
+html[data-tema="branco"] .dash-skin .class-board-faixa-pager .class-board-faixa-numeros > li > button {
+  border-color: rgb(0 0 0 / 16%);
+  color: #101014;
+}
+html[data-tema="branco"] .dash-skin .class-board-faixa-pager .class-board-faixa-numeros > li > button[data-atual="true"] {
+  background: #101014;
+  border-color: #101014;
+  color: #ffffff;
+}
 /* O bloco da campanha: a coluna da direita inteira, com a altura da seção
    (três blocos). */
 .dash-skin .class-board-quadro > .class-board-dados {

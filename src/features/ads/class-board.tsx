@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowRight, ChevronDown, Megaphone, Pin, Plus, X } from "lucide-react";
+import { ArrowRight, ChevronDown, ChevronLeft, ChevronRight, Megaphone, Pin, Plus, X } from "lucide-react";
 
 import type { ProfitGuardrails } from "@/features/guardrails/rules";
 import { cn } from "@/lib/utils";
@@ -399,6 +399,9 @@ export function ClassBoard({
   /* A campanha aberta pela seta: os dados dela aparecem embaixo da faixa,
      dentro do bloco (uma de cada vez em todo o quadro). */
   const [campanhaAberta, setCampanhaAberta] = React.useState<string | null>(null);
+  /* Com a campanha aberta, a esquerda mostra uma faixa de cada vez: esta.
+     Null = a faixa da campanha aberta. Troca-se pelos botões, não a rolar. */
+  const [faixaEscolhida, setFaixaEscolhida] = React.useState<number | null>(null);
   /* O painel dos números de um bloco (um de cada vez), preso ao cabeçalho. */
   const [painelDeNumeros, setPainelDeNumeros] = React.useState<{ id: string; ancora: HTMLElement } | null>(null);
   const fecharNumeros = React.useCallback(() => setPainelDeNumeros(null), []);
@@ -809,6 +812,12 @@ export function ClassBoard({
      altura de três; as faixas passam a ter dois blocos de largura, à
      esquerda, e rolam para mostrar as de baixo. */
   const vagaDoPainel = vagaDoPainelDaCampanha(fileiras);
+  /* Com a campanha aberta, a esquerda mostra uma faixa inteira de cada vez
+     — sem rolagem: a faixa escolhida nos botões ou, enquanto ninguém
+     escolheu, a faixa da campanha aberta. */
+  const faixaSozinha = campanha ? Math.min(Math.max(faixaEscolhida ?? faixaAberta ?? 1, 1), fileiras) : null;
+  const daFaixaSozinha = (vaga: string | undefined) =>
+    faixaSozinha === null || Number(VAGA.exec(vaga ?? "")?.[1]) === faixaSozinha;
 
   function barraDaFaixa(f: number) {
             const naFaixa = ordemVisivel.filter((id) => Number(VAGA.exec(vagas.get(id) ?? "")?.[1]) === f).length;
@@ -853,18 +862,6 @@ export function ClassBoard({
               </div>
             );
   }
-  /* Na coluna de dois blocos, o último bloco de uma faixa com um número
-     ímpar deles ocupa as duas colunas: assim a faixa fecha certinha, sem
-     buraco no fim. */
-  function preencheAFaixa(pilar: string): boolean {
-    const f = Number(VAGA.exec(vagas.get(pilar) ?? "")?.[1]);
-    if (!f) return false;
-    const daFaixa = [...ordemVisivel, ...livres.map((v) => `vaga:${v}`)]
-      .filter((id) => Number(VAGA.exec(id.startsWith("vaga:") ? id.slice(5) : vagas.get(id) ?? "")?.[1]) === f);
-    if (daFaixa.length % 2 === 0) return false;
-    const ultimo = [...daFaixa].sort((a, b) => ordemNaFaixa(a.startsWith("vaga:") ? a.slice(5) : vagas.get(a) ?? "") - ordemNaFaixa(b.startsWith("vaga:") ? b.slice(5) : vagas.get(b) ?? "")).at(-1);
-    return ultimo === pilar;
-  }
   function blocoDoQuadro(pilar: string) {
             const classe = pilar;
             /* Um bloco, uma lista: o pilar de criativos junta vídeo, imagem
@@ -891,7 +888,6 @@ export function ClassBoard({
                 data-altura={medida.altura}
                 style={vaga ? { gridArea: areaComFaixas(vaga, medida), order: ordemNaFaixa(vaga) } : undefined}
                 data-vaga={vaga}
-                data-preenche={preencheAFaixa(pilar) ? "true" : undefined}
                 data-area={vaga ? areaDaGrade(vaga, medida) : undefined}
                 data-drop-active={sobre === classe || undefined}
                 data-pilar-fixo={fixo ? "true" : undefined}
@@ -1043,7 +1039,10 @@ export function ClassBoard({
                         campanha={c}
                         escopo={escopoDoHistorico}
                         aberto={campanhaAberta === c.id}
-                        aoAbrir={() => setCampanhaAberta((atual) => (atual === c.id ? null : c.id))}
+                        aoAbrir={() => {
+                          setFaixaEscolhida(null);
+                          setCampanhaAberta((atual) => (atual === c.id ? null : c.id));
+                        }}
                         aoArrastar={(ativo) => { setArrastando(ativo ? c.id : null); if (!ativo) setSobre(null); }}
                         aoRenomear={(nome) => renomear(c, nome)}
                       />
@@ -1116,9 +1115,13 @@ export function ClassBoard({
               (entra na primeira vaga livre da faixa) e "Apagar faixa". */}
           {/* A ordem de leitura segue o ROAS; o `order` só vale quando a
               grade vira duas colunas, para cada faixa ficar com os seus. */}
-          {Array.from({ length: fileiras }, (_, i) => i + 1).map((f) => barraDaFaixa(f))}
-          {ordemPorRoas.map((pilar) => blocoDoQuadro(pilar))}
-          {livres.map((vaga) => vagaLivreDoQuadro(vaga))}
+          {/* Com a campanha aberta só a faixa escolhida fica na seção: ela
+              cabe inteira, sem rolagem — os botões trocam de faixa. */}
+          {Array.from({ length: fileiras }, (_, i) => i + 1)
+            .filter((f) => faixaSozinha === null || f === faixaSozinha)
+            .map((f) => barraDaFaixa(f))}
+          {ordemPorRoas.filter((pilar) => daFaixaSozinha(vagas.get(pilar))).map((pilar) => blocoDoQuadro(pilar))}
+          {livres.filter((vaga) => daFaixaSozinha(vaga)).map((vaga) => vagaLivreDoQuadro(vaga))}
           {/* Cada célula vazia da grade é um "+": cria um bloco novo ali
               (fixado nessa vaga). Também aceita uma campanha solta: vira
               um bloco novo já com ela dentro. */}
@@ -1133,6 +1136,47 @@ export function ClassBoard({
             />
           )}
       </div>
+      {/* Os botões que trocam de faixa: a seta para a de cima, o número de
+          cada faixa e a seta para a de baixo. Substituem a rolagem. */}
+      {faixaSozinha !== null && (
+        <nav className="class-board-faixa-pager" aria-label="Trocar de faixa">
+          <button
+            type="button"
+            className="class-board-faixa-passo"
+            aria-label="Faixa anterior"
+            title="Mostra a faixa de cima"
+            disabled={faixaSozinha <= 1}
+            onClick={() => setFaixaEscolhida(faixaSozinha - 1)}
+          >
+            <ChevronLeft aria-hidden="true" />
+          </button>
+          <ul className="class-board-faixa-numeros">
+            {Array.from({ length: fileiras }, (_, i) => i + 1).map((f) => (
+              <li key={f}>
+                <button
+                  type="button"
+                  aria-label={`Mostrar a faixa ${f}`}
+                  aria-current={f === faixaSozinha ? "true" : undefined}
+                  data-atual={f === faixaSozinha ? "true" : undefined}
+                  onClick={() => setFaixaEscolhida(f)}
+                >
+                  {f}
+                </button>
+              </li>
+            ))}
+          </ul>
+          <button
+            type="button"
+            className="class-board-faixa-passo"
+            aria-label="Próxima faixa"
+            title="Mostra a faixa de baixo"
+            disabled={faixaSozinha >= fileiras}
+            onClick={() => setFaixaEscolhida(faixaSozinha + 1)}
+          >
+            <ChevronRight aria-hidden="true" />
+          </button>
+        </nav>
+      )}
       {/* A campanha aberta: um bloco com a largura de três blocos e a
           altura de três, à direita; as faixas ficam à esquerda, com dois
           blocos de largura, e rolam. */}
@@ -1145,7 +1189,10 @@ export function ClassBoard({
           faixa={faixaAberta ?? 1}
           bloco={blocoDaAberta ? rotulo(blocoDaAberta) : ""}
           vaga={vagaDoPainel}
-          onClose={() => setCampanhaAberta(null)}
+          onClose={() => {
+            setFaixaEscolhida(null);
+            setCampanhaAberta(null);
+          }}
         />
       )}
       {/* Uma faixa nova, com cinco blocos, embaixo de tudo. */}

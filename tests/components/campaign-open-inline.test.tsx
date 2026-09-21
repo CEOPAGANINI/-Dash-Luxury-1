@@ -97,6 +97,39 @@ describe("a seta abre os dados da campanha num bloco à direita do quadro", () =
     expect(screen.queryByRole("group", { name: "Dados de Alfa" })).toBeNull();
   });
 
+  it("à esquerda fica uma faixa de cada vez, trocada pelos botões — sem rolagem", () => {
+    render(<ClassBoard tree={tree} regras={GUARDRAILS_PADRAO} network="meta" />);
+    const grade = screen.getByRole("region", { name: "Quadro de classes" });
+    // Fechada, a grade mostra as três faixas.
+    expect(within(grade).getAllByRole("group", { name: /^Faixa \d$/ })).toHaveLength(3);
+
+    fireEvent.click(screen.getByRole("button", { name: "Abrir campanha Alfa" }));
+    // Aberta, só a faixa da campanha (a 1) fica na seção da esquerda.
+    const faixas = () => within(grade).getAllByRole("group", { name: /^Faixa \d$/ });
+    expect(faixas().map((f) => f.getAttribute("data-faixa"))).toEqual(["1"]);
+    expect(within(grade).getByRole("region", { name: "Outras campanhas 1" })).toBeTruthy();
+
+    // Os botões trocam de faixa: um por faixa, mais as duas setas.
+    const pager = screen.getByRole("navigation", { name: "Trocar de faixa" });
+    expect(within(pager).getByRole("button", { name: "Faixa anterior" }).hasAttribute("disabled")).toBe(true);
+    expect(within(pager).getByRole("button", { name: "Mostrar a faixa 1" }).getAttribute("aria-current")).toBe("true");
+
+    fireEvent.click(within(pager).getByRole("button", { name: "Mostrar a faixa 3" }));
+    expect(faixas().map((f) => f.getAttribute("data-faixa"))).toEqual(["3"]);
+    expect(within(grade).queryByRole("region", { name: "Outras campanhas 1" })).toBeNull();
+    expect(within(pager).getByRole("button", { name: "Próxima faixa" }).hasAttribute("disabled")).toBe(true);
+
+    // A seta anterior volta uma faixa; os dados da campanha continuam abertos.
+    fireEvent.click(within(pager).getByRole("button", { name: "Faixa anterior" }));
+    expect(faixas().map((f) => f.getAttribute("data-faixa"))).toEqual(["2"]);
+    expect(screen.getByRole("group", { name: "Dados de Alfa" })).toBeTruthy();
+
+    // Ao fechar, a grade volta a mostrar tudo e o seletor some.
+    fireEvent.click(screen.getByRole("button", { name: "Fechar dados de Alfa" }));
+    expect(screen.queryByRole("navigation", { name: "Trocar de faixa" })).toBeNull();
+    expect(faixas()).toHaveLength(3);
+  });
+
   it("abrir uma campanha de outro bloco fecha a anterior: uma de cada vez no quadro", () => {
     // Alfa no bloco Escala, Beta no bloco das outras: blocos diferentes.
     const emBlocos: CampaignTree = { ...tree, campanhas: [{ ...tree.campanhas[0], campaignClass: "scale" }, tree.campanhas[1]] };
