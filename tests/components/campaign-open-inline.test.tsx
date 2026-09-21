@@ -30,14 +30,14 @@ const linha = (id: string, spend: number, revenue: number): CampaignRow => ({
 
 const tree: CampaignTree = { modo: "banco", metaConectado: false, ultimaSync: null, campanhas: [linha("Alfa", 1000_00, 2500_00), linha("Beta", 500_00, 200_00)] };
 
-describe("a seta abre os dados da campanha numa faixa entre as fileiras de blocos", () => {
+describe("a seta abre os dados da campanha num bloco à direita do quadro", () => {
   beforeEach(() => {
     localStorage.clear();
     vi.stubGlobal("ResizeObserver", class { observe() {} disconnect() {} unobserve() {} });
   });
   afterEach(() => vi.unstubAllGlobals());
 
-  it("clicar na seta mostra o gráfico e todos os números numa faixa de largura inteira, embaixo da fileira do bloco", () => {
+  it("clicar na seta põe os blocos à esquerda e abre o gráfico e todos os números à direita", () => {
     localStorage.setItem(TAXAS_KEY, JSON.stringify({ version: 1, gatewayPercentual: 10 }));
     const agora = Date.now();
     localStorage.setItem(CAMPANHAS_ROAS_KEY, JSON.stringify({ version: 1, campanhas: { "meta:Alfa": [1.8, 2.2, 2.5].map((roas, i) => ({ t: agora - (2 - i) * INTERVALO_MINUTO_MS, roas })) } }));
@@ -48,18 +48,19 @@ describe("a seta abre os dados da campanha numa faixa entre as fileiras de bloco
     const seta = within(bloco).getByRole("button", { name: "Abrir campanha Alfa" });
     fireEvent.click(seta);
 
-    // As duas campanhas continuam no bloco; os dados abrem fora dele, na
-    // grade, numa faixa de largura inteira logo abaixo da fileira do bloco.
+    // As duas campanhas continuam no bloco; os dados abrem fora da grade,
+    // como uma coluna do quadro, ao lado dos blocos.
     expect(within(bloco).getAllByRole("article")).toHaveLength(2);
     const grade = screen.getByRole("region", { name: "Quadro de classes" });
-    const dados = within(grade).getByRole("group", { name: "Dados de Alfa" });
-    expect(dados.parentElement).toBe(grade);
-    expect(dados.style.gridColumn).toBe("1 / -1");
-    // O bloco está na fileira 1 (linha 2 da grade): o painel entra na linha 3.
+    const quadro = grade.parentElement!;
+    const dados = within(quadro).getByRole("group", { name: "Dados de Alfa" });
+    expect(dados.parentElement).toBe(quadro);
+    expect(quadro.getAttribute("data-campanha-aberta")).toBe("true");
+    // A grade dos blocos vem antes do painel (esquerda e direita).
+    expect(grade.compareDocumentPosition(dados) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    // Os blocos ficam onde estavam: a fileira 1 continua na linha 2 da grade.
     expect(bloco.style.gridArea.startsWith("2 /")).toBe(true);
-    expect(dados.style.gridRow).toBe("3");
     expect(dados.getAttribute("data-faixa")).toBe("1");
-    expect(grade.getAttribute("data-campanha-aberta")).toBe("Alfa");
     expect(within(bloco).getByRole("button", { name: "Fechar campanha Alfa" }).getAttribute("aria-expanded")).toBe("true");
     // O topo do painel diz de quem são os dados e onde ela está.
     expect(dados.querySelector(".class-board-dados-nome")?.textContent).toBe("Alfa");

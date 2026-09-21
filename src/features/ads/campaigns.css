@@ -4619,13 +4619,24 @@ html[data-tema="branco"] .class-board-painel-cartao.class-board-menu {
    entra entre a faixa do bloco dela e a de baixo. As outras campanhas
    continuam nos blocos; o painel empurra as faixas seguintes para baixo.
    ===================================================================== */
-.dash-skin .class-board-quadro .class-board-pilares > .class-board-dados {
+/* Com uma campanha aberta, o quadro vira duas colunas: os blocos à
+   esquerda e o bloco da campanha à direita, com a altura da seção. */
+.dash-skin .class-board-quadro[data-campanha-aberta="true"] {
+  grid-template-columns: minmax(0, 1fr) clamp(320px, 30%, 460px) !important;
+  column-gap: 8px;
+}
+.dash-skin .class-board-quadro[data-campanha-aberta="true"] > .class-board-pilares { grid-column: 1; grid-row: 1; }
+.dash-skin .class-board-quadro[data-campanha-aberta="true"] > .class-board-nova-faixa { grid-column: 1; grid-row: 2; }
+.dash-skin .class-board-quadro > .class-board-dados {
+  grid-column: 2;
+  grid-row: 1 / -1;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
-  grid-template-areas: "topo topo" "grafico numeros" "grafico fichas";
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto 1fr auto;
+  grid-template-areas: "topo" "grafico" "numeros" "fichas";
   gap: 8px;
   min-width: 0;
-  max-height: 46vh;
+  min-height: 0;
   overflow-y: auto;
   padding: 10px;
   background: var(--camada-1, rgb(255 255 255 / 3%));
@@ -4635,11 +4646,18 @@ html[data-tema="branco"] .class-board-painel-cartao.class-board-menu {
 }
 .dash-skin .class-board-dados > .class-board-dados-topo {
   grid-area: topo;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-areas: "nome semaforo fechar" "onde pagina pagina";
   align-items: center;
-  gap: 10px;
+  gap: 6px 10px;
   min-width: 0;
 }
+.dash-skin .class-board-dados-nome { grid-area: nome; }
+.dash-skin .class-board-dados-onde { grid-area: onde; }
+.dash-skin .class-board-dados > .class-board-dados-topo > .class-board-semaforo { grid-area: semaforo; }
+.dash-skin .class-board-dados-pagina { grid-area: pagina; }
+.dash-skin .class-board-dados-fechar { grid-area: fechar; }
 .dash-skin .class-board-dados-nome { min-width: 0; font-size: 0.875rem; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .dash-skin .class-board-dados-onde { flex: 1 1 auto; min-width: 0; color: var(--muted-foreground, #9e9e9e); font-size: 0.625rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .dash-skin .class-board-dados > .class-board-dados-topo > .class-board-semaforo { flex: none; }
@@ -4659,6 +4677,8 @@ html[data-tema="branco"] .class-board-painel-cartao.class-board-menu {
 .dash-skin .class-board-dados-fechar > svg { width: 0.875rem; height: 0.875rem; }
 .dash-skin .class-board-dados-fechar:hover { color: #ff1e3c; background: var(--botao-hover, rgb(255 255 255 / 12%)); }
 .dash-skin .class-board-dados > .class-board-grafico { grid-area: grafico; margin: 0; min-width: 0; }
+.dash-skin .class-board-dados > .class-board-grafico > .class-board-grafico-area { width: 100%; }
+.dash-skin .class-board-dados > .class-board-grafico svg[data-pontos] { width: 100%; height: auto; }
 .dash-skin .class-board-dados > .class-board-dados-coluna { grid-area: numeros; display: grid; gap: 6px; min-width: 0; align-content: start; }
 
 .dash-skin .class-board-dados-fichas { grid-area: fichas; }
@@ -4674,7 +4694,8 @@ html[data-tema="branco"] .class-board-painel-cartao.class-board-menu {
 .dash-skin .class-board-dados-lucro > small { color: var(--muted-foreground, #9e9e9e); font-size: 0.625rem; font-weight: 600; }
 .dash-skin .class-board-dados-lucro[data-lucro="positivo"] > b { color: #1eff5a; }
 .dash-skin .class-board-dados-lucro[data-lucro="negativo"] > b { color: #ff1e3c; }
-.dash-skin :is(.class-board-dados-numeros, .class-board-dados-fichas) { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; margin: 0; min-width: 0; }
+.dash-skin .class-board-dados-numeros { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; margin: 0; min-width: 0; }
+.dash-skin .class-board-dados-fichas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; margin: 0; min-width: 0; }
 .dash-skin :is(.class-board-dados-numeros, .class-board-dados-fichas) > div {
   display: grid;
   gap: 1px;
@@ -4704,7 +4725,9 @@ html[data-tema="branco"] .class-board-painel-cartao.class-board-menu {
 .dash-skin .class-board-cartao .class-board-cartao-abrir[aria-expanded="true"] > svg { transform: rotate(90deg); }
 /* Em telas estreitas a grade vira fila: o painel entra no fluxo, numa coluna. */
 @container (max-width: 1000px) {
-  .dash-skin .class-board-quadro .class-board-pilares > .class-board-dados { grid-area: auto !important; grid-column: 1 / -1 !important; grid-template-columns: minmax(0, 1fr); grid-template-areas: "topo" "grafico" "numeros" "fichas"; max-height: none; }
+  .dash-skin .class-board-quadro[data-campanha-aberta="true"] { grid-template-columns: minmax(0, 1fr) !important; }
+  .dash-skin .class-board-quadro > .class-board-dados { grid-column: 1 !important; grid-row: auto !important; max-height: none; }
+  .dash-skin .class-board-dados > .class-board-dados-coluna { grid-template-columns: minmax(0, 1fr); }
   .dash-skin :is(.class-board-dados-numeros, .class-board-dados-fichas) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 

@@ -206,26 +206,17 @@ export function areaDaGrade(vaga: string, t: Tamanho): string {
    com a barra da faixa ("Faixa 1 · 5 blocos", + Bloco, Apagar faixa):
    a fileira lógica f fica na linha 2f da grade (a barra na 2f−1), e um
    bloco de h fileiras atravessa 2h−1 linhas. */
-export function linhaDosBlocos(fileira: number, faixaAberta: number | null = null): number {
-  return fileira * 2 + (faixaAberta !== null && fileira > faixaAberta ? 1 : 0);
+export function linhaDosBlocos(fileira: number): number {
+  return fileira * 2;
 }
-export function areaComFaixas(vaga: string, t: Tamanho, faixaAberta: number | null = null): string {
+export function areaComFaixas(vaga: string, t: Tamanho): string {
   const m = VAGA.exec(vaga);
   if (!m) return vaga;
   const fileira = Number(m[1]);
   const coluna = Number(m[2]);
-  const inicio = linhaDosBlocos(fileira, faixaAberta);
-  const fim = linhaDosBlocos(fileira + t.altura - 1, faixaAberta);
+  const inicio = linhaDosBlocos(fileira);
+  const fim = linhaDosBlocos(fileira + t.altura - 1);
   return `${inicio} / ${coluna} / span ${fim - inicio + 1} / span ${t.largura}`;
-}
-/** As linhas da grade: barra e blocos por faixa, e a linha do painel da campanha aberta. */
-export function linhasDaGrade(fileiras: number, faixaAberta: number | null): string {
-  const linhas: string[] = [];
-  for (let f = 1; f <= fileiras; f++) {
-    linhas.push("auto", "minmax(auto, 1fr)");
-    if (faixaAberta === f) linhas.push("auto");
-  }
-  return linhas.join(" ");
 }
 /** Quantas fileiras a grade precisa: três, ou mais se os blocos descerem além. */
 export function fileirasDaGrade(vagas: ReadonlyMap<string, string>, tamanho: (id: string) => Tamanho): number {
@@ -802,7 +793,7 @@ export function ClassBoard({
   const faixaAberta = blocoDaAberta ? Number(VAGA.exec(vagas.get(blocoDaAberta) ?? "")?.[1]) || null : null;
 
   return (
-    <div ref={quadroRef} className="class-board-quadro">
+    <div ref={quadroRef} className="class-board-quadro" data-campanha-aberta={campanha ? "true" : undefined}>
       {/* O aviso de "bloco movido / campanha movida" fica só para leitores
           de tela: nada aparece no topo da página. */}
       {aviso && (
@@ -822,7 +813,7 @@ export function ClassBoard({
         data-colunas={GRADE.colunas}
         data-fileiras={fileiras}
         data-campanha-aberta={campanha ? campanha.id : undefined}
-        style={{ ["--fileiras" as string]: fileiras, gridTemplateRows: linhasDaGrade(fileiras, faixaAberta) }}
+        style={{ ["--fileiras" as string]: fileiras }}
       >
           {/* A barra de cada faixa: o nome, quantos blocos tem, "+ Bloco"
               (entra na primeira vaga livre da faixa) e "Apagar faixa". */}
@@ -838,7 +829,7 @@ export function ClassBoard({
                 aria-label={`Faixa ${f}`}
                 data-faixa={f}
                 data-blocos={naFaixa}
-                style={{ gridRow: linhaDosBlocos(f, faixaAberta) - 1, gridColumn: "1 / -1" }}
+                style={{ gridRow: linhaDosBlocos(f) - 1, gridColumn: "1 / -1" }}
               >
                 <span className="class-board-faixa-nome">Faixa {f}</span>
                 <span className="class-board-faixa-conta">
@@ -893,7 +884,7 @@ export function ClassBoard({
                 data-pilar-ordenado={automatico ? "true" : undefined}
                 data-largura={medida.largura}
                 data-altura={medida.altura}
-                style={vaga ? { gridArea: areaComFaixas(vaga, medida, faixaAberta) } : undefined}
+                style={vaga ? { gridArea: areaComFaixas(vaga, medida) } : undefined}
                 data-vaga={vaga}
                 data-area={vaga ? areaDaGrade(vaga, medida) : undefined}
                 data-drop-active={sobre === classe || undefined}
@@ -1058,20 +1049,6 @@ export function ClassBoard({
               </section>
             );
           })}
-          {/* Os dados da campanha aberta: uma faixa de largura inteira
-              entre a faixa dela e a de baixo. */}
-          {campanha && faixaAberta !== null && (
-            <DadosDaCampanha
-              campanha={campanha}
-              escopo={escopoDoHistorico}
-              gateway={gatewayPercentual}
-              href={`/campanhas/campanha/${encodeURIComponent(campanha.id)}${tree.modo === "banco" ? "?modo=real" : ""}`}
-              faixa={faixaAberta}
-              bloco={blocoDaAberta ? rotulo(blocoDaAberta) : ""}
-              linha={linhaDosBlocos(faixaAberta, faixaAberta) + 1}
-              onClose={() => setCampanhaAberta(null)}
-            />
-          )}
           {/* Cada célula vazia da grade é um "+": cria um bloco novo ali
               (fixado nessa vaga). Também aceita uma campanha solta: vira
               um bloco novo já com ela dentro. */}
@@ -1090,7 +1067,7 @@ export function ClassBoard({
               key={vaga}
               type="button"
               className="class-board-vaga-livre"
-              style={{ gridArea: areaComFaixas(vaga, UM, faixaAberta) }}
+              style={{ gridArea: areaComFaixas(vaga, UM) }}
               data-vaga={vaga}
               aria-label={`Novo bloco na vaga ${vaga.replace(" / ", ", ")}`}
               title="Criar um bloco aqui"
@@ -1117,6 +1094,18 @@ export function ClassBoard({
             </button>
           ))}
       </div>
+      {/* A campanha aberta: um bloco à direita, com a altura da seção. */}
+      {campanha && (
+        <DadosDaCampanha
+          campanha={campanha}
+          escopo={escopoDoHistorico}
+          gateway={gatewayPercentual}
+          href={`/campanhas/campanha/${encodeURIComponent(campanha.id)}${tree.modo === "banco" ? "?modo=real" : ""}`}
+          faixa={faixaAberta ?? 1}
+          bloco={blocoDaAberta ? rotulo(blocoDaAberta) : ""}
+          onClose={() => setCampanhaAberta(null)}
+        />
+      )}
       {/* Uma faixa nova, com cinco blocos, embaixo de tudo. */}
       <button
         type="button"
@@ -1148,7 +1137,6 @@ function DadosDaCampanha({
   href,
   faixa,
   bloco,
-  linha,
   onClose,
 }: {
   campanha: CampaignRow;
@@ -1159,8 +1147,6 @@ function DadosDaCampanha({
   faixa: number;
   /** O nome do bloco que guarda a campanha. */
   bloco: string;
-  /** A linha da grade onde o painel entra. */
-  linha: number;
   onClose: () => void;
 }) {
   const historico = useCampaignRoasHistory();
@@ -1199,7 +1185,6 @@ function DadosDaCampanha({
       role="group"
       aria-label={`Dados de ${c.name}`}
       data-faixa={faixa}
-      style={{ gridRow: linha, gridColumn: "1 / -1" }}
     >
       <div className="class-board-dados-topo">
         <b className="class-board-dados-nome">{c.name}</b>
