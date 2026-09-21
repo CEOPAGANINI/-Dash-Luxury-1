@@ -10,6 +10,7 @@ import {
   Bell,
   BellRing,
   CircleDollarSign,
+  Landmark,
   Columns3,
   Database,
   Folder,
@@ -89,6 +90,7 @@ const groups: PastaDoMenu[] = [
       { title: "Monitor ao vivo", href: "/live-view", icon: Activity },
       { title: "Pedidos", href: "/pedidos", icon: ShoppingBag },
       { title: "Transações", href: "/checkouts", icon: CircleDollarSign },
+      { title: "Gateways", href: "/gateways", icon: Landmark },
     ],
   },
   {

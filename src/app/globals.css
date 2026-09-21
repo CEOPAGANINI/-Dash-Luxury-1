@@ -6251,3 +6251,185 @@ html[data-tema="branco"] .dash-skin .dash-sidebar-cabecalho .bg-primary.text-pri
 html[data-tema="branco"] .dash-skin .dash-sidebar-cabecalho .bg-primary.text-primary-foreground:has(> svg:only-child) > svg { color: #0a0a0a !important; }
 /* A letra da marca (D, M…) fica branca sobre o quadrado preto. */
 html[data-tema="branco"] .dash-skin .dash-sidebar-cabecalho .bg-primary.text-primary-foreground:not(:has(> svg)) { background: #0a0a0a !important; color: #ffffff !important; }
+
+/* =====================================================================
+   Gateways de pagamento: a taxa que o painel usa, medida em vez de
+   digitada. Mesmo material dos blocos do resto do painel — cantos retos,
+   uma régua só de colunas e nada de menus suspensos.
+   ===================================================================== */
+.dash-skin .dash-gateways { display: grid; gap: 12px; min-width: 0; }
+.dash-skin .dash-gateways-aviso {
+  margin: 0;
+  padding: 8px 10px;
+  color: var(--muted-foreground, #9e9e9e);
+  font-size: 0.75rem;
+  background: var(--camada-2, rgb(255 255 255 / 4%));
+}
+.dash-skin .dash-gateways > section {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  padding: 14px;
+  background: var(--camada-1, #131315);
+  box-shadow: inset 0 0 0 1px var(--fio-forte, rgb(255 255 255 / 14%));
+}
+html[data-tema="branco"] .dash-skin .dash-gateways > section {
+  background: #ffffff;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 10%);
+}
+.dash-skin .dash-gateways > section > header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.dash-skin .dash-gateways > section > header > svg { width: 1rem; height: 1rem; flex: none; }
+.dash-skin .dash-gateways > section > header > h2 {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.dash-skin .dash-gateways > section > header > span {
+  margin-left: auto;
+  color: var(--muted-foreground, #9e9e9e);
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+.dash-skin .dash-gateways-origem {
+  margin-left: auto;
+  padding: 3px 8px;
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: var(--camada-2, rgb(255 255 255 / 6%));
+}
+.dash-skin .dash-gateways-origem[data-origem="extrato"] { color: #0a0a0a; background: #3dff6a; }
+.dash-skin .dash-gateways-origem[data-origem="tabela"] { color: #0a0a0a; background: #ffd60a; }
+.dash-skin .dash-gateways-origem[data-origem="nenhuma"] { color: #ffffff; background: #ff3b3b; }
+.dash-skin .dash-gateways-numero { font-size: 2.25rem; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; }
+.dash-skin .dash-gateways-explicacao { margin: 0; color: var(--muted-foreground, #9e9e9e); font-size: 0.8125rem; }
+.dash-skin .dash-gateways-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.dash-skin .dash-gateways-acoes button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 2rem;
+  padding: 0 10px;
+  border: 1px solid var(--fio-forte, rgb(255 255 255 / 18%));
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+.dash-skin .dash-gateways-acoes button > svg { width: 0.875rem; height: 0.875rem; }
+.dash-skin .dash-gateways-acoes button:hover { background: var(--botao, rgb(255 255 255 / 6%)); }
+html[data-tema="branco"] .dash-skin .dash-gateways-acoes button { border-color: rgb(0 0 0 / 16%); }
+.dash-skin .dash-gateways-manual { display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 700; }
+.dash-skin .dash-gateways-manual input {
+  width: 5.5rem;
+  min-height: 2rem;
+  padding: 0 8px;
+  border: 1px solid var(--fio-forte, rgb(255 255 255 / 18%));
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+}
+html[data-tema="branco"] .dash-skin .dash-gateways-manual input { border-color: rgb(0 0 0 / 16%); }
+.dash-skin .dash-gateways-vazio { margin: 0; color: var(--muted-foreground, #9e9e9e); font-size: 0.8125rem; }
+/* As linhas por forma de pagamento, na mesma régua de quatro colunas. */
+.dash-skin .dash-gateways-linhas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 6px;
+  margin: 0;
+}
+.dash-skin .dash-gateways-linhas > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding: 8px 10px;
+  background: var(--camada-2, rgb(255 255 255 / 4%));
+}
+html[data-tema="branco"] .dash-skin .dash-gateways-linhas > div { background: rgb(0 0 0 / 3%); }
+.dash-skin .dash-gateways-linhas dt { color: var(--muted-foreground, #9e9e9e); font-size: 0.5625rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+.dash-skin .dash-gateways-linhas dd { margin: 0; font-size: 1.125rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.dash-skin .dash-gateways-linhas small { color: var(--muted-foreground, #9e9e9e); font-size: 0.625rem; }
+.dash-skin .dash-gateways-linhas > div[data-metodo="total"] { box-shadow: inset 0 0 0 1px var(--fio-forte, rgb(255 255 255 / 20%)); }
+/* As contas conectadas. */
+.dash-skin .dash-gateways-contas ul { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.dash-skin .dash-gateways-contas li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 8px 10px;
+  font-size: 0.75rem;
+  background: var(--camada-2, rgb(255 255 255 / 4%));
+}
+html[data-tema="branco"] .dash-skin .dash-gateways-contas li { background: rgb(0 0 0 / 3%); }
+.dash-skin .dash-gateways-selo {
+  padding: 2px 6px;
+  font-size: 0.5625rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: var(--camada-3, rgb(255 255 255 / 8%));
+}
+.dash-skin .dash-gateways-selo[data-ok="true"] { color: #0a0a0a; background: #3dff6a; }
+.dash-skin .dash-gateways-selo[data-ok="false"] { color: #ffffff; background: #ff3b3b; }
+/* A tabela pública: um botão por gateway, todos do mesmo tamanho. */
+.dash-skin .dash-gateways-tabela ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.dash-skin .dash-gateways-tabela li { min-width: 0; }
+.dash-skin .dash-gateways-tabela button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "nome media" "categoria media" "metodos metodos";
+  align-items: center;
+  gap: 2px 8px;
+  width: 100%;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--fio-forte, rgb(255 255 255 / 14%));
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+html[data-tema="branco"] .dash-skin .dash-gateways-tabela button { border-color: rgb(0 0 0 / 12%); }
+.dash-skin .dash-gateways-tabela button:hover { background: var(--botao, rgb(255 255 255 / 5%)); }
+.dash-skin .dash-gateways-tabela button[data-escolhido="true"] { border-color: currentColor; background: var(--camada-2, rgb(255 255 255 / 6%)); }
+.dash-skin .dash-gateways-nome { grid-area: nome; display: inline-flex; align-items: center; gap: 6px; min-width: 0; font-size: 0.8125rem; font-weight: 800; }
+.dash-skin .dash-gateways-nome > svg { width: 0.875rem; height: 0.875rem; flex: none; }
+.dash-skin .dash-gateways-categoria { grid-area: categoria; min-width: 0; color: var(--muted-foreground, #9e9e9e); font-size: 0.625rem; }
+.dash-skin .dash-gateways-media { grid-area: media; font-size: 1.125rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.dash-skin .dash-gateways-metodos { grid-area: metodos; display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.dash-skin .dash-gateways-metodos > i {
+  padding: 2px 6px;
+  color: var(--muted-foreground, #9e9e9e);
+  font-size: 0.5625rem;
+  font-style: normal;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  background: var(--camada-2, rgb(255 255 255 / 5%));
+}
+html[data-tema="branco"] .dash-skin .dash-gateways-metodos > i { background: rgb(0 0 0 / 4%); }
+.dash-skin .dash-gateways-rodape { margin: 0; color: var(--muted-foreground, #9e9e9e); font-size: 0.6875rem; }
