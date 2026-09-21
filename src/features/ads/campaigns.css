@@ -4811,9 +4811,11 @@ html[data-tema="branco"] .dash-skin .class-board-dados > .class-board-dados-topo
 /* Sem aria-pressed de propósito: o estilo global de botão "ligado"
    pintava a coluna da pega de escuro. O estado vai no rótulo e aqui. */
 .dash-skin .class-board-dados-largura[data-meia="true"] { color: var(--foreground, #f5f5f5); }
-/* O carrossel pede mais um pouco do que a fila antiga: os pontinhos
-   ficam por baixo dela. */
-.dash-skin .class-board-dados > .class-board-dados-secao[data-secao="criativos"] { min-height: 7.25rem; }
+/* O carrossel é a secção mais alta do painel: leva a arte do criativo
+   de um lado e todas as métricas dele do outro, e ainda os pontinhos por
+   baixo. A altura que ele pede veio do gráfico e das fichas, que
+   apertaram um pouco. */
+.dash-skin .class-board-dados > .class-board-dados-secao[data-secao="criativos"] { min-height: 13rem; }
 .dash-skin .class-board-dados > .class-board-dados-secao[data-secao="grafico"] { min-height: 8rem; }
 /* Janela baixa (um MacBook com a barra do navegador a comer altura): o
    painel aperta um pouco em vez de obrigar a rolar por dentro. */
@@ -4943,11 +4945,14 @@ html[data-tema="branco"] .dash-skin .class-board-dados-criativos-topo > span > i
 }
 .dash-skin .class-board-dados-criativos-fila::-webkit-scrollbar { display: none; }
 .dash-skin .class-board-dados-criativos-fila:focus-visible { outline: 1px solid var(--foreground, #f5f5f5); outline-offset: -1px; }
-/* Cada criativo enche o cartão: a arte de um lado, tudo o resto do
-   outro — como um post aberto. */
+/* Cada criativo é um cartão com DOIS blocos lado a lado: o criativo à
+   esquerda e todas as métricas dele à direita. Nunca empilha, nem num
+   cartão estreito — a arte encolhe com a largura (as frações dão-lhe
+   pouco mais de um quarto), mas continua ao lado dos números. Os dois
+   blocos vão de cima a baixo: nada de branco a sobrar por baixo. */
 .dash-skin .class-board-criativo {
   display: grid;
-  grid-template-columns: minmax(0, 9rem) minmax(0, 1fr);
+  grid-template-columns: minmax(6rem, 1fr) minmax(0, 2.6fr);
   align-content: stretch;
   min-width: 0;
   min-height: 0;
@@ -4957,25 +4962,29 @@ html[data-tema="branco"] .dash-skin .class-board-dados-criativos-topo > span > i
   scroll-snap-align: start;
   scroll-snap-stop: always;
 }
+/* O bloco das métricas: as linhas de cima medem-se pelo texto, as de
+   baixo (posições e métricas) repartem a altura que sobra — é assim que
+   o bloco fecha em baixo em vez de deixar um vão. */
 .dash-skin .class-board-criativo-corpo {
   display: grid;
-  grid-auto-rows: min-content;
-  align-content: start;
+  grid-template-rows: auto auto;
+  grid-auto-rows: minmax(0, 1fr);
+  align-content: stretch;
   gap: 4px;
   min-width: 0;
   min-height: 0;
+  padding: 6px;
+  background: var(--camada-3, rgb(255 255 255 / 6%));
 }
-/* Num cartão estreito (secção de meia largura), volta a empilhar. */
-.dash-skin .class-board-dados-secao[data-largura="1"] .class-board-criativo {
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: minmax(2.5rem, auto) minmax(0, 1fr);
-}
+html[data-tema="branco"] .dash-skin .class-board-criativo-corpo { background: rgb(0 0 0 / 5%); }
+/* A arte ocupa a coluna dela de alto a baixo: é a peça, não uma tira. */
 .dash-skin .class-board-criativo-arte {
   display: grid;
   place-items: center;
   align-content: center;
   gap: 6px;
-  min-height: 2.5rem;
+  height: 100%;
+  min-height: 4.5rem;
   padding: 8px;
   overflow: hidden;
   background: var(--camada-3, rgb(255 255 255 / 6%));
@@ -5026,9 +5035,8 @@ html[data-tema="branco"] .dash-skin .class-board-dados-criativos-topo > span > i
   font-variant-numeric: tabular-nums;
   color: var(--foreground, #f5f5f5);
 }
-.dash-skin .class-board-criativo-vendas[data-vendeu="true"] > b { color: #1eff5a; }
+.dash-skin .class-board-criativo-vendas[data-vendeu="true"] > b { color: var(--numero-verde); }
 html[data-tema="branco"] .dash-skin .class-board-criativo-vendas > b { color: #101014; }
-html[data-tema="branco"] .dash-skin .class-board-criativo-vendas[data-vendeu="true"] > b { color: #12924a; }
 .dash-skin .class-board-criativo-vendas > span {
   min-width: 0;
   font-size: 0.625rem;
@@ -5053,13 +5061,17 @@ html[data-tema="branco"] .dash-skin .class-board-criativo-vendas[data-vendeu="tr
    número à direita, todas na mesma régua. */
 .dash-skin .class-board-criativo-posicoes {
   /* Quantas posições cabem lado a lado depende da largura do cartão:
-     num cartão largo ficam duas ou três por linha, num estreito uma. */
+     num cartão largo ficam duas ou três por linha, num estreito uma.
+     As caixas esticam com a altura do bloco, em vez de deixarem vão. */
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  grid-auto-rows: minmax(0, 1fr);
+  align-content: stretch;
   gap: 2px;
   margin: 0;
   padding: 0;
   min-width: 0;
+  min-height: 0;
   list-style: none;
 }
 /* Cada posição é uma caixa empilhada: em cima o nome e as vendas, em
@@ -5068,11 +5080,12 @@ html[data-tema="branco"] .dash-skin .class-board-criativo-vendas[data-vendeu="tr
 .dash-skin .class-board-criativo-posicoes > li {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  align-content: start;
+  align-content: center;
   gap: 1px;
   min-width: 0;
+  min-height: 0;
   padding: 3px 5px;
-  background: var(--camada-3, rgb(255 255 255 / 5%));
+  background: var(--camada-2, rgb(255 255 255 / 5%));
 }
 html[data-tema="branco"] .dash-skin .class-board-criativo-posicoes > li { background: rgb(0 0 0 / 4%); }
 /* O topo: nome à esquerda, "N vendas" à direita. */
@@ -5134,22 +5147,28 @@ html[data-tema="branco"] .dash-skin .class-board-criativo-posicoes > li { backgr
   font-weight: 800;
 }
 /* As métricas do criativo: células todas iguais, tantas por linha
-   quantas couberem na largura do cartão. */
+   quantas couberem na largura do cartão, esticando com a altura. */
 .dash-skin .class-board-criativo-metricas {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(4.25rem, 1fr));
+  grid-auto-rows: minmax(0, 1fr);
+  align-content: stretch;
   gap: 2px;
   margin: 0;
   min-width: 0;
+  min-height: 0;
 }
 .dash-skin .class-board-criativo-metricas > div {
   display: grid;
+  align-content: center;
   gap: 0;
   min-width: 0;
+  min-height: 0;
   padding: 2px 5px;
   background: var(--camada-2, rgb(255 255 255 / 4%));
 }
-html[data-tema="branco"] .dash-skin .class-board-criativo-metricas > div { background: rgb(0 0 0 / 3%); }
+html[data-tema="branco"] .dash-skin .class-board-criativo-metricas > div { background: rgb(0 0 0 / 4%); }
+html[data-tema="branco"] .dash-skin .class-board-criativo-posicoes > li { background: rgb(0 0 0 / 4%); }
 .dash-skin .class-board-criativo-metricas dt {
   color: var(--muted-foreground, #9e9e9e);
   font-size: 0.5rem;
@@ -5263,13 +5282,13 @@ html[data-tema="branco"] .dash-skin .class-board-quadro > .class-board-dados {
   /* Mais alto, para o sobe e desde do ROAS se ler até aos 10x — mas
      com teto, para não dominar o painel. */
   min-height: 0;
-  max-height: 11.5rem;
+  max-height: 9.75rem;
 }
 /* O gráfico é uma faixa baixa e sempre da mesma altura: o desenho
    acompanha a largura em pixels de verdade, sem esticar letras. Os 24px
    que ele largou foram para o carrossel dos criativos, que passou a
    levar as métricas por posicionamento. */
-.dash-skin .class-board-dados .class-board-grafico > .class-board-grafico-area { flex: 1 1 auto; width: 100%; height: 144px; min-height: 5rem; }
+.dash-skin .class-board-dados .class-board-grafico > .class-board-grafico-area { flex: 1 1 auto; width: 100%; height: 116px; min-height: 4.5rem; }
 .dash-skin .class-board-dados .class-board-grafico svg[data-pontos] { width: 100%; height: 100%; }
 /* Em janela baixa o gráfico cede altura ao resto do painel. Estas
    regras ficam DEPOIS da de cima de propósito: têm a mesma força, e é a
@@ -5283,25 +5302,45 @@ html[data-tema="branco"] .dash-skin .class-board-quadro > .class-board-dados {
   .dash-skin .class-board-dados .class-board-grafico > .class-board-grafico-area { height: 88px; min-height: 4rem; }
 }
 
+/* O verde e o vermelho dos números do painel.
+
+   No fundo preto o verde-néon lê-se de longe; no fundo branco ele
+   desaparece — é uma cor clara sobre uma cor clara. Por isso a cor é um
+   token que troca com o tema, em vez de um hexa solto em cada regra:
+   no branco entram um verde e um vermelho escuros, que passam o
+   contraste mínimo de leitura (5,4:1 e 6,4:1 sobre branco). */
+.dash-skin {
+  --numero-verde: #1eff5a;
+  --numero-vermelho: #ff1e3c;
+}
+html[data-tema="branco"] .dash-skin {
+  --numero-verde: #0b7a3b;
+  --numero-vermelho: #c00020;
+}
+/* O lucro divide a linha com o gráfico, por isso fica tão alto quanto
+   ele. As três linhas repartem essa altura em vez de se amontoarem no
+   topo e deixarem um vão por baixo. */
 .dash-skin .class-board-dados-lucro {
   display: grid;
-  gap: 2px;
+  align-content: space-between;
+  gap: 1px;
   margin: 0;
   padding: 8px 10px;
+  min-height: 0;
   background: var(--camada-2, rgb(255 255 255 / 4%));
 }
 .dash-skin .class-board-dados-lucro > span { color: var(--muted-foreground, #9e9e9e); font-size: 0.625rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
-.dash-skin .class-board-dados-lucro > b { font-size: 1.125rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.dash-skin .class-board-dados-lucro > b { font-size: 1.375rem; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.15; }
 .dash-skin .class-board-dados-lucro > small { color: var(--muted-foreground, #9e9e9e); font-size: 0.625rem; font-weight: 600; }
-.dash-skin .class-board-dados-lucro[data-lucro="positivo"] > b { color: #1eff5a; }
-.dash-skin .class-board-dados-lucro[data-lucro="negativo"] > b { color: #ff1e3c; }
+.dash-skin .class-board-dados-lucro[data-lucro="positivo"] > b { color: var(--numero-verde); }
+.dash-skin .class-board-dados-lucro[data-lucro="negativo"] > b { color: var(--numero-vermelho); }
 /* Uma grade só para tudo: seis colunas e o mesmo passo, para os doze
    números (duas linhas) e as seis fichas (uma linha) ficarem na mesma
    régua — nada de colunas diferentes entre os dois blocos. */
 .dash-skin :is(.class-board-dados-numeros, .class-board-dados-fichas) {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
-  grid-auto-rows: var(--ficha-altura, 2.75rem);
+  grid-auto-rows: var(--ficha-altura, 2.5rem);
   gap: var(--ficha-vao, 4px);
   margin: 0;
   min-width: 0;

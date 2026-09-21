@@ -273,15 +273,22 @@ describe("a seta abre os dados da campanha num bloco à direita do quadro", () =
     // Meia linha e linha inteira: é assim que duas secções ficam lado a lado.
     const largura = (id: string) => dados.querySelector(`[data-secao="${id}"]`)?.getAttribute("data-largura");
     const escolhida = (id: string) => dados.querySelector(`[data-secao="${id}"]`)?.getAttribute("data-escolhida");
+    // De origem, o gráfico e o lucro partilham a linha: a linha que isso
+    // poupa vai para o carrossel dos criativos.
+    expect(largura("grafico")).toBe("1");
+    expect(largura("lucro")).toBe("1");
+    expect(largura("criativos")).toBe("2");
+    // O gráfico volta à linha inteira — e o lucro, agora meia sozinha,
+    // passa também a ocupar a linha toda: senão ficava metade da linha
+    // em branco ao lado dele.
+    fireEvent.click(within(dados).getByRole("button", { name: "Largura da secção Gráfico do ROAS: meia linha" }));
+    expect(escolhida("grafico")).toBe("2");
     expect(largura("grafico")).toBe("2");
-    // Uma meia sozinha continua a ocupar a linha toda: senão ficava
-    // metade da linha em branco ao lado dela.
+    expect(escolhida("lucro")).toBe("1");
+    expect(largura("lucro")).toBe("2");
+    expect(restoreCampaignPanelOrder(localStorage.getItem(ORDEM_PAINEL_KEY)!)?.larguras.grafico).toBe(2);
+    // Com o gráfico de novo em meia linha, as duas voltam a partilhar.
     fireEvent.click(within(dados).getByRole("button", { name: "Largura da secção Gráfico do ROAS: linha inteira" }));
-    expect(escolhida("grafico")).toBe("1");
-    expect(largura("grafico")).toBe("2");
-    expect(restoreCampaignPanelOrder(localStorage.getItem(ORDEM_PAINEL_KEY)!)?.larguras.grafico).toBe(1);
-    // Com a secção seguinte também em meia linha, as duas partilham a linha.
-    fireEvent.click(within(dados).getByRole("button", { name: "Largura da secção Lucro: linha inteira" }));
     expect(largura("grafico")).toBe("1");
     expect(largura("lucro")).toBe("1");
     // As setas ← e → na pega fazem o mesmo.
@@ -292,9 +299,10 @@ describe("a seta abre os dados da campanha num bloco à direita do quadro", () =
     // Uma arrumação estragada volta ao padrão, sem quebrar.
     expect(restoreCampaignPanelOrder("{")).toBeNull();
     expect(restoreCampaignPanelOrder(JSON.stringify({ version: 1, secoes: ["inventada", "lucro"] }))?.secoes).toEqual(["lucro", "grafico", "numeros", "fichas", "criativos"]);
-    // Uma largura inválida volta ao padrão em vez de virar uma coluna zero.
-    expect(restoreCampaignPanelOrder(JSON.stringify({ version: 1, larguras: { grafico: 7, lucro: 1 } }))?.larguras).toEqual({
-      grafico: 2, lucro: 1, numeros: 2, fichas: 2, criativos: 2,
+    // Uma largura inválida volta ao padrão da secção (o gráfico nasce a
+    // meia linha) em vez de virar uma coluna zero; as válidas ficam.
+    expect(restoreCampaignPanelOrder(JSON.stringify({ version: 1, larguras: { grafico: 7, numeros: 1 } }))?.larguras).toEqual({
+      grafico: 1, lucro: 1, numeros: 1, fichas: 2, criativos: 2,
     });
   });
 

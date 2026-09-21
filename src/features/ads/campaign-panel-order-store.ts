@@ -43,9 +43,16 @@ export interface ArrumacaoDoPainel {
   larguras: Record<SecaoId, LarguraDaSecao>;
 }
 
+/*
+  O gráfico e o lucro nascem a meia linha, lado a lado: os dois cabem
+  numa linha só, e a linha inteira que isso poupa vai para o carrossel
+  dos criativos — o bloco mais alto do painel, com a arte de um lado e
+  todas as métricas do criativo do outro. Quem preferir o gráfico
+  largo troca no botão de largura, e a escolha fica guardada.
+*/
 export const LARGURAS_PADRAO: Record<SecaoId, LarguraDaSecao> = {
-  grafico: 2,
-  lucro: 2,
+  grafico: 1,
+  lucro: 1,
   numeros: 2,
   fichas: 2,
   criativos: 2,
