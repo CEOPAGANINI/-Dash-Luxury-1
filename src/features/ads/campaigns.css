@@ -4647,7 +4647,19 @@ html[data-tema="branco"] .class-board-painel-cartao.class-board-menu {
 .dash-skin .class-board-quadro[data-campanha-aberta="true"] > .class-board-nova-faixa { grid-column: 1; grid-row: 2; }
 /* Na coluna de dois blocos, cada bloco entra na ordem; a barra da faixa
    atravessa as duas colunas. */
-.dash-skin .class-board-quadro[data-campanha-aberta="true"] .class-board-pilares > section.class-board-pilar { grid-area: auto !important; }
+.dash-skin .class-board-quadro[data-campanha-aberta="true"] .class-board-pilares > section.class-board-pilar { grid-area: auto !important; min-height: 0 !important; }
+/* Cada faixa cabe inteira na seção: a barra e três linhas de blocos, com
+   a altura repartida (a barra fica com a altura dela). */
+.dash-skin .class-board-quadro[data-campanha-aberta="true"] .class-board-pilares {
+  grid-auto-rows: auto;
+  scroll-snap-type: y proximity;
+}
+.dash-skin .class-board-quadro[data-campanha-aberta="true"] .class-board-pilares > section.class-board-pilar {
+  height: calc((var(--quadro-altura, 40rem) - 2.75rem - 1.75rem - 2rem) / 3);
+}
+.dash-skin .class-board-quadro[data-campanha-aberta="true"] .class-board-pilares > .class-board-faixa-barra { scroll-snap-align: start; }
+/* O último bloco de uma faixa com número ímpar fecha a linha. */
+.dash-skin .class-board-quadro[data-campanha-aberta="true"] .class-board-pilares > section.class-board-pilar[data-preenche="true"] { grid-column: 1 / -1 !important; }
 .dash-skin .class-board-quadro[data-campanha-aberta="true"] .class-board-pilares > .class-board-faixa-barra { grid-area: auto !important; grid-column: 1 / -1 !important; }
 .dash-skin .class-board-quadro[data-campanha-aberta="true"] .class-board-pilares > .class-board-vaga-livre { grid-area: auto !important; min-height: 3rem; }
 /* O bloco da campanha: a coluna da direita inteira, com a altura da seção

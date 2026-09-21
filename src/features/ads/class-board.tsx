@@ -853,6 +853,18 @@ export function ClassBoard({
               </div>
             );
   }
+  /* Na coluna de dois blocos, o último bloco de uma faixa com um número
+     ímpar deles ocupa as duas colunas: assim a faixa fecha certinha, sem
+     buraco no fim. */
+  function preencheAFaixa(pilar: string): boolean {
+    const f = Number(VAGA.exec(vagas.get(pilar) ?? "")?.[1]);
+    if (!f) return false;
+    const daFaixa = [...ordemVisivel, ...livres.map((v) => `vaga:${v}`)]
+      .filter((id) => Number(VAGA.exec(id.startsWith("vaga:") ? id.slice(5) : vagas.get(id) ?? "")?.[1]) === f);
+    if (daFaixa.length % 2 === 0) return false;
+    const ultimo = [...daFaixa].sort((a, b) => ordemNaFaixa(a.startsWith("vaga:") ? a.slice(5) : vagas.get(a) ?? "") - ordemNaFaixa(b.startsWith("vaga:") ? b.slice(5) : vagas.get(b) ?? "")).at(-1);
+    return ultimo === pilar;
+  }
   function blocoDoQuadro(pilar: string) {
             const classe = pilar;
             /* Um bloco, uma lista: o pilar de criativos junta vídeo, imagem
@@ -879,6 +891,7 @@ export function ClassBoard({
                 data-altura={medida.altura}
                 style={vaga ? { gridArea: areaComFaixas(vaga, medida), order: ordemNaFaixa(vaga) } : undefined}
                 data-vaga={vaga}
+                data-preenche={preencheAFaixa(pilar) ? "true" : undefined}
                 data-area={vaga ? areaDaGrade(vaga, medida) : undefined}
                 data-drop-active={sobre === classe || undefined}
                 data-pilar-fixo={fixo ? "true" : undefined}
