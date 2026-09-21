@@ -209,6 +209,14 @@ export function areaDaGrade(vaga: string, t: Tamanho): string {
 export function linhaDosBlocos(fileira: number): number {
   return fileira * 2;
 }
+/* A ordem de encaixe de um bloco quando a grade vira duas colunas: a
+   faixa dele primeiro, depois a coluna. (Com as cinco colunas, a vaga
+   marcada manda e o `order` não muda nada.) */
+export function ordemNaFaixa(vaga: string): number {
+  const m = VAGA.exec(vaga);
+  if (!m) return 0;
+  return Number(m[1]) * 10 + Number(m[2]);
+}
 export function areaComFaixas(vaga: string, t: Tamanho): string {
   const m = VAGA.exec(vaga);
   if (!m) return vaga;
@@ -217,6 +225,12 @@ export function areaComFaixas(vaga: string, t: Tamanho): string {
   const inicio = linhaDosBlocos(fileira);
   const fim = linhaDosBlocos(fileira + t.altura - 1);
   return `${inicio} / ${coluna} / span ${fim - inicio + 1} / span ${t.largura}`;
+}
+/* O tamanho do bloco da campanha aberta: três blocos de largura por três
+   de altura (as faixas ficam com dois blocos de largura, à esquerda). */
+export const PAINEL_DA_CAMPANHA = { largura: 3, altura: 3 } as const;
+export function vagaDoPainelDaCampanha(fileiras: number) {
+  return { largura: Math.min(PAINEL_DA_CAMPANHA.largura, GRADE.colunas), altura: Math.min(PAINEL_DA_CAMPANHA.altura, Math.max(fileiras, 1)) };
 }
 /** Quantas fileiras a grade precisa: três, ou mais se os blocos descerem além. */
 export function fileirasDaGrade(vagas: ReadonlyMap<string, string>, tamanho: (id: string) => Tamanho): number {
@@ -791,33 +805,12 @@ export function ClassBoard({
   const campanha = campanhaAberta ? tree.campanhas.find((c) => c.id === campanhaAberta) ?? null : null;
   const blocoDaAberta = campanha ? blocoDaCampanha(campanha) : null;
   const faixaAberta = blocoDaAberta ? Number(VAGA.exec(vagas.get(blocoDaAberta) ?? "")?.[1]) || null : null;
+  /* O bloco da campanha abre à direita, com a largura de três blocos e a
+     altura de três; as faixas passam a ter dois blocos de largura, à
+     esquerda, e rolam para mostrar as de baixo. */
+  const vagaDoPainel = vagaDoPainelDaCampanha(fileiras);
 
-  return (
-    <div ref={quadroRef} className="class-board-quadro" data-campanha-aberta={campanha ? "true" : undefined}>
-      {/* O aviso de "bloco movido / campanha movida" fica só para leitores
-          de tela: nada aparece no topo da página. */}
-      {aviso && (
-        <p role="status" className="sr-only">
-          {aviso}
-        </p>
-      )}
-      {/* Com banco, os números (e a ordem pelo ROAS) atualizam sozinhos. */}
-      {!demo && <QuadroAoVivo metaConectado={suppliedTree.metaConectado} />}
-      {/* Os blocos dividem a seção em cinco colunas iguais e fileiras
-          iguais — sem rolagem lateral e sem nada cortado. Em telas
-          estreitas a grade vira 2 ou 1 por linha, com altura natural. */}
-      <div
-        className="class-board-pilares"
-        role="region"
-        aria-label="Quadro de classes"
-        data-colunas={GRADE.colunas}
-        data-fileiras={fileiras}
-        data-campanha-aberta={campanha ? campanha.id : undefined}
-        style={{ ["--fileiras" as string]: fileiras }}
-      >
-          {/* A barra de cada faixa: o nome, quantos blocos tem, "+ Bloco"
-              (entra na primeira vaga livre da faixa) e "Apagar faixa". */}
-          {Array.from({ length: fileiras }, (_, i) => i + 1).map((f) => {
+  function barraDaFaixa(f: number) {
             const naFaixa = ordemVisivel.filter((id) => Number(VAGA.exec(vagas.get(id) ?? "")?.[1]) === f).length;
             const vagaLivre = livres.find((v) => Number(VAGA.exec(v)?.[1]) === f) ?? null;
             const livresNaFaixa = livres.filter((v) => Number(VAGA.exec(v)?.[1]) === f).length;
@@ -829,7 +822,7 @@ export function ClassBoard({
                 aria-label={`Faixa ${f}`}
                 data-faixa={f}
                 data-blocos={naFaixa}
-                style={{ gridRow: linhaDosBlocos(f) - 1, gridColumn: "1 / -1" }}
+                style={{ gridRow: linhaDosBlocos(f) - 1, gridColumn: "1 / -1", order: f * 10 }}
               >
                 <span className="class-board-faixa-nome">Faixa {f}</span>
                 <span className="class-board-faixa-conta">
@@ -859,8 +852,8 @@ export function ClassBoard({
                 </button>
               </div>
             );
-          })}
-          {ordemPorRoas.map((pilar) => {
+  }
+  function blocoDoQuadro(pilar: string) {
             const classe = pilar;
             /* Um bloco, uma lista: o pilar de criativos junta vídeo, imagem
                e "sem especificação" sem abas. Soltar um cartão no bloco
@@ -884,7 +877,7 @@ export function ClassBoard({
                 data-pilar-ordenado={automatico ? "true" : undefined}
                 data-largura={medida.largura}
                 data-altura={medida.altura}
-                style={vaga ? { gridArea: areaComFaixas(vaga, medida) } : undefined}
+                style={vaga ? { gridArea: areaComFaixas(vaga, medida), order: ordemNaFaixa(vaga) } : undefined}
                 data-vaga={vaga}
                 data-area={vaga ? areaDaGrade(vaga, medida) : undefined}
                 data-drop-active={sobre === classe || undefined}
@@ -1048,26 +1041,14 @@ export function ClassBoard({
                 </div>
               </section>
             );
-          })}
-          {/* Cada célula vazia da grade é um "+": cria um bloco novo ali
-              (fixado nessa vaga). Também aceita uma campanha solta: vira
-              um bloco novo já com ela dentro. */}
-          {painelDeNumeros && (
-            <PainelDoBloco
-              ancora={painelDeNumeros.ancora}
-              rotulo={rotulo(painelDeNumeros.id)}
-              campanhas={porBloco.get(painelDeNumeros.id) ?? []}
-              amostras={historico.historicoDe(chaveDoHistorico(escopoDoHistorico, painelDeNumeros.id))}
-              porPagina={capacidades[painelDeNumeros.id]}
-              onClose={fecharNumeros}
-            />
-          )}
-          {livres.map((vaga) => (
+  }
+  function vagaLivreDoQuadro(vaga: string) {
+    return (
             <button
               key={vaga}
               type="button"
               className="class-board-vaga-livre"
-              style={{ gridArea: areaComFaixas(vaga, UM) }}
+              style={{ gridArea: areaComFaixas(vaga, UM), order: ordemNaFaixa(vaga) }}
               data-vaga={vaga}
               aria-label={`Novo bloco na vaga ${vaga.replace(" / ", ", ")}`}
               title="Criar um bloco aqui"
@@ -1092,9 +1073,56 @@ export function ClassBoard({
             >
               <Plus aria-hidden="true" />
             </button>
-          ))}
+    );
+  }
+
+  return (
+    <div ref={quadroRef} className="class-board-quadro" data-campanha-aberta={campanha ? "true" : undefined}>
+      {/* O aviso de "bloco movido / campanha movida" fica só para leitores
+          de tela: nada aparece no topo da página. */}
+      {aviso && (
+        <p role="status" className="sr-only">
+          {aviso}
+        </p>
+      )}
+      {/* Com banco, os números (e a ordem pelo ROAS) atualizam sozinhos. */}
+      {!demo && <QuadroAoVivo metaConectado={suppliedTree.metaConectado} />}
+      {/* Os blocos dividem a seção em cinco colunas iguais e fileiras
+          iguais — sem rolagem lateral e sem nada cortado. Em telas
+          estreitas a grade vira 2 ou 1 por linha, com altura natural. */}
+      <div
+        className="class-board-pilares"
+        role="region"
+        aria-label="Quadro de classes"
+        data-colunas={GRADE.colunas}
+        data-fileiras={fileiras}
+        data-campanha-aberta={campanha ? campanha.id : undefined}
+        style={{ ["--fileiras" as string]: fileiras }}
+      >
+          {/* A barra de cada faixa: o nome, quantos blocos tem, "+ Bloco"
+              (entra na primeira vaga livre da faixa) e "Apagar faixa". */}
+          {/* A ordem de leitura segue o ROAS; o `order` só vale quando a
+              grade vira duas colunas, para cada faixa ficar com os seus. */}
+          {Array.from({ length: fileiras }, (_, i) => i + 1).map((f) => barraDaFaixa(f))}
+          {ordemPorRoas.map((pilar) => blocoDoQuadro(pilar))}
+          {livres.map((vaga) => vagaLivreDoQuadro(vaga))}
+          {/* Cada célula vazia da grade é um "+": cria um bloco novo ali
+              (fixado nessa vaga). Também aceita uma campanha solta: vira
+              um bloco novo já com ela dentro. */}
+          {painelDeNumeros && (
+            <PainelDoBloco
+              ancora={painelDeNumeros.ancora}
+              rotulo={rotulo(painelDeNumeros.id)}
+              campanhas={porBloco.get(painelDeNumeros.id) ?? []}
+              amostras={historico.historicoDe(chaveDoHistorico(escopoDoHistorico, painelDeNumeros.id))}
+              porPagina={capacidades[painelDeNumeros.id]}
+              onClose={fecharNumeros}
+            />
+          )}
       </div>
-      {/* A campanha aberta: um bloco à direita, com a altura da seção. */}
+      {/* A campanha aberta: um bloco com a largura de três blocos e a
+          altura de três, à direita; as faixas ficam à esquerda, com dois
+          blocos de largura, e rolam. */}
       {campanha && (
         <DadosDaCampanha
           campanha={campanha}
@@ -1103,6 +1131,7 @@ export function ClassBoard({
           href={`/campanhas/campanha/${encodeURIComponent(campanha.id)}${tree.modo === "banco" ? "?modo=real" : ""}`}
           faixa={faixaAberta ?? 1}
           bloco={blocoDaAberta ? rotulo(blocoDaAberta) : ""}
+          vaga={vagaDoPainel}
           onClose={() => setCampanhaAberta(null)}
         />
       )}
@@ -1137,6 +1166,7 @@ function DadosDaCampanha({
   href,
   faixa,
   bloco,
+  vaga,
   onClose,
 }: {
   campanha: CampaignRow;
@@ -1147,6 +1177,8 @@ function DadosDaCampanha({
   faixa: number;
   /** O nome do bloco que guarda a campanha. */
   bloco: string;
+  /** O tamanho do bloco da campanha, em blocos (três por três). */
+  vaga: { largura: number; altura: number };
   onClose: () => void;
 }) {
   const historico = useCampaignRoasHistory();
@@ -1185,6 +1217,8 @@ function DadosDaCampanha({
       role="group"
       aria-label={`Dados de ${c.name}`}
       data-faixa={faixa}
+      data-largura={vaga.largura}
+      data-altura={vaga.altura}
     >
       <div className="class-board-dados-topo">
         <b className="class-board-dados-nome">{c.name}</b>
