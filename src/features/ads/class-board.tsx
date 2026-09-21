@@ -778,19 +778,32 @@ export function ClassBoard({
         const cs = getComputedStyle(pai);
         fundo += (parseFloat(cs.paddingBottom) || 0) + (parseFloat(cs.borderBottomWidth) || 0) + (parseFloat(cs.marginBottom) || 0);
       }
-      let altura = Math.max(360, window.innerHeight - topo - fundo);
+      const medida = Math.max(360, window.innerHeight - topo - fundo);
+      let altura = medida;
       el.style.setProperty("--quadro-altura", `${altura}px`);
-      // Um pequeno estouro que ainda sobre é descontado; um estouro grande
-      // vem de outra coisa (o próprio conteúdo maior que a tela, um
-      // elemento estranho) e não pode esmagar o quadro.
-      const sobra = document.documentElement.scrollHeight - window.innerHeight;
-      if (sobra > 0 && sobra <= 48 && altura - sobra >= 360) {
-        altura -= sobra;
+      /* Se a página ainda rola depois da medida, o quadro devolve a
+         sobra — é isso que evita a faixa em branco por baixo dele
+         quando alguma coisa mudou de tamanho no meio do caminho (o
+         aviso do topo a quebrar em duas linhas, o menu da direita, um
+         zoom do navegador). Devolve no máximo 40% da altura medida e
+         nunca desce dos 360px: um estouro grande vem de outra coisa e
+         não pode esmagar o quadro. */
+      const minimo = Math.max(360, Math.round(medida * 0.6));
+      for (let volta = 0; volta < 3; volta++) {
+        const sobra = document.documentElement.scrollHeight - window.innerHeight;
+        if (sobra <= 0) break;
+        const proxima = Math.max(minimo, altura - sobra);
+        if (proxima >= altura) break;
+        altura = proxima;
         el.style.setProperty("--quadro-altura", `${altura}px`);
       }
     };
     ajustar();
     window.addEventListener("resize", ajustar);
+    // O zoom do navegador muda a janela em pixels de CSS sem disparar
+    // "resize" em todos os lados: a viewport visual avisa.
+    const vista = window.visualViewport;
+    vista?.addEventListener("resize", ajustar);
     const ro = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(ajustar);
     ro?.observe(document.body);
     // Abrir ou fechar o menu do topo também remede (o body pode nem mudar de tamanho).
@@ -799,6 +812,7 @@ export function ClassBoard({
     if (painel) mo?.observe(painel, { attributes: true, attributeFilter: ["data-open"] });
     return () => {
       window.removeEventListener("resize", ajustar);
+      vista?.removeEventListener("resize", ajustar);
       ro?.disconnect();
       mo?.disconnect();
       if (remedir) window.clearTimeout(remedir);
