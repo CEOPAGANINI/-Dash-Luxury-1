@@ -136,7 +136,11 @@ describe("os números de cada bloco do quadro por classe", () => {
     expect(svg.querySelector("path.class-board-grafico-linha")).toBeTruthy();
     expect(svg.querySelector("path.class-board-grafico-sombra")).toBeNull();
     expect(svg.querySelector("linearGradient")).toBeNull();
-    expect(svg.querySelectorAll(".class-board-grafico-faixa")).toHaveLength(2);
+    // Nem linhas de grade nem linhas de referência: o gráfico é só a
+    // linha e as bolinhas, com os números do eixo à esquerda.
+    expect(svg.querySelectorAll(".class-board-grafico-faixa")).toHaveLength(0);
+    expect(svg.querySelectorAll(".class-board-grafico-grade")).toHaveLength(0);
+    expect(svg.querySelectorAll("text.class-board-grafico-eixo").length).toBeGreaterThan(1);
     // Uma bolinha por leitura, com a cor da classe do ROAS.
     const bolinhas = [...svg.querySelectorAll("circle.class-board-grafico-bolinha")];
     expect(bolinhas).toHaveLength(4);
@@ -161,9 +165,10 @@ describe("os números de cada bloco do quadro por classe", () => {
     const figura = painel.querySelector("figure")!;
     expect(figura.getAttribute("data-faixa")).toBe("otimo");
     expect(figura.style.getPropertyValue("--serie")).toBe("#3dff6a");
-    // Eixo apertado em volta dos valores (1,2x a 2,4x), à esquerda, em passos redondos.
+    // Eixo apertado em volta dos valores (1,2x a 2,4x), à esquerda, em
+    // passos redondos e com a folga a acompanhar a variação.
     const eixo = [...svg.querySelectorAll("text.class-board-grafico-eixo")].map((t) => t.textContent).filter((t) => t?.endsWith("x"));
-    expect(eixo).toEqual(["1,0x", "1,5x", "2,0x", "2,5x", "3,0x"]);
+    expect(eixo).toEqual(["1,0x", "1,5x", "2,0x", "2,5x"]);
     // As pílulas de período: 24h por padrão; 1h mostra só as leituras da última hora (todas, aqui).
     const periodo = within(painel).getByRole("group", { name: "Período do gráfico" });
     expect(within(periodo).getAllByRole("button").map((b) => b.textContent)).toEqual(["1h", "3h", "12h", "24h"]);

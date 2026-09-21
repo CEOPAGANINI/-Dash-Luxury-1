@@ -1,4 +1,5 @@
 import type { CampaignClassId } from "./campaign-classes";
+import type { VendaPorPosicao } from "./creative-placements";
 
 /*
   O formato do gerenciador de anúncios, do banco até a tela.
@@ -29,6 +30,13 @@ export interface AdRow {
   status: AdStatus;
   creative: { title?: string; body?: string; thumbnailUrl?: string };
   metrics: AdMetrics;
+  /**
+   * De onde vieram as vendas: feed, explorar, stories, reels… É a
+   * partição que a plataforma devolve (publisher_platform +
+   * platform_position). Ausente enquanto ninguém a sincronizou — a tela
+   * não mostra posição nenhuma em vez de inventar.
+   */
+  placements?: VendaPorPosicao[];
 }
 
 export interface AdSetRow {

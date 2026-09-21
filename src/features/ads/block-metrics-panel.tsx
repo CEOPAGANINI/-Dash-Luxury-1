@@ -235,8 +235,13 @@ export function PainelDoBloco({
    para leitores de tela. */
 const LARGURA = 480;
 const ALTURA = 200;
-/** No painel da campanha o gráfico é uma faixa baixa e sempre igual. */
-const ALTURA_COMPACTA = 116;
+/** No painel da campanha o gráfico é uma faixa baixa: a altura que ele
+    tem antes de ser medido. */
+const ALTURA_COMPACTA = 144;
+/* O chão do desenho. Abaixo disto não vale a pena desenhar; acima, o
+   desenho usa a altura medida tal e qual — é o que mantém o 1:1 e
+   impede que as letras estiquem quando a janela é baixa. */
+const ALTURA_MINIMA = 72;
 const MARGEM = { cima: 16, direita: 14, baixo: 26, esquerda: 44 };
 export const JANELAS = [
   { id: "1h", rotulo: "1h", ms: 60 * 60_000 },
@@ -266,8 +271,8 @@ export function leiturasDaJanela(amostras: readonly Amostra[], janela: JanelaId,
   return amostras.filter((a) => a.t >= fim - ms);
 }
 
-/** O espaço mínimo entre duas bolinhas, para não virarem um pontilhado. */
-export const VAO_DA_BOLINHA = 12;
+/** O espaço mínimo entre duas bolinhas, para se lerem uma a uma. */
+export const VAO_DA_BOLINHA = 26;
 
 /*
   Quais leituras ganham bolinha: a primeira, a última, e pelo meio só as
@@ -336,7 +341,7 @@ export function GraficoRoas({
     return () => observador.disconnect();
   }, [n]);
   const larguraMedida = medida?.l ?? null;
-  const ALTURA_USADA = compacto ? Math.max(medida?.a ?? ALTURA_COMPACTA, ALTURA_COMPACTA) : ALTURA;
+  const ALTURA_USADA = compacto ? Math.max(medida?.a ?? ALTURA_COMPACTA, ALTURA_MINIMA) : ALTURA;
   const MARGEM_USADA = compacto ? { cima: 10, direita: 10, baixo: 18, esquerda: 34 } : MARGEM;
   const LARGURA_USADA = Math.max(larguraMedida ?? LARGURA, MARGEM_USADA.esquerda + MARGEM_USADA.direita + 40);
   const largura = LARGURA_USADA - MARGEM_USADA.esquerda - MARGEM_USADA.direita;
@@ -348,21 +353,27 @@ export function GraficoRoas({
      redondos, com uma folga em cima e embaixo. Os passos finos existem
      para que uma variação pequena continue a ver-se como sobe e desce,
      em vez de virar uma linha reta no meio da caixa. */
-  const passo = [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5].find((p) => (maximo - minimo) / p <= 4) ?? 5;
-  const base = Math.max(0, Math.floor((minimo - passo * 0.4) / passo) * passo);
-  const topo = Math.max(base + passo, Math.ceil((maximo + passo * 0.4) / passo) * passo);
+  const passo = [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5].find((p) => (maximo - minimo) / p <= 5) ?? 5;
+  /* A folga acompanha a variação, não o passo: com passos grandes, uma
+     folga de meio passo empurrava o topo do eixo muito acima do maior
+     valor e achatava o desenho. */
+  const folga = Math.max((maximo - minimo) * 0.08, passo * 0.1);
+  const base = Math.max(0, Math.floor((minimo - folga) / passo) * passo);
+  const topo = Math.max(base + passo, Math.ceil((maximo + folga) / passo) * passo);
   const passos: number[] = [];
   for (let v = base; v <= topo + 1e-9; v += passo) passos.push(Math.round(v * 1000) / 1000);
   const t0 = n ? visiveis[0].t : 0;
   const t1 = n ? Math.max(visiveis[n - 1].t, t0 + intervaloMs) : 0;
   const x = (t: number) => MARGEM_USADA.esquerda + (n <= 1 ? 0 : ((t - t0) / (t1 - t0)) * largura);
   const y = (v: number) => MARGEM_USADA.cima + altura - ((v - base) / (topo - base)) * altura;
-  const pontos = visiveis.map((a) => ({ ...a, x: x(a.t), y: y(a.roas) }));
+  const todos = visiveis.map((a) => ({ ...a, x: x(a.t), y: y(a.roas) }));
+  /* Só se desenham as leituras que cabem sem encostar umas nas outras —
+     numa janela de seis horas, 360 pontos viravam um borrão. A linha
+     liga exactamente as que se veem, para o sobe e desce ser o mesmo
+     que os olhos leem: segmentos rectos entre bolinhas, sem curva. */
+  const pontos = bolinhasVisiveis(todos, largura);
   const caminho = pontos.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
-  /* As bolinhas: a linha usa todas as leituras, mas só se desenham as
-     que cabem sem encostar umas nas outras — senão, numa janela de seis
-     horas, 360 bolinhas viram um pontilhado em vez de um gráfico. */
-  const bolinhas = bolinhasVisiveis(pontos, largura);
+  const bolinhas = pontos;
   const ultimo = pontos[pontos.length - 1];
   const primeiro = pontos[0];
   /* O cursor, o ponto e o cartão só existem com o mouse sobre a linha. */
@@ -404,19 +415,10 @@ export function GraficoRoas({
             onPointerMove={aoMover}
             onPointerLeave={() => setAtivo(null)}
           >
-            {/* Grade recessiva e o eixo dos valores à esquerda. */}
+            {/* Sem linhas nenhumas: só os números do eixo à esquerda. */}
             {passos.map((v) => (
-              <g key={v}>
-                <line x1={MARGEM_USADA.esquerda} x2={MARGEM_USADA.esquerda + largura} y1={y(v)} y2={y(v)} className="class-board-grafico-grade" />
-                <text x={MARGEM_USADA.esquerda - 8} y={y(v)} className="class-board-grafico-eixo" textAnchor="end" dominantBaseline="middle">{formatRatio(v, passo < 0.5 ? 2 : 1)}</text>
-              </g>
+              <text key={v} x={MARGEM_USADA.esquerda - 8} y={y(v)} className="class-board-grafico-eixo" textAnchor="end" dominantBaseline="middle">{formatRatio(v, passo < 0.5 ? 2 : 1)}</text>
             ))}
-            {/* As faixas (1,5x e 2x), quando caem dentro do eixo. */}
-            {([["mediano", FAIXAS_DO_GRAFICO.mediano], ["otimo", FAIXAS_DO_GRAFICO.otimo]] as const)
-              .filter(([, v]) => v > base && v < topo)
-              .map(([id, v]) => (
-                <line key={id} x1={MARGEM_USADA.esquerda} x2={MARGEM_USADA.esquerda + largura} y1={y(v)} y2={y(v)} className="class-board-grafico-faixa" data-faixa={id} />
-              ))}
             {/* Só a linha: sem degradê por baixo. */}
             {n > 1 && <path d={caminho} className="class-board-grafico-linha" />}
             {/* Uma bolinha por leitura, na cor da classe do ROAS:

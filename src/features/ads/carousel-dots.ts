@@ -1,0 +1,51 @@
+/*
+  Os pontinhos do carrossel dos criativos, como no Instagram.
+
+  Com poucos criativos aparecem todos do mesmo tamanho. Com muitos, a
+  fila de pontinhos não pode crescer sem fim — então anda uma janela à
+  volta do criativo aberto, e os pontinhos que ficam nas pontas dessa
+  janela vão encolhendo, avisando que há mais para lá deles.
+
+  Isto é só a conta de qual pontinho fica de que tamanho: sem navegador
+  e sem React, para poder ser lido e testado à parte.
+*/
+
+/** Quantos pontinhos cabem na janela, no máximo. */
+export const PONTOS_A_VISTA = 7;
+
+export type EscalaDoPonto = "cheio" | "meio" | "mini" | "oculto";
+
+/** Onde começa a janela de pontinhos, com o criativo aberto no meio. */
+export function inicioDaJanela(atual: number, total: number): number {
+  if (total <= PONTOS_A_VISTA) return 0;
+  const meio = Math.floor(PONTOS_A_VISTA / 2);
+  const cru = Math.round(atual) - meio;
+  return Math.min(Math.max(cru, 0), total - PONTOS_A_VISTA);
+}
+
+/**
+ * O tamanho de um pontinho: cheio o que está à vista, meio e mini os das
+ * pontas quando ainda há criativos para lá deles, oculto o resto. O
+ * pontinho do criativo aberto é sempre cheio.
+ */
+export function escalaDoPonto(indice: number, atual: number, total: number): EscalaDoPonto {
+  if (total <= PONTOS_A_VISTA) return "cheio";
+  const inicio = inicioDaJanela(atual, total);
+  const fim = inicio + PONTOS_A_VISTA - 1;
+  if (indice < inicio || indice > fim) return "oculto";
+  if (indice === atual) return "cheio";
+  // Só encolhe do lado onde ainda há criativos escondidos.
+  const haAntes = inicio > 0;
+  const haDepois = fim < total - 1;
+  if (haAntes && indice === inicio) return "mini";
+  if (haAntes && indice === inicio + 1) return "meio";
+  if (haDepois && indice === fim) return "mini";
+  if (haDepois && indice === fim - 1) return "meio";
+  return "cheio";
+}
+
+/** O índice do cartão à vista, a partir do quanto a fila já correu. */
+export function cartaoAberto(scrollLeft: number, largura: number, total: number): number {
+  if (!(largura > 0) || total <= 0) return 0;
+  return Math.min(Math.max(Math.round(scrollLeft / largura), 0), total - 1);
+}

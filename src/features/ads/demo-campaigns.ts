@@ -1,3 +1,4 @@
+import { posicoesDemonstrativas } from "./creative-placements";
 import {
   somarMetricas,
   type AdMetrics,
@@ -186,6 +187,9 @@ export function demoCampaignRows(): CampaignRow[] {
         status: a.status ?? "active",
         creative: { title: a.titulo, body: a.texto },
         metrics: metricas(a.m),
+        // Na demonstração, as vendas vêm partidas por posição, como o
+        // Meta as devolve.
+        placements: posicoesDemonstrativas(`demo-${c.id}-s${i}-a${j}`, a.nome, metricas(a.m)),
       }));
       return {
         id: `demo-${c.id}-s${i}`,

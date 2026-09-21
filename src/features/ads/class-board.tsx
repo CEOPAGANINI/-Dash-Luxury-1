@@ -50,6 +50,8 @@ import {
 } from "./board-blocks-store";
 import { CampaignHoverCard, type CampaignPreview } from "./campaign-hover-card";
 import { ROTULO_DA_SAUDE, Semaforo, descricaoDaSaude, saudeDasMetricas, saudeDoConjunto } from "./campaign-health";
+import { cartaoAberto, escalaDoPonto } from "./carousel-dots";
+import { posicoesQueVenderam, rotuloCurtoDaPosicao, vendasSemPosicao } from "./creative-placements";
 import { GraficoRoas, JANELAS_MINUTO } from "./block-metrics-panel";
 import { INTERVALO_MINUTO_MS, chaveDaCampanhaNoHistorico, registrarRoasDaCampanha, roasDemonstrativo, useCampaignRoasHistory } from "./campaign-roas-history-store";
 import { lucroDaCampanha, useTaxas } from "./fees-store";
@@ -1574,14 +1576,17 @@ function GradeArrastavel<T extends string>({
 }
 
 /*
-  O feed dos criativos da campanha: uma fila que corre para a esquerda e
-  para a direita, um cartão por anúncio (a arte, o nome, o título do
-  criativo, o semáforo e os números que contam). As setas andam um cartão
-  de cada vez; a fila também aceita arrastar e a roda do rato.
+  O carrossel dos criativos da campanha, no feitio do Instagram: um
+  criativo de cada vez a ocupar o cartão todo (a arte de um lado; o nome,
+  o semáforo, as vendas por posição e as métricas do outro). As setas
+  andam um criativo; os pontinhos saltam direto para o que se quer; e a
+  fila continua a aceitar arrastar com o dedo, a roda do rato e as setas
+  do teclado, encaixando sempre num criativo inteiro.
 */
 function FeedDeCriativos({ campanha: c, gateway }: { campanha: CampaignRow; gateway: number }) {
   const filaRef = React.useRef<HTMLUListElement>(null);
   const [pontas, setPontas] = React.useState({ inicio: true, fim: true });
+  const [aberto, setAberto] = React.useState(0);
   /* Os anúncios de todos os conjuntos, do que mais investiu para o que
      menos investiu: o criativo que está a gastar aparece primeiro. */
   const criativos = React.useMemo(
@@ -1591,11 +1596,15 @@ function FeedDeCriativos({ campanha: c, gateway }: { campanha: CampaignRow; gate
         .sort((a, b) => b.metrics.spendCents - a.metrics.spendCents),
     [c.adSets],
   );
+  const total = criativos.length;
+  /* Onde a fila está: que criativo ficou à vista e se ainda há mais para
+     um dos lados. É uma leitura só, feita do que o navegador já rolou. */
   const medirPontas = React.useCallback(() => {
     const el = filaRef.current;
     if (!el) return;
     const sobra = el.scrollWidth - el.clientWidth;
     setPontas({ inicio: el.scrollLeft <= 1, fim: sobra <= 1 || el.scrollLeft >= sobra - 1 });
+    setAberto(cartaoAberto(el.scrollLeft, el.clientWidth, el.childElementCount));
   }, []);
   React.useEffect(() => {
     medirPontas();
@@ -1604,20 +1613,30 @@ function FeedDeCriativos({ campanha: c, gateway }: { campanha: CampaignRow; gate
     const observador = new ResizeObserver(medirPontas);
     observador.observe(el);
     return () => observador.disconnect();
-  }, [medirPontas, criativos.length]);
-  function andar(lado: 1 | -1) {
+  }, [medirPontas, total]);
+  /* Andar é sempre de um cartão inteiro — a largura da fila, porque cada
+     criativo ocupa a fila toda. */
+  const irPara = React.useCallback((indice: number) => {
     const el = filaRef.current;
     if (!el) return;
-    const cartao = el.querySelector<HTMLElement>("li");
-    const passo = cartao ? cartao.getBoundingClientRect().width + 6 : el.clientWidth * 0.8;
-    el.scrollBy({ left: passo * lado, behavior: "smooth" });
+    const destino = Math.min(Math.max(indice, 0), el.childElementCount - 1);
+    el.scrollTo({ left: destino * el.clientWidth, behavior: "smooth" });
+  }, []);
+  const andar = (lado: 1 | -1) => irPara(aberto + lado);
+  function teclado(e: React.KeyboardEvent<HTMLUListElement>) {
+    if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+    e.preventDefault();
+    andar(e.key === "ArrowRight" ? 1 : -1);
   }
   const dinheiro = (v: number) => formatCurrency(v / 100, Math.abs(v) < 10_000 ? 2 : 0);
   return (
     <section className="class-board-dados-criativos" aria-label={`Criativos de ${c.name}`}>
       <div className="class-board-dados-criativos-topo">
         <h3>Criativos</h3>
-        <span>{criativos.length} {criativos.length === 1 ? "anúncio" : "anúncios"}</span>
+        <span>
+          {total} {total === 1 ? "anúncio" : "anúncios"}
+          {total > 1 && <i>{aberto + 1}/{total}</i>}
+        </span>
         <button type="button" aria-label="Criativos anteriores" title="Anda um criativo para a esquerda" disabled={pontas.inicio} onClick={() => andar(-1)}>
           <ChevronLeft aria-hidden="true" />
         </button>
@@ -1625,14 +1644,28 @@ function FeedDeCriativos({ campanha: c, gateway }: { campanha: CampaignRow; gate
           <ChevronRight aria-hidden="true" />
         </button>
       </div>
-      {criativos.length === 0 ? (
+      {total === 0 ? (
         <p className="class-board-dados-criativos-vazio">Esta campanha ainda não tem anúncios sincronizados.</p>
       ) : (
-        <ul className="class-board-dados-criativos-fila" ref={filaRef} onScroll={medirPontas}>
-          {criativos.map((a) => {
+        <ul
+          className="class-board-dados-criativos-fila"
+          ref={filaRef}
+          onScroll={medirPontas}
+          onKeyDown={teclado}
+          tabIndex={0}
+          aria-roledescription="carrossel"
+          aria-label={`Carrossel de criativos de ${c.name}`}
+        >
+          {criativos.map((a, i) => {
             const da = derivadas(a.metrics);
             return (
-              <li key={a.id} className="class-board-criativo">
+              <li
+                key={a.id}
+                className="class-board-criativo"
+                data-aberto={i === aberto ? "true" : undefined}
+                aria-roledescription="slide"
+                aria-label={`${i + 1} de ${total}: ${a.name}`}
+              >
                 {/* A arte quando existe; sem ela, o texto do criativo — o
                     espaço nunca fica a fazer de conta. */}
                 <div className="class-board-criativo-arte" data-arte={a.creative.thumbnailUrl ? "imagem" : "texto"}>
@@ -1646,9 +1679,14 @@ function FeedDeCriativos({ campanha: c, gateway }: { campanha: CampaignRow; gate
                     </>
                   )}
                 </div>
+                {/* Tudo o que não é a arte vive ao lado dela, numa coluna
+                    só: num cartão largo a arte fica à esquerda e os
+                    números à direita, como um post aberto. */}
+                <div className="class-board-criativo-corpo">
                 <div className="class-board-criativo-texto">
                   <b title={a.name}>{a.name}</b>
                   <span title={a.creative.title ?? a.conjunto}>{a.creative.title ?? a.conjunto}</span>
+                  <Semaforo saude={saudeDasMetricas(a.metrics, gateway)} rotulo={`Saúde do criativo ${a.name}`} />
                 </div>
                 {/* Quantas vendas este criativo fez — é o que decide se
                     ele fica ou sai, mais do que o ROAS sozinho. */}
@@ -1657,15 +1695,90 @@ function FeedDeCriativos({ campanha: c, gateway }: { campanha: CampaignRow; gate
                   <span>{a.metrics.purchases === 1 ? "venda" : "vendas"}</span>
                   <i>{da.cpaCents === null ? "sem CPA" : `CPA ${dinheiro(da.cpaCents)}`}</i>
                 </p>
-                <div className="class-board-criativo-numeros">
-                  <Semaforo saude={saudeDasMetricas(a.metrics, gateway)} rotulo={`Saúde do criativo ${a.name}`} />
-                  <span>{da.roas === null ? "—" : formatRatio(da.roas)}</span>
-                  <span>{dinheiro(a.metrics.spendCents)}</span>
+                {/* De onde vieram as vendas: feed, explorar, stories…
+                    Só aparece quando a plataforma devolveu a partição. */}
+                {(() => {
+                  const posicoes = posicoesQueVenderam(a.placements ?? []);
+                  const sem = vendasSemPosicao(a.placements ?? [], a.metrics);
+                  if (!posicoes.length) return null;
+                  return (
+                    <ul className="class-board-criativo-posicoes" aria-label={`Métricas por posição de ${a.name}`}>
+                      {posicoes.map((p) => {
+                        const dp = derivadas(p.metrics);
+                        return (
+                          <li key={p.id} data-posicao={p.id}>
+                            <div className="class-board-criativo-posicao-topo">
+                              <span>{rotuloCurtoDaPosicao(p.id)}</span>
+                              <b>{formatInteger(p.metrics.purchases)}</b>
+                              <i>{p.metrics.purchases === 1 ? "venda" : "vendas"}</i>
+                            </div>
+                            {/* Cada posição tem a sua proporção: os números
+                                dela, não os do criativo inteiro. */}
+                            <p className="class-board-criativo-posicao-numeros">
+                              <span>{dinheiro(p.metrics.spendCents)}</span>
+                              <span>{dp.roas === null ? "—" : formatRatio(dp.roas)}</span>
+                              <span>{dp.cpaCents === null ? "CPA —" : `CPA ${dinheiro(dp.cpaCents)}`}</span>
+                              <span>{dp.ctr === null ? "CTR —" : `CTR ${formatPercent(dp.ctr, 2)}`}</span>
+                              <span>{dp.cpmCents === null ? "CPM —" : `CPM ${dinheiro(dp.cpmCents)}`}</span>
+                              <span>{formatInteger(p.metrics.impressions)} impr.</span>
+                            </p>
+                          </li>
+                        );
+                      })}
+                      {sem > 0 && (
+                        <li data-posicao="sem">
+                          <div className="class-board-criativo-posicao-topo">
+                            <span>Sem posição</span>
+                            <b>{formatInteger(sem)}</b>
+                            <i>{sem === 1 ? "venda" : "vendas"}</i>
+                          </div>
+                        </li>
+                      )}
+                    </ul>
+                  );
+                })()}
+                {/* As métricas do criativo, na mesma régua dos números da
+                    campanha: duas colunas, todas as células iguais. */}
+                <dl className="class-board-criativo-metricas">
+                  {([
+                    ["ROAS", da.roas === null ? "—" : formatRatio(da.roas)],
+                    ["Investido", dinheiro(a.metrics.spendCents)],
+                    ["Retorno", dinheiro(a.metrics.revenueCents)],
+                    ["Impressões", formatInteger(a.metrics.impressions)],
+                    ["Cliques", formatInteger(a.metrics.clicks)],
+                    ["CTR", da.ctr === null ? "—" : formatPercent(da.ctr, 2)],
+                    ["CPC", da.cpcCents === null ? "—" : dinheiro(da.cpcCents)],
+                    ["CPM", da.cpmCents === null ? "—" : dinheiro(da.cpmCents)],
+                  ] as [string, string][]).map(([rotulo, valor]) => (
+                    <div key={rotulo}>
+                      <dt>{rotulo}</dt>
+                      <dd>{valor}</dd>
+                    </div>
+                  ))}
+                </dl>
                 </div>
               </li>
             );
           })}
         </ul>
+      )}
+      {/* Os pontinhos do carrossel: dizem onde se está e levam direto a
+          qualquer criativo. Com muitos, andam numa janela e os das
+          pontas encolhem, em vez de a fila crescer sem fim. */}
+      {total > 1 && (
+        <ol className="class-board-dados-criativos-pontos" aria-label={`Criativos de ${c.name}`}>
+          {criativos.map((a, i) => (
+            <li key={a.id} data-escala={escalaDoPonto(i, aberto, total)}>
+              <button
+                type="button"
+                aria-label={`Ver o criativo ${i + 1} de ${total}: ${a.name}`}
+                aria-current={i === aberto ? "true" : undefined}
+                title={a.name}
+                onClick={() => irPara(i)}
+              />
+            </li>
+          ))}
+        </ol>
       )}
     </section>
   );

@@ -9,7 +9,7 @@ import { demoCampaignRows } from "@/features/ads/demo-campaigns";
 import { TAXAS_KEY } from "@/features/ads/fees-store";
 import { GUARDRAILS_PADRAO } from "@/features/guardrails/rules";
 import { formatCurrency } from "@/features/unified-dashboard/formatters";
-import type { CampaignRow, CampaignTree } from "@/features/ads/types";
+import type { AdRow, CampaignRow, CampaignTree } from "@/features/ads/types";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 
@@ -30,6 +30,29 @@ const linha = (id: string, spend: number, revenue: number): CampaignRow => ({
 });
 
 const tree: CampaignTree = { modo: "banco", metaConectado: false, ultimaSync: null, campanhas: [linha("Alfa", 1000_00, 2500_00), linha("Beta", 500_00, 200_00)] };
+
+/* A Alfa com anúncios: um vídeo e um estático, sempre novos a cada
+   chamada (os testes mexem nos anúncios). Com `quantos` = 1 fica só o
+   primeiro, para ver o carrossel de um criativo só. */
+const comCriativos = (quantos = 2): CampaignTree => ({
+  ...tree,
+  campanhas: [
+    {
+      ...tree.campanhas[0],
+      adSets: [
+        {
+          id: "s1", externalId: null, name: "Conjunto 1", status: "active", dailyBudgetCents: null,
+          metrics: { spendCents: 300_00, revenueCents: 0, impressions: 0, clicks: 0, purchases: 0 },
+          ads: ([
+            { id: "a1", externalId: null, name: "Vídeo 30s", status: "active", creative: { title: "Olha isto", body: "Texto do anúncio" }, metrics: { spendCents: 100_00, revenueCents: 300_00, impressions: 1000, clicks: 50, purchases: 3 } },
+            { id: "a2", externalId: null, name: "Estático", status: "active", creative: {}, metrics: { spendCents: 200_00, revenueCents: 100_00, impressions: 2000, clicks: 40, purchases: 1 } },
+          ] as AdRow[]).slice(0, quantos),
+        },
+      ],
+    },
+    tree.campanhas[1],
+  ],
+});
 
 describe("a seta abre os dados da campanha num bloco à direita do quadro", () => {
   beforeEach(() => {
@@ -74,7 +97,13 @@ describe("a seta abre os dados da campanha num bloco à direita do quadro", () =
     expect(dados.querySelector(".class-board-dados-lucro")?.getAttribute("data-lucro")).toBe("positivo");
 
     // Todos os números e as fichas da campanha.
-    const pares = Object.fromEntries([...dados.querySelectorAll("dl > div")].map((d) => [d.querySelector("dt")!.textContent, d.querySelector("dd")!.textContent]));
+    // Só os números da campanha: os de cada criativo vivem no cartão dele.
+    const pares = Object.fromEntries(
+      [...dados.querySelectorAll("dl:not(.class-board-criativo-metricas) > div")].map((d) => [
+        d.querySelector("dt")!.textContent,
+        d.querySelector("dd")!.textContent,
+      ]),
+    );
     expect(Object.keys(pares)).toEqual([
       "Investimento", "Retorno", "ROAS", "Margem", "Compras", "CPA", "Impressões", "Cliques", "CTR", "CPC", "CPM", "Orçamento diário",
       "Estado", "Rede", "Objetivo", "Conjuntos", "Origem", "Sincronizada",
@@ -99,26 +128,7 @@ describe("a seta abre os dados da campanha num bloco à direita do quadro", () =
   });
 
   it("o painel traz o feed dos criativos, do que mais investiu para o que menos investiu", () => {
-    const comCriativos: CampaignTree = {
-      ...tree,
-      campanhas: [
-        {
-          ...tree.campanhas[0],
-          adSets: [
-            {
-              id: "s1", externalId: null, name: "Conjunto 1", status: "active", dailyBudgetCents: null,
-              metrics: { spendCents: 300_00, revenueCents: 0, impressions: 0, clicks: 0, purchases: 0 },
-              ads: [
-                { id: "a1", externalId: null, name: "Vídeo 30s", status: "active", creative: { title: "Olha isto", body: "Texto do anúncio" }, metrics: { spendCents: 100_00, revenueCents: 300_00, impressions: 1000, clicks: 50, purchases: 3 } },
-                { id: "a2", externalId: null, name: "Estático", status: "active", creative: {}, metrics: { spendCents: 200_00, revenueCents: 100_00, impressions: 2000, clicks: 40, purchases: 1 } },
-              ],
-            },
-          ],
-        },
-        tree.campanhas[1],
-      ],
-    };
-    render(<ClassBoard tree={comCriativos} regras={GUARDRAILS_PADRAO} network="meta" />);
+    render(<ClassBoard tree={comCriativos()} regras={GUARDRAILS_PADRAO} network="meta" />);
     fireEvent.click(screen.getByRole("button", { name: "Abrir campanha Alfa" }));
     const feed = screen.getByRole("region", { name: "Criativos de Alfa" });
     expect(within(feed).getByRole("heading", { name: "Criativos" })).toBeTruthy();
@@ -136,10 +146,103 @@ describe("a seta abre os dados da campanha num bloco à direita do quadro", () =
     expect(vendasDe(cartoes[0])).toBe("1vendaCPA R$ 200");
     expect(cartoes[0].querySelector(".class-board-criativo-vendas")?.getAttribute("data-vendeu")).toBe("true");
     expect(vendasDe(cartoes[1])).toBe("3vendasCPA R$ 33,33");
-    // Cada criativo mostra o semáforo, o ROAS e o investimento.
+    // Cada criativo mostra o semáforo e as métricas dele — as do criativo,
+    // não as da campanha inteira.
     expect(within(cartoes[0] as HTMLElement).getByRole("img", { name: /^Saúde do criativo Estático: / })).toBeTruthy();
-    expect(cartoes[0].querySelector(".class-board-criativo-numeros")?.textContent).toContain("0,50x");
-    expect(cartoes[1].querySelector(".class-board-criativo-numeros")?.textContent).toContain("3,00x");
+    const metricasDe = (li: Element) =>
+      Object.fromEntries(
+        [...li.querySelectorAll(".class-board-criativo-metricas > div")].map((d) => [
+          d.querySelector("dt")!.textContent,
+          (d.querySelector("dd")!.textContent ?? "").replace(/ /g, " "),
+        ]),
+      );
+    expect(metricasDe(cartoes[0]).ROAS).toBe("0,50x");
+    expect(metricasDe(cartoes[1])).toMatchObject({
+      ROAS: "3,00x",
+      Investido: "R$ 100",
+      Impressões: "1.000",
+      Cliques: "50",
+      CTR: "5,00%",
+      CPC: "R$ 2,00",
+      CPM: "R$ 100",
+    });
+  });
+
+  it("o feed é um carrossel: um criativo de cada vez, com pontinhos que levam a cada um", () => {
+    render(<ClassBoard tree={comCriativos()} regras={GUARDRAILS_PADRAO} network="meta" />);
+    fireEvent.click(screen.getByRole("button", { name: "Abrir campanha Alfa" }));
+    const feed = screen.getByRole("region", { name: "Criativos de Alfa" });
+    const fila = feed.querySelector(".class-board-dados-criativos-fila")!;
+    // A fila encaixa num criativo inteiro e cada cartão diz onde está.
+    expect(fila.getAttribute("aria-roledescription")).toBe("carrossel");
+    const cartoes = [...fila.querySelectorAll("li.class-board-criativo")];
+    expect(cartoes.map((li) => li.getAttribute("aria-label"))).toEqual(["1 de 2: Estático", "2 de 2: Vídeo 30s"]);
+    // O topo conta em que criativo se está.
+    expect(feed.querySelector(".class-board-dados-criativos-topo > span > i")?.textContent).toBe("1/2");
+    // Um pontinho por criativo; o do criativo aberto vem marcado.
+    const pontos = within(feed).getAllByRole("button", { name: /^Ver o criativo / });
+    expect(pontos.map((b) => b.getAttribute("aria-label"))).toEqual([
+      "Ver o criativo 1 de 2: Estático",
+      "Ver o criativo 2 de 2: Vídeo 30s",
+    ]);
+    expect(pontos[0].getAttribute("aria-current")).toBe("true");
+    expect(pontos[1].hasAttribute("aria-current")).toBe(false);
+    expect(cartoes[0].getAttribute("data-aberto")).toBe("true");
+    // Clicar num pontinho e nas setas manda a fila andar um criativo
+    // inteiro (jsdom não rola sozinho — o que se vê é o pedido).
+    const rolagens: { left?: number }[] = [];
+    Object.defineProperty(fila, "clientWidth", { value: 320, configurable: true });
+    (fila as HTMLElement).scrollTo = ((o: { left?: number }) => rolagens.push(o)) as unknown as typeof fila.scrollTo;
+    fireEvent.click(pontos[1]);
+    expect(rolagens.at(-1)).toMatchObject({ left: 320, behavior: "smooth" });
+    // As setas do teclado fazem o mesmo, sem rolar a página.
+    fireEvent.keyDown(fila, { key: "ArrowRight" });
+    expect(rolagens).toHaveLength(2);
+    expect(rolagens.at(-1)).toMatchObject({ left: 320, behavior: "smooth" });
+    // Uma tecla que não é seta não mexe na fila.
+    fireEvent.keyDown(fila, { key: "Enter" });
+    expect(rolagens).toHaveLength(2);
+    // Com um criativo só não há pontinhos nem contador — nada para navegar.
+    cleanup();
+    render(<ClassBoard tree={comCriativos(1)} regras={GUARDRAILS_PADRAO} network="meta" />);
+    fireEvent.click(screen.getByRole("button", { name: "Abrir campanha Alfa" }));
+    const sozinho = screen.getByRole("region", { name: "Criativos de Alfa" });
+    expect(sozinho.querySelector(".class-board-dados-criativos-pontos")).toBeNull();
+    expect(sozinho.querySelector(".class-board-dados-criativos-topo > span > i")).toBeNull();
+  });
+
+  it("cada criativo mostra as métricas de cada posicionamento onde vendeu", () => {
+    const comPosicoes = comCriativos();
+    // O "Vídeo 30s" fez 3 vendas: 2 no stories e 1 no feed.
+    comPosicoes.campanhas[0].adSets[0].ads[0].placements = [
+      { id: "stories", plataforma: "instagram", metrics: { spendCents: 75_00, revenueCents: 300_00, impressions: 7_500, clicks: 150, purchases: 2 } },
+      { id: "feed", plataforma: "facebook", metrics: { spendCents: 25_00, revenueCents: 25_00, impressions: 5_000, clicks: 50, purchases: 1 } },
+    ];
+    render(<ClassBoard tree={comPosicoes} regras={GUARDRAILS_PADRAO} network="meta" />);
+    fireEvent.click(screen.getByRole("button", { name: "Abrir campanha Alfa" }));
+    const feed = screen.getByRole("region", { name: "Criativos de Alfa" });
+    const cartoes = [...feed.querySelectorAll("li.class-board-criativo")];
+    // O "Estático", sem partição sincronizada, não inventa posições.
+    expect(cartoes[0].querySelector("b")?.textContent).toBe("Estático");
+    expect(cartoes[0].querySelector(".class-board-criativo-posicoes")).toBeNull();
+    const posicoes = [...cartoes[1].querySelectorAll(".class-board-criativo-posicoes > li")];
+    // A posição que mais vendeu vem primeiro.
+    expect(posicoes.map((li) => li.getAttribute("data-posicao"))).toEqual(["stories", "feed"]);
+    const linha = (li: Element) => (li.textContent ?? "").replace(/ /g, " ");
+    // Stories: 2 vendas, R$ 75 investidos, ROAS 4x, CPA R$ 37,50, CTR 2%, CPM R$ 10.
+    expect(linha(posicoes[0])).toContain("Stories");
+    expect(linha(posicoes[0])).toContain("2vendas");
+    expect(linha(posicoes[0])).toContain("4,00x");
+    expect(linha(posicoes[0])).toContain("CPA R$ 37,50");
+    expect(linha(posicoes[0])).toContain("CTR 2,00%");
+    expect(linha(posicoes[0])).toContain("CPM R$ 10,00");
+    expect(linha(posicoes[0])).toContain("7.500 impr.");
+    // Feed: as mesmas contas, com os números dele — 1 venda, CTR 1%, ROAS 1x.
+    expect(linha(posicoes[1])).toContain("1venda");
+    expect(linha(posicoes[1])).toContain("CTR 1,00%");
+    expect(linha(posicoes[1])).toContain("1,00x");
+    // As 3 vendas do anúncio estão todas repartidas: nada de "sem posição".
+    expect(posicoes.some((li) => li.getAttribute("data-posicao") === "sem")).toBe(false);
   });
 
   it("as secções e os quadradinhos do painel arrastam-se, e a arrumação fica guardada", () => {
