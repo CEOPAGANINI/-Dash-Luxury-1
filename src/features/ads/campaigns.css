@@ -4751,7 +4751,9 @@ html[data-tema="branco"] .dash-skin .class-board-faixa-pager .class-board-faixa-
   position: sticky;
   top: -10px;
   z-index: 2;
-  padding: 10px 0 6px;
+  /* Começa na mesma coluna do conteúdo das secções: elas são empurradas
+     pela pega de arrastar (1rem + 6px), e o cabeçalho acompanha. */
+  padding: 10px 0 6px calc(1rem + 6px);
   margin: -10px 0 -6px;
   background: var(--camada-1, #131315);
 }
@@ -4846,7 +4848,12 @@ html[data-tema="branco"] .dash-skin .class-board-dados > .class-board-dados-topo
 .dash-skin .class-board-dados-criativos-topo > button:hover:not(:disabled) { background: var(--botao, rgb(255 255 255 / 6%)); border-color: var(--foreground, #f5f5f5); }
 .dash-skin .class-board-dados-criativos-topo > button:disabled { opacity: 0.3; cursor: not-allowed; }
 .dash-skin .class-board-dados-criativos-fila {
-  display: flex;
+  /* Colunas iguais que dividem a largura toda: com poucos criativos a
+     fila enche a linha em vez de deixar um vão à direita; com muitos,
+     cada um guarda 11rem e a fila passa a correr de lado. */
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(11rem, 1fr);
   flex: 1 1 auto;
   gap: 6px;
   margin: 0;
@@ -4859,12 +4866,10 @@ html[data-tema="branco"] .dash-skin .class-board-dados > .class-board-dados-topo
   scrollbar-width: thin;
   overscroll-behavior-x: contain;
 }
-/* Cada criativo: um cartão de largura fixa — todos do mesmo tamanho. */
+/* Cada criativo: uma coluna da grade — todos do mesmo tamanho. */
 .dash-skin .class-board-criativo {
   display: grid;
   grid-template-rows: minmax(2.5rem, 1fr) auto auto auto;
-  flex: 0 0 auto;
-  width: 11rem;
   min-width: 0;
   gap: 4px;
   padding: 6px;
@@ -4920,9 +4925,19 @@ html[data-tema="branco"] .dash-skin .class-board-dados > .class-board-dados-topo
 .dash-skin .class-board-criativo-vendas[data-vendeu="true"] > b { color: #1eff5a; }
 html[data-tema="branco"] .dash-skin .class-board-criativo-vendas > b { color: #101014; }
 html[data-tema="branco"] .dash-skin .class-board-criativo-vendas[data-vendeu="true"] > b { color: #12924a; }
-.dash-skin .class-board-criativo-vendas > span { font-size: 0.625rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
+.dash-skin .class-board-criativo-vendas > span {
+  min-width: 0;
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Agrupados à esquerda: num cartão largo, mandar o CPA para a borda
+   deixava o cartão a parecer duas coisas separadas. */
 .dash-skin .class-board-criativo-vendas > i {
-  margin-left: auto;
   flex: none;
   font-size: 0.5625rem;
   font-style: normal;
@@ -4941,7 +4956,7 @@ html[data-tema="branco"] .dash-skin .class-board-criativo-vendas[data-vendeu="tr
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.dash-skin .class-board-criativo-numeros > span:last-child { margin-left: auto; color: var(--muted-foreground, #9e9e9e); font-weight: 700; }
+.dash-skin .class-board-criativo-numeros > span:last-child { color: var(--muted-foreground, #9e9e9e); font-weight: 700; }
 .dash-skin .class-board-dados-criativos-vazio { margin: 0; color: var(--muted-foreground, #9e9e9e); font-size: 0.6875rem; }
 html[data-tema="branco"] .dash-skin .class-board-dados-criativos-topo > button { border-color: rgb(0 0 0 / 16%); color: #101014; }
 html[data-tema="branco"] .dash-skin .class-board-criativo { background: rgb(0 0 0 / 3%); }
