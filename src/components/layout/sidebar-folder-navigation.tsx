@@ -91,6 +91,7 @@ const groups: PastaDoMenu[] = [
       { title: "Pedidos", href: "/pedidos", icon: ShoppingBag },
       { title: "Transações", href: "/checkouts", icon: CircleDollarSign },
       { title: "Gateways", href: "/gateways", icon: Landmark },
+      { title: "Lojas conectadas", href: "/lojas", icon: Store },
     ],
   },
   {

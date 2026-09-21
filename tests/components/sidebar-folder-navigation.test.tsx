@@ -32,7 +32,7 @@ describe("navigation folders", () => {
 
   it.each([
     ["Geral", ["Visão geral"]],
-    ["Operação", ["Monitor ao vivo", "Pedidos", "Transações", "Gateways"]],
+    ["Operação", ["Monitor ao vivo", "Pedidos", "Transações", "Gateways", "Lojas conectadas"]],
     ["Meta Ads", ["Por classe", "Tabela", "Gerenciador", "Métricas", "Calculadora"]],
     ["Google Ads", ["Por classe", "Tabela", "Gerenciador", "Métricas", "Calculadora"]],
     ["YouTube Ads", ["Por classe", "Tabela", "Gerenciador", "Métricas", "Calculadora"]],
