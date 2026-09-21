@@ -4615,25 +4615,53 @@ html[data-tema="branco"] .class-board-painel-cartao.class-board-menu {
 .campanha-card-flutuante .class-board-grafico[data-compacto="true"] .class-board-grafico-vazio { font-size: 0.6875rem; }
 
 /* =====================================================================
-   Dados da campanha abertos pela seta: ficam embaixo da faixa dela,
-   dentro do próprio bloco. O bloco mostra só essa campanha enquanto
-   estiver aberta; clicar na seta de novo devolve a lista. O miolo rola
-   quando os dados passam da altura do bloco.
+   Dados da campanha abertos pela seta: uma faixa de largura inteira que
+   entra entre a faixa do bloco dela e a de baixo. As outras campanhas
+   continuam nos blocos; o painel empurra as faixas seguintes para baixo.
    ===================================================================== */
-.dash-skin .class-board-aberta { display: flex; flex-direction: column; min-height: 0; flex: 1 1 0; }
-.dash-skin .class-board-aberta > .class-board-cartao { flex: 0 0 auto; }
-.dash-skin .class-board-dados {
+.dash-skin .class-board-quadro .class-board-pilares > .class-board-dados {
   display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+  grid-template-areas: "topo topo" "grafico numeros" "grafico fichas";
   gap: 8px;
-  min-height: 0;
-  flex: 1 1 0;
-  margin-top: 6px;
-  padding-right: 2px;
+  min-width: 0;
+  max-height: 46vh;
   overflow-y: auto;
+  padding: 10px;
+  background: var(--camada-1, rgb(255 255 255 / 3%));
+  box-shadow: inset 0 0 0 1px var(--fio-forte, rgb(255 255 255 / 12%));
   scrollbar-width: thin;
   align-content: start;
 }
-.dash-skin .class-board-dados > .class-board-grafico { margin: 0; }
+.dash-skin .class-board-dados > .class-board-dados-topo {
+  grid-area: topo;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.dash-skin .class-board-dados-nome { min-width: 0; font-size: 0.875rem; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dash-skin .class-board-dados-onde { flex: 1 1 auto; min-width: 0; color: var(--muted-foreground, #9e9e9e); font-size: 0.625rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dash-skin .class-board-dados > .class-board-dados-topo > .class-board-semaforo { flex: none; }
+.dash-skin .class-board-dados-fechar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  color: var(--muted-foreground, #9e9e9e);
+  background: var(--botao, rgb(255 255 255 / 6%));
+  cursor: pointer;
+}
+.dash-skin .class-board-dados-fechar > svg { width: 0.875rem; height: 0.875rem; }
+.dash-skin .class-board-dados-fechar:hover { color: #ff1e3c; background: var(--botao-hover, rgb(255 255 255 / 12%)); }
+.dash-skin .class-board-dados > .class-board-grafico { grid-area: grafico; margin: 0; min-width: 0; }
+.dash-skin .class-board-dados > .class-board-dados-coluna { grid-area: numeros; display: grid; gap: 6px; min-width: 0; align-content: start; }
+
+.dash-skin .class-board-dados-fichas { grid-area: fichas; }
 .dash-skin .class-board-dados-lucro {
   display: grid;
   gap: 2px;
@@ -4646,7 +4674,7 @@ html[data-tema="branco"] .class-board-painel-cartao.class-board-menu {
 .dash-skin .class-board-dados-lucro > small { color: var(--muted-foreground, #9e9e9e); font-size: 0.625rem; font-weight: 600; }
 .dash-skin .class-board-dados-lucro[data-lucro="positivo"] > b { color: #1eff5a; }
 .dash-skin .class-board-dados-lucro[data-lucro="negativo"] > b { color: #ff1e3c; }
-.dash-skin :is(.class-board-dados-numeros, .class-board-dados-fichas) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; margin: 0; }
+.dash-skin :is(.class-board-dados-numeros, .class-board-dados-fichas) { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; margin: 0; min-width: 0; }
 .dash-skin :is(.class-board-dados-numeros, .class-board-dados-fichas) > div {
   display: grid;
   gap: 1px;
@@ -4660,37 +4688,26 @@ html[data-tema="branco"] .class-board-painel-cartao.class-board-menu {
 .dash-skin .class-board-dados-pagina {
   display: grid;
   place-items: center;
+  flex: none;
   min-height: 1.75rem;
+  padding: 0 10px;
   color: var(--foreground, #f5f5f5);
   background: var(--botao, rgb(255 255 255 / 6%));
   font-size: 0.625rem;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 .dash-skin .class-board-dados-pagina:hover { background: var(--botao-hover, rgb(255 255 255 / 12%)); }
 /* A seta gira ao abrir. */
 .dash-skin .class-board-cartao .class-board-cartao-abrir[aria-expanded="true"] > svg { transform: rotate(90deg); }
-/* O cartão aberto deixa de ser uma faixa de altura fixa (a contenção de
-   tamanho zeraria a altura): vira uma coluna com a faixa em cima e os
-   dados embaixo, ocupando o bloco. */
-.dash-skin .class-board-aberta > .class-board-cartao {
-  container-type: normal;
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 0;
-  min-height: 0;
-  overflow: hidden;
+/* Em telas estreitas a grade vira fila: o painel entra no fluxo, numa coluna. */
+@container (max-width: 1000px) {
+  .dash-skin .class-board-quadro .class-board-pilares > .class-board-dados { grid-area: auto !important; grid-column: 1 / -1 !important; grid-template-columns: minmax(0, 1fr); grid-template-areas: "topo" "grafico" "numeros" "fichas"; max-height: none; }
+  .dash-skin :is(.class-board-dados-numeros, .class-board-dados-fichas) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
-.dash-skin .class-board-aberta > .class-board-cartao > .class-board-cartao-linha { flex: 0 0 auto; height: var(--icone, 2rem); }
-/* Dentro do bloco (a campanha aberta pela seta) o gráfico é ainda mais
-   compacto: as pílulas de período encolhem e a área ocupa a largura. */
-.dash-skin .dash-skin .class-board-dados .class-board-grafico { gap: 6px; }
-.dash-skin .dash-skin .class-board-dados .class-board-grafico-janelas { display: flex; gap: 4px; }
-.dash-skin .dash-skin .class-board-dados .class-board-grafico-janelas > button { min-width: 0; flex: 1 1 0; min-height: 1.5rem; padding: 0 4px; font-size: 0.625rem; }
-.dash-skin .dash-skin .class-board-dados .class-board-grafico-cartao { padding: 4px 6px; font-size: 0.5625rem; }
-.dash-skin .dash-skin .class-board-dados .class-board-grafico-cartao-valor { font-size: 0.75rem; }
-.dash-skin .dash-skin .class-board-dados .class-board-grafico-vazio { font-size: 0.625rem; }
+
 /* Tema branco, gráfico dentro do bloco: as pílulas de período em cinza
    sobre branco (a regra dos painéis não alcança o quadro). */
 html[data-tema="branco"] .dash-skin .class-board-dados .class-board-grafico-janelas > button {

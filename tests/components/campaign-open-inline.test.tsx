@@ -30,14 +30,14 @@ const linha = (id: string, spend: number, revenue: number): CampaignRow => ({
 
 const tree: CampaignTree = { modo: "banco", metaConectado: false, ultimaSync: null, campanhas: [linha("Alfa", 1000_00, 2500_00), linha("Beta", 500_00, 200_00)] };
 
-describe("a seta abre os dados da campanha embaixo da faixa, dentro do bloco", () => {
+describe("a seta abre os dados da campanha numa faixa entre as fileiras de blocos", () => {
   beforeEach(() => {
     localStorage.clear();
     vi.stubGlobal("ResizeObserver", class { observe() {} disconnect() {} unobserve() {} });
   });
   afterEach(() => vi.unstubAllGlobals());
 
-  it("clicar na seta mostra o gráfico e todos os números da campanha; clicar de novo fecha e devolve a lista", () => {
+  it("clicar na seta mostra o gráfico e todos os números numa faixa de largura inteira, embaixo da fileira do bloco", () => {
     localStorage.setItem(TAXAS_KEY, JSON.stringify({ version: 1, gatewayPercentual: 10 }));
     const agora = Date.now();
     localStorage.setItem(CAMPANHAS_ROAS_KEY, JSON.stringify({ version: 1, campanhas: { "meta:Alfa": [1.8, 2.2, 2.5].map((roas, i) => ({ t: agora - (2 - i) * INTERVALO_MINUTO_MS, roas })) } }));
@@ -48,12 +48,22 @@ describe("a seta abre os dados da campanha embaixo da faixa, dentro do bloco", (
     const seta = within(bloco).getByRole("button", { name: "Abrir campanha Alfa" });
     fireEvent.click(seta);
 
-    // Só a campanha aberta fica no bloco, e os dados vêm depois da faixa dela.
-    expect(within(bloco).getAllByRole("article").map((a) => a.getAttribute("aria-label"))).toEqual(["Cartão Alfa"]);
-    const dados = within(bloco).getByRole("group", { name: "Dados de Alfa" });
-    const faixa = bloco.querySelector(".class-board-cartao-linha")!;
-    expect(faixa.compareDocumentPosition(dados) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    // As duas campanhas continuam no bloco; os dados abrem fora dele, na
+    // grade, numa faixa de largura inteira logo abaixo da fileira do bloco.
+    expect(within(bloco).getAllByRole("article")).toHaveLength(2);
+    const grade = screen.getByRole("region", { name: "Quadro de classes" });
+    const dados = within(grade).getByRole("group", { name: "Dados de Alfa" });
+    expect(dados.parentElement).toBe(grade);
+    expect(dados.style.gridColumn).toBe("1 / -1");
+    // O bloco está na fileira 1 (linha 2 da grade): o painel entra na linha 3.
+    expect(bloco.style.gridArea.startsWith("2 /")).toBe(true);
+    expect(dados.style.gridRow).toBe("3");
+    expect(dados.getAttribute("data-faixa")).toBe("1");
+    expect(grade.getAttribute("data-campanha-aberta")).toBe("Alfa");
     expect(within(bloco).getByRole("button", { name: "Fechar campanha Alfa" }).getAttribute("aria-expanded")).toBe("true");
+    // O topo do painel diz de quem são os dados e onde ela está.
+    expect(dados.querySelector(".class-board-dados-nome")?.textContent).toBe("Alfa");
+    expect(dados.querySelector(".class-board-dados-onde")?.textContent).toBe("Faixa 1 · Outras campanhas 1");
 
     // O gráfico por minuto e o lucro com a taxa do gateway.
     expect(within(dados).getByRole("figure", { name: "ROAS de Alfa a cada 1 minuto" }).querySelector("svg")?.getAttribute("data-pontos")).toBe("3");
@@ -74,12 +84,16 @@ describe("a seta abre os dados da campanha embaixo da faixa, dentro do bloco", (
     expect(pares.Rede).toBe("Meta Ads");
     expect(pares.Objetivo).toBe("Vendas");
     // O atalho para a página inteira continua ali.
-    expect(within(dados).getByRole("link", { name: "Abrir a página da campanha" }).getAttribute("href")).toBe("/campanhas/campanha/Alfa?modo=real");
+    expect(within(dados).getByRole("link", { name: "Abrir a página" }).getAttribute("href")).toBe("/campanhas/campanha/Alfa?modo=real");
 
-    // Fechar devolve as duas campanhas.
-    fireEvent.click(within(bloco).getByRole("button", { name: "Fechar campanha Alfa" }));
-    expect(within(bloco).queryByRole("group", { name: "Dados de Alfa" })).toBeNull();
+    // O X do painel fecha a faixa.
+    fireEvent.click(within(dados).getByRole("button", { name: "Fechar dados de Alfa" }));
+    expect(screen.queryByRole("group", { name: "Dados de Alfa" })).toBeNull();
     expect(within(bloco).getAllByRole("article")).toHaveLength(2);
+    // A seta também fecha.
+    fireEvent.click(within(bloco).getByRole("button", { name: "Abrir campanha Alfa" }));
+    fireEvent.click(within(bloco).getByRole("button", { name: "Fechar campanha Alfa" }));
+    expect(screen.queryByRole("group", { name: "Dados de Alfa" })).toBeNull();
   });
 
   it("abrir uma campanha de outro bloco fecha a anterior: uma de cada vez no quadro", () => {

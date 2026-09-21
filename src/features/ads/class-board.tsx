@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowRight, ChevronDown, Megaphone, Pin, Plus } from "lucide-react";
+import { ArrowRight, ChevronDown, Megaphone, Pin, Plus, X } from "lucide-react";
 
 import type { ProfitGuardrails } from "@/features/guardrails/rules";
 import { cn } from "@/lib/utils";
@@ -206,12 +206,26 @@ export function areaDaGrade(vaga: string, t: Tamanho): string {
    com a barra da faixa ("Faixa 1 · 5 blocos", + Bloco, Apagar faixa):
    a fileira lógica f fica na linha 2f da grade (a barra na 2f−1), e um
    bloco de h fileiras atravessa 2h−1 linhas. */
-export function areaComFaixas(vaga: string, t: Tamanho): string {
+export function linhaDosBlocos(fileira: number, faixaAberta: number | null = null): number {
+  return fileira * 2 + (faixaAberta !== null && fileira > faixaAberta ? 1 : 0);
+}
+export function areaComFaixas(vaga: string, t: Tamanho, faixaAberta: number | null = null): string {
   const m = VAGA.exec(vaga);
   if (!m) return vaga;
   const fileira = Number(m[1]);
   const coluna = Number(m[2]);
-  return `${fileira * 2} / ${coluna} / span ${t.altura * 2 - 1} / span ${t.largura}`;
+  const inicio = linhaDosBlocos(fileira, faixaAberta);
+  const fim = linhaDosBlocos(fileira + t.altura - 1, faixaAberta);
+  return `${inicio} / ${coluna} / span ${fim - inicio + 1} / span ${t.largura}`;
+}
+/** As linhas da grade: barra e blocos por faixa, e a linha do painel da campanha aberta. */
+export function linhasDaGrade(fileiras: number, faixaAberta: number | null): string {
+  const linhas: string[] = [];
+  for (let f = 1; f <= fileiras; f++) {
+    linhas.push("auto", "minmax(auto, 1fr)");
+    if (faixaAberta === f) linhas.push("auto");
+  }
+  return linhas.join(" ");
 }
 /** Quantas fileiras a grade precisa: três, ou mais se os blocos descerem além. */
 export function fileirasDaGrade(vagas: ReadonlyMap<string, string>, tamanho: (id: string) => Tamanho): number {
@@ -781,6 +795,11 @@ export function ClassBoard({
   const livres = celulasLivres(vagas, tamanho, fileiras);
   /* Os pilares de fábrica apagados, que qualquer bloco pode restaurar. */
   const restauraveis = PILARES.filter((p) => cofreDeBlocos.removidos.includes(p.id));
+  /* A campanha aberta pela seta e a faixa em que ela está: o painel com
+     os dados dela entra entre essa faixa e a de baixo, na largura toda. */
+  const campanha = campanhaAberta ? tree.campanhas.find((c) => c.id === campanhaAberta) ?? null : null;
+  const blocoDaAberta = campanha ? blocoDaCampanha(campanha) : null;
+  const faixaAberta = blocoDaAberta ? Number(VAGA.exec(vagas.get(blocoDaAberta) ?? "")?.[1]) || null : null;
 
   return (
     <div ref={quadroRef} className="class-board-quadro">
@@ -802,7 +821,8 @@ export function ClassBoard({
         aria-label="Quadro de classes"
         data-colunas={GRADE.colunas}
         data-fileiras={fileiras}
-        style={{ ["--fileiras" as string]: fileiras }}
+        data-campanha-aberta={campanha ? campanha.id : undefined}
+        style={{ ["--fileiras" as string]: fileiras, gridTemplateRows: linhasDaGrade(fileiras, faixaAberta) }}
       >
           {/* A barra de cada faixa: o nome, quantos blocos tem, "+ Bloco"
               (entra na primeira vaga livre da faixa) e "Apagar faixa". */}
@@ -818,7 +838,7 @@ export function ClassBoard({
                 aria-label={`Faixa ${f}`}
                 data-faixa={f}
                 data-blocos={naFaixa}
-                style={{ gridRow: f * 2 - 1, gridColumn: "1 / -1" }}
+                style={{ gridRow: linhaDosBlocos(f, faixaAberta) - 1, gridColumn: "1 / -1" }}
               >
                 <span className="class-board-faixa-nome">Faixa {f}</span>
                 <span className="class-board-faixa-conta">
@@ -873,7 +893,7 @@ export function ClassBoard({
                 data-pilar-ordenado={automatico ? "true" : undefined}
                 data-largura={medida.largura}
                 data-altura={medida.altura}
-                style={vaga ? { gridArea: areaComFaixas(vaga, medida) } : undefined}
+                style={vaga ? { gridArea: areaComFaixas(vaga, medida, faixaAberta) } : undefined}
                 data-vaga={vaga}
                 data-area={vaga ? areaDaGrade(vaga, medida) : undefined}
                 data-drop-active={sobre === classe || undefined}
@@ -1017,54 +1037,41 @@ export function ClassBoard({
                   <span className="class-board-pilar-contagem bg-muted text-muted-foreground shrink-0 rounded-md px-1.5 py-0.5 text-xs font-bold tabular-nums">{cartoes.length}</span>
                 </header>
                 <div className="class-board-pilar-corpo flex flex-1 flex-col gap-2 px-2 pb-2">
-                  {(() => {
-                    /* Com a seta aberta, o bloco mostra só a faixa daquela
-                       campanha e, embaixo dela, todos os dados; a lista
-                       volta ao fechar. */
-                    const aberta = cartoes.find((c) => c.id === campanhaAberta);
-                    if (aberta) {
-                      return (
-                        <div className="class-board-aberta">
-                          <Cartao
-                            key={aberta.id}
-                            campanha={aberta}
-                            modo={tree.modo}
-                            escopo={escopoDoHistorico}
-                            aberto
-                            aoAbrir={() => setCampanhaAberta(null)}
-                            gateway={gatewayPercentual}
-                            aoArrastar={(ativo) => { setArrastando(ativo ? aberta.id : null); if (!ativo) setSobre(null); }}
-                            aoRenomear={(nome) => renomear(aberta, nome)}
-                          />
-                        </div>
-                      );
-                    }
-                    return (
-                      <ListaPaginada
-                        rotulo={nome}
-                        itens={cartoes}
-                        render={(c) => (
-                          <Cartao
-                            key={c.id}
-                            campanha={c}
-                            modo={tree.modo}
-                            escopo={escopoDoHistorico}
-                            aberto={false}
-                            aoAbrir={() => setCampanhaAberta(c.id)}
-                            gateway={gatewayPercentual}
-                            aoArrastar={(ativo) => { setArrastando(ativo ? c.id : null); if (!ativo) setSobre(null); }}
-                            aoRenomear={(nome) => renomear(c, nome)}
-                          />
-                        )}
-                        vazio={null}
-                        aoMedir={(n) => medirBloco(pilar, n)}
+                  <ListaPaginada
+                    rotulo={nome}
+                    itens={cartoes}
+                    render={(c) => (
+                      <Cartao
+                        key={c.id}
+                        campanha={c}
+                        escopo={escopoDoHistorico}
+                        aberto={campanhaAberta === c.id}
+                        aoAbrir={() => setCampanhaAberta((atual) => (atual === c.id ? null : c.id))}
+                        aoArrastar={(ativo) => { setArrastando(ativo ? c.id : null); if (!ativo) setSobre(null); }}
+                        aoRenomear={(nome) => renomear(c, nome)}
                       />
-                    );
-                  })()}
+                    )}
+                    vazio={null}
+                    aoMedir={(n) => medirBloco(pilar, n)}
+                  />
                 </div>
               </section>
             );
           })}
+          {/* Os dados da campanha aberta: uma faixa de largura inteira
+              entre a faixa dela e a de baixo. */}
+          {campanha && faixaAberta !== null && (
+            <DadosDaCampanha
+              campanha={campanha}
+              escopo={escopoDoHistorico}
+              gateway={gatewayPercentual}
+              href={`/campanhas/campanha/${encodeURIComponent(campanha.id)}${tree.modo === "banco" ? "?modo=real" : ""}`}
+              faixa={faixaAberta}
+              bloco={blocoDaAberta ? rotulo(blocoDaAberta) : ""}
+              linha={linhaDosBlocos(faixaAberta, faixaAberta) + 1}
+              onClose={() => setCampanhaAberta(null)}
+            />
+          )}
           {/* Cada célula vazia da grade é um "+": cria um bloco novo ali
               (fixado nessa vaga). Também aceita uma campanha solta: vira
               um bloco novo já com ela dentro. */}
@@ -1083,7 +1090,7 @@ export function ClassBoard({
               key={vaga}
               type="button"
               className="class-board-vaga-livre"
-              style={{ gridArea: areaComFaixas(vaga, UM) }}
+              style={{ gridArea: areaComFaixas(vaga, UM, faixaAberta) }}
               data-vaga={vaga}
               aria-label={`Novo bloco na vaga ${vaga.replace(" / ", ", ")}`}
               title="Criar um bloco aqui"
@@ -1134,7 +1141,28 @@ export function ClassBoard({
    ROAS por minuto, o lucro com a taxa do gateway, as métricas da
    plataforma e as derivadas, o estado, o orçamento, a rede, o objetivo e
    a última sincronização — e o atalho para a página inteira. */
-function DadosDaCampanha({ campanha: c, escopo, gateway, href }: { campanha: CampaignRow; escopo: string; gateway: number; href: string }) {
+function DadosDaCampanha({
+  campanha: c,
+  escopo,
+  gateway,
+  href,
+  faixa,
+  bloco,
+  linha,
+  onClose,
+}: {
+  campanha: CampaignRow;
+  escopo: string;
+  gateway: number;
+  href: string;
+  /** A faixa em que o bloco da campanha está (o painel entra logo abaixo). */
+  faixa: number;
+  /** O nome do bloco que guarda a campanha. */
+  bloco: string;
+  /** A linha da grade onde o painel entra. */
+  linha: number;
+  onClose: () => void;
+}) {
   const historico = useCampaignRoasHistory();
   const amostras = historico.historicoDe(chaveDaCampanhaNoHistorico(escopo, c.id));
   const d = derivadas(c.metrics);
@@ -1166,8 +1194,24 @@ function DadosDaCampanha({ campanha: c, escopo, gateway, href }: { campanha: Cam
     ["Sincronizada", c.syncedAt ? new Date(c.syncedAt).toLocaleString("pt-BR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "—"],
   ];
   return (
-    <div className="class-board-dados" role="group" aria-label={`Dados de ${c.name}`}>
+    <div
+      className="class-board-dados"
+      role="group"
+      aria-label={`Dados de ${c.name}`}
+      data-faixa={faixa}
+      style={{ gridRow: linha, gridColumn: "1 / -1" }}
+    >
+      <div className="class-board-dados-topo">
+        <b className="class-board-dados-nome">{c.name}</b>
+        <span className="class-board-dados-onde">Faixa {faixa} · {bloco}</span>
+        <Semaforo saude={saude} rotulo={`Saúde de ${c.name}`} />
+        <Link href={href} className="class-board-dados-pagina">Abrir a página</Link>
+        <button type="button" className="class-board-dados-fechar" aria-label={`Fechar dados de ${c.name}`} onClick={onClose}>
+          <X aria-hidden="true" />
+        </button>
+      </div>
       <GraficoRoas amostras={amostras} rotulo={c.name} janelas={JANELAS_MINUTO} intervaloMs={INTERVALO_MINUTO_MS} cadencia="1 minuto" compacto />
+      <div className="class-board-dados-coluna">
       <p className="class-board-dados-lucro" data-lucro={lucro.lucroCents < 0 ? "negativo" : lucro.lucroCents > 0 ? "positivo" : "zero"}>
         <span>Lucro</span>
         <b>{comSinal(lucro.lucroCents)}</b>
@@ -1181,6 +1225,7 @@ function DadosDaCampanha({ campanha: c, escopo, gateway, href }: { campanha: Cam
           </div>
         ))}
       </dl>
+      </div>
       <dl className="class-board-dados-fichas">
         {fichas.map(([rotulo, valor]) => (
           <div key={rotulo}>
@@ -1189,7 +1234,6 @@ function DadosDaCampanha({ campanha: c, escopo, gateway, href }: { campanha: Cam
           </div>
         ))}
       </dl>
-      <Link href={href} className="class-board-dados-pagina">Abrir a página da campanha</Link>
     </div>
   );
 }
@@ -1534,24 +1578,19 @@ function EditarNotas({
 
 function Cartao({
   campanha: c,
-  modo,
   escopo,
   aberto,
   aoAbrir,
-  gateway,
   aoArrastar,
   aoRenomear,
 }: {
   campanha: CampaignRow;
-  modo: CampaignTree["modo"];
-  /** A rede da página, para o histórico do ROAS desta campanha. */
+  /** A rede da página, para o histórico do ROAS no card do megafone. */
   escopo: string;
-  /** A seta está aberta: os dados aparecem embaixo da faixa. */
+  /** A seta está aberta: os dados aparecem na faixa abaixo do bloco. */
   aberto: boolean;
-  /** Abre (ou fecha) os dados desta campanha dentro do bloco. */
+  /** Abre (ou fecha) os dados desta campanha no quadro. */
   aoAbrir: () => void;
-  /** A taxa do gateway, para o lucro nos dados abertos. */
-  gateway: number;
   aoArrastar: (ativo: boolean) => void;
   /** Troca o nome da campanha; devolve a mensagem de erro, ou nada. */
   aoRenomear: (nome: string) => Promise<string | null>;
@@ -1566,7 +1605,6 @@ function Cartao({
   const ref = React.useRef<HTMLElement>(null);
   const megafone = React.useRef<HTMLButtonElement>(null);
   const cardId = React.useId();
-  const href = `/campanhas/campanha/${encodeURIComponent(c.id)}${modo === "banco" ? "?modo=real" : ""}`;
   /* Anotações do cartão (etiquetas, texto e o neon da faixa); só neste navegador. */
   const { notas, salvar } = useCardNotes(c.id);
   /* Sem neon escolhido a faixa fica escura; o branco só entra quando escolhido. */
@@ -1672,8 +1710,6 @@ function Cartao({
         </button>
       </div>
 
-      {/* Todos os dados da campanha, embaixo da faixa dela. */}
-      {aberto && <DadosDaCampanha campanha={c} escopo={escopo} gateway={gateway} href={href} />}
 
       {neonAncora && (
         <PainelFlutuante ancora={neonAncora} rotulo={`Neon de ${c.name}`} onClose={fecharNeon}>
