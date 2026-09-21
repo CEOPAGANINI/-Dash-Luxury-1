@@ -131,6 +131,11 @@ describe("a seta abre os dados da campanha num bloco à direita do quadro", () =
     // As setas existem; com tudo à vista (jsdom não rola), ficam desligadas.
     expect(within(feed).getByRole("button", { name: "Criativos anteriores" }).hasAttribute("disabled")).toBe(true);
     expect(within(feed).getByRole("button", { name: "Próximos criativos" })).toBeTruthy();
+    // Cada criativo mostra quantas vendas fez, com o CPA ao lado.
+    const vendasDe = (li: Element) => (li.querySelector(".class-board-criativo-vendas")?.textContent ?? "").replace(/\u00a0/g, " ");
+    expect(vendasDe(cartoes[0])).toBe("1vendaCPA R$ 200");
+    expect(cartoes[0].querySelector(".class-board-criativo-vendas")?.getAttribute("data-vendeu")).toBe("true");
+    expect(vendasDe(cartoes[1])).toBe("3vendasCPA R$ 33,33");
     // Cada criativo mostra o semáforo, o ROAS e o investimento.
     expect(within(cartoes[0] as HTMLElement).getByRole("img", { name: /^Saúde do criativo Estático: / })).toBeTruthy();
     expect(cartoes[0].querySelector(".class-board-criativo-numeros")?.textContent).toContain("0,50x");

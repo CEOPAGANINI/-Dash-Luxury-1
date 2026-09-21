@@ -1603,6 +1603,13 @@ function FeedDeCriativos({ campanha: c, gateway }: { campanha: CampaignRow; gate
                   <b title={a.name}>{a.name}</b>
                   <span title={a.creative.title ?? a.conjunto}>{a.creative.title ?? a.conjunto}</span>
                 </div>
+                {/* Quantas vendas este criativo fez — é o que decide se
+                    ele fica ou sai, mais do que o ROAS sozinho. */}
+                <p className="class-board-criativo-vendas" data-vendeu={a.metrics.purchases > 0 ? "true" : undefined}>
+                  <b>{formatInteger(a.metrics.purchases)}</b>
+                  <span>{a.metrics.purchases === 1 ? "venda" : "vendas"}</span>
+                  <i>{da.cpaCents === null ? "sem CPA" : `CPA ${dinheiro(da.cpaCents)}`}</i>
+                </p>
                 <div className="class-board-criativo-numeros">
                   <Semaforo saude={saudeDasMetricas(a.metrics, gateway)} rotulo={`Saúde do criativo ${a.name}`} />
                   <span>{da.roas === null ? "—" : formatRatio(da.roas)}</span>
