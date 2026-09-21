@@ -32,17 +32,43 @@ export type NumeroId = (typeof NUMEROS_DA_CAMPANHA)[number];
 export const FICHAS_DA_CAMPANHA = ["estado", "rede", "objetivo", "conjuntos", "origem", "sincronizada"] as const;
 export type FichaId = (typeof FICHAS_DA_CAMPANHA)[number];
 
+/** Quantas colunas uma secção ocupa: meia linha ou a linha toda. */
+export type LarguraDaSecao = 1 | 2;
+
 export interface ArrumacaoDoPainel {
   secoes: SecaoId[];
   numeros: NumeroId[];
   fichas: FichaId[];
+  /** A largura de cada secção, para pôr coisas lado a lado. */
+  larguras: Record<SecaoId, LarguraDaSecao>;
 }
+
+export const LARGURAS_PADRAO: Record<SecaoId, LarguraDaSecao> = {
+  grafico: 2,
+  lucro: 2,
+  numeros: 2,
+  fichas: 2,
+  criativos: 2,
+};
 
 export const ARRUMACAO_PADRAO: ArrumacaoDoPainel = {
   secoes: SECOES_DO_PAINEL.map((s) => s.id),
   numeros: [...NUMEROS_DA_CAMPANHA],
   fichas: [...FICHAS_DA_CAMPANHA],
+  larguras: { ...LARGURAS_PADRAO },
 };
+
+/* As larguras guardadas, saneadas: só 1 ou 2, e o que faltar volta ao
+   padrão — uma secção nova nunca nasce sem largura. */
+export function completarLarguras(bruta: unknown): Record<SecaoId, LarguraDaSecao> {
+  const objeto = typeof bruta === "object" && bruta !== null ? (bruta as Record<string, unknown>) : {};
+  const larguras = { ...LARGURAS_PADRAO };
+  for (const secao of SECOES_DO_PAINEL) {
+    const valor = objeto[secao.id];
+    if (valor === 1 || valor === 2) larguras[secao.id] = valor;
+  }
+  return larguras;
+}
 
 /* Uma lista completa: a guardada, sem repetidos nem ids estranhos, e o
    que faltar vai para o fim (assim uma métrica nova nunca desaparece). */
@@ -59,11 +85,13 @@ function completar<T extends string>(lista: readonly unknown[], padrao: readonly
 }
 
 /** A arrumação inteira, saneada. */
-export function completarArrumacao(bruta: Partial<Record<keyof ArrumacaoDoPainel, readonly unknown[]>>): ArrumacaoDoPainel {
+export function completarArrumacao(bruta: Partial<Record<string, unknown>>): ArrumacaoDoPainel {
+  const lista = (v: unknown) => (Array.isArray(v) ? v : []);
   return {
-    secoes: completar(bruta.secoes ?? [], ARRUMACAO_PADRAO.secoes),
-    numeros: completar(bruta.numeros ?? [], ARRUMACAO_PADRAO.numeros),
-    fichas: completar(bruta.fichas ?? [], ARRUMACAO_PADRAO.fichas),
+    secoes: completar(lista(bruta.secoes), ARRUMACAO_PADRAO.secoes),
+    numeros: completar(lista(bruta.numeros), ARRUMACAO_PADRAO.numeros),
+    fichas: completar(lista(bruta.fichas), ARRUMACAO_PADRAO.fichas),
+    larguras: completarLarguras(bruta.larguras),
   };
 }
 
@@ -72,6 +100,7 @@ const schema = z.object({
   secoes: z.array(z.string()).max(20).optional(),
   numeros: z.array(z.string()).max(40).optional(),
   fichas: z.array(z.string()).max(40).optional(),
+  larguras: z.record(z.string().max(40), z.number()).optional(),
 });
 
 export function restoreCampaignPanelOrder(raw: string): ArrumacaoDoPainel | null {

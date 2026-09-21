@@ -4732,11 +4732,15 @@ html[data-tema="branco"] .dash-skin .class-board-faixa-pager .class-board-faixa-
   grid-column: 2;
   grid-row: 1 / -1;
   max-height: var(--quadro-altura, 100%);
-  /* Uma coluna: topo, gráfico, números e fichas, nesta ordem. O que
-     sobra de altura vai para o gráfico — e só até ao teto dele, para
-     nunca voltar a dominar o painel. */
-  display: flex;
-  flex-direction: column;
+  /* Uma grade de duas colunas: cada secção ocupa meia linha ou a linha
+     toda, e é assim que se põem coisas lado a lado, em cima e em
+     baixo. As secções entram na ordem escolhida. */
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: auto;
+  /* A sobra de altura reparte-se pelas linhas em vez de ficar toda no
+     fim do painel — nada de faixa vazia por baixo da última secção. */
+  align-content: stretch;
   gap: 8px;
   min-width: 0;
   min-height: 0;
@@ -4747,7 +4751,7 @@ html[data-tema="branco"] .dash-skin .class-board-faixa-pager .class-board-faixa-
   scrollbar-width: thin;
 }
 .dash-skin .class-board-dados > .class-board-dados-topo {
-  flex: 0 0 auto;
+  grid-column: 1 / -1;
   position: sticky;
   top: -10px;
   z-index: 2;
@@ -4764,20 +4768,45 @@ html[data-tema="branco"] .dash-skin .class-board-dados > .class-board-dados-topo
 .dash-skin .class-board-dados > .class-board-dados-secao {
   display: grid;
   grid-template-columns: 1rem minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-areas: "pega conteudo" "largura conteudo";
   align-items: stretch;
-  gap: 6px;
-  flex: 0 0 auto;
+  gap: 2px 6px;
+  grid-column: span 2;
   min-width: 0;
   min-height: 0;
 }
-.dash-skin .class-board-dados > .class-board-dados-secao[data-secao="criativos"] { flex: 1 1 auto; min-height: 6.5rem; }
-.dash-skin .class-board-dados > .class-board-dados-secao[data-secao="grafico"] { flex: 0 1 auto; min-height: 6.5rem; }
+.dash-skin .class-board-dados > .class-board-dados-secao[data-largura="1"] { grid-column: span 1; }
+.dash-skin .class-board-dados-secao > .class-board-dados-pega { grid-area: pega; }
+.dash-skin .class-board-dados-secao > .class-board-dados-largura { grid-area: largura; }
+.dash-skin .class-board-dados-secao > :nth-child(3) { grid-area: conteudo; }
+.dash-skin .class-board-dados-largura {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted-foreground, #9e9e9e);
+  cursor: pointer;
+}
+.dash-skin .class-board-dados-largura > svg { width: 0.75rem; height: 0.75rem; }
+.dash-skin .class-board-dados-largura:hover { color: var(--foreground, #f5f5f5); }
+/* Sem aria-pressed de propósito: o estilo global de botão "ligado"
+   pintava a coluna da pega de escuro. O estado vai no rótulo e aqui. */
+.dash-skin .class-board-dados-largura[data-meia="true"] { color: var(--foreground, #f5f5f5); }
+.dash-skin .class-board-dados > .class-board-dados-secao[data-secao="criativos"] { min-height: 6.5rem; }
+.dash-skin .class-board-dados > .class-board-dados-secao[data-secao="grafico"] { min-height: 6.5rem; }
 /* Janela baixa (um MacBook com a barra do navegador a comer altura): o
    painel aperta um pouco em vez de obrigar a rolar por dentro. */
 @media (max-height: 720px) {
-  .dash-skin .class-board-dados { --ficha-altura: 2.375rem; }
-  .dash-skin .class-board-dados > .class-board-dados-secao[data-secao="grafico"] { min-height: 5.25rem; }
-  .dash-skin .class-board-dados > .class-board-dados-secao[data-secao="criativos"] { min-height: 5.25rem; }
+  .dash-skin .class-board-dados { --ficha-altura: 2.375rem; gap: 6px; }
+  .dash-skin .class-board-dados > .class-board-dados-secao[data-secao="grafico"] { min-height: 4.5rem; }
+  .dash-skin .class-board-dados > .class-board-dados-secao[data-secao="criativos"] { min-height: 4.5rem; }
+  .dash-skin .class-board-dados .class-board-grafico { max-height: 8rem; }
+  .dash-skin .class-board-dados .class-board-grafico > .class-board-grafico-area { height: 84px; min-height: 4rem; }
+  .dash-skin .class-board-dados-criativos { min-height: 4.5rem; }
+  .dash-skin .class-board-criativo-arte { min-height: 1.5rem; }
   .dash-skin .class-board-dados-lucro { padding: 6px 10px; }
   .dash-skin .class-board-dados-lucro > b { font-size: 1rem; }
 }
@@ -4796,7 +4825,7 @@ html[data-tema="branco"] .dash-skin .class-board-dados > .class-board-dados-topo
 .dash-skin .class-board-dados-pega > svg { width: 0.875rem; height: 0.875rem; }
 .dash-skin .class-board-dados-pega:hover { color: var(--foreground, #f5f5f5); }
 /* O conteúdo da secção é o segundo filho: nunca transborda a coluna. */
-.dash-skin .class-board-dados-secao > :nth-child(2) { min-width: 0; min-height: 0; }
+.dash-skin .class-board-dados-secao > :nth-child(3) { min-width: 0; min-height: 0; }
 .dash-skin .class-board-dados-secao > .class-board-grafico { margin: 0; }
 /* Um quadradinho a ser arrastado fica apagado; o resto desliza. */
 .dash-skin :is(.class-board-dados-numeros, .class-board-dados-fichas) > div[data-arrastando="true"] { opacity: 0.4; }
@@ -5001,12 +5030,10 @@ html[data-tema="branco"] .dash-skin .class-board-quadro > .class-board-dados {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  /* Uma faixa baixa: quem fica com a sobra da altura é o feed dos
-     criativos. Em telas baixas encolhe até 5rem em vez de obrigar o
-     painel a rolar. */
-  flex: 0 1 auto;
+  /* Uma faixa baixa, com teto: mesmo quando a grade reparte a sobra de
+     altura, o gráfico não volta a dominar o painel. */
   min-height: 0;
-  max-height: 11rem;
+  max-height: 9.5rem;
 }
 /* O gráfico é uma faixa baixa e sempre da mesma altura: o desenho
    acompanha a largura em pixels de verdade, sem esticar letras. */

@@ -167,9 +167,23 @@ describe("a seta abre os dados da campanha num bloco à direita do quadro", () =
     expect(ordemDosNumeros().slice(0, 3)).toEqual(["retorno", "roas", "investimento"]);
     expect(restoreCampaignPanelOrder(localStorage.getItem(ORDEM_PAINEL_KEY)!)?.numeros.slice(0, 3)).toEqual(["retorno", "roas", "investimento"]);
 
+    // Meia linha e linha inteira: é assim que duas secções ficam lado a lado.
+    const largura = (id: string) => dados.querySelector(`[data-secao="${id}"]`)?.getAttribute("data-largura");
+    expect(largura("grafico")).toBe("2");
+    fireEvent.click(within(dados).getByRole("button", { name: "Largura da secção Gráfico do ROAS: linha inteira" }));
+    expect(largura("grafico")).toBe("1");
+    expect(restoreCampaignPanelOrder(localStorage.getItem(ORDEM_PAINEL_KEY)!)?.larguras.grafico).toBe(1);
+    // As setas ← e → na pega fazem o mesmo.
+    fireEvent.keyDown(within(dados).getByRole("button", { name: "Mover a secção Gráfico do ROAS" }), { key: "ArrowRight" });
+    expect(largura("grafico")).toBe("2");
+
     // Uma arrumação estragada volta ao padrão, sem quebrar.
     expect(restoreCampaignPanelOrder("{")).toBeNull();
     expect(restoreCampaignPanelOrder(JSON.stringify({ version: 1, secoes: ["inventada", "lucro"] }))?.secoes).toEqual(["lucro", "grafico", "numeros", "fichas", "criativos"]);
+    // Uma largura inválida volta ao padrão em vez de virar uma coluna zero.
+    expect(restoreCampaignPanelOrder(JSON.stringify({ version: 1, larguras: { grafico: 7, lucro: 1 } }))?.larguras).toEqual({
+      grafico: 2, lucro: 1, numeros: 2, fichas: 2, criativos: 2,
+    });
   });
 
   it("à esquerda fica uma faixa de cada vez, trocada pelos botões — sem rolagem", () => {

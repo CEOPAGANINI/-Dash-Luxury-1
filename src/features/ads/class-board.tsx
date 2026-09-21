@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowRight, ChevronDown, ChevronLeft, ChevronRight, GripVertical, Megaphone, Pin, Plus, X } from "lucide-react";
+import { ArrowRight, ChevronDown, ChevronLeft, ChevronRight, Columns2, GripVertical, Megaphone, Pin, Plus, Square, X } from "lucide-react";
 
 import type { ProfitGuardrails } from "@/features/guardrails/rules";
 import { cn } from "@/lib/utils";
@@ -58,6 +58,7 @@ import {
   moverNaOrdem,
   useCampaignPanelOrder,
   type FichaId,
+  type LarguraDaSecao,
   type NumeroId,
   type SecaoId,
 } from "./campaign-panel-order-store";
@@ -1349,7 +1350,13 @@ function DadosDaCampanha({
           <X aria-hidden="true" />
         </button>
       </div>
-      <SecoesArrastaveis ordem={arrumacao.secoes} conteudo={secoes} aoGuardar={(ordem) => guardar({ secoes: ordem })} />
+      <SecoesArrastaveis
+        ordem={arrumacao.secoes}
+        larguras={arrumacao.larguras}
+        conteudo={secoes}
+        aoGuardar={(ordem) => guardar({ secoes: ordem })}
+        aoMudarLargura={(largurasNovas) => guardar({ larguras: largurasNovas })}
+      />
     </div>
   );
 }
@@ -1362,12 +1369,16 @@ function DadosDaCampanha({
 */
 function SecoesArrastaveis({
   ordem,
+  larguras,
   conteudo,
   aoGuardar,
+  aoMudarLargura,
 }: {
   ordem: readonly SecaoId[];
+  larguras: Record<SecaoId, LarguraDaSecao>;
   conteudo: Record<SecaoId, React.ReactNode>;
   aoGuardar: (ordem: SecaoId[]) => void;
+  aoMudarLargura: (larguras: Record<SecaoId, LarguraDaSecao>) => void;
 }) {
   const [arrastando, setArrastando] = React.useState<SecaoId | null>(null);
   const [viva, setViva] = React.useState<SecaoId[] | null>(null);
@@ -1390,15 +1401,22 @@ function SecoesArrastaveis({
     [nova[i], nova[j]] = [nova[j], nova[i]];
     aoGuardar(nova);
   }
+  /* Meia linha ou a linha toda: é assim que duas secções ficam lado a
+     lado. Duas de meia linha seguidas partilham a mesma linha. */
+  function alternarLargura(id: SecaoId) {
+    aoMudarLargura({ ...larguras, [id]: larguras[id] === 2 ? 1 : 2 });
+  }
   return (
     <>
       {visivel.map((id) => {
         const rotulo = SECOES_DO_PAINEL.find((s) => s.id === id)?.rotulo ?? id;
+        const largura = larguras[id] ?? 2;
         return (
           <div
             key={id}
             className="class-board-dados-secao"
             data-secao={id}
+            data-largura={largura}
             data-arrastando={arrastando === id ? "true" : undefined}
             onDragOver={(e) => {
               if (!arrastando) return;
@@ -1429,9 +1447,23 @@ function SecoesArrastaveis({
                   e.preventDefault();
                   mover(id, e.key === "ArrowUp" ? -1 : 1);
                 }
+                if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+                  e.preventDefault();
+                  alternarLargura(id);
+                }
               }}
             >
               <GripVertical aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              className="class-board-dados-largura"
+              aria-label={`Largura da secção ${rotulo}: ${largura === 2 ? "linha inteira" : "meia linha"}`}
+              data-meia={largura === 1 ? "true" : undefined}
+              title={largura === 2 ? "Passar a meia linha, para caber outra ao lado" : "Voltar à linha inteira"}
+              onClick={() => alternarLargura(id)}
+            >
+              {largura === 2 ? <Columns2 aria-hidden="true" /> : <Square aria-hidden="true" />}
             </button>
             {conteudo[id]}
           </div>
