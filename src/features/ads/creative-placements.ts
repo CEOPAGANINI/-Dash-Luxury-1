@@ -114,6 +114,71 @@ export function fatiaDaPosicao(purchases: number, total: number): number {
 
 /* ------------------------------------------------------------------ */
 
+/*
+  A cor de cada posição na barra de distribuição.
+
+  São oito posições, mas oito cores na mesma barra não se distinguem —
+  medido, não achado: com as oito, o pior par fica a ΔE 3,2 para quem
+  tem daltonismo e a 7,1 mesmo para quem vê todas as cores (o mínimo é
+  15). Das setenta combinações de quatro cores da paleta, só duas
+  passam nos dois temas; esta é uma delas. Por isso quatro posições —
+  as que costumam vender — têm cor própria e as restantes juntam-se
+  numa fatia cinzenta. A cor segue a posição, nunca a colocação dela no
+  ranking: o feed é azul mesmo quando vende menos que o stories.
+*/
+export type CorDaPosicao = 1 | 2 | 3 | 4 | null;
+
+export const COR_DA_POSICAO: Record<PosicaoId, CorDaPosicao> = {
+  feed: 1,
+  stories: 2,
+  explorar: 3,
+  reels: 4,
+  marketplace: null,
+  video: null,
+  mensagens: null,
+  outra: null,
+};
+
+export interface FatiaDaDistribuicao {
+  /** A posição, o saco das que não têm cor, ou o que não foi partido. */
+  id: PosicaoId | "outras" | "sem";
+  rotulo: string;
+  cor: CorDaPosicao;
+  purchases: number;
+  /** De 0 a 1. */
+  fatia: number;
+}
+
+/*
+  A distribuição das vendas do criativo pelas posições: uma fatia por
+  posição com cor própria, uma fatia cinzenta com as restantes e, se a
+  plataforma devolveu menos vendas partidas do que o total do anúncio, o
+  que falta como "sem posição" — em vez de sumir da barra.
+
+  O total é o do anúncio, para as percentagens fecharem em 100%.
+*/
+export function distribuicaoDeVendas(
+  lista: readonly VendaPorPosicao[],
+  metricas: AdMetrics,
+): { total: number; fatias: FatiaDaDistribuicao[] } {
+  const total = Math.max(Math.round(metricas.purchases), vendasDasPosicoes(lista));
+  const fatias: FatiaDaDistribuicao[] = [];
+  let semCor = 0;
+  for (const p of posicoesQueVenderam(lista)) {
+    if (p.metrics.purchases <= 0) continue;
+    const cor = COR_DA_POSICAO[p.id];
+    if (cor === null) semCor += p.metrics.purchases;
+    else fatias.push({ id: p.id, rotulo: rotuloDaPosicao(p.id), cor, purchases: p.metrics.purchases, fatia: fatiaDaPosicao(p.metrics.purchases, total) });
+  }
+  fatias.sort((a, b) => b.purchases - a.purchases);
+  if (semCor > 0) fatias.push({ id: "outras", rotulo: "Outras posições", cor: null, purchases: semCor, fatia: fatiaDaPosicao(semCor, total) });
+  const sem = vendasSemPosicao(lista, metricas);
+  if (sem > 0) fatias.push({ id: "sem", rotulo: "Sem posição", cor: null, purchases: sem, fatia: fatiaDaPosicao(sem, total) });
+  return { total, fatias };
+}
+
+/* ------------------------------------------------------------------ */
+
 /* Um número estável entre 0 e 1 a partir de um texto. */
 function semente(chave: string): number {
   let h = 2166136261;

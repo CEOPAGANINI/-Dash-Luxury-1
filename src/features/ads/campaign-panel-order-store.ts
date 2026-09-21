@@ -20,6 +20,7 @@ export const SECOES_DO_PAINEL = [
   { id: "numeros", rotulo: "Números" },
   { id: "fichas", rotulo: "Fichas" },
   { id: "criativos", rotulo: "Criativos" },
+  { id: "posicoes", rotulo: "Desempenho por posicionamento" },
 ] as const;
 export type SecaoId = (typeof SECOES_DO_PAINEL)[number]["id"];
 
@@ -56,6 +57,7 @@ export const LARGURAS_PADRAO: Record<SecaoId, LarguraDaSecao> = {
   numeros: 2,
   fichas: 2,
   criativos: 2,
+  posicoes: 2,
 };
 
 export const ARRUMACAO_PADRAO: ArrumacaoDoPainel = {

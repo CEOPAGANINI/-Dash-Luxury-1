@@ -2,7 +2,10 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowRight, ChevronDown, ChevronLeft, ChevronRight, Columns2, GripVertical, Megaphone, Pin, Plus, Square, X } from "lucide-react";
+import {
+  ArrowRight, ChevronDown, ChevronLeft, ChevronRight, Clapperboard, Columns2, Compass, GripVertical,
+  LayoutGrid, Megaphone, MessageCircle, MonitorPlay, MoreHorizontal, Pin, Plus, Square, Store, X,
+} from "lucide-react";
 
 import type { ProfitGuardrails } from "@/features/guardrails/rules";
 import { cn } from "@/lib/utils";
@@ -51,7 +54,10 @@ import {
 import { CampaignHoverCard, type CampaignPreview } from "./campaign-hover-card";
 import { ROTULO_DA_SAUDE, Semaforo, descricaoDaSaude, saudeDasMetricas, saudeDoConjunto } from "./campaign-health";
 import { cartaoAberto, escalaDoPonto } from "./carousel-dots";
-import { posicoesQueVenderam, rotuloCurtoDaPosicao, vendasSemPosicao } from "./creative-placements";
+import {
+  COR_DA_POSICAO, distribuicaoDeVendas, posicoesQueVenderam, rotuloCurtoDaPosicao, rotuloDaPosicao,
+  vendasSemPosicao, type PosicaoId,
+} from "./creative-placements";
 import { GraficoRoas, JANELAS_MINUTO } from "./block-metrics-panel";
 import { INTERVALO_MINUTO_MS, chaveDaCampanhaNoHistorico, registrarRoasDaCampanha, roasDemonstrativo, useCampaignRoasHistory } from "./campaign-roas-history-store";
 import { lucroDaCampanha, useTaxas } from "./fees-store";
@@ -76,6 +82,7 @@ import {
   derivadas,
   somarMetricas,
   type AdNetwork,
+  type AdRow,
   type CampaignRow,
   type CampaignTree,
 } from "./types";
@@ -1299,6 +1306,19 @@ function DadosDaCampanha({
     origem: ["Origem", c.source === "demo" ? "Demonstração" : c.source === "meta" ? "Meta" : "Manual"],
     sincronizada: ["Sincronizada", c.syncedAt ? new Date(c.syncedAt).toLocaleString("pt-BR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "—"],
   };
+  /* Os anúncios de todos os conjuntos, do que mais investiu para o que
+     menos investiu: o criativo que está a gastar aparece primeiro. Qual
+     deles está aberto vive aqui, e não dentro do carrossel, porque a
+     secção das posições mostra as deste mesmo criativo. */
+  const criativos = React.useMemo(
+    () =>
+      c.adSets
+        .flatMap((s) => s.ads.map((a) => ({ ...a, conjunto: s.name })))
+        .sort((a, b) => b.metrics.spendCents - a.metrics.spendCents),
+    [c.adSets],
+  );
+  const [criativoAberto, setCriativoAberto] = React.useState(0);
+  const abrirCriativo = React.useCallback((i: number) => setCriativoAberto(i), []);
   /* A arrumação é do usuário: arrasta as secções pela pega e arrasta os
      quadradinhos uns para cima dos outros. Fica guardada no navegador. */
   const { arrumacao, guardar } = useCampaignPanelOrder();
@@ -1331,7 +1351,8 @@ function DadosDaCampanha({
         aoGuardar={(ordem) => guardar({ fichas: ordem })}
       />
     ),
-    criativos: <FeedDeCriativos campanha={c} gateway={gateway} />,
+    criativos: <FeedDeCriativos campanha={c} gateway={gateway} criativos={criativos} aberto={criativoAberto} aoAbrir={abrirCriativo} />,
+    posicoes: <PosicoesDoCriativo criativo={criativos[criativoAberto] ?? criativos[0] ?? null} />,
   };
   return (
     <div
@@ -1575,6 +1596,128 @@ function GradeArrastavel<T extends string>({
   );
 }
 
+/* O desenho de cada posição, para o olho achar a linha sem ler o nome. */
+const ICONE_DA_POSICAO: Record<PosicaoId, React.ComponentType<{ "aria-hidden"?: boolean }>> = {
+  feed: LayoutGrid,
+  stories: Megaphone,
+  explorar: Compass,
+  reels: Clapperboard,
+  marketplace: Store,
+  video: MonitorPlay,
+  mensagens: MessageCircle,
+  outra: MoreHorizontal,
+};
+
+/*
+  Desempenho por posicionamento: como o criativo aberto no carrossel
+  performou em cada sítio onde o anúncio apareceu.
+
+  Um cartão por posição, com os números daquela posição (cada
+  posicionamento tem a sua proporção, por isso CTR, CPC, CPM e CPA são
+  diferentes em cada um), e por baixo a distribuição das vendas numa
+  barra só, com a legenda a dizer quantas vendas cada fatia vale.
+
+  Sem partição sincronizada, a secção diz isso e não desenha nada —
+  nunca inventa de onde veio a venda.
+*/
+function PosicoesDoCriativo({ criativo }: { criativo: (AdRow & { conjunto: string }) | null }) {
+  const partição = criativo?.placements ?? [];
+  const posicoes = posicoesQueVenderam(partição);
+  const { total, fatias } = criativo
+    ? distribuicaoDeVendas(partição, criativo.metrics)
+    : { total: 0, fatias: [] };
+  const dinheiro = (v: number) => formatCurrency(v / 100, Math.abs(v) < 10_000 ? 2 : 0);
+  const percentagem = (f: number) => `${Math.round(f * 100)}%`;
+  return (
+    <section className="class-board-posicoes" aria-label="Desempenho por posicionamento">
+      <header className="class-board-posicoes-topo">
+        <h3>Desempenho por posicionamento</h3>
+        <p>{criativo ? `Como “${criativo.name}” performou em cada posicionamento` : "Como este criativo performou em cada posicionamento"}</p>
+      </header>
+      {posicoes.length === 0 ? (
+        <p className="class-board-posicoes-vazio">
+          {criativo
+            ? "A plataforma ainda não devolveu as vendas partidas por posicionamento deste criativo."
+            : "Esta campanha ainda não tem anúncios sincronizados."}
+        </p>
+      ) : (
+        <>
+          <ul className="class-board-posicoes-cartoes">
+            {posicoes.map((p) => {
+              const d = derivadas(p.metrics);
+              const Icone = ICONE_DA_POSICAO[p.id];
+              const linhas: [string, string][] = [
+                ["Vendas", formatInteger(p.metrics.purchases)],
+                ["ROAS", d.roas === null ? "—" : formatRatio(d.roas)],
+                ["Impressões", formatInteger(p.metrics.impressions)],
+                ["Cliques", formatInteger(p.metrics.clicks)],
+                ["CTR", d.ctr === null ? "—" : formatPercent(d.ctr, 2)],
+                ["CPC", d.cpcCents === null ? "—" : dinheiro(d.cpcCents)],
+                ["CPM", d.cpmCents === null ? "—" : dinheiro(d.cpmCents)],
+                ["CPA", d.cpaCents === null ? "—" : dinheiro(d.cpaCents)],
+              ];
+              return (
+                <li key={p.id} data-posicao={p.id} data-cor={COR_DA_POSICAO[p.id] ?? "neutra"}>
+                  <div className="class-board-posicoes-cabecalho">
+                    {/* Um <i>, e não um <span>: a regra geral dos ícones
+                        soltos tira o fundo de qualquer span que só tenha
+                        um ícone dentro, e aqui o fundo é a cor da
+                        posição. */}
+                    <i className="class-board-posicoes-selo" aria-hidden="true"><Icone /></i>
+                    <b>{rotuloDaPosicao(p.id)}</b>
+                    <em>{percentagem(fatiaDaVenda(p.metrics.purchases, total))} das vendas</em>
+                  </div>
+                  <dl>
+                    {linhas.map(([rotulo, valor]) => (
+                      <div key={rotulo} data-linha={rotulo === "ROAS" ? "roas" : undefined}>
+                        <dt>{rotulo}</dt>
+                        <dd>{valor}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </li>
+              );
+            })}
+          </ul>
+          {/* A barra é a mesma conta vista de outra maneira: onde é que
+              as vendas deste criativo caíram. A legenda leva o nome e o
+              número de cada fatia, para a cor nunca ser o único sinal. */}
+          <figure className="class-board-posicoes-distribuicao">
+            <figcaption>
+              <span>Distribuição de vendas por posicionamento</span>
+              <small>Total de <b>{formatInteger(total)}</b> {total === 1 ? "venda" : "vendas"}</small>
+            </figcaption>
+            <div
+              className="class-board-posicoes-barra"
+              role="img"
+              aria-label={fatias.map((f) => `${f.rotulo}: ${formatInteger(f.purchases)} de ${formatInteger(total)}`).join("; ")}
+            >
+              {fatias.map((f) => (
+                <span key={f.id} data-cor={f.cor ?? (f.id === "sem" ? "vazia" : "neutra")} style={{ flexGrow: Math.max(f.purchases, 0.0001) }} />
+              ))}
+            </div>
+            <ul className="class-board-posicoes-legenda">
+              {fatias.map((f) => (
+                <li key={f.id} data-cor={f.cor ?? (f.id === "sem" ? "vazia" : "neutra")}>
+                  <i aria-hidden="true" />
+                  <span>{f.rotulo}</span>
+                  <b>{percentagem(f.fatia)}</b>
+                  <em>({formatInteger(f.purchases)} {f.purchases === 1 ? "venda" : "vendas"})</em>
+                </li>
+              ))}
+            </ul>
+          </figure>
+        </>
+      )}
+    </section>
+  );
+}
+
+/* A fatia arredondada para percentagem inteira, sem dividir por zero. */
+function fatiaDaVenda(purchases: number, total: number): number {
+  return total > 0 ? purchases / total : 0;
+}
+
 /*
   O carrossel dos criativos da campanha, no feitio do Instagram: um
   criativo de cada vez a ocupar o cartão todo (a arte de um lado; o nome,
@@ -1583,19 +1726,23 @@ function GradeArrastavel<T extends string>({
   fila continua a aceitar arrastar com o dedo, a roda do rato e as setas
   do teclado, encaixando sempre num criativo inteiro.
 */
-function FeedDeCriativos({ campanha: c, gateway }: { campanha: CampaignRow; gateway: number }) {
+function FeedDeCriativos({
+  campanha: c,
+  gateway,
+  criativos,
+  aberto,
+  aoAbrir,
+}: {
+  campanha: CampaignRow;
+  gateway: number;
+  criativos: readonly (AdRow & { conjunto: string })[];
+  /** Qual criativo está à vista — vive no painel, porque a secção das
+      posições mostra as deste mesmo criativo. */
+  aberto: number;
+  aoAbrir: (indice: number) => void;
+}) {
   const filaRef = React.useRef<HTMLUListElement>(null);
   const [pontas, setPontas] = React.useState({ inicio: true, fim: true });
-  const [aberto, setAberto] = React.useState(0);
-  /* Os anúncios de todos os conjuntos, do que mais investiu para o que
-     menos investiu: o criativo que está a gastar aparece primeiro. */
-  const criativos = React.useMemo(
-    () =>
-      c.adSets
-        .flatMap((s) => s.ads.map((a) => ({ ...a, conjunto: s.name })))
-        .sort((a, b) => b.metrics.spendCents - a.metrics.spendCents),
-    [c.adSets],
-  );
   const total = criativos.length;
   /* Onde a fila está: que criativo ficou à vista e se ainda há mais para
      um dos lados. É uma leitura só, feita do que o navegador já rolou. */
@@ -1604,8 +1751,8 @@ function FeedDeCriativos({ campanha: c, gateway }: { campanha: CampaignRow; gate
     if (!el) return;
     const sobra = el.scrollWidth - el.clientWidth;
     setPontas({ inicio: el.scrollLeft <= 1, fim: sobra <= 1 || el.scrollLeft >= sobra - 1 });
-    setAberto(cartaoAberto(el.scrollLeft, el.clientWidth, el.childElementCount));
-  }, []);
+    aoAbrir(cartaoAberto(el.scrollLeft, el.clientWidth, el.childElementCount));
+  }, [aoAbrir]);
   React.useEffect(() => {
     medirPontas();
     const el = filaRef.current;
@@ -1695,50 +1842,35 @@ function FeedDeCriativos({ campanha: c, gateway }: { campanha: CampaignRow; gate
                   <span>{a.metrics.purchases === 1 ? "venda" : "vendas"}</span>
                   <i>{da.cpaCents === null ? "sem CPA" : `CPA ${dinheiro(da.cpaCents)}`}</i>
                 </p>
-                {/* De onde vieram as vendas: feed, explorar, stories…
-                    Só aparece quando a plataforma devolveu a partição. */}
+                {/* Em que posicionamentos este criativo vendeu — só os
+                    nomes e o número, em pequeno. Os números de cada
+                    posicionamento vivem na secção "Desempenho por
+                    posicionamento", que segue o criativo aberto aqui. */}
                 {(() => {
                   const posicoes = posicoesQueVenderam(a.placements ?? []);
                   const sem = vendasSemPosicao(a.placements ?? [], a.metrics);
                   if (!posicoes.length) return null;
                   return (
-                    <ul className="class-board-criativo-posicoes" aria-label={`Métricas por posição de ${a.name}`}>
-                      {posicoes.map((p) => {
-                        const dp = derivadas(p.metrics);
-                        return (
-                          <li key={p.id} data-posicao={p.id}>
-                            <div className="class-board-criativo-posicao-topo">
-                              <span>{rotuloCurtoDaPosicao(p.id)}</span>
-                              <b>{formatInteger(p.metrics.purchases)}</b>
-                              <i>{p.metrics.purchases === 1 ? "venda" : "vendas"}</i>
-                            </div>
-                            {/* Cada posição tem a sua proporção: os números
-                                dela, não os do criativo inteiro. */}
-                            <p className="class-board-criativo-posicao-numeros">
-                              <span>{dinheiro(p.metrics.spendCents)}</span>
-                              <span>{dp.roas === null ? "—" : formatRatio(dp.roas)}</span>
-                              <span>{dp.cpaCents === null ? "CPA —" : `CPA ${dinheiro(dp.cpaCents)}`}</span>
-                              <span>{dp.ctr === null ? "CTR —" : `CTR ${formatPercent(dp.ctr, 2)}`}</span>
-                              <span>{dp.cpmCents === null ? "CPM —" : `CPM ${dinheiro(dp.cpmCents)}`}</span>
-                              <span>{formatInteger(p.metrics.impressions)} impr.</span>
-                            </p>
-                          </li>
-                        );
-                      })}
+                    <ul className="class-board-criativo-posicoes" aria-label={`Posicionamentos onde ${a.name} vendeu`}>
+                      {posicoes.map((p) => (
+                        <li key={p.id} data-posicao={p.id} data-cor={COR_DA_POSICAO[p.id] ?? "neutra"}>
+                          <i aria-hidden="true" />
+                          <span>{rotuloCurtoDaPosicao(p.id)}</span>
+                          <b>{formatInteger(p.metrics.purchases)}</b>
+                        </li>
+                      ))}
                       {sem > 0 && (
-                        <li data-posicao="sem">
-                          <div className="class-board-criativo-posicao-topo">
-                            <span>Sem posição</span>
-                            <b>{formatInteger(sem)}</b>
-                            <i>{sem === 1 ? "venda" : "vendas"}</i>
-                          </div>
+                        <li data-posicao="sem" data-cor="vazia">
+                          <i aria-hidden="true" />
+                          <span>Sem posição</span>
+                          <b>{formatInteger(sem)}</b>
                         </li>
                       )}
                     </ul>
                   );
                 })()}
                 {/* As métricas do criativo, na mesma régua dos números da
-                    campanha: duas colunas, todas as células iguais. */}
+                    campanha: todas as células iguais. */}
                 <dl className="class-board-criativo-metricas">
                   {([
                     ["ROAS", da.roas === null ? "—" : formatRatio(da.roas)],

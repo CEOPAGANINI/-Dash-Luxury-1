@@ -99,7 +99,7 @@ describe("a seta abre os dados da campanha num bloco à direita do quadro", () =
     // Todos os números e as fichas da campanha.
     // Só os números da campanha: os de cada criativo vivem no cartão dele.
     const pares = Object.fromEntries(
-      [...dados.querySelectorAll("dl:not(.class-board-criativo-metricas) > div")].map((d) => [
+      [...dados.querySelectorAll(".class-board-dados-numeros > div, .class-board-dados-fichas > div")].map((d) => [
         d.querySelector("dt")!.textContent,
         d.querySelector("dd")!.textContent,
       ]),
@@ -211,38 +211,69 @@ describe("a seta abre os dados da campanha num bloco à direita do quadro", () =
     expect(sozinho.querySelector(".class-board-dados-criativos-topo > span > i")).toBeNull();
   });
 
-  it("cada criativo mostra as métricas de cada posicionamento onde vendeu", () => {
+  it("a secção dos posicionamentos traz os números de cada sítio onde o criativo vendeu", () => {
     const comPosicoes = comCriativos();
-    // O "Vídeo 30s" fez 3 vendas: 2 no stories e 1 no feed.
-    comPosicoes.campanhas[0].adSets[0].ads[0].placements = [
-      { id: "stories", plataforma: "instagram", metrics: { spendCents: 75_00, revenueCents: 300_00, impressions: 7_500, clicks: 150, purchases: 2 } },
-      { id: "feed", plataforma: "facebook", metrics: { spendCents: 25_00, revenueCents: 25_00, impressions: 5_000, clicks: 50, purchases: 1 } },
+    // O "Estático" é o que mais investiu, por isso abre primeiro no
+    // carrossel — e é dele que a secção fala. Fez 4 vendas: 3 no
+    // stories e 1 no feed.
+    comPosicoes.campanhas[0].adSets[0].ads[1].metrics.purchases = 4;
+    comPosicoes.campanhas[0].adSets[0].ads[1].placements = [
+      { id: "stories", plataforma: "instagram", metrics: { spendCents: 150_00, revenueCents: 600_00, impressions: 7_500, clicks: 150, purchases: 3 } },
+      { id: "feed", plataforma: "facebook", metrics: { spendCents: 50_00, revenueCents: 50_00, impressions: 5_000, clicks: 50, purchases: 1 } },
     ];
     render(<ClassBoard tree={comPosicoes} regras={GUARDRAILS_PADRAO} network="meta" />);
     fireEvent.click(screen.getByRole("button", { name: "Abrir campanha Alfa" }));
-    const feed = screen.getByRole("region", { name: "Criativos de Alfa" });
-    const cartoes = [...feed.querySelectorAll("li.class-board-criativo")];
-    // O "Estático", sem partição sincronizada, não inventa posições.
-    expect(cartoes[0].querySelector("b")?.textContent).toBe("Estático");
-    expect(cartoes[0].querySelector(".class-board-criativo-posicoes")).toBeNull();
-    const posicoes = [...cartoes[1].querySelectorAll(".class-board-criativo-posicoes > li")];
-    // A posição que mais vendeu vem primeiro.
-    expect(posicoes.map((li) => li.getAttribute("data-posicao"))).toEqual(["stories", "feed"]);
-    const linha = (li: Element) => (li.textContent ?? "").replace(/ /g, " ");
-    // Stories: 2 vendas, R$ 75 investidos, ROAS 4x, CPA R$ 37,50, CTR 2%, CPM R$ 10.
-    expect(linha(posicoes[0])).toContain("Stories");
-    expect(linha(posicoes[0])).toContain("2vendas");
-    expect(linha(posicoes[0])).toContain("4,00x");
-    expect(linha(posicoes[0])).toContain("CPA R$ 37,50");
-    expect(linha(posicoes[0])).toContain("CTR 2,00%");
-    expect(linha(posicoes[0])).toContain("CPM R$ 10,00");
-    expect(linha(posicoes[0])).toContain("7.500 impr.");
-    // Feed: as mesmas contas, com os números dele — 1 venda, CTR 1%, ROAS 1x.
-    expect(linha(posicoes[1])).toContain("1venda");
-    expect(linha(posicoes[1])).toContain("CTR 1,00%");
-    expect(linha(posicoes[1])).toContain("1,00x");
-    // As 3 vendas do anúncio estão todas repartidas: nada de "sem posição".
-    expect(posicoes.some((li) => li.getAttribute("data-posicao") === "sem")).toBe(false);
+    const secao = screen.getByRole("region", { name: "Desempenho por posicionamento" });
+    expect(secao.querySelector("p")?.textContent).toContain("Estático");
+
+    // Um cartão por posicionamento, do que mais vendeu para o que menos.
+    const cartoes = [...secao.querySelectorAll(".class-board-posicoes-cartoes > li")];
+    expect(cartoes.map((li) => li.getAttribute("data-posicao"))).toEqual(["stories", "feed"]);
+    // Cada posicionamento leva a cor dele, que segue a posição e não a
+    // colocação no ranking.
+    expect(cartoes.map((li) => li.getAttribute("data-cor"))).toEqual(["2", "1"]);
+    expect(cartoes[0].querySelector(".class-board-posicoes-cabecalho > b")?.textContent).toBe("Stories");
+    expect(cartoes[0].querySelector(".class-board-posicoes-cabecalho > em")?.textContent).toBe("75% das vendas");
+
+    // Os números são os daquele posicionamento, não os do criativo:
+    // stories gastou R$ 150 e devolveu R$ 600 → ROAS 4x, CPA R$ 50,
+    // 150 cliques em 7.500 impressões → CTR 2%, CPC R$ 1, CPM R$ 20.
+    const linhas = (li: Element) =>
+      Object.fromEntries(
+        [...li.querySelectorAll("dl > div")].map((d) => [
+          d.querySelector("dt")!.textContent,
+          (d.querySelector("dd")!.textContent ?? "").replace(/\u00a0/g, " "),
+        ]),
+      );
+    expect(linhas(cartoes[0])).toEqual({
+      Vendas: "3", ROAS: "4,00x", "Impressões": "7.500", Cliques: "150",
+      CTR: "2,00%", CPC: "R$ 1,00", CPM: "R$ 20,00", CPA: "R$ 50,00",
+    });
+    // O feed tem os dele: 1 venda, ROAS 1x, CTR 1%.
+    expect(linhas(cartoes[1])).toMatchObject({ Vendas: "1", ROAS: "1,00x", CTR: "1,00%" });
+
+    // A distribuição fecha nas 4 vendas do criativo, com a legenda a
+    // dizer o nome e o número de cada fatia — a cor nunca é o único sinal.
+    const legenda = [...secao.querySelectorAll(".class-board-posicoes-legenda > li")].map((li) =>
+      (li.textContent ?? "").replace(/\u00a0/g, " "),
+    );
+    expect(legenda).toEqual(["Stories75%(3 vendas)", "Feed25%(1 venda)"]);
+    expect(secao.querySelector(".class-board-posicoes-distribuicao figcaption small")?.textContent).toBe("Total de 4 vendas");
+    expect([...secao.querySelectorAll(".class-board-posicoes-barra > span")].map((s) => s.getAttribute("data-cor"))).toEqual(["2", "1"]);
+
+    // No cartão do criativo ficam só as pílulas, com a mesma cor.
+    const pilulas = [...screen.getByRole("region", { name: "Criativos de Alfa" })
+      .querySelectorAll("li.class-board-criativo")[0]
+      .querySelectorAll(".class-board-criativo-posicoes > li")];
+    expect(pilulas.map((li) => li.getAttribute("data-cor"))).toEqual(["2", "1"]);
+
+    // Sem partição sincronizada, a secção diz isso e não inventa nada.
+    cleanup();
+    render(<ClassBoard tree={comCriativos()} regras={GUARDRAILS_PADRAO} network="meta" />);
+    fireEvent.click(screen.getByRole("button", { name: "Abrir campanha Alfa" }));
+    const vazia = screen.getByRole("region", { name: "Desempenho por posicionamento" });
+    expect(vazia.querySelector(".class-board-posicoes-cartoes")).toBeNull();
+    expect(vazia.querySelector(".class-board-posicoes-vazio")?.textContent).toContain("ainda não devolveu");
   });
 
   it("as secções e os quadradinhos do painel arrastam-se, e a arrumação fica guardada", () => {
@@ -250,12 +281,12 @@ describe("a seta abre os dados da campanha num bloco à direita do quadro", () =
     fireEvent.click(screen.getByRole("button", { name: "Abrir campanha Alfa" }));
     const dados = screen.getByRole("group", { name: "Dados de Alfa" });
     const secoes = () => [...dados.querySelectorAll(".class-board-dados-secao")].map((s) => s.getAttribute("data-secao"));
-    expect(secoes()).toEqual(["grafico", "lucro", "numeros", "fichas", "criativos"]);
+    expect(secoes()).toEqual(["grafico", "lucro", "numeros", "fichas", "criativos", "posicoes"]);
 
     // As setas do teclado na pega descem a secção do gráfico.
     fireEvent.keyDown(within(dados).getByRole("button", { name: "Mover a secção Gráfico do ROAS" }), { key: "ArrowDown" });
-    expect(secoes()).toEqual(["lucro", "grafico", "numeros", "fichas", "criativos"]);
-    expect(restoreCampaignPanelOrder(localStorage.getItem(ORDEM_PAINEL_KEY)!)?.secoes).toEqual(["lucro", "grafico", "numeros", "fichas", "criativos"]);
+    expect(secoes()).toEqual(["lucro", "grafico", "numeros", "fichas", "criativos", "posicoes"]);
+    expect(restoreCampaignPanelOrder(localStorage.getItem(ORDEM_PAINEL_KEY)!)?.secoes).toEqual(["lucro", "grafico", "numeros", "fichas", "criativos", "posicoes"]);
 
     // Arrastar um quadradinho para cima de outro troca a ordem dos números.
     const numeros = within(dados).getByRole("group", { name: "Números da campanha" });
@@ -298,11 +329,11 @@ describe("a seta abre os dados da campanha num bloco à direita do quadro", () =
 
     // Uma arrumação estragada volta ao padrão, sem quebrar.
     expect(restoreCampaignPanelOrder("{")).toBeNull();
-    expect(restoreCampaignPanelOrder(JSON.stringify({ version: 1, secoes: ["inventada", "lucro"] }))?.secoes).toEqual(["lucro", "grafico", "numeros", "fichas", "criativos"]);
+    expect(restoreCampaignPanelOrder(JSON.stringify({ version: 1, secoes: ["inventada", "lucro"] }))?.secoes).toEqual(["lucro", "grafico", "numeros", "fichas", "criativos", "posicoes"]);
     // Uma largura inválida volta ao padrão da secção (o gráfico nasce a
     // meia linha) em vez de virar uma coluna zero; as válidas ficam.
     expect(restoreCampaignPanelOrder(JSON.stringify({ version: 1, larguras: { grafico: 7, numeros: 1 } }))?.larguras).toEqual({
-      grafico: 1, lucro: 1, numeros: 1, fichas: 2, criativos: 2,
+      grafico: 1, lucro: 1, numeros: 1, fichas: 2, criativos: 2, posicoes: 2,
     });
   });
 

@@ -4811,11 +4811,11 @@ html[data-tema="branco"] .dash-skin .class-board-dados > .class-board-dados-topo
 /* Sem aria-pressed de propósito: o estilo global de botão "ligado"
    pintava a coluna da pega de escuro. O estado vai no rótulo e aqui. */
 .dash-skin .class-board-dados-largura[data-meia="true"] { color: var(--foreground, #f5f5f5); }
-/* O carrossel é a secção mais alta do painel: leva a arte do criativo
-   de um lado e todas as métricas dele do outro, e ainda os pontinhos por
-   baixo. A altura que ele pede veio do gráfico e das fichas, que
-   apertaram um pouco. */
-.dash-skin .class-board-dados > .class-board-dados-secao[data-secao="criativos"] { min-height: 13rem; }
+/* O carrossel leva a arte do criativo de um lado e, do outro, o nome,
+   as vendas, as pílulas dos posicionamentos e as métricas dele — mais
+   os pontinhos por baixo. Os números de cada posicionamento saíram
+   daqui para a secção própria, que é a mais alta do painel. */
+.dash-skin .class-board-dados > .class-board-dados-secao[data-secao="criativos"] { min-height: 9.5rem; }
 .dash-skin .class-board-dados > .class-board-dados-secao[data-secao="grafico"] { min-height: 8rem; }
 /* Janela baixa (um MacBook com a barra do navegador a comer altura): o
    painel aperta um pouco em vez de obrigar a rolar por dentro. */
@@ -4962,20 +4962,22 @@ html[data-tema="branco"] .dash-skin .class-board-dados-criativos-topo > span > i
   scroll-snap-align: start;
   scroll-snap-stop: always;
 }
-/* O bloco das métricas: as linhas de cima medem-se pelo texto, as de
-   baixo (posições e métricas) repartem a altura que sobra — é assim que
-   o bloco fecha em baixo em vez de deixar um vão. */
+/* Ao lado do criativo, em coluna e por esta ordem: o nome, as vendas,
+   um bloco por posicionamento e, por fim, as métricas do criativo.
+   O nome e as vendas medem-se pelo texto; os posicionamentos e as
+   métricas repartem a altura que sobra (os posicionamentos levam a
+   maior parte, porque são vários) — é assim que o bloco fecha em baixo
+   em vez de deixar um vão. */
 .dash-skin .class-board-criativo-corpo {
-  display: grid;
-  grid-template-rows: auto auto;
-  grid-auto-rows: minmax(0, 1fr);
-  align-content: stretch;
+  display: flex;
+  flex-direction: column;
   gap: 4px;
   min-width: 0;
   min-height: 0;
   padding: 6px;
   background: var(--camada-3, rgb(255 255 255 / 6%));
 }
+.dash-skin .class-board-criativo-corpo > :is(.class-board-criativo-texto, .class-board-criativo-vendas) { flex: none; }
 html[data-tema="branco"] .dash-skin .class-board-criativo-corpo { background: rgb(0 0 0 / 5%); }
 /* A arte ocupa a coluna dela de alto a baixo: é a peça, não uma tira. */
 .dash-skin .class-board-criativo-arte {
@@ -5059,44 +5061,40 @@ html[data-tema="branco"] .dash-skin .class-board-criativo-vendas > b { color: #1
 }
 /* De onde vieram as vendas: uma linha por posição, nome à esquerda e
    número à direita, todas na mesma régua. */
+/* No cartão do criativo ficam só as pílulas: em que posicionamentos ele
+   vendeu e quantas. Os números de cada um estão na secção "Desempenho
+   por posicionamento", que acompanha o criativo aberto no carrossel. */
 .dash-skin .class-board-criativo-posicoes {
-  /* Quantas posições cabem lado a lado depende da largura do cartão:
-     num cartão largo ficam duas ou três por linha, num estreito uma.
-     As caixas esticam com a altura do bloco, em vez de deixarem vão. */
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
-  grid-auto-rows: minmax(0, 1fr);
-  align-content: stretch;
-  gap: 2px;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  flex: none;
+  gap: 3px;
   margin: 0;
   padding: 0;
   min-width: 0;
-  min-height: 0;
   list-style: none;
 }
-/* Cada posição é uma caixa empilhada: em cima o nome e as vendas, em
-   baixo os números dela. Nunca em duas colunas — foi assim que o nome e
-   os números se atropelaram. */
 .dash-skin .class-board-criativo-posicoes > li {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  align-content: center;
-  gap: 1px;
-  min-width: 0;
-  min-height: 0;
-  padding: 3px 5px;
-  background: var(--camada-2, rgb(255 255 255 / 5%));
-}
-html[data-tema="branco"] .dash-skin .class-board-criativo-posicoes > li { background: rgb(0 0 0 / 4%); }
-/* O topo: nome à esquerda, "N vendas" à direita. */
-.dash-skin .class-board-criativo-posicao-topo {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 4px;
   min-width: 0;
+  padding: 2px 5px;
+  background: var(--camada-2, rgb(255 255 255 / 5%));
 }
-.dash-skin .class-board-criativo-posicao-topo > span {
-  flex: 1 1 auto;
+.dash-skin .class-board-criativo-posicoes i {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  background: var(--posicao-neutra, #898781);
+}
+.dash-skin .class-board-criativo-posicoes > li[data-cor="1"] i { background: var(--posicao-1, #3987e5); }
+.dash-skin .class-board-criativo-posicoes > li[data-cor="2"] i { background: var(--posicao-2, #c98500); }
+.dash-skin .class-board-criativo-posicoes > li[data-cor="3"] i { background: var(--posicao-3, #d55181); }
+.dash-skin .class-board-criativo-posicoes > li[data-cor="4"] i { background: var(--posicao-4, #008300); }
+.dash-skin .class-board-criativo-posicoes > li[data-cor="vazia"] i { background: var(--posicao-vazia, rgb(255 255 255 / 20%)); }
+.dash-skin .class-board-criativo-posicoes span {
   min-width: 0;
   color: var(--muted-foreground, #9e9e9e);
   font-size: 0.5625rem;
@@ -5104,48 +5102,8 @@ html[data-tema="branco"] .dash-skin .class-board-criativo-posicoes > li { backgr
   letter-spacing: 0.04em;
   text-transform: uppercase;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
-.dash-skin .class-board-criativo-posicao-topo > b {
-  flex: none;
-  font-size: 0.6875rem;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-}
-.dash-skin .class-board-criativo-posicao-topo > i {
-  flex: none;
-  color: var(--muted-foreground, #9e9e9e);
-  font-size: 0.5rem;
-  font-style: normal;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-.dash-skin .class-board-criativo-posicoes > li[data-posicao="sem"] .class-board-criativo-posicao-topo > b { color: var(--muted-foreground, #9e9e9e); }
-/* Os números da posição: fichas numa linha, que quebram se não couberem
-   — cada uma inteira, nunca cortada ao meio. */
-.dash-skin .class-board-criativo-posicao-numeros {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 1px 6px;
-  margin: 0;
-  min-width: 0;
-}
-.dash-skin .class-board-criativo-posicao-numeros > span {
-  flex: none;
-  color: var(--muted-foreground, #9e9e9e);
-  font-size: 0.5625rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-/* O investimento e o ROAS são os dois que decidem: ficam fortes. */
-.dash-skin .class-board-criativo-posicao-numeros > span:nth-child(-n + 2) {
-  color: var(--foreground, #f5f5f5);
-  font-weight: 800;
-}
+.dash-skin .class-board-criativo-posicoes b { font-size: 0.625rem; font-weight: 800; font-variant-numeric: tabular-nums; }
 /* As métricas do criativo: células todas iguais, tantas por linha
    quantas couberem na largura do cartão, esticando com a altura. */
 .dash-skin .class-board-criativo-metricas {
@@ -5153,6 +5111,9 @@ html[data-tema="branco"] .dash-skin .class-board-criativo-posicoes > li { backgr
   grid-template-columns: repeat(auto-fit, minmax(4.25rem, 1fr));
   grid-auto-rows: minmax(0, 1fr);
   align-content: stretch;
+  /* Vêm depois dos posicionamentos e ficam com a menor parte da altura
+     que sobra — sem partição por posição, ficam com ela toda. */
+  flex: 1 1 auto;
   gap: 2px;
   margin: 0;
   min-width: 0;
@@ -5236,6 +5197,240 @@ html[data-tema="branco"] .dash-skin .class-board-criativo-posicoes > li { backgr
 html[data-tema="branco"] .dash-skin .class-board-dados-criativos-pontos > li > button { background: rgb(0 0 0 / 22%); }
 html[data-tema="branco"] .dash-skin .class-board-dados-criativos-pontos > li > button[aria-current="true"] { background: #101014; }
 .dash-skin .class-board-dados-criativos-vazio { margin: 0; color: var(--muted-foreground, #9e9e9e); font-size: 0.6875rem; }
+
+/* ------------------------------------------------------------------
+   Desempenho por posicionamento
+
+   As cores das quatro posições que têm cor própria. Os dois temas são
+   escolhidos, não invertidos: cada um tem o seu degrau, validado contra
+   o fundo em que é mesmo desenhado (claro #f2f2f2, escuro #17171b) —
+   banda de luminosidade, piso de croma, separação para daltonismo e
+   contraste. A cor nunca é o único sinal: cada cartão leva o nome e
+   cada fatia da barra leva nome, percentagem e número na legenda.
+   ------------------------------------------------------------------ */
+/* Os tokens ficam no painel inteiro: as pílulas do cartão do criativo
+   usam as mesmas cores que os cartões e a barra desta secção. */
+.dash-skin .class-board-dados {
+  --posicao-1: #3987e5;
+  --posicao-2: #c98500;
+  --posicao-3: #d55181;
+  --posicao-4: #008300;
+  --posicao-neutra: #898781;
+  --posicao-vazia: var(--fio-forte, rgb(255 255 255 / 20%));
+}
+html[data-tema="branco"] .dash-skin .class-board-dados {
+  --posicao-1: #2a78d6;
+  --posicao-2: #eda100;
+  --posicao-3: #e87ba4;
+  --posicao-4: #008300;
+  --posicao-neutra: #898781;
+  --posicao-vazia: rgb(0 0 0 / 14%);
+}
+.dash-skin .class-board-posicoes {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  min-height: 0;
+}
+.dash-skin .class-board-posicoes-topo { display: grid; gap: 1px; min-width: 0; }
+.dash-skin .class-board-posicoes-topo > h3 {
+  margin: 0;
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.dash-skin .class-board-posicoes-topo > p {
+  margin: 0;
+  color: var(--muted-foreground, #9e9e9e);
+  font-size: 0.625rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dash-skin .class-board-posicoes-vazio { margin: 0; color: var(--muted-foreground, #9e9e9e); font-size: 0.6875rem; }
+/* Um cartão por posição, todos da mesma medida, a repartir a largura. */
+.dash-skin .class-board-posicoes-cartoes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+  align-content: stretch;
+  flex: 1 1 auto;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  /* Nunca abaixo do conteúdo: a secção cresce, não esmaga os cartões. */
+  min-height: min-content;
+  list-style: none;
+}
+.dash-skin .class-board-posicoes-cartoes > li {
+  display: grid;
+  grid-template-rows: auto minmax(min-content, 1fr);
+  gap: 4px;
+  min-width: 0;
+  min-height: 0;
+  padding: 6px;
+  background: var(--camada-2, rgb(255 255 255 / 4%));
+  box-shadow: inset 0 0 0 1px var(--fio, rgb(255 255 255 / 8%));
+}
+html[data-tema="branco"] .dash-skin .class-board-posicoes-cartoes > li { background: rgb(0 0 0 / 3%); box-shadow: inset 0 0 0 1px rgb(0 0 0 / 8%); }
+.dash-skin .class-board-posicoes-cabecalho {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+/* O selo leva a cor da posição; o nome ao lado é que diz qual é. */
+.dash-skin .class-board-posicoes-selo {
+  display: grid;
+  place-items: center;
+  width: 1.125rem;
+  height: 1.125rem;
+  background: var(--posicao-neutra);
+  color: #ffffff;
+}
+.dash-skin .class-board-posicoes-selo > svg { width: 0.75rem; height: 0.75rem; }
+.dash-skin .class-board-posicoes-cartoes > li[data-cor="1"] .class-board-posicoes-selo { background: var(--posicao-1); }
+.dash-skin .class-board-posicoes-cartoes > li[data-cor="2"] .class-board-posicoes-selo { background: var(--posicao-2); }
+.dash-skin .class-board-posicoes-cartoes > li[data-cor="3"] .class-board-posicoes-selo { background: var(--posicao-3); }
+.dash-skin .class-board-posicoes-cartoes > li[data-cor="4"] .class-board-posicoes-selo { background: var(--posicao-4); }
+.dash-skin .class-board-posicoes-cabecalho > b {
+  min-width: 0;
+  font-size: 0.75rem;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dash-skin .class-board-posicoes-cabecalho > em {
+  flex: none;
+  padding: 1px 4px;
+  background: var(--camada-3, rgb(255 255 255 / 6%));
+  color: var(--muted-foreground, #9e9e9e);
+  font-size: 0.5625rem;
+  font-style: normal;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+html[data-tema="branco"] .dash-skin .class-board-posicoes-cabecalho > em { background: rgb(0 0 0 / 5%); }
+/* Uma linha por métrica: rótulo à esquerda, valor à direita. */
+.dash-skin .class-board-posicoes-cartoes dl {
+  display: grid;
+  grid-auto-rows: minmax(min-content, 1fr);
+  align-content: stretch;
+  gap: 0;
+  margin: 0;
+  min-width: 0;
+  min-height: 0;
+}
+.dash-skin .class-board-posicoes-cartoes dl > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 1px 0;
+  border-top: 1px solid var(--fio, rgb(255 255 255 / 7%));
+}
+html[data-tema="branco"] .dash-skin .class-board-posicoes-cartoes dl > div { border-top-color: rgb(0 0 0 / 7%); }
+.dash-skin .class-board-posicoes-cartoes dl > div:first-child { border-top: 0; }
+.dash-skin .class-board-posicoes-cartoes dt {
+  min-width: 0;
+  color: var(--muted-foreground, #9e9e9e);
+  font-size: 0.5625rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dash-skin .class-board-posicoes-cartoes dd {
+  margin: 0;
+  font-size: 0.625rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.dash-skin .class-board-posicoes-cartoes dl > div[data-linha="roas"] dd { color: var(--numero-verde); }
+/* A distribuição: uma barra só, com 2px de fundo entre as fatias para
+   elas nunca se colarem, e a legenda com nome, percentagem e número. */
+.dash-skin .class-board-posicoes-distribuicao {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  flex: none;
+  min-width: 0;
+  padding: 7px 8px;
+  background: var(--camada-2, rgb(255 255 255 / 4%));
+}
+html[data-tema="branco"] .dash-skin .class-board-posicoes-distribuicao { background: rgb(0 0 0 / 3%); }
+.dash-skin .class-board-posicoes-distribuicao > figcaption {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+.dash-skin .class-board-posicoes-distribuicao > figcaption > span {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dash-skin .class-board-posicoes-distribuicao > figcaption > small {
+  flex: none;
+  color: var(--muted-foreground, #9e9e9e);
+  font-size: 0.625rem;
+  font-weight: 600;
+}
+.dash-skin .class-board-posicoes-distribuicao > figcaption b { font-weight: 800; color: var(--foreground, #f5f5f5); }
+.dash-skin .class-board-posicoes-barra { display: flex; gap: 2px; height: 0.875rem; min-width: 0; }
+.dash-skin .class-board-posicoes-barra > span { flex: 1 1 0; min-width: 3px; background: var(--posicao-neutra); }
+.dash-skin .class-board-posicoes-barra > span[data-cor="1"] { background: var(--posicao-1); }
+.dash-skin .class-board-posicoes-barra > span[data-cor="2"] { background: var(--posicao-2); }
+.dash-skin .class-board-posicoes-barra > span[data-cor="3"] { background: var(--posicao-3); }
+.dash-skin .class-board-posicoes-barra > span[data-cor="4"] { background: var(--posicao-4); }
+.dash-skin .class-board-posicoes-barra > span[data-cor="vazia"] { background: var(--posicao-vazia); }
+.dash-skin .class-board-posicoes-legenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 14px;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  list-style: none;
+}
+.dash-skin .class-board-posicoes-legenda > li { display: flex; align-items: baseline; gap: 4px; min-width: 0; }
+.dash-skin .class-board-posicoes-legenda i {
+  align-self: center;
+  flex: none;
+  width: 7px;
+  height: 7px;
+  background: var(--posicao-neutra);
+}
+.dash-skin .class-board-posicoes-legenda > li[data-cor="1"] i { background: var(--posicao-1); }
+.dash-skin .class-board-posicoes-legenda > li[data-cor="2"] i { background: var(--posicao-2); }
+.dash-skin .class-board-posicoes-legenda > li[data-cor="3"] i { background: var(--posicao-3); }
+.dash-skin .class-board-posicoes-legenda > li[data-cor="4"] i { background: var(--posicao-4); }
+.dash-skin .class-board-posicoes-legenda > li[data-cor="vazia"] i { background: var(--posicao-vazia); }
+.dash-skin .class-board-posicoes-legenda span { font-size: 0.5625rem; font-weight: 700; color: var(--muted-foreground, #9e9e9e); white-space: nowrap; }
+.dash-skin .class-board-posicoes-legenda b { font-size: 0.625rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.dash-skin .class-board-posicoes-legenda em {
+  color: var(--muted-foreground, #9e9e9e);
+  font-size: 0.5625rem;
+  font-style: normal;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.dash-skin .class-board-dados > .class-board-dados-secao[data-secao="posicoes"] { min-height: 18.25rem; }
 html[data-tema="branco"] .dash-skin .class-board-dados-criativos-topo > button { border-color: rgb(0 0 0 / 16%); color: #101014; }
 html[data-tema="branco"] .dash-skin .class-board-criativo { background: rgb(0 0 0 / 3%); }
 html[data-tema="branco"] .dash-skin .class-board-criativo-arte { background: rgb(0 0 0 / 5%); }
@@ -5340,7 +5535,7 @@ html[data-tema="branco"] .dash-skin {
 .dash-skin :is(.class-board-dados-numeros, .class-board-dados-fichas) {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
-  grid-auto-rows: var(--ficha-altura, 2.5rem);
+  grid-auto-rows: var(--ficha-altura, 2.25rem);
   gap: var(--ficha-vao, 4px);
   margin: 0;
   min-width: 0;
