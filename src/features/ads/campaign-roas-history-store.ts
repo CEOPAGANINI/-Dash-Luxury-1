@@ -45,6 +45,45 @@ export function minutoDe(t: number): number {
   return Math.floor(t / INTERVALO_MINUTO_MS);
 }
 
+/** O teto do ROAS que o gráfico da demonstração alcança. */
+export const ROAS_MAXIMO = 10;
+const ROAS_MINIMO = 0.2;
+
+/* Um número estável entre 0 e 1 a partir de um texto: a mesma campanha
+   tem sempre a mesma "personalidade" de oscilação. */
+function semente(chave: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < chave.length; i++) {
+    h ^= chave.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return ((h >>> 0) % 100000) / 100000;
+}
+
+/*
+  O ROAS de demonstração ao vivo: parte do ROAS da campanha e passeia à
+  volta dele com três ondas de períodos diferentes (~17 minutos, ~53
+  minutos e ~3 horas) somadas. Dá uma linha com altos e baixos de
+  verdade, entre 0,2x e 10x, sempre igual para a mesma campanha no mesmo
+  minuto — nada de saltar a cada desenho.
+
+  Só vale no modo demonstração: com dados reais entra o ROAS real, sem
+  enfeite nenhum.
+*/
+export function roasDemonstrativo(chave: string, base: number, agora: number): number {
+  const s = semente(chave);
+  const m = minutoDe(agora);
+  const centro = Math.min(Math.max(Number.isFinite(base) && base > 0 ? base : 1.5, 0.6), 4);
+  // Amplitude própria de cada campanha: umas balançam mais do que outras.
+  const amplitude = centro * (0.4 + s * 1.1);
+  const onda =
+    Math.sin((m / 17) * Math.PI * 2 + s * 6.283) * 0.55 +
+    Math.sin((m / 53) * Math.PI * 2 + s * 2.4) * 0.3 +
+    Math.sin((m / 181) * Math.PI * 2 + s * 4.1) * 0.15;
+  const valor = centro + onda * amplitude;
+  return Math.round(Math.min(Math.max(valor, ROAS_MINIMO), ROAS_MAXIMO) * 100) / 100;
+}
+
 /* Junta uma leitura ao histórico: no mesmo minuto da última amostra,
    substitui-a (fica a leitura mais nova); num minuto novo, acrescenta.
    Nunca guarda mais do que AMOSTRAS_POR_CAMPANHA. */

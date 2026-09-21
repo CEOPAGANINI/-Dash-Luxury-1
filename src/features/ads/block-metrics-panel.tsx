@@ -266,6 +266,33 @@ export function leiturasDaJanela(amostras: readonly Amostra[], janela: JanelaId,
   return amostras.filter((a) => a.t >= fim - ms);
 }
 
+/** O espaço mínimo entre duas bolinhas, para não virarem um pontilhado. */
+export const VAO_DA_BOLINHA = 12;
+
+/*
+  Quais leituras ganham bolinha: a primeira, a última, e pelo meio só as
+  que ficam a pelo menos VAO_DA_BOLINHA da anterior desenhada. A linha
+  continua a passar por todas — o que se reduz é a contagem de pontos.
+*/
+export function bolinhasVisiveis<T extends { x: number }>(pontos: readonly T[], largura: number): T[] {
+  if (pontos.length <= 2) return [...pontos];
+  const cabem = Math.max(2, Math.floor(largura / VAO_DA_BOLINHA) + 1);
+  if (pontos.length <= cabem) return [...pontos];
+  const escolhidas: T[] = [pontos[0]];
+  let ultimoX = pontos[0].x;
+  for (let i = 1; i < pontos.length - 1; i++) {
+    if (pontos[i].x - ultimoX >= VAO_DA_BOLINHA) {
+      escolhidas.push(pontos[i]);
+      ultimoX = pontos[i].x;
+    }
+  }
+  const ultima = pontos[pontos.length - 1];
+  // A última entra sempre; se ficar colada na anterior, é a anterior que sai.
+  while (escolhidas.length > 1 && ultima.x - escolhidas[escolhidas.length - 1].x < VAO_DA_BOLINHA) escolhidas.pop();
+  escolhidas.push(ultima);
+  return escolhidas;
+}
+
 export function GraficoRoas({
   amostras,
   rotulo,
@@ -318,8 +345,10 @@ export function GraficoRoas({
   const maximo = n ? Math.max(...valores) : 0;
   const minimo = n ? Math.min(...valores) : 0;
   /* O eixo aperta em volta dos valores (como numa cotação), em passos
-     redondos de 0,1x, 0,2x, 0,5x ou 1x, com uma folga em cima e embaixo. */
-  const passo = [0.1, 0.2, 0.5, 1, 2, 5].find((p) => (maximo - minimo) / p <= 4) ?? 5;
+     redondos, com uma folga em cima e embaixo. Os passos finos existem
+     para que uma variação pequena continue a ver-se como sobe e desce,
+     em vez de virar uma linha reta no meio da caixa. */
+  const passo = [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5].find((p) => (maximo - minimo) / p <= 4) ?? 5;
   const base = Math.max(0, Math.floor((minimo - passo * 0.4) / passo) * passo);
   const topo = Math.max(base + passo, Math.ceil((maximo + passo * 0.4) / passo) * passo);
   const passos: number[] = [];
@@ -330,6 +359,10 @@ export function GraficoRoas({
   const y = (v: number) => MARGEM_USADA.cima + altura - ((v - base) / (topo - base)) * altura;
   const pontos = visiveis.map((a) => ({ ...a, x: x(a.t), y: y(a.roas) }));
   const caminho = pontos.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
+  /* As bolinhas: a linha usa todas as leituras, mas só se desenham as
+     que cabem sem encostar umas nas outras — senão, numa janela de seis
+     horas, 360 bolinhas viram um pontilhado em vez de um gráfico. */
+  const bolinhas = bolinhasVisiveis(pontos, largura);
   const ultimo = pontos[pontos.length - 1];
   const primeiro = pontos[0];
   /* O cursor, o ponto e o cartão só existem com o mouse sobre a linha. */
@@ -388,7 +421,7 @@ export function GraficoRoas({
             {n > 1 && <path d={caminho} className="class-board-grafico-linha" />}
             {/* Uma bolinha por leitura, na cor da classe do ROAS:
                 vermelha em baixo, amarela no meio, verde em cima. */}
-            {pontos.map((p, i) => (
+            {bolinhas.map((p) => (
               <circle
                 key={p.t}
                 cx={p.x}
@@ -396,7 +429,7 @@ export function GraficoRoas({
                 r={3}
                 className="class-board-grafico-bolinha"
                 data-faixa={faixaDoRoas(p.roas)}
-                data-ativo={i === ativo ? "true" : undefined}
+                data-ativo={escolhido && escolhido.t === p.t ? "true" : undefined}
               />
             ))}
             {escolhido && (

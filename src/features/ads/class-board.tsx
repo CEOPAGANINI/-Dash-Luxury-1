@@ -51,7 +51,7 @@ import {
 import { CampaignHoverCard, type CampaignPreview } from "./campaign-hover-card";
 import { ROTULO_DA_SAUDE, Semaforo, descricaoDaSaude, saudeDasMetricas, saudeDoConjunto } from "./campaign-health";
 import { GraficoRoas, JANELAS_MINUTO } from "./block-metrics-panel";
-import { INTERVALO_MINUTO_MS, chaveDaCampanhaNoHistorico, registrarRoasDaCampanha, useCampaignRoasHistory } from "./campaign-roas-history-store";
+import { INTERVALO_MINUTO_MS, chaveDaCampanhaNoHistorico, registrarRoasDaCampanha, roasDemonstrativo, useCampaignRoasHistory } from "./campaign-roas-history-store";
 import { lucroDaCampanha, useTaxas } from "./fees-store";
 import {
   SECOES_DO_PAINEL,
@@ -397,13 +397,17 @@ export function ClassBoard({
         const corte = par.lastIndexOf("=");
         const id = corte > 0 ? par.slice(0, corte) : "";
         const valor = corte > 0 ? par.slice(corte + 1) : "";
-        if (id && valor && valor !== "-") registrarRoasDaCampanha(chaveDaCampanhaNoHistorico(escopoDoHistorico, id), Number(valor));
+        if (!id || !valor || valor === "-") continue;
+        const chave = chaveDaCampanhaNoHistorico(escopoDoHistorico, id);
+        /* Na demonstração o ROAS passeia (altos e baixos até 10x); com
+           dados reais entra o número real, sem enfeite. */
+        registrarRoasDaCampanha(chave, demo ? roasDemonstrativo(chave, Number(valor), Date.now()) : Number(valor));
       }
     };
     gravar();
     const timer = window.setInterval(gravar, INTERVALO_MINUTO_MS);
     return () => window.clearInterval(timer);
-  }, [assinaturaDasCampanhas, escopoDoHistorico]);
+  }, [assinaturaDasCampanhas, escopoDoHistorico, demo]);
   /* A campanha aberta pela seta: os dados dela aparecem embaixo da faixa,
      dentro do bloco (uma de cada vez em todo o quadro). */
   const [campanhaAberta, setCampanhaAberta] = React.useState<string | null>(null);

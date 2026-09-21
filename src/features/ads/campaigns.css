@@ -4746,7 +4746,16 @@ html[data-tema="branco"] .dash-skin .class-board-faixa-pager .class-board-faixa-
   box-shadow: inset 0 0 0 1px var(--fio-forte, rgb(255 255 255 / 14%));
   scrollbar-width: thin;
 }
-.dash-skin .class-board-dados > .class-board-dados-topo { flex: 0 0 auto; }
+.dash-skin .class-board-dados > .class-board-dados-topo {
+  flex: 0 0 auto;
+  position: sticky;
+  top: -10px;
+  z-index: 2;
+  padding: 10px 0 6px;
+  margin: -10px 0 -6px;
+  background: var(--camada-1, #131315);
+}
+html[data-tema="branco"] .dash-skin .class-board-dados > .class-board-dados-topo { background: #ffffff; }
 /* Cada secção arrastável: a pega à esquerda e o conteúdo a ocupar o
    resto da largura. Quem manda no lugar é a ordem da coluna — nada se
    sobrepõe, e cada secção guarda a altura que precisa. */
@@ -4759,7 +4768,17 @@ html[data-tema="branco"] .dash-skin .class-board-faixa-pager .class-board-faixa-
   min-width: 0;
   min-height: 0;
 }
-.dash-skin .class-board-dados > .class-board-dados-secao[data-secao="criativos"] { flex: 1 1 auto; }
+.dash-skin .class-board-dados > .class-board-dados-secao[data-secao="criativos"] { flex: 1 1 auto; min-height: 6.5rem; }
+.dash-skin .class-board-dados > .class-board-dados-secao[data-secao="grafico"] { flex: 0 1 auto; min-height: 6.5rem; }
+/* Janela baixa (um MacBook com a barra do navegador a comer altura): o
+   painel aperta um pouco em vez de obrigar a rolar por dentro. */
+@media (max-height: 720px) {
+  .dash-skin .class-board-dados { --ficha-altura: 2.375rem; }
+  .dash-skin .class-board-dados > .class-board-dados-secao[data-secao="grafico"] { min-height: 5.25rem; }
+  .dash-skin .class-board-dados > .class-board-dados-secao[data-secao="criativos"] { min-height: 5.25rem; }
+  .dash-skin .class-board-dados-lucro { padding: 6px 10px; }
+  .dash-skin .class-board-dados-lucro > b { font-size: 1rem; }
+}
 .dash-skin .class-board-dados > .class-board-dados-secao[data-arrastando="true"] { opacity: 0.45; }
 .dash-skin .class-board-dados-pega {
   display: flex;
@@ -4787,7 +4806,7 @@ html[data-tema="branco"] .dash-skin .class-board-faixa-pager .class-board-faixa-
   flex-direction: column;
   flex: 1 1 auto;
   gap: 6px;
-  min-height: 7.5rem;
+  min-height: 5rem;
 }
 .dash-skin .class-board-dados-criativos-topo {
   display: flex;
@@ -4939,16 +4958,16 @@ html[data-tema="branco"] .dash-skin .class-board-quadro > .class-board-dados {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  flex: 1 1 auto;
+  /* Uma faixa baixa: quem fica com a sobra da altura é o feed dos
+     criativos. Em telas baixas encolhe até 5rem em vez de obrigar o
+     painel a rolar. */
+  flex: 0 1 auto;
   min-height: 0;
-  /* Uma faixa baixa e sempre igual: quem fica com a sobra da altura é o
-     feed dos criativos, não o gráfico. */
-  flex: 0 0 auto;
   max-height: 11rem;
 }
 /* O gráfico é uma faixa baixa e sempre da mesma altura: o desenho
    acompanha a largura em pixels de verdade, sem esticar letras. */
-.dash-skin .class-board-dados .class-board-grafico > .class-board-grafico-area { flex: 1 1 auto; width: 100%; height: 116px; min-height: 116px; }
+.dash-skin .class-board-dados .class-board-grafico > .class-board-grafico-area { flex: 1 1 auto; width: 100%; height: 116px; min-height: 5rem; }
 .dash-skin .class-board-dados .class-board-grafico svg[data-pontos] { width: 100%; height: 100%; }
 
 .dash-skin .class-board-dados-lucro {
