@@ -21,6 +21,13 @@ export interface AdMetrics {
   clicks: number;
   purchases: number;
   revenueCents: number;
+  /**
+   * Quantas pessoas iniciaram o checkout. Fica de fora quando a
+   * plataforma não devolve o evento — é por isso que é opcional, e não
+   * zero: zero significaria "ninguém iniciou", e isso é diferente de
+   * "não sabemos". Quem lê trata `undefined` como "—".
+   */
+  checkouts?: number;
 }
 
 export interface AdRow {
@@ -119,7 +126,7 @@ export function derivadas(m: AdMetrics) {
 }
 
 export function somarMetricas(lista: AdMetrics[]): AdMetrics {
-  return lista.reduce(
+  const soma = lista.reduce(
     (acc, m) => ({
       spendCents: acc.spendCents + m.spendCents,
       impressions: acc.impressions + m.impressions,
@@ -129,6 +136,12 @@ export function somarMetricas(lista: AdMetrics[]): AdMetrics {
     }),
     { ...METRICAS_ZERADAS },
   );
+  /* Os checkouts só entram na soma se alguém os souber: somar um lote
+     em que ninguém sabe daria zero, e zero seria uma mentira diferente
+     de "não sabemos". */
+  const sabidos = lista.filter((m) => typeof m.checkouts === "number");
+  if (sabidos.length) return { ...soma, checkouts: sabidos.reduce((s, m) => s + (m.checkouts ?? 0), 0) };
+  return soma;
 }
 
 export function isAdStatus(v: unknown): v is AdStatus {

@@ -55,8 +55,9 @@ import { CampaignHoverCard, type CampaignPreview } from "./campaign-hover-card";
 import { ROTULO_DA_SAUDE, Semaforo, descricaoDaSaude, saudeDasMetricas, saudeDoConjunto } from "./campaign-health";
 import { cartaoAberto, escalaDoPonto } from "./carousel-dots";
 import {
-  COR_DA_POSICAO, distribuicaoDeVendas, posicoesQueVenderam, rotuloCurtoDaPosicao, rotuloDaPosicao,
-  vendasSemPosicao, type PosicaoId,
+  COR_DA_POSICAO, distribuicaoDeVendas, fatiaDaPosicao, origemDoCriativo, origemDoPublico,
+  posicoesQueVenderam, rotuloCurtoDaPosicao, rotuloDaPosicao, vendasSemPosicao,
+  type OrigemDoPublico, type PosicaoId,
 } from "./creative-placements";
 import { GraficoRoas, JANELAS_MINUTO } from "./block-metrics-panel";
 import { INTERVALO_MINUTO_MS, chaveDaCampanhaNoHistorico, registrarRoasDaCampanha, roasDemonstrativo, useCampaignRoasHistory } from "./campaign-roas-history-store";
@@ -1362,10 +1363,14 @@ function DadosDaCampanha({
       data-faixa={faixa}
       data-largura={vaga.largura}
       data-altura={vaga.altura}
-      /* A sobra de altura vai toda para a última linha (o feed, por
-         padrão), em vez de esticar todas as caixas e deixar branco
-         dentro de cada uma. */
-      style={{ gridTemplateRows: `auto ${"minmax(0, min-content) ".repeat(Math.max(0, linhasDoPainel(arrumacao.secoes, arrumacao.larguras) - 1))}minmax(0, 1fr)` }}
+      /* A sobra de altura vai toda para a última linha, em vez de
+         esticar todas as caixas e deixar branco dentro de cada uma.
+         Nenhuma linha encolhe abaixo do seu conteúdo: com minmax(0, …)
+         a secção dos posicionamentos era cortada, e com a última em
+         min-content as de cima colapsavam a zero e encavalavam-se. O
+         painel rola quando a soma não cabe — e é isso que tem de
+         acontecer. */
+      style={{ gridTemplateRows: `auto ${"min-content ".repeat(Math.max(0, linhasDoPainel(arrumacao.secoes, arrumacao.larguras) - 1))}minmax(min-content, 1fr)` }}
     >
       <div className="class-board-dados-topo">
         <b className="class-board-dados-nome">{c.name}</b>
@@ -1612,27 +1617,32 @@ const ICONE_DA_POSICAO: Record<PosicaoId, React.ComponentType<{ "aria-hidden"?: 
   Desempenho por posicionamento: como o criativo aberto no carrossel
   performou em cada sítio onde o anúncio apareceu.
 
-  Um cartão por posição, com os números daquela posição (cada
-  posicionamento tem a sua proporção, por isso CTR, CPC, CPM e CPA são
-  diferentes em cada um), e por baixo a distribuição das vendas numa
-  barra só, com a legenda a dizer quantas vendas cada fatia vale.
+  Um cartão por posicionamento, cada um com as suas vendas em destaque,
+  as métricas daquele sítio (cada posicionamento tem a sua proporção,
+  por isso CTR, CPC, CPM e CPA são diferentes em cada um) e a origem do
+  público dele. Em cima, a origem do público do criativo inteiro; em
+  baixo, a distribuição das vendas numa barra só.
 
   Sem partição sincronizada, a secção diz isso e não desenha nada —
   nunca inventa de onde veio a venda.
 */
 function PosicoesDoCriativo({ criativo }: { criativo: (AdRow & { conjunto: string }) | null }) {
-  const partição = criativo?.placements ?? [];
-  const posicoes = posicoesQueVenderam(partição);
+  const particao = criativo?.placements ?? [];
+  const posicoes = posicoesQueVenderam(particao);
   const { total, fatias } = criativo
-    ? distribuicaoDeVendas(partição, criativo.metrics)
+    ? distribuicaoDeVendas(particao, criativo.metrics)
     : { total: 0, fatias: [] };
+  const origemGeral = origemDoCriativo(particao);
   const dinheiro = (v: number) => formatCurrency(v / 100, Math.abs(v) < 10_000 ? 2 : 0);
-  const percentagem = (f: number) => `${Math.round(f * 100)}%`;
+  /* A percentagem do emblema de cada cartão é a MESMA da barra de
+     distribuição, para os dois números nunca discordarem: vem da
+     repartição que fecha em 100. */
+  const percentagemDe = new Map(fatias.map((f) => [f.id, f.percentagem]));
   return (
     <section className="class-board-posicoes" aria-label="Desempenho por posicionamento">
       <header className="class-board-posicoes-topo">
         <h3>Desempenho por posicionamento</h3>
-        <p>{criativo ? `Como “${criativo.name}” performou em cada posicionamento` : "Como este criativo performou em cada posicionamento"}</p>
+        <p>{criativo ? `Como “${criativo.name}” performou em cada posicionamento.` : "Como este criativo performou em cada posicionamento."}</p>
       </header>
       {posicoes.length === 0 ? (
         <p className="class-board-posicoes-vazio">
@@ -1642,46 +1652,58 @@ function PosicoesDoCriativo({ criativo }: { criativo: (AdRow & { conjunto: strin
         </p>
       ) : (
         <>
+          {/* A origem do público do criativo inteiro, antes dos cartões:
+              a resposta rápida a "de onde veio a minha gente". */}
+          <FaixaDeOrigem origem={origemGeral} titulo="Origem do público" resumo={`${formatInteger(origemGeral.total)} impressões no total`} destaque />
           <ul className="class-board-posicoes-cartoes">
             {posicoes.map((p) => {
               const d = derivadas(p.metrics);
               const Icone = ICONE_DA_POSICAO[p.id];
-              const linhas: [string, string][] = [
-                ["Vendas", formatInteger(p.metrics.purchases)],
-                ["ROAS", d.roas === null ? "—" : formatRatio(d.roas)],
+              const origem = origemDoPublico(p.porPlataforma);
+              /* A ordem é de leitura, não de arquivo: primeiro o que
+                 decide (ROAS e quem chegou ao checkout), depois o
+                 alcance, e por fim os custos. */
+              const linhas: [string, string, string?][] = [
+                ["ROAS", d.roas === null ? "—" : formatRatio(d.roas), "roas"],
+                ["Iniciou checkout", typeof p.metrics.checkouts === "number" ? formatInteger(p.metrics.checkouts) : "—"],
                 ["Impressões", formatInteger(p.metrics.impressions)],
                 ["Cliques", formatInteger(p.metrics.clicks)],
                 ["CTR", d.ctr === null ? "—" : formatPercent(d.ctr, 2)],
                 ["CPC", d.cpcCents === null ? "—" : dinheiro(d.cpcCents)],
                 ["CPM", d.cpmCents === null ? "—" : dinheiro(d.cpmCents)],
-                ["CPA", d.cpaCents === null ? "—" : dinheiro(d.cpaCents)],
+                ["CPA", d.cpaCents === null ? "—" : dinheiro(d.cpaCents), "cpa"],
               ];
               return (
-                <li key={p.id} data-posicao={p.id} data-cor={COR_DA_POSICAO[p.id] ?? "neutra"}>
-                  <div className="class-board-posicoes-cabecalho">
+                <li key={p.id} className="class-board-posicao-cartao" data-posicao={p.id} data-cor={COR_DA_POSICAO[p.id] ?? "neutra"}>
+                  <div className="class-board-posicao-cabecalho">
                     {/* Um <i>, e não um <span>: a regra geral dos ícones
                         soltos tira o fundo de qualquer span que só tenha
-                        um ícone dentro, e aqui o fundo é a cor da
-                        posição. */}
-                    <i className="class-board-posicoes-selo" aria-hidden="true"><Icone /></i>
+                        um ícone dentro, e aqui o fundo é a cor da posição. */}
+                    <i className="class-board-posicao-selo" aria-hidden="true"><Icone /></i>
                     <b>{rotuloDaPosicao(p.id)}</b>
-                    <em>{percentagem(fatiaDaVenda(p.metrics.purchases, total))} das vendas</em>
+                    <em>{percentagemDe.get(p.id) ?? Math.round(fatiaDaPosicao(p.metrics.purchases, total) * 100)}% das vendas</em>
                   </div>
-                  <dl>
-                    {linhas.map(([rotulo, valor]) => (
-                      <div key={rotulo} data-linha={rotulo === "ROAS" ? "roas" : undefined}>
+                  {/* As vendas em destaque: é o número que decide. */}
+                  <p className="class-board-posicao-vendas">
+                    <b>{formatInteger(p.metrics.purchases)}</b>
+                    <span>{p.metrics.purchases === 1 ? "venda" : "vendas"}</span>
+                  </p>
+                  <dl className="class-board-posicao-metricas">
+                    {linhas.map(([rotulo, valor, tom]) => (
+                      <div key={rotulo} data-tom={tom}>
                         <dt>{rotulo}</dt>
                         <dd>{valor}</dd>
                       </div>
                     ))}
                   </dl>
+                  <FaixaDeOrigem origem={origem} titulo="Origem do público" />
                 </li>
               );
             })}
           </ul>
-          {/* A barra é a mesma conta vista de outra maneira: onde é que
-              as vendas deste criativo caíram. A legenda leva o nome e o
-              número de cada fatia, para a cor nunca ser o único sinal. */}
+          {/* A mesma conta vista de outra maneira: onde caíram as vendas
+              deste criativo. A legenda leva nome, percentagem e número —
+              a cor nunca é o único sinal. */}
           <figure className="class-board-posicoes-distribuicao">
             <figcaption>
               <span>Distribuição de vendas por posicionamento</span>
@@ -1701,7 +1723,7 @@ function PosicoesDoCriativo({ criativo }: { criativo: (AdRow & { conjunto: strin
                 <li key={f.id} data-cor={f.cor ?? (f.id === "sem" ? "vazia" : "neutra")}>
                   <i aria-hidden="true" />
                   <span>{f.rotulo}</span>
-                  <b>{percentagem(f.fatia)}</b>
+                  <b>{f.percentagem}%</b>
                   <em>({formatInteger(f.purchases)} {f.purchases === 1 ? "venda" : "vendas"})</em>
                 </li>
               ))}
@@ -1713,9 +1735,46 @@ function PosicoesDoCriativo({ criativo }: { criativo: (AdRow & { conjunto: strin
   );
 }
 
-/* A fatia arredondada para percentagem inteira, sem dividir por zero. */
-function fatiaDaVenda(purchases: number, total: number): number {
-  return total > 0 ? purchases / total : 0;
+/*
+  De onde veio o público: uma barra partida entre Instagram e Facebook,
+  com a percentagem e o número de impressões de cada um. As cores são as
+  das marcas — é o único sítio em que a cor não identifica uma série,
+  mas sim a rede de onde a pessoa veio; os nomes estão sempre escritos ao
+  lado, por isso a cor não carrega o sentido sozinha.
+*/
+function FaixaDeOrigem({ origem, titulo, resumo, destaque }: { origem: OrigemDoPublico; titulo: string; resumo?: string; destaque?: boolean }) {
+  if (origem.total === 0) return null;
+  const linhas = [
+    { id: "instagram" as const, rotulo: "Instagram", ...origem.instagram },
+    { id: "facebook" as const, rotulo: "Facebook", ...origem.facebook },
+  ];
+  return (
+    <div className="class-board-origem" data-destaque={destaque ? "true" : undefined}>
+      <div className="class-board-origem-topo">
+        <span>{titulo}</span>
+        {resumo ? <small>{resumo}</small> : <small>Maior origem: <b>{origem.maior === "instagram" ? "Instagram" : "Facebook"}</b></small>}
+      </div>
+      <div
+        className="class-board-origem-barra"
+        role="img"
+        aria-label={linhas.map((l) => `${l.rotulo}: ${l.percentagem}%, ${formatInteger(l.impressoes)} impressões`).join("; ")}
+      >
+        {linhas.map((l) => (
+          <span key={l.id} data-rede={l.id} style={{ flexGrow: Math.max(l.impressoes, 0.0001) }} />
+        ))}
+      </div>
+      <ul className="class-board-origem-legenda">
+        {linhas.map((l) => (
+          <li key={l.id} data-rede={l.id}>
+            <i aria-hidden="true" />
+            <span>{l.rotulo}</span>
+            <b>{l.percentagem}%</b>
+            <em>({formatInteger(l.impressoes)})</em>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 }
 
 /*

@@ -211,49 +211,75 @@ describe("a seta abre os dados da campanha num bloco à direita do quadro", () =
     expect(sozinho.querySelector(".class-board-dados-criativos-topo > span > i")).toBeNull();
   });
 
-  it("a secção dos posicionamentos traz os números de cada sítio onde o criativo vendeu", () => {
+  it("a secção dos posicionamentos traz um cartão por sítio onde o criativo vendeu", () => {
     const comPosicoes = comCriativos();
     // O "Estático" é o que mais investiu, por isso abre primeiro no
     // carrossel — e é dele que a secção fala. Fez 4 vendas: 3 no
-    // stories e 1 no feed.
+    // stories e 1 no feed, cada uma partida entre as duas plataformas.
     comPosicoes.campanhas[0].adSets[0].ads[1].metrics.purchases = 4;
     comPosicoes.campanhas[0].adSets[0].ads[1].placements = [
-      { id: "stories", plataforma: "instagram", metrics: { spendCents: 150_00, revenueCents: 600_00, impressions: 7_500, clicks: 150, purchases: 3 } },
-      { id: "feed", plataforma: "facebook", metrics: { spendCents: 50_00, revenueCents: 50_00, impressions: 5_000, clicks: 50, purchases: 1 } },
+      { id: "stories", plataforma: "instagram", metrics: { spendCents: 120_00, revenueCents: 480_00, impressions: 6_000, clicks: 120, purchases: 3, checkouts: 9 } },
+      { id: "stories", plataforma: "facebook", metrics: { spendCents: 30_00, revenueCents: 120_00, impressions: 1_500, clicks: 30, purchases: 0, checkouts: 2 } },
+      { id: "feed", plataforma: "facebook", metrics: { spendCents: 50_00, revenueCents: 50_00, impressions: 5_000, clicks: 50, purchases: 1, checkouts: 4 } },
     ];
     render(<ClassBoard tree={comPosicoes} regras={GUARDRAILS_PADRAO} network="meta" />);
     fireEvent.click(screen.getByRole("button", { name: "Abrir campanha Alfa" }));
     const secao = screen.getByRole("region", { name: "Desempenho por posicionamento" });
-    expect(secao.querySelector("p")?.textContent).toContain("Estático");
+    expect(within(secao).getByRole("heading", { name: "Desempenho por posicionamento" })).toBeTruthy();
+    expect(secao.querySelector(".class-board-posicoes-topo > p")?.textContent).toContain("Estático");
 
-    // Um cartão por posicionamento, do que mais vendeu para o que menos.
-    const cartoes = [...secao.querySelectorAll(".class-board-posicoes-cartoes > li")];
+    // Um cartão por posicionamento, do que mais vendeu para o que menos,
+    // com a cor que segue a posição e não a colocação no ranking.
+    const cartoes = [...secao.querySelectorAll(".class-board-posicao-cartao")];
     expect(cartoes.map((li) => li.getAttribute("data-posicao"))).toEqual(["stories", "feed"]);
-    // Cada posicionamento leva a cor dele, que segue a posição e não a
-    // colocação no ranking.
     expect(cartoes.map((li) => li.getAttribute("data-cor"))).toEqual(["2", "1"]);
-    expect(cartoes[0].querySelector(".class-board-posicoes-cabecalho > b")?.textContent).toBe("Stories");
-    expect(cartoes[0].querySelector(".class-board-posicoes-cabecalho > em")?.textContent).toBe("75% das vendas");
+    expect(cartoes[0].querySelector(".class-board-posicao-cabecalho > b")?.textContent).toBe("Stories");
+    expect(cartoes[0].querySelector(".class-board-posicao-cabecalho > em")?.textContent).toBe("75% das vendas");
+    // As vendas em destaque.
+    expect(cartoes[0].querySelector(".class-board-posicao-vendas > b")?.textContent).toBe("3");
+    expect(cartoes[0].querySelector(".class-board-posicao-vendas > span")?.textContent).toBe("vendas");
+    expect(cartoes[1].querySelector(".class-board-posicao-vendas > span")?.textContent).toBe("venda");
 
     // Os números são os daquele posicionamento, não os do criativo:
     // stories gastou R$ 150 e devolveu R$ 600 → ROAS 4x, CPA R$ 50,
     // 150 cliques em 7.500 impressões → CTR 2%, CPC R$ 1, CPM R$ 20.
-    const linhas = (li: Element) =>
+    const metricasDe = (li: Element) =>
       Object.fromEntries(
-        [...li.querySelectorAll("dl > div")].map((d) => [
+        [...li.querySelectorAll(".class-board-posicao-metricas > div")].map((d) => [
           d.querySelector("dt")!.textContent,
           (d.querySelector("dd")!.textContent ?? "").replace(/\u00a0/g, " "),
         ]),
       );
-    expect(linhas(cartoes[0])).toEqual({
-      Vendas: "3", ROAS: "4,00x", "Impressões": "7.500", Cliques: "150",
-      CTR: "2,00%", CPC: "R$ 1,00", CPM: "R$ 20,00", CPA: "R$ 50,00",
+    expect(metricasDe(cartoes[0])).toEqual({
+      ROAS: "4,00x", "Impressões": "7.500", Cliques: "150", CTR: "2,00%",
+      CPC: "R$ 1,00", CPM: "R$ 20,00", CPA: "R$ 50,00", "Iniciou checkout": "11",
     });
-    // O feed tem os dele: 1 venda, ROAS 1x, CTR 1%.
-    expect(linhas(cartoes[1])).toMatchObject({ Vendas: "1", ROAS: "1,00x", CTR: "1,00%" });
+    // E nesta ordem de leitura: o que decide primeiro, os custos no fim.
+    expect(Object.keys(metricasDe(cartoes[0]))).toEqual([
+      "ROAS", "Iniciou checkout", "Impressões", "Cliques", "CTR", "CPC", "CPM", "CPA",
+    ]);
+    // O feed tem os dele: ROAS 1x, CTR 1%, 4 checkouts.
+    expect(metricasDe(cartoes[1])).toMatchObject({ ROAS: "1,00x", CTR: "1,00%", "Iniciou checkout": "4" });
+
+    // A origem do público de cada cartão, pelas impressões: no stories
+    // 6.000 do Instagram e 1.500 do Facebook → 80% / 20%.
+    const origemDe = (raiz: Element) =>
+      [...raiz.querySelectorAll(".class-board-origem-legenda > li")].map((li) =>
+        (li.textContent ?? "").replace(/\u00a0/g, " "),
+      );
+    expect(origemDe(cartoes[0])).toEqual(["Instagram80%(6.000)", "Facebook20%(1.500)"]);
+    expect(cartoes[0].querySelector(".class-board-origem-topo small")?.textContent).toBe("Maior origem: Instagram");
+    // O feed só teve Facebook.
+    expect(origemDe(cartoes[1])).toEqual(["Instagram0%(0)", "Facebook100%(5.000)"]);
+
+    // E a origem do criativo inteiro, em destaque acima dos cartões:
+    // 6.000 de Instagram contra 6.500 de Facebook.
+    const geral = secao.querySelector('.class-board-origem[data-destaque="true"]')!;
+    expect(origemDe(geral)).toEqual(["Instagram48%(6.000)", "Facebook52%(6.500)"]);
+    expect(geral.querySelector(".class-board-origem-topo small")?.textContent).toBe("12.500 impressões no total");
 
     // A distribuição fecha nas 4 vendas do criativo, com a legenda a
-    // dizer o nome e o número de cada fatia — a cor nunca é o único sinal.
+    // dizer nome, percentagem e número — a cor nunca é o único sinal.
     const legenda = [...secao.querySelectorAll(".class-board-posicoes-legenda > li")].map((li) =>
       (li.textContent ?? "").replace(/\u00a0/g, " "),
     );
@@ -273,6 +299,7 @@ describe("a seta abre os dados da campanha num bloco à direita do quadro", () =
     fireEvent.click(screen.getByRole("button", { name: "Abrir campanha Alfa" }));
     const vazia = screen.getByRole("region", { name: "Desempenho por posicionamento" });
     expect(vazia.querySelector(".class-board-posicoes-cartoes")).toBeNull();
+    expect(vazia.querySelector(".class-board-origem")).toBeNull();
     expect(vazia.querySelector(".class-board-posicoes-vazio")?.textContent).toContain("ainda não devolveu");
   });
 

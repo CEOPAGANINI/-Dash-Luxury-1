@@ -65,18 +65,98 @@ export interface PosicaoSomada {
   metrics: AdMetrics;
   /** As plataformas que contribuíram, para o detalhe. */
   plataformas: VendaPorPosicao["plataforma"][];
+  /** O que veio de cada uma — é daqui que sai a origem do público. */
+  porPlataforma: Record<Plataforma, AdMetrics>;
 }
+
+export type Plataforma = VendaPorPosicao["plataforma"];
 
 export function somarPorPosicao(lista: readonly VendaPorPosicao[]): PosicaoSomada[] {
   const porId = new Map<PosicaoId, PosicaoSomada>();
   for (const v of lista) {
     if (!isPosicao(v.id)) continue;
-    const atual = porId.get(v.id) ?? { id: v.id, metrics: { ...METRICAS_ZERADAS }, plataformas: [] };
+    const atual =
+      porId.get(v.id) ??
+      {
+        id: v.id,
+        metrics: { ...METRICAS_ZERADAS },
+        plataformas: [],
+        porPlataforma: { facebook: { ...METRICAS_ZERADAS }, instagram: { ...METRICAS_ZERADAS } },
+      };
     atual.metrics = somarMetricas([atual.metrics, v.metrics]);
+    atual.porPlataforma[v.plataforma] = somarMetricas([atual.porPlataforma[v.plataforma], v.metrics]);
     if (!atual.plataformas.includes(v.plataforma)) atual.plataformas.push(v.plataforma);
     porId.set(v.id, atual);
   }
   return [...porId.values()];
+}
+
+/*
+  A origem do público: de onde vieram as pessoas que viram o anúncio.
+
+  A conta é feita sobre as impressões, não sobre as vendas — a pergunta
+  é "de onde veio o público", e público é quem viu. Sem impressões de
+  nenhum lado não há resposta, e a função diz isso em vez de inventar
+  um meio a meio.
+*/
+export interface OrigemDoPublico {
+  instagram: { impressoes: number; fatia: number; percentagem: number };
+  facebook: { impressoes: number; fatia: number; percentagem: number };
+  total: number;
+  /** Quem trouxe mais gente; null quando não há público nenhum. */
+  maior: Plataforma | null;
+}
+
+export function origemDoPublico(porPlataforma: Record<Plataforma, AdMetrics>): OrigemDoPublico {
+  const ig = Math.max(0, Math.round(porPlataforma.instagram.impressions));
+  const fb = Math.max(0, Math.round(porPlataforma.facebook.impressions));
+  const total = ig + fb;
+  const fatia = (n: number) => (total > 0 ? Math.round((n / total) * 1000) / 1000 : 0);
+  const [pIg, pFb] = percentagensQueFecham([ig, fb]);
+  return {
+    instagram: { impressoes: ig, fatia: fatia(ig), percentagem: pIg },
+    facebook: { impressoes: fb, fatia: fatia(fb), percentagem: pFb },
+    total,
+    maior: total === 0 ? null : ig >= fb ? "instagram" : "facebook",
+  };
+}
+
+/*
+  Percentagens inteiras que somam 100.
+
+  Arredondar cada uma por si dá 77% + 24% = 101%, e quem lê repara.
+  Este é o método do maior resto: arredonda tudo para baixo e distribui
+  os pontos que sobraram pelos que ficaram mais perto de subir.
+*/
+export function percentagensQueFecham(valores: readonly number[]): number[] {
+  const limpos = valores.map((v) => Math.max(0, v));
+  const total = limpos.reduce((s, v) => s + v, 0);
+  if (total <= 0) return limpos.map(() => 0);
+  const exatas = limpos.map((v) => (v / total) * 100);
+  const chao = exatas.map((e) => Math.floor(e));
+  let sobra = 100 - chao.reduce((s, v) => s + v, 0);
+  const ordem = exatas
+    .map((e, i) => ({ i, resto: e - Math.floor(e) }))
+    .sort((a, b) => b.resto - a.resto || a.i - b.i);
+  for (const { i } of ordem) {
+    if (sobra <= 0) break;
+    chao[i] += 1;
+    sobra -= 1;
+  }
+  return chao;
+}
+
+/** A origem do público do criativo inteiro, somando todas as posições. */
+export function origemDoCriativo(lista: readonly VendaPorPosicao[]): OrigemDoPublico {
+  const porPlataforma: Record<Plataforma, AdMetrics> = {
+    facebook: { ...METRICAS_ZERADAS },
+    instagram: { ...METRICAS_ZERADAS },
+  };
+  for (const v of lista) {
+    if (!isPosicao(v.id)) continue;
+    porPlataforma[v.plataforma] = somarMetricas([porPlataforma[v.plataforma], v.metrics]);
+  }
+  return origemDoPublico(porPlataforma);
 }
 
 /** As posições que venderam, da que mais vendeu para a que menos vendeu. */
@@ -147,6 +227,8 @@ export interface FatiaDaDistribuicao {
   purchases: number;
   /** De 0 a 1. */
   fatia: number;
+  /** Inteira, e o conjunto soma sempre 100. */
+  percentagem: number;
 }
 
 /*
@@ -168,13 +250,15 @@ export function distribuicaoDeVendas(
     if (p.metrics.purchases <= 0) continue;
     const cor = COR_DA_POSICAO[p.id];
     if (cor === null) semCor += p.metrics.purchases;
-    else fatias.push({ id: p.id, rotulo: rotuloDaPosicao(p.id), cor, purchases: p.metrics.purchases, fatia: fatiaDaPosicao(p.metrics.purchases, total) });
+    else fatias.push({ id: p.id, rotulo: rotuloDaPosicao(p.id), cor, purchases: p.metrics.purchases, fatia: fatiaDaPosicao(p.metrics.purchases, total), percentagem: 0 });
   }
   fatias.sort((a, b) => b.purchases - a.purchases);
-  if (semCor > 0) fatias.push({ id: "outras", rotulo: "Outras posições", cor: null, purchases: semCor, fatia: fatiaDaPosicao(semCor, total) });
+  if (semCor > 0) fatias.push({ id: "outras", rotulo: "Outras posições", cor: null, purchases: semCor, fatia: fatiaDaPosicao(semCor, total), percentagem: 0 });
   const sem = vendasSemPosicao(lista, metricas);
-  if (sem > 0) fatias.push({ id: "sem", rotulo: "Sem posição", cor: null, purchases: sem, fatia: fatiaDaPosicao(sem, total) });
-  return { total, fatias };
+  if (sem > 0) fatias.push({ id: "sem", rotulo: "Sem posição", cor: null, purchases: sem, fatia: fatiaDaPosicao(sem, total), percentagem: 0 });
+  // As percentagens fecham em 100, em vez de cada uma arredondar por si.
+  const inteiras = percentagensQueFecham(fatias.map((f) => f.purchases));
+  return { total, fatias: fatias.map((f, i) => ({ ...f, percentagem: inteiras[i] })) };
 }
 
 /* ------------------------------------------------------------------ */
@@ -211,30 +295,63 @@ export function posicoesDemonstrativas(id: string, nome: string, metricas: AdMet
   const escolhidas = FEITIO_DO_CRIATIVO.find((f) => f.pista.test(nome))?.posicoes ?? ["feed", "stories", "explorar"];
   const pesos = escolhidas.map((p, i) => 0.2 + semente(`${id}|${p}|${i}`) * (i === 0 ? 1.6 : 0.9));
   const somaDosPesos = pesos.reduce((s, p) => s + p, 0);
-  const plataformaDe = (p: PosicaoId): VendaPorPosicao["plataforma"] =>
-    p === "stories" || p === "reels" || p === "explorar" ? "instagram" : "facebook";
-  const repartidas: VendaPorPosicao[] = escolhidas.map((p, i) => {
+  /* Onde a posição pesa mais: o stories e os reels são terreno do
+     Instagram, o marketplace é do Facebook. A outra plataforma leva o
+     resto — as duas aparecem, que é o que faz a origem do público
+     existir. */
+  const pesoDoInstagram = (p: PosicaoId): number =>
+    p === "stories" || p === "reels" || p === "explorar" ? 0.72 : p === "marketplace" ? 0.12 : 0.45;
+  const repartidas: VendaPorPosicao[] = [];
+  escolhidas.forEach((p, i) => {
     const fatia = pesos[i] / somaDosPesos;
     // Cada posição tem o seu ritmo: o stories gasta mais por impressão,
     // o explorar clica mais. Dá CTR e CPM diferentes por posição.
     const tempero = 0.7 + semente(`${id}|ritmo|${p}`) * 0.7;
-    return {
-      id: p,
-      plataforma: plataformaDe(p),
-      metrics: {
-        spendCents: Math.round(metricas.spendCents * fatia),
-        revenueCents: Math.round(metricas.revenueCents * fatia),
-        impressions: Math.round(metricas.impressions * fatia * tempero),
-        clicks: Math.round(metricas.clicks * fatia * (2 - tempero)),
-        purchases: Math.floor(total * fatia),
-      },
+    const daPosicao = {
+      spendCents: Math.round(metricas.spendCents * fatia),
+      revenueCents: Math.round(metricas.revenueCents * fatia),
+      impressions: Math.round(metricas.impressions * fatia * tempero),
+      clicks: Math.round(metricas.clicks * fatia * (2 - tempero)),
+      purchases: Math.floor(total * fatia),
+      // Quem inicia o checkout é sempre bem mais do que quem compra.
+      checkouts: Math.round(Math.floor(total * fatia) * (2.4 + semente(`${id}|checkout|${p}`) * 2.6)),
     };
+    // E agora o mesmo, partido entre as duas plataformas.
+    const ig = Math.min(0.92, Math.max(0.08, pesoDoInstagram(p) + (semente(`${id}|origem|${p}`) - 0.5) * 0.3));
+    const parte = (m: number, q: number) => Math.round(m * q);
+    const vendasIg = Math.round(daPosicao.purchases * ig);
+    repartidas.push(
+      {
+        id: p,
+        plataforma: "instagram",
+        metrics: {
+          spendCents: parte(daPosicao.spendCents, ig),
+          revenueCents: parte(daPosicao.revenueCents, ig),
+          impressions: parte(daPosicao.impressions, ig),
+          clicks: parte(daPosicao.clicks, ig),
+          purchases: vendasIg,
+          checkouts: parte(daPosicao.checkouts, ig),
+        },
+      },
+      {
+        id: p,
+        plataforma: "facebook",
+        metrics: {
+          spendCents: daPosicao.spendCents - parte(daPosicao.spendCents, ig),
+          revenueCents: daPosicao.revenueCents - parte(daPosicao.revenueCents, ig),
+          impressions: daPosicao.impressions - parte(daPosicao.impressions, ig),
+          clicks: daPosicao.clicks - parte(daPosicao.clicks, ig),
+          purchases: daPosicao.purchases - vendasIg,
+          checkouts: daPosicao.checkouts - parte(daPosicao.checkouts, ig),
+        },
+      },
+    );
   });
-  // O que o arredondamento comeu vai para a posição que mais vendeu.
+  // O que o arredondamento comeu vai para a parte que mais vendeu.
   const sobra = total - repartidas.reduce((s, p) => s + p.metrics.purchases, 0);
   if (sobra > 0) {
     const maior = repartidas.reduce((a, b) => (b.metrics.purchases > a.metrics.purchases ? b : a), repartidas[0]);
     maior.metrics.purchases += sobra;
   }
-  return repartidas.filter((p) => p.metrics.purchases > 0 || p.metrics.spendCents > 0);
+  return repartidas.filter((p) => p.metrics.purchases > 0 || p.metrics.spendCents > 0 || p.metrics.impressions > 0);
 }

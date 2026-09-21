@@ -5201,15 +5201,18 @@ html[data-tema="branco"] .dash-skin .class-board-dados-criativos-pontos > li > b
 /* ------------------------------------------------------------------
    Desempenho por posicionamento
 
-   As cores das quatro posições que têm cor própria. Os dois temas são
-   escolhidos, não invertidos: cada um tem o seu degrau, validado contra
-   o fundo em que é mesmo desenhado (claro #f2f2f2, escuro #17171b) —
-   banda de luminosidade, piso de croma, separação para daltonismo e
-   contraste. A cor nunca é o único sinal: cada cartão leva o nome e
-   cada fatia da barra leva nome, percentagem e número na legenda.
+   Um painel analítico em cartões, não uma tabela: cada posicionamento é
+   um cartão independente, com respiro por dentro, borda suave e cantos
+   arredondados. Os cantos redondos aqui são de propósito e só aqui — o
+   resto do painel continua quadrado.
+
+   As cores das quatro posições que têm cor própria: os dois temas são
+   escolhidos, não invertidos, e cada um foi validado contra o fundo em
+   que é mesmo desenhado (banda de luminosidade, piso de croma,
+   separação para daltonismo e contraste). A cor nunca é o único sinal —
+   cada cartão leva o nome escrito e cada fatia leva nome, percentagem e
+   número na legenda.
    ------------------------------------------------------------------ */
-/* Os tokens ficam no painel inteiro: as pílulas do cartão do criativo
-   usam as mesmas cores que os cartões e a barra desta secção. */
 .dash-skin .class-board-dados {
   --posicao-1: #3987e5;
   --posicao-2: #c98500;
@@ -5217,6 +5220,13 @@ html[data-tema="branco"] .dash-skin .class-board-dados-criativos-pontos > li > b
   --posicao-4: #008300;
   --posicao-neutra: #898781;
   --posicao-vazia: var(--fio-forte, rgb(255 255 255 / 20%));
+  /* As redes levam a cor da marca: aqui a cor não identifica uma série,
+     diz de que rede veio a pessoa — e o nome está sempre ao lado. */
+  --rede-instagram: #e1306c;
+  --rede-facebook: #1877f2;
+  --cartao-fio: rgb(255 255 255 / 12%);
+  --cartao-fundo: rgb(255 255 255 / 4%);
+  --cartao-raio: 14px;
 }
 html[data-tema="branco"] .dash-skin .class-board-dados {
   --posicao-1: #2a78d6;
@@ -5225,161 +5235,242 @@ html[data-tema="branco"] .dash-skin .class-board-dados {
   --posicao-4: #008300;
   --posicao-neutra: #898781;
   --posicao-vazia: rgb(0 0 0 / 14%);
+  --rede-instagram: #d81b60;
+  --rede-facebook: #1565d8;
+  --cartao-fio: #e5eaf2;
+  --cartao-fundo: #ffffff;
 }
 .dash-skin .class-board-posicoes {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 10px;
   min-width: 0;
   min-height: 0;
 }
-.dash-skin .class-board-posicoes-topo { display: grid; gap: 1px; min-width: 0; }
+.dash-skin .class-board-posicoes-topo { display: grid; gap: 2px; min-width: 0; }
 .dash-skin .class-board-posicoes-topo > h3 {
   margin: 0;
-  font-size: 0.625rem;
+  font-size: 0.8125rem;
   font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  text-transform: none;
 }
 .dash-skin .class-board-posicoes-topo > p {
   margin: 0;
   color: var(--muted-foreground, #9e9e9e);
-  font-size: 0.625rem;
-  font-weight: 600;
+  font-size: 0.6875rem;
+  font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .dash-skin .class-board-posicoes-vazio { margin: 0; color: var(--muted-foreground, #9e9e9e); font-size: 0.6875rem; }
-/* Um cartão por posição, todos da mesma medida, a repartir a largura. */
+
+/* A grade dos cartões: três ou quatro por linha num ecrã largo, um por
+   linha num estreito — quantos couberem sem apertar. */
 .dash-skin .class-board-posicoes-cartoes {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
-  align-content: stretch;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  align-content: start;
   flex: 1 1 auto;
-  gap: 6px;
+  gap: 10px;
   margin: 0;
   padding: 0;
   min-width: 0;
-  /* Nunca abaixo do conteúdo: a secção cresce, não esmaga os cartões. */
   min-height: min-content;
   list-style: none;
 }
-.dash-skin .class-board-posicoes-cartoes > li {
-  display: grid;
-  grid-template-rows: auto minmax(min-content, 1fr);
-  gap: 4px;
+.dash-skin .class-board-posicao-cartao {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   min-width: 0;
-  min-height: 0;
-  padding: 6px;
-  background: var(--camada-2, rgb(255 255 255 / 4%));
-  box-shadow: inset 0 0 0 1px var(--fio, rgb(255 255 255 / 8%));
+  padding: 12px;
+  border: 1px solid var(--cartao-fio);
+  border-radius: var(--cartao-raio);
+  background: var(--cartao-fundo);
 }
-html[data-tema="branco"] .dash-skin .class-board-posicoes-cartoes > li { background: rgb(0 0 0 / 3%); box-shadow: inset 0 0 0 1px rgb(0 0 0 / 8%); }
-.dash-skin .class-board-posicoes-cabecalho {
+html[data-tema="branco"] .dash-skin .class-board-posicao-cartao { box-shadow: 0 1px 2px rgb(16 16 20 / 4%); }
+/* Topo do cartão: ícone, nome e a fatia das vendas à direita. */
+.dash-skin .class-board-posicao-cabecalho {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
   min-width: 0;
 }
-/* O selo leva a cor da posição; o nome ao lado é que diz qual é. */
-.dash-skin .class-board-posicoes-selo {
+.dash-skin .class-board-posicao-selo {
   display: grid;
   place-items: center;
-  width: 1.125rem;
-  height: 1.125rem;
+  width: 1.625rem;
+  height: 1.625rem;
+  border-radius: 8px;
   background: var(--posicao-neutra);
   color: #ffffff;
 }
-.dash-skin .class-board-posicoes-selo > svg { width: 0.75rem; height: 0.75rem; }
-.dash-skin .class-board-posicoes-cartoes > li[data-cor="1"] .class-board-posicoes-selo { background: var(--posicao-1); }
-.dash-skin .class-board-posicoes-cartoes > li[data-cor="2"] .class-board-posicoes-selo { background: var(--posicao-2); }
-.dash-skin .class-board-posicoes-cartoes > li[data-cor="3"] .class-board-posicoes-selo { background: var(--posicao-3); }
-.dash-skin .class-board-posicoes-cartoes > li[data-cor="4"] .class-board-posicoes-selo { background: var(--posicao-4); }
-.dash-skin .class-board-posicoes-cabecalho > b {
+.dash-skin .class-board-posicao-selo > svg { width: 0.875rem; height: 0.875rem; }
+.dash-skin .class-board-posicao-cartao[data-cor="1"] .class-board-posicao-selo { background: var(--posicao-1); }
+.dash-skin .class-board-posicao-cartao[data-cor="2"] .class-board-posicao-selo { background: var(--posicao-2); }
+.dash-skin .class-board-posicao-cartao[data-cor="3"] .class-board-posicao-selo { background: var(--posicao-3); }
+.dash-skin .class-board-posicao-cartao[data-cor="4"] .class-board-posicao-selo { background: var(--posicao-4); }
+.dash-skin .class-board-posicao-cabecalho > b {
   min-width: 0;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 800;
+  letter-spacing: -0.01em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.dash-skin .class-board-posicoes-cabecalho > em {
+.dash-skin .class-board-posicao-cabecalho > em {
   flex: none;
-  padding: 1px 4px;
-  background: var(--camada-3, rgb(255 255 255 / 6%));
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: var(--camada-3, rgb(255 255 255 / 7%));
   color: var(--muted-foreground, #9e9e9e);
   font-size: 0.5625rem;
   font-style: normal;
-  font-weight: 800;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
-html[data-tema="branco"] .dash-skin .class-board-posicoes-cabecalho > em { background: rgb(0 0 0 / 5%); }
-/* Uma linha por métrica: rótulo à esquerda, valor à direita. */
-.dash-skin .class-board-posicoes-cartoes dl {
-  display: grid;
-  grid-auto-rows: minmax(min-content, 1fr);
-  align-content: stretch;
-  gap: 0;
+html[data-tema="branco"] .dash-skin .class-board-posicao-cabecalho > em { background: #f2f5fa; color: #55617a; }
+/* As vendas em destaque: o número grande que decide. */
+.dash-skin .class-board-posicao-vendas {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
   margin: 0;
   min-width: 0;
-  min-height: 0;
 }
-.dash-skin .class-board-posicoes-cartoes dl > div {
+.dash-skin .class-board-posicao-vendas > b { font-size: 1.5rem; font-weight: 800; line-height: 1.05; letter-spacing: -0.02em; }
+.dash-skin .class-board-posicao-vendas > span {
+  color: var(--muted-foreground, #9e9e9e);
+  font-size: 0.6875rem;
+  font-weight: 600;
+}
+/* As métricas: uma linha limpa cada, nome à esquerda e valor à direita,
+   com um fio leve entre elas — nunca uma grade de planilha. */
+.dash-skin .class-board-posicao-metricas { display: grid; gap: 0; margin: 0; min-width: 0; }
+.dash-skin .class-board-posicao-metricas > div {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 6px;
+  align-items: baseline;
+  gap: 10px;
   min-width: 0;
-  padding: 1px 0;
-  border-top: 1px solid var(--fio, rgb(255 255 255 / 7%));
+  padding: 5px 0;
+  border-top: 1px solid var(--cartao-fio);
 }
-html[data-tema="branco"] .dash-skin .class-board-posicoes-cartoes dl > div { border-top-color: rgb(0 0 0 / 7%); }
-.dash-skin .class-board-posicoes-cartoes dl > div:first-child { border-top: 0; }
-.dash-skin .class-board-posicoes-cartoes dt {
+.dash-skin .class-board-posicao-metricas > div:first-child { border-top: 0; padding-top: 0; }
+.dash-skin .class-board-posicao-metricas dt {
   min-width: 0;
   color: var(--muted-foreground, #9e9e9e);
-  font-size: 0.5625rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dash-skin .class-board-posicao-metricas dd {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.dash-skin .class-board-posicao-metricas > div[data-tom="roas"] dd { color: var(--numero-verde); }
+
+/* A origem do público: a barra Instagram × Facebook, dentro do cartão e
+   também em cima, para o criativo inteiro. */
+.dash-skin .class-board-origem {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  margin-top: auto;
+  padding: 8px 9px;
+  border: 1px solid var(--cartao-fio);
+  border-radius: 10px;
+}
+html[data-tema="branco"] .dash-skin .class-board-origem { background: #f7f9fc; }
+.dash-skin .class-board-origem[data-destaque="true"] {
+  margin-top: 0;
+  padding: 10px 12px;
+  border-radius: var(--cartao-raio);
+  background: var(--cartao-fundo);
+}
+html[data-tema="branco"] .dash-skin .class-board-origem[data-destaque="true"] { background: #ffffff; box-shadow: 0 1px 2px rgb(16 16 20 / 4%); }
+.dash-skin .class-board-origem-topo { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.dash-skin .class-board-origem-topo > span {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.6875rem;
   font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.dash-skin .class-board-posicoes-cartoes dd {
-  margin: 0;
+.dash-skin .class-board-origem-topo > small {
+  flex: none;
+  color: var(--muted-foreground, #9e9e9e);
   font-size: 0.625rem;
-  font-weight: 800;
+  font-weight: 500;
+}
+.dash-skin .class-board-origem-topo b { font-weight: 800; color: var(--foreground, #f5f5f5); }
+.dash-skin .class-board-origem[data-destaque="true"] .class-board-origem-topo > span { font-size: 0.8125rem; font-weight: 800; }
+.dash-skin .class-board-origem-barra { display: flex; gap: 2px; height: 0.5rem; min-width: 0; }
+.dash-skin .class-board-origem[data-destaque="true"] .class-board-origem-barra { height: 0.625rem; }
+.dash-skin .class-board-origem-barra > span { flex: 1 1 0; min-width: 3px; border-radius: 999px; }
+.dash-skin .class-board-origem-barra > span[data-rede="instagram"] { background: var(--rede-instagram); }
+.dash-skin .class-board-origem-barra > span[data-rede="facebook"] { background: var(--rede-facebook); }
+.dash-skin .class-board-origem-legenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  list-style: none;
+}
+.dash-skin .class-board-origem-legenda > li { display: flex; align-items: baseline; gap: 4px; min-width: 0; }
+.dash-skin .class-board-origem-legenda i { align-self: center; flex: none; width: 7px; height: 7px; border-radius: 999px; }
+.dash-skin .class-board-origem-legenda > li[data-rede="instagram"] i { background: var(--rede-instagram); }
+.dash-skin .class-board-origem-legenda > li[data-rede="facebook"] i { background: var(--rede-facebook); }
+.dash-skin .class-board-origem-legenda span { color: var(--muted-foreground, #9e9e9e); font-size: 0.625rem; font-weight: 500; white-space: nowrap; }
+.dash-skin .class-board-origem-legenda b { font-size: 0.6875rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.dash-skin .class-board-origem-legenda em {
+  color: var(--muted-foreground, #9e9e9e);
+  font-size: 0.625rem;
+  font-style: normal;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
-.dash-skin .class-board-posicoes-cartoes dl > div[data-linha="roas"] dd { color: var(--numero-verde); }
+
 /* A distribuição: uma barra só, com 2px de fundo entre as fatias para
    elas nunca se colarem, e a legenda com nome, percentagem e número. */
 .dash-skin .class-board-posicoes-distribuicao {
   display: grid;
-  gap: 5px;
+  gap: 7px;
   margin: 0;
   flex: none;
   min-width: 0;
-  padding: 7px 8px;
-  background: var(--camada-2, rgb(255 255 255 / 4%));
+  padding: 11px 12px;
+  border: 1px solid var(--cartao-fio);
+  border-radius: var(--cartao-raio);
+  background: var(--cartao-fundo);
 }
-html[data-tema="branco"] .dash-skin .class-board-posicoes-distribuicao { background: rgb(0 0 0 / 3%); }
+html[data-tema="branco"] .dash-skin .class-board-posicoes-distribuicao { box-shadow: 0 1px 2px rgb(16 16 20 / 4%); }
 .dash-skin .class-board-posicoes-distribuicao > figcaption {
   display: flex;
   align-items: baseline;
-  gap: 8px;
+  gap: 10px;
   min-width: 0;
 }
 .dash-skin .class-board-posicoes-distribuicao > figcaption > span {
   flex: 1 1 auto;
   min-width: 0;
-  font-size: 0.625rem;
+  font-size: 0.8125rem;
   font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -5388,11 +5479,11 @@ html[data-tema="branco"] .dash-skin .class-board-posicoes-distribuicao { backgro
   flex: none;
   color: var(--muted-foreground, #9e9e9e);
   font-size: 0.625rem;
-  font-weight: 600;
+  font-weight: 500;
 }
 .dash-skin .class-board-posicoes-distribuicao > figcaption b { font-weight: 800; color: var(--foreground, #f5f5f5); }
-.dash-skin .class-board-posicoes-barra { display: flex; gap: 2px; height: 0.875rem; min-width: 0; }
-.dash-skin .class-board-posicoes-barra > span { flex: 1 1 0; min-width: 3px; background: var(--posicao-neutra); }
+.dash-skin .class-board-posicoes-barra { display: flex; gap: 2px; height: 0.625rem; min-width: 0; }
+.dash-skin .class-board-posicoes-barra > span { flex: 1 1 0; min-width: 3px; border-radius: 999px; background: var(--posicao-neutra); }
 .dash-skin .class-board-posicoes-barra > span[data-cor="1"] { background: var(--posicao-1); }
 .dash-skin .class-board-posicoes-barra > span[data-cor="2"] { background: var(--posicao-2); }
 .dash-skin .class-board-posicoes-barra > span[data-cor="3"] { background: var(--posicao-3); }
@@ -5401,34 +5492,32 @@ html[data-tema="branco"] .dash-skin .class-board-posicoes-distribuicao { backgro
 .dash-skin .class-board-posicoes-legenda {
   display: flex;
   flex-wrap: wrap;
-  gap: 2px 14px;
+  gap: 3px 18px;
   margin: 0;
   padding: 0;
   min-width: 0;
   list-style: none;
 }
-.dash-skin .class-board-posicoes-legenda > li { display: flex; align-items: baseline; gap: 4px; min-width: 0; }
-.dash-skin .class-board-posicoes-legenda i {
-  align-self: center;
-  flex: none;
-  width: 7px;
-  height: 7px;
-  background: var(--posicao-neutra);
-}
+.dash-skin .class-board-posicoes-legenda > li { display: flex; align-items: baseline; gap: 5px; min-width: 0; }
+.dash-skin .class-board-posicoes-legenda i { align-self: center; flex: none; width: 8px; height: 8px; border-radius: 999px; background: var(--posicao-neutra); }
 .dash-skin .class-board-posicoes-legenda > li[data-cor="1"] i { background: var(--posicao-1); }
 .dash-skin .class-board-posicoes-legenda > li[data-cor="2"] i { background: var(--posicao-2); }
 .dash-skin .class-board-posicoes-legenda > li[data-cor="3"] i { background: var(--posicao-3); }
 .dash-skin .class-board-posicoes-legenda > li[data-cor="4"] i { background: var(--posicao-4); }
 .dash-skin .class-board-posicoes-legenda > li[data-cor="vazia"] i { background: var(--posicao-vazia); }
-.dash-skin .class-board-posicoes-legenda span { font-size: 0.5625rem; font-weight: 700; color: var(--muted-foreground, #9e9e9e); white-space: nowrap; }
-.dash-skin .class-board-posicoes-legenda b { font-size: 0.625rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.dash-skin .class-board-posicoes-legenda span { font-size: 0.6875rem; font-weight: 600; color: var(--muted-foreground, #9e9e9e); white-space: nowrap; }
+.dash-skin .class-board-posicoes-legenda b { font-size: 0.75rem; font-weight: 800; font-variant-numeric: tabular-nums; }
 .dash-skin .class-board-posicoes-legenda em {
   color: var(--muted-foreground, #9e9e9e);
-  font-size: 0.5625rem;
+  font-size: 0.625rem;
   font-style: normal;
-  font-weight: 600;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+}
+/* Num ecrã estreito, um cartão por linha. */
+@media (max-width: 720px) {
+  .dash-skin .class-board-posicoes-cartoes { grid-template-columns: minmax(0, 1fr); }
 }
 .dash-skin .class-board-dados > .class-board-dados-secao[data-secao="posicoes"] { min-height: 18.25rem; }
 html[data-tema="branco"] .dash-skin .class-board-dados-criativos-topo > button { border-color: rgb(0 0 0 / 16%); color: #101014; }
