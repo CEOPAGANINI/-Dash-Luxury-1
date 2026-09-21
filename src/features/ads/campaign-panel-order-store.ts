@@ -58,6 +58,69 @@ export const ARRUMACAO_PADRAO: ArrumacaoDoPainel = {
   larguras: { ...LARGURAS_PADRAO },
 };
 
+/*
+  A largura com que cada secção é realmente desenhada.
+
+  Meia linha só faz sentido a pares: duas seguidas partilham a linha.
+  Uma meia sozinha — porque a seguinte é de linha inteira, ou porque é a
+  última — passa a ocupar a linha toda, senão ficava metade da linha em
+  branco ao lado dela. A escolha do usuário fica guardada como está; o
+  que muda é só o desenho.
+*/
+export function largurasEfetivas(
+  ordem: readonly SecaoId[],
+  larguras: Record<SecaoId, LarguraDaSecao>,
+): Record<SecaoId, LarguraDaSecao> {
+  const efetivas = {} as Record<SecaoId, LarguraDaSecao>;
+  let linhaAberta = false;
+  ordem.forEach((id, i) => {
+    const escolhida = larguras[id] ?? 2;
+    if (escolhida === 2) {
+      efetivas[id] = 2;
+      linhaAberta = false;
+      return;
+    }
+    if (linhaAberta) {
+      // Fecha o par com a anterior.
+      efetivas[id] = 1;
+      linhaAberta = false;
+      return;
+    }
+    const seguinte = ordem[i + 1];
+    if (seguinte && (larguras[seguinte] ?? 2) === 1) {
+      efetivas[id] = 1;
+      linhaAberta = true;
+      return;
+    }
+    efetivas[id] = 2;
+  });
+  return efetivas;
+}
+
+/* Quantas linhas as secções ocupam, já com os pares de meia linha
+   contados como uma linha só. Serve para dar a sobra de altura à última
+   linha, em vez de a espalhar por dentro de todas as caixas. */
+export function linhasDoPainel(
+  ordem: readonly SecaoId[],
+  larguras: Record<SecaoId, LarguraDaSecao>,
+): number {
+  const efetivas = largurasEfetivas(ordem, larguras);
+  let linhas = 0;
+  let aberta = false;
+  for (const id of ordem) {
+    if (efetivas[id] === 2) {
+      linhas += 1;
+      aberta = false;
+    } else if (aberta) {
+      aberta = false;
+    } else {
+      linhas += 1;
+      aberta = true;
+    }
+  }
+  return linhas;
+}
+
 /* As larguras guardadas, saneadas: só 1 ou 2, e o que faltar volta ao
    padrão — uma secção nova nunca nasce sem largura. */
 export function completarLarguras(bruta: unknown): Record<SecaoId, LarguraDaSecao> {

@@ -169,13 +169,22 @@ describe("a seta abre os dados da campanha num bloco à direita do quadro", () =
 
     // Meia linha e linha inteira: é assim que duas secções ficam lado a lado.
     const largura = (id: string) => dados.querySelector(`[data-secao="${id}"]`)?.getAttribute("data-largura");
+    const escolhida = (id: string) => dados.querySelector(`[data-secao="${id}"]`)?.getAttribute("data-escolhida");
     expect(largura("grafico")).toBe("2");
+    // Uma meia sozinha continua a ocupar a linha toda: senão ficava
+    // metade da linha em branco ao lado dela.
     fireEvent.click(within(dados).getByRole("button", { name: "Largura da secção Gráfico do ROAS: linha inteira" }));
-    expect(largura("grafico")).toBe("1");
+    expect(escolhida("grafico")).toBe("1");
+    expect(largura("grafico")).toBe("2");
     expect(restoreCampaignPanelOrder(localStorage.getItem(ORDEM_PAINEL_KEY)!)?.larguras.grafico).toBe(1);
+    // Com a secção seguinte também em meia linha, as duas partilham a linha.
+    fireEvent.click(within(dados).getByRole("button", { name: "Largura da secção Lucro: linha inteira" }));
+    expect(largura("grafico")).toBe("1");
+    expect(largura("lucro")).toBe("1");
     // As setas ← e → na pega fazem o mesmo.
     fireEvent.keyDown(within(dados).getByRole("button", { name: "Mover a secção Gráfico do ROAS" }), { key: "ArrowRight" });
-    expect(largura("grafico")).toBe("2");
+    expect(escolhida("grafico")).toBe("2");
+    expect(largura("lucro")).toBe("2");
 
     // Uma arrumação estragada volta ao padrão, sem quebrar.
     expect(restoreCampaignPanelOrder("{")).toBeNull();

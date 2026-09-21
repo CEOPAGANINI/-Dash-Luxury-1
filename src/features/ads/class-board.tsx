@@ -55,6 +55,8 @@ import { INTERVALO_MINUTO_MS, chaveDaCampanhaNoHistorico, registrarRoasDaCampanh
 import { lucroDaCampanha, useTaxas } from "./fees-store";
 import {
   SECOES_DO_PAINEL,
+  largurasEfetivas,
+  linhasDoPainel,
   moverNaOrdem,
   useCampaignPanelOrder,
   type FichaId,
@@ -238,6 +240,8 @@ export function areaComFaixas(vaga: string, t: Tamanho): string {
 /* O tamanho do bloco da campanha aberta: três blocos de largura por três
    de altura (as faixas ficam com dois blocos de largura, à esquerda). */
 export const PAINEL_DA_CAMPANHA = { largura: 3, altura: 3 } as const;
+/** Até onde o quadro devolve altura quando a página estoura por pouco. */
+export const ESTOURO_DEVOLVIDO = 96;
 export function vagaDoPainelDaCampanha(fileiras: number) {
   return { largura: Math.min(PAINEL_DA_CAMPANHA.largura, GRADE.colunas), altura: Math.min(PAINEL_DA_CAMPANHA.altura, Math.max(fileiras, 1)) };
 }
@@ -782,20 +786,15 @@ export function ClassBoard({
       const medida = Math.max(360, window.innerHeight - topo - fundo);
       let altura = medida;
       el.style.setProperty("--quadro-altura", `${altura}px`);
-      /* Se a página ainda rola depois da medida, o quadro devolve a
-         sobra — é isso que evita a faixa em branco por baixo dele
-         quando alguma coisa mudou de tamanho no meio do caminho (o
-         aviso do topo a quebrar em duas linhas, o menu da direita, um
-         zoom do navegador). Devolve no máximo 40% da altura medida e
-         nunca desce dos 360px: um estouro grande vem de outra coisa e
-         não pode esmagar o quadro. */
-      const minimo = Math.max(360, Math.round(medida * 0.6));
-      for (let volta = 0; volta < 3; volta++) {
-        const sobra = document.documentElement.scrollHeight - window.innerHeight;
-        if (sobra <= 0) break;
-        const proxima = Math.max(minimo, altura - sobra);
-        if (proxima >= altura) break;
-        altura = proxima;
+      /* Um estouro pequeno que ainda sobre é devolvido: é o que evita a
+         faixa em branco quando alguma coisa mudou de tamanho depois da
+         medida (o aviso do topo a quebrar em duas linhas, o menu da
+         direita). Um estouro grande vem de outra coisa — o conteúdo
+         maior do que a tela — e devolvê-lo encolhia o quadro até ao
+         piso e deixava justamente o vazio que se queria evitar. */
+      const sobra = document.documentElement.scrollHeight - window.innerHeight;
+      if (sobra > 0 && sobra <= ESTOURO_DEVOLVIDO && altura - sobra >= 360) {
+        altura -= sobra;
         el.style.setProperty("--quadro-altura", `${altura}px`);
       }
     };
@@ -818,7 +817,7 @@ export function ClassBoard({
       mo?.disconnect();
       if (remedir) window.clearTimeout(remedir);
     };
-  }, []);
+  }, [campanhaAberta]);
 
   /* Onde cada bloco começa e quantas células ocupa (ver vagasDaGrade):
      os fixos na vaga marcada, os outros na ordem do ROAS (e, sem
@@ -1340,6 +1339,10 @@ function DadosDaCampanha({
       data-faixa={faixa}
       data-largura={vaga.largura}
       data-altura={vaga.altura}
+      /* A sobra de altura vai toda para a última linha (o feed, por
+         padrão), em vez de esticar todas as caixas e deixar branco
+         dentro de cada uma. */
+      style={{ gridTemplateRows: `auto ${"minmax(0, min-content) ".repeat(Math.max(0, linhasDoPainel(arrumacao.secoes, arrumacao.larguras) - 1))}minmax(0, 1fr)` }}
     >
       <div className="class-board-dados-topo">
         <b className="class-board-dados-nome">{c.name}</b>
@@ -1401,6 +1404,9 @@ function SecoesArrastaveis({
     [nova[i], nova[j]] = [nova[j], nova[i]];
     aoGuardar(nova);
   }
+  /* O desenho: uma meia sozinha ocupa a linha toda, para não sobrar
+     metade da linha em branco ao lado dela. */
+  const efetivas = largurasEfetivas(visivel, larguras);
   /* Meia linha ou a linha toda: é assim que duas secções ficam lado a
      lado. Duas de meia linha seguidas partilham a mesma linha. */
   function alternarLargura(id: SecaoId) {
@@ -1411,12 +1417,15 @@ function SecoesArrastaveis({
       {visivel.map((id) => {
         const rotulo = SECOES_DO_PAINEL.find((s) => s.id === id)?.rotulo ?? id;
         const largura = larguras[id] ?? 2;
+        const desenhada = efetivas[id] ?? largura;
+        const sozinha = largura === 1 && desenhada === 2;
         return (
           <div
             key={id}
             className="class-board-dados-secao"
             data-secao={id}
-            data-largura={largura}
+            data-largura={desenhada}
+            data-escolhida={largura}
             data-arrastando={arrastando === id ? "true" : undefined}
             onDragOver={(e) => {
               if (!arrastando) return;
@@ -1460,7 +1469,13 @@ function SecoesArrastaveis({
               className="class-board-dados-largura"
               aria-label={`Largura da secção ${rotulo}: ${largura === 2 ? "linha inteira" : "meia linha"}`}
               data-meia={largura === 1 ? "true" : undefined}
-              title={largura === 2 ? "Passar a meia linha, para caber outra ao lado" : "Voltar à linha inteira"}
+              title={
+                largura === 2
+                  ? "Passar a meia linha, para caber outra ao lado"
+                  : sozinha
+                    ? "Meia linha, mas sem par: ponha outra secção de meia linha ao lado para partilharem a linha"
+                    : "Voltar à linha inteira"
+              }
               onClick={() => alternarLargura(id)}
             >
               {largura === 2 ? <Columns2 aria-hidden="true" /> : <Square aria-hidden="true" />}

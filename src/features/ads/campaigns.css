@@ -4737,9 +4737,10 @@ html[data-tema="branco"] .dash-skin .class-board-faixa-pager .class-board-faixa-
      baixo. As secções entram na ordem escolhida. */
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-auto-rows: auto;
-  /* A sobra de altura reparte-se pelas linhas em vez de ficar toda no
-     fim do painel — nada de faixa vazia por baixo da última secção. */
+  /* As linhas são dadas pelo componente: todas do tamanho do conteúdo e
+     a última a ficar com a sobra. Assim não sobra branco dentro das
+     caixas nem uma faixa vazia por baixo da última. */
+  grid-auto-rows: min-content;
   align-content: stretch;
   gap: 8px;
   min-width: 0;
@@ -4777,6 +4778,12 @@ html[data-tema="branco"] .dash-skin .class-board-dados > .class-board-dados-topo
   min-height: 0;
 }
 .dash-skin .class-board-dados > .class-board-dados-secao[data-largura="1"] { grid-column: span 1; }
+/* Lado a lado, as duas secções ocupam a mesma linha e têm de acabar na
+   mesma altura: o conteúdo enche a caixa em vez de parar no meio e
+   deixar branco por baixo. O teto do gráfico só vale na linha inteira. */
+.dash-skin .class-board-dados-secao[data-largura="1"] .class-board-grafico { max-height: none; }
+.dash-skin .class-board-dados-secao[data-largura="1"] .class-board-dados-criativos { min-height: 0; }
+.dash-skin .class-board-dados-secao > :nth-child(3) { align-self: stretch; }
 .dash-skin .class-board-dados-secao > .class-board-dados-pega { grid-area: pega; }
 .dash-skin .class-board-dados-secao > .class-board-dados-largura { grid-area: largura; }
 .dash-skin .class-board-dados-secao > :nth-child(3) { grid-area: conteudo; }
@@ -4807,6 +4814,16 @@ html[data-tema="branco"] .dash-skin .class-board-dados > .class-board-dados-topo
   .dash-skin .class-board-dados .class-board-grafico > .class-board-grafico-area { height: 84px; min-height: 4rem; }
   .dash-skin .class-board-dados-criativos { min-height: 4.5rem; }
   .dash-skin .class-board-criativo-arte { min-height: 1.5rem; }
+}
+/* Janela muito baixa: aperta mais um pouco, para o painel continuar a
+   caber sem rolar por dentro. */
+@media (max-height: 660px) {
+  .dash-skin .class-board-dados { --ficha-altura: 2rem; gap: 5px; }
+  .dash-skin .class-board-dados-lucro { padding: 5px 10px; }
+  .dash-skin .class-board-dados-lucro > b { font-size: 0.9375rem; }
+  .dash-skin .class-board-dados > .class-board-dados-secao[data-secao="grafico"] { min-height: 4rem; }
+  .dash-skin .class-board-dados > .class-board-dados-secao[data-secao="criativos"] { min-height: 4rem; }
+  .dash-skin .class-board-dados .class-board-grafico > .class-board-grafico-area { height: 72px; min-height: 3.5rem; }
   .dash-skin .class-board-dados-lucro { padding: 6px 10px; }
   .dash-skin .class-board-dados-lucro > b { font-size: 1rem; }
 }
