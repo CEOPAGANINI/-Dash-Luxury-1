@@ -1653,10 +1653,10 @@ function PosicoesDoCriativo({ criativo }: { criativo: (AdRow & { conjunto: strin
   const percentagemDe = new Map(fatias.map((f) => [f.id, f.percentagem]));
   return (
     <section className="class-board-posicoes" aria-label="Desempenho por posicionamento">
-      <header className="class-board-posicoes-topo">
-        <h3>Desempenho por posicionamento</h3>
-        <p>{criativo ? `Como “${criativo.name}” performou em cada posicionamento.` : "Como este criativo performou em cada posicionamento."}</p>
-      </header>
+      {/* Sem faixa de cabeçalho — igual à secção dos criativos do Meta.
+          O nome da secção fica no aria-label, para quem lê por leitor de
+          ecrã, e a altura que o título e o subtexto ocupavam vai para os
+          cartões. */}
       {posicoes.length === 0 ? (
         <p className="class-board-posicoes-vazio">
           {criativo
@@ -1903,7 +1903,7 @@ function FeedDeCriativos({
                 prévia dele e os cartões de cada sítio onde vendeu. Fora
                 do Meta não há partição por posicionamento. */}
             {c.network === "meta" ? (
-              <PlacementPerformance creatives={daPagina} demo={c.source === "demo"} />
+              <PlacementPerformance creatives={daPagina} />
             ) : (
               daPagina.map((a) => (
                 <div key={a.id} className="class-board-criativo-bloco" role="article" aria-label={`Criativo ${a.name}`}>

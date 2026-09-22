@@ -143,11 +143,14 @@ describe("a seta abre os dados da campanha num bloco à direita do quadro", () =
     // Quem mais investiu vem primeiro, um bloco por criativo.
     const blocos = [...feed.querySelectorAll(".class-board-criativo-bloco")];
     expect(blocos.map((b) => b.getAttribute("aria-label"))).toEqual(["Criativo Estático", "Criativo Vídeo 30s"]);
-    // Cada bloco leva o painel dos posicionamentos daquele criativo.
-    expect(blocos.map((b) => b.querySelector(".class-board-posicoes-topo > p")?.textContent)).toEqual([
-      "Como “Estático” performou em cada posicionamento.",
-      "Como “Vídeo 30s” performou em cada posicionamento.",
+    // Cada bloco leva o painel dos posicionamentos daquele criativo —
+    // já sem faixa de cabeçalho: o nome da secção vive só no aria-label.
+    expect(blocos.map((b) => b.querySelector(".class-board-posicoes")?.getAttribute("aria-label"))).toEqual([
+      "Desempenho por posicionamento",
+      "Desempenho por posicionamento",
     ]);
+    expect(feed.querySelector(".class-board-posicoes-topo")).toBeNull();
+    expect(within(feed).queryByRole("heading", { name: "Desempenho por posicionamento" })).toBeNull();
     // As setas existem; na primeira página a da esquerda fica desligada.
     expect(within(feed).getByRole("button", { name: "Criativos anteriores" }).hasAttribute("disabled")).toBe(true);
     expect(within(feed).getByRole("button", { name: "Próximos criativos" })).toBeTruthy();
@@ -200,7 +203,10 @@ describe("a seta abre os dados da campanha num bloco à direita do quadro", () =
     const video = within(secao).getByRole("article", { name: "Desempenho de Vídeo 30s" });
     const nomes = ["Feed Instagram", "Stories Instagram", "Explorar Instagram", "Feed Facebook", "Stories Facebook"];
     for (const criativo of [estatico, video]) {
-      expect(within(criativo).getByRole("heading", { name: "Desempenho por posicionamento" })).toBeTruthy();
+      // A faixa de cabeçalho saiu: nem título, nem subtexto, nem o
+      // seletor de período, nem o menu de opções.
+      expect(within(criativo).queryByRole("heading", { name: "Desempenho por posicionamento" })).toBeNull();
+      expect(within(criativo).queryByRole("combobox")).toBeNull();
       expect(within(criativo).getAllByRole("article").map((card) => card.getAttribute("aria-label"))).toEqual(nomes);
       expect(within(criativo).queryByRole("heading", { name: "Instagram" })).toBeNull();
       expect(within(criativo).queryByRole("heading", { name: "Facebook" })).toBeNull();
@@ -236,8 +242,9 @@ describe("a seta abre os dados da campanha num bloco à direita do quadro", () =
     fireEvent.click(screen.getByRole("button", { name: "Abrir campanha Alfa" }));
     // Um painel destes por criativo; o primeiro é o do "Estático".
     const secao = screen.getAllByRole("region", { name: "Desempenho por posicionamento" })[0];
-    expect(within(secao).getByRole("heading", { name: "Desempenho por posicionamento" })).toBeTruthy();
-    expect(within(secao).getByText("Como “Estático” performou em cada posicionamento.")).toBeTruthy();
+    // Sem faixa de cabeçalho aqui também — só o aviso de que não há partição.
+    expect(within(secao).queryByRole("heading", { name: "Desempenho por posicionamento" })).toBeNull();
+    expect(within(secao).queryByText(/performou em cada posicionamento/)).toBeNull();
     expect(within(secao).getByText("A plataforma ainda não devolveu as vendas partidas por posicionamento deste criativo.")).toBeTruthy();
     expect(within(secao).queryByRole("article", { name: /^Desempenho de / })).toBeNull();
     for (const nome of ["Feed Instagram", "Stories Instagram", "Explorar Instagram", "Feed Facebook", "Stories Facebook"]) {

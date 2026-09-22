@@ -3,20 +3,7 @@
 import * as React from "react";
 import Image from "next/image";
 import * as Dialog from "@radix-ui/react-dialog";
-import {
-  ArrowRight,
-  CalendarDays,
-  ImageIcon,
-  MoreHorizontal,
-  Video,
-  X,
-} from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { ArrowRight, ImageIcon, Video, X } from "lucide-react";
 import {
   formatCurrency,
   formatInteger,
@@ -157,16 +144,8 @@ function PlacementCard({ card }: { card: PlacementPerformanceCard }) {
   );
 }
 
-function CreativePerformance({
-  creative,
-  demo,
-}: {
-  creative: Creative;
-  demo: boolean;
-}) {
+function CreativePerformance({ creative }: { creative: Creative }) {
   const [detailsOpen, setDetailsOpen] = React.useState(false);
-  const headingId = React.useId();
-  const periodNoteId = React.useId();
   const performance = buildPlacementPerformance(creative.placements ?? []);
   const media: CreativeMedia = creative.creative;
   const isVideo = media.type === "video" || Boolean(media.videoUrl);
@@ -248,53 +227,16 @@ function CreativePerformance({
         </button>
       </aside>
       <div className={styles.performance}>
-        <header className={styles.heading}>
-          <div>
-            <h3 id={headingId}>Desempenho por posicionamento</h3>
-            <p>Como este criativo performou em cada posicionamento.</p>
-          </div>
-          <div className={styles.controls}>
-            <label
-              className={styles.period}
-              title="A fonte atual entrega apenas o último período sincronizado, sem histórico diário para filtrar."
-            >
-              <CalendarDays aria-hidden="true" />
-              <select
-                aria-label={`Período de ${creative.name}`}
-                aria-describedby={periodNoteId}
-                disabled
-                defaultValue="synced"
-              >
-                <option value="synced">Últimos 7 dias sincronizados</option>
-              </select>
-            </label>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  type="button"
-                  className={styles.menuButton}
-                  aria-label={`Mais opções de ${creative.name}`}
-                >
-                  <MoreHorizontal aria-hidden="true" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onSelect={() => setDetailsOpen(true)}>
-                  Ver detalhes do criativo
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </header>
-        <p id={periodNoteId} className={styles.dataNote}>
-          {demo ? "Dados de demonstração do dashboard. " : ""}
-          {!performance.hasData
-            ? "Sem dados de posicionamento sincronizados. "
-            : ""}
-          Totais dos cinco posicionamentos. Filtro de datas indisponível nesta
-          fonte.
-        </p>
-        <div className={styles.cards} aria-labelledby={headingId}>
+        {/* Sem faixa de cabeçalho: o título, o subtexto, o seletor de
+            período e o menu saíram. A secção já se apresenta pelo painel
+            que a contém, e o espaço que a faixa ocupava vai todo para os
+            cartões. O nome continua a existir para quem lê por leitor de
+            ecrã, no aria-label da grelha. */}
+        <div
+          className={styles.cards}
+          aria-label="Desempenho por posicionamento"
+          role="group"
+        >
           {performance.cards.map((card) => (
             <PlacementCard key={card.id} card={card} />
           ))}
@@ -418,10 +360,8 @@ function CreativePerformance({
 
 export function PlacementPerformance({
   creatives,
-  demo = false,
 }: {
   creatives: readonly Creative[];
-  demo?: boolean;
 }) {
   return (
     <section
@@ -430,11 +370,7 @@ export function PlacementPerformance({
     >
       {creatives.length ? (
         creatives.map((creative) => (
-          <CreativePerformance
-            key={creative.id}
-            creative={creative}
-            demo={demo}
-          />
+          <CreativePerformance key={creative.id} creative={creative} />
         ))
       ) : (
         <div className={styles.empty}>

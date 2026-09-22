@@ -299,20 +299,31 @@ describe("desempenho por posicionamento de cada criativo", () => {
     }
   });
 
-  it("explica o período disponível e não oferece um filtro que a origem não suporta", () => {
+  it("não traz faixa de cabeçalho: nem título, nem subtexto, nem seletor de período, nem menu", () => {
     render(<PlacementPerformance creatives={[creative()]} />);
-    const period = screen.getByRole("combobox", {
-      name: "Período de Criativo dourado",
+    const block = screen.getByRole("article", {
+      name: "Desempenho de Criativo dourado",
     });
-    expect(period.hasAttribute("disabled")).toBe(true);
     expect(
-      within(period).getByRole("option", {
-        name: "Últimos 7 dias sincronizados",
+      within(block).queryByRole("heading", {
+        name: "Desempenho por posicionamento",
+      }),
+    ).toBeNull();
+    expect(
+      within(block).queryByText(/performou em cada posicionamento/),
+    ).toBeNull();
+    expect(within(block).queryByRole("combobox")).toBeNull();
+    expect(screen.queryByText(/Últimos 7 dias sincronizados/)).toBeNull();
+    expect(screen.queryByText(/Filtro de datas indisponível/)).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: /^Mais opções de / }),
+    ).toBeNull();
+    // Os cartões continuam nomeados para quem lê por leitor de ecrã.
+    expect(
+      within(block).getByRole("group", {
+        name: "Desempenho por posicionamento",
       }),
     ).toBeTruthy();
-    expect(
-      period.closest("label")?.getAttribute("title")?.trim().length,
-    ).toBeGreaterThan(0);
   });
 
   it("preserva a identificação do criativo quando a prévia falha e não inventa metadados de mídia", () => {
@@ -408,20 +419,16 @@ describe("desempenho por posicionamento de cada criativo", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
-  it("oferece detalhes também pelo menu de opções do próprio criativo", async () => {
+  it("com o menu de opções fora, os detalhes continuam a um clique no botão do criativo", () => {
     render(<PlacementPerformance creatives={[creative()]} />);
-    const trigger = screen.getByRole("button", {
-      name: "Mais opções de Criativo dourado",
-    });
-    fireEvent.keyDown(trigger, { key: "Enter" });
-    const menuItem = await screen.findByRole("menuitem", {
-      name: /detalhes do criativo/i,
-    });
-    fireEvent.click(menuItem);
     expect(
-      await screen.findByRole("dialog", {
-        name: "Detalhes de Criativo dourado",
-      }),
+      screen.queryByRole("button", { name: "Mais opções de Criativo dourado" }),
+    ).toBeNull();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Ver detalhes do criativo" }),
+    );
+    expect(
+      screen.getByRole("dialog", { name: "Detalhes de Criativo dourado" }),
     ).toBeTruthy();
   });
 });

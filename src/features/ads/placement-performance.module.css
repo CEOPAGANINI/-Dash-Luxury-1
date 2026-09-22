@@ -172,8 +172,7 @@
   height: 16px;
   width: 16px;
 }
-.section .detailsButton:hover,
-.section .menuButton:hover {
+.section .detailsButton:hover {
   background: #edf2fc;
 }
 
@@ -184,78 +183,6 @@
   gap: 20px;
   min-width: 0;
   padding: 20px;
-}
-.heading {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-}
-.heading > div:first-child {
-  flex: 1 1 320px;
-}
-.heading h3 {
-  font-size: clamp(20px, 2cqi, 26px);
-}
-.heading p {
-  font-size: 15px;
-  line-height: 1.6;
-  color: #53627c;
-  margin-top: 4px;
-}
-.controls {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  flex-wrap: wrap;
-  max-width: 100%;
-}
-.period {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  border: 1px solid #dce4ef;
-  background: #fff;
-  padding: 10px;
-  max-width: 100%;
-  min-height: 44px;
-}
-.period svg {
-  flex: none;
-  width: 18px;
-  height: 18px;
-  color: #53627c;
-}
-.section .period select {
-  min-width: 0;
-  max-width: 100%;
-  background: transparent !important;
-  box-shadow: none !important;
-  border: none;
-  color: #53627c;
-  font-size: 12px;
-  opacity: 1;
-  -webkit-text-fill-color: #53627c;
-}
-.section .menuButton {
-  display: grid;
-  place-items: center;
-  min-width: 44px;
-  min-height: 44px;
-  background: #fff;
-  color: #344562;
-  border: 1px solid #dce4ef;
-  cursor: pointer;
-}
-.menuButton svg {
-  width: 20px;
-  height: 20px;
-}
-.section .dataNote {
-  color: #5c6880;
-  font-size: 12px;
-  line-height: 1.5;
 }
 .cards {
   display: grid;
