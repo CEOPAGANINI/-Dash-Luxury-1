@@ -14,7 +14,6 @@
   grid-template-columns: minmax(0, 1fr);
   background: #f8faff;
   border: 1px solid #e5eaf2;
-  border-radius: 16px;
   box-shadow: 0 3px 16px rgb(24 40 74 / 3%);
   overflow: hidden;
   min-width: 0;
@@ -58,7 +57,6 @@
   display: grid;
   place-items: center;
   overflow: hidden;
-  border-radius: 12px;
   background: #f0f3f9;
   aspect-ratio: 4 / 5;
   width: 100%;
@@ -120,7 +118,6 @@
 }
 .status {
   padding: 4px 12px;
-  border-radius: 999px;
   background: #edf0f6;
   color: #526078;
   font-weight: 650;
@@ -159,7 +156,6 @@
   color: #344562;
   background: #f9faff;
   border: 1px solid #dce4ef;
-  border-radius: 10px;
   font-size: 13px;
   cursor: pointer;
 }
@@ -212,7 +208,6 @@
   align-items: center;
   gap: 8px;
   border: 1px solid #dce4ef;
-  border-radius: 10px;
   background: #fff;
   padding: 10px;
   max-width: 100%;
@@ -243,7 +238,6 @@
   background: #fff;
   color: #344562;
   border: 1px solid #dce4ef;
-  border-radius: 10px;
   cursor: pointer;
 }
 .menuButton svg {
@@ -266,28 +260,49 @@
   padding: 20px;
   background: #fff;
   border: 1px solid #e5eaf2;
-  border-radius: 14px;
   box-shadow: 0 2px 8px rgb(24 40 74 / 2%);
 }
+/* O cabeçalho é uma grade de duas linhas, não uma fila: o selo à
+   esquerda a ocupar as duas, o nome sozinho em cima com a linha toda, e
+   a rede e o emblema por baixo. Em fila, o emblema e o subtítulo
+   disputavam a largura com o nome e faziam-no encolher até desaparecer;
+   a partilhar a primeira linha com o emblema, "Feed Instagram" ainda
+   ficava cortado. */
 .cardHeader {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "selo nome nome"
+    "selo rede emblema";
   align-items: center;
-  gap: 10px;
+  gap: 1px 8px;
 }
 .cardHeader h4 {
-  flex: 1;
-  min-width: 100px;
-  font-size: 15px;
-  overflow-wrap: anywhere;
+  grid-area: nome;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cardHeader small {
+  grid-area: rede;
+  min-width: 0;
+  color: #53627c;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .platformIcon {
+  grid-area: selo;
   display: grid;
   place-items: center;
   flex: none;
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
+  width: 26px;
+  height: 26px;
   color: #fff;
 }
 .platformIcon[data-platform="instagram"] {
@@ -303,69 +318,93 @@
 .platformIcon[data-platform="facebook"] {
   background: #1877f2;
 }
+/* O desenho acompanha a caixa: com o selo a 26px, um svg de 28px
+   transbordava dois pixels. */
 .platformIcon svg {
-  width: 28px;
-  height: 28px;
+  width: 18px;
+  height: 18px;
 }
 .badge {
-  padding: 7px 9px;
-  border-radius: 999px;
+  grid-area: emblema;
+  flex: none;
+  padding: 4px 7px;
   background: #f0f3fa;
   color: #33425d;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 650;
   white-space: nowrap;
   margin-left: auto;
 }
-.primaryMetrics {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  padding: 28px 0 22px;
-}
-.primaryMetrics > div,
-.secondaryMetrics > div {
+/* O cartão de posicionamento: as vendas sozinhas em destaque e todas as
+   outras métricas em linhas — rótulo à esquerda, valor à direita, uma
+   régua só. É o que faz os cartões lerem alinhados lado a lado, mesmo
+   com nomes e números de tamanhos diferentes. */
+.cardSales {
   display: flex;
+  align-items: baseline;
+  gap: 7px;
+  margin: 0;
+  padding: 16px 0 12px;
   min-width: 0;
-  flex-direction: column-reverse;
-  justify-content: flex-end;
-  gap: 5px;
 }
-.primaryMetrics dd {
-  font-size: clamp(18px, 8cqi, 27px);
+.cardSales b {
+  font-size: clamp(22px, 11cqi, 30px);
   font-weight: 750;
-  line-height: 1.2;
+  line-height: 1.1;
   letter-spacing: -0.04em;
   font-variant-numeric: tabular-nums;
-  overflow-wrap: anywhere;
 }
-.primaryMetrics dt {
-  font-size: 14px;
+.cardSales span {
   color: #53627c;
+  font-size: 13px;
+  font-weight: 600;
 }
-.secondaryMetrics {
+.cardRows {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px 10px;
-  border-top: 1px solid #e5eaf2;
-  padding-top: 20px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  margin: 0;
+  min-width: 0;
 }
-.secondaryMetrics dd {
+.cardRows > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+  padding: 5px 0;
+  border-top: 1px solid #e5eaf2;
+}
+.cardRows > div:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+.cardRows dt {
+  min-width: 0;
+  color: #53627c;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cardRows dd {
+  margin: 0;
   color: #10172f;
   font-size: 13px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  overflow-wrap: anywhere;
-}
-.secondaryMetrics dt {
-  color: #53627c;
-  font-size: 12px;
   white-space: nowrap;
+}
+.cardRows dd[data-tone="positive"] {
+  color: #0b7a3b;
+}
+.cardRows dd[data-tone="negative"] {
+  color: #c00020;
 }
 .section .distribution {
   padding: 20px;
   border: 1px solid #e5eaf2;
-  border-radius: 14px;
   background: #fff;
 }
 .distribution figcaption {
@@ -387,7 +426,6 @@
   height: 26px;
   margin: 16px 0 20px;
   background: #edf1f7;
-  border-radius: 7px;
   overflow: hidden;
 }
 .bar > span {
@@ -413,7 +451,6 @@
   width: 12px;
   height: 12px;
   margin-top: 4px;
-  border-radius: 50%;
   flex: none;
 }
 .legend b {
@@ -437,7 +474,6 @@
   padding: 24px;
   border: 1px solid #e5eaf2;
   background: #fff;
-  border-radius: 14px;
 }
 .empty h3 {
   font-size: 20px;
@@ -467,7 +503,6 @@
   color: #10172f;
   padding: 28px;
   border: 1px solid #e5eaf2;
-  border-radius: 16px;
   box-shadow: 0 20px 80px rgb(13 23 45 / 20%);
   color-scheme: light;
 }
@@ -506,7 +541,6 @@
   background: #f0f3fa;
   color: #344562;
   border: 0;
-  border-radius: 8px;
   cursor: pointer;
 }
 .closeButton svg {
@@ -547,7 +581,9 @@
     font-size: 22px;
   }
 }
-@container placement-section (min-width: 1200px) {
+/* 840px, e não 1200: é a largura que o painel da campanha dá à
+   secção. Numa página inteira nada muda — continua a ligar. */
+@container placement-section (min-width: 840px) {
   .section .creativeBlock {
     grid-template-columns: 280px minmax(0, 1fr);
   }
@@ -571,33 +607,25 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
-@container placement-card (min-width: 370px) {
-  .secondaryMetrics {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-  }
-}
-@container placement-card (max-width: 230px) {
-  .secondaryMetrics {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-@container placement-content (min-width: 680px) {
+@container placement-content (min-width: 400px) {
   .cards {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .card:last-child {
-    grid-column: span 2;
+    grid-auto-rows: 1fr;
   }
 }
-@container placement-content (min-width: 1000px) {
+/* Três por linha só a partir dos 800px de área útil: abaixo disso cada
+   cartão ficava com 174px, e nessa largura o emblema "67% das vendas"
+   come a linha toda e o nome do posicionamento desaparece. No painel da
+   campanha ficam dois por linha, com cerca de 270px cada — a medida em
+   que o cartão se lê inteiro.
+
+   Todos com a MESMA medida: colunas iguais e linhas iguais. A grade de
+   seis colunas com vãos de dois e de três fazia a última linha ficar
+   com cartões mais largos do que os de cima. */
+@container placement-content (min-width: 800px) {
   .cards {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-  }
-  .card {
-    grid-column: span 2;
-  }
-  .card:nth-child(n + 4) {
-    grid-column: span 3;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-auto-rows: 1fr;
   }
   .legend {
     grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -613,6 +641,6 @@
     padding: 16px;
   }
   .badge {
-    margin-left: 48px;
+    margin-left: auto;
   }
 }

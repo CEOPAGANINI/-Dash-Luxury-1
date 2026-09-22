@@ -113,6 +113,22 @@ function PlatformIcon({ platform }: { platform: "instagram" | "facebook" }) {
 
 function PlacementCard({ card }: { card: PlacementPerformanceCard }) {
   const { metrics, derived } = card;
+  /* As vendas ficam sozinhas em destaque; tudo o resto desce em linhas
+     de rótulo à esquerda e valor à direita, na mesma régua em todos os
+     cartões — é o que os faz ler alinhados lado a lado. */
+  const rows: [string, React.ReactNode, string?][] = [
+    ["ROAS", ratio(derived.roas), tone(derived.roas)],
+    [
+      "Initiate Checkout",
+      metrics.checkouts === undefined ? "—" : formatInteger(metrics.checkouts),
+    ],
+    ["Impressões", formatInteger(metrics.impressions)],
+    ["Cliques", formatInteger(metrics.clicks)],
+    ["CTR", formatPercent(derived.ctr ?? 0, 2)],
+    ["CPC", money(derived.cpcCents ?? (card.hasData ? null : 0))],
+    ["CPM", money(derived.cpmCents ?? (card.hasData ? null : 0))],
+    ["CPA", money(derived.cpaCents ?? (card.hasData ? null : 0))],
+  ];
   return (
     <article
       className={styles.card}
@@ -122,47 +138,20 @@ function PlacementCard({ card }: { card: PlacementPerformanceCard }) {
       <header className={styles.cardHeader}>
         <PlatformIcon platform={card.platform} />
         <h4>{card.label}</h4>
+        <small>{card.platform === "instagram" ? "Instagram" : "Facebook"}</small>
         <span className={styles.badge}>{card.percentage}% das vendas</span>
       </header>
-      <dl className={styles.primaryMetrics}>
-        <div>
-          <dt>{metrics.purchases === 1 ? "venda" : "vendas"}</dt>
-          <dd>{formatInteger(metrics.purchases)}</dd>
-        </div>
-        <div>
-          <dt>ROAS</dt>
-          <dd data-tone={tone(derived.roas)}>{ratio(derived.roas)}</dd>
-        </div>
-        <div>
-          <dt title="Initiate Checkout">checkout</dt>
-          <dd>
-            {metrics.checkouts === undefined
-              ? "—"
-              : formatInteger(metrics.checkouts)}
-          </dd>
-        </div>
-      </dl>
-      <dl className={styles.secondaryMetrics}>
-        <div>
-          <dt>impressões</dt>
-          <dd>{formatInteger(metrics.impressions)}</dd>
-        </div>
-        <div>
-          <dt>cliques</dt>
-          <dd>{formatInteger(metrics.clicks)}</dd>
-        </div>
-        <div>
-          <dt>CTR</dt>
-          <dd>{formatPercent(derived.ctr ?? 0, 2)}</dd>
-        </div>
-        <div>
-          <dt>CPC</dt>
-          <dd>{money(derived.cpcCents ?? (card.hasData ? null : 0))}</dd>
-        </div>
-        <div>
-          <dt>CPA</dt>
-          <dd>{money(derived.cpaCents ?? (card.hasData ? null : 0))}</dd>
-        </div>
+      <p className={styles.cardSales}>
+        <b>{formatInteger(metrics.purchases)}</b>
+        <span>{metrics.purchases === 1 ? "venda" : "vendas"}</span>
+      </p>
+      <dl className={styles.cardRows}>
+        {rows.map(([label, value, toneName]) => (
+          <div key={label}>
+            <dt>{label}</dt>
+            <dd data-tone={toneName}>{value}</dd>
+          </div>
+        ))}
       </dl>
     </article>
   );

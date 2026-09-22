@@ -111,6 +111,13 @@ function creative(overrides: Partial<AdRow> = {}): AdRow {
   };
 }
 
+/* As vendas saíram da lista de métricas para o destaque do cartão: já
+   não são um par dt/dd, são o número grande com "venda(s)" ao lado. */
+function salesIn(root: HTMLElement) {
+  const p = root.querySelector("p");
+  return p?.querySelector("b")?.textContent?.trim();
+}
+
 function metricsIn(root: HTMLElement) {
   return Object.fromEntries(
     [...root.querySelectorAll("dt")].map((term) => [
@@ -153,10 +160,10 @@ describe("desempenho por posicionamento de cada criativo", () => {
 
     // As duas linhas de feed do Instagram são agregadas; o feed do
     // Facebook continua separado, com os próprios custos e resultados.
+    expect(salesIn(cards[0])).toBe("3");
     expect(metricsIn(cards[0])).toMatchObject({
-      vendas: "3",
       roas: "2,00x",
-      checkout: "9",
+      "initiate checkout": "9",
       impressões: "1.500",
       cliques: "30",
       ctr: "2,00%",
@@ -164,19 +171,19 @@ describe("desempenho por posicionamento de cada criativo", () => {
       cpa: "R$ 50,00",
     });
     expect(Object.keys(metricsIn(cards[0]))).toEqual([
-      "vendas",
       "roas",
-      "checkout",
+      "initiate checkout",
       "impressões",
       "cliques",
       "ctr",
       "cpc",
+      "cpm",
       "cpa",
     ]);
+    expect(salesIn(cards[3])).toBe("2");
     expect(metricsIn(cards[3])).toMatchObject({
-      vendas: "2",
       roas: "3,00x",
-      checkout: "8",
+      "initiate checkout": "8",
       impressões: "4.000",
       cliques: "80",
       ctr: "2,00%",
@@ -237,20 +244,22 @@ describe("desempenho por posicionamento de cada criativo", () => {
   it("mostra zeros para posições ausentes e distingue checkout desconhecido de zero real", () => {
     render(<PlacementPerformance creatives={[creative()]} />);
     const explore = screen.getByRole("article", { name: "Explorar Instagram" });
+    expect(salesIn(explore)).toBe("0");
     expect(metricsIn(explore)).toMatchObject({
-      vendas: "0",
       roas: "—",
-      checkout: "0",
+      "initiate checkout": "0",
       impressões: "0",
       cliques: "0",
     });
     expect(
-      metricsIn(screen.getByRole("article", { name: "Stories Instagram" }))
-        .checkout,
+      metricsIn(screen.getByRole("article", { name: "Stories Instagram" }))[
+        "initiate checkout"
+      ],
     ).toBe("—");
     expect(
-      metricsIn(screen.getByRole("article", { name: "Stories Facebook" }))
-        .checkout,
+      metricsIn(screen.getByRole("article", { name: "Stories Facebook" }))[
+        "initiate checkout"
+      ],
     ).toBe("0");
     expect(screen.queryByText(/NaN|Infinity/)).toBeNull();
   });
@@ -281,9 +290,9 @@ describe("desempenho por posicionamento de cada criativo", () => {
     expect(within(empty).getAllByRole("article")).toHaveLength(5);
     expect(within(empty).getAllByText("0% das vendas")).toHaveLength(5);
     for (const card of within(empty).getAllByRole("article")) {
+      expect(salesIn(card)).toBe("0");
       expect(metricsIn(card)).toMatchObject({
-        vendas: "0",
-        checkout: "0",
+        "initiate checkout": "0",
         impressões: "0",
         cliques: "0",
       });

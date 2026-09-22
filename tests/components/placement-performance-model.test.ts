@@ -97,6 +97,8 @@ describe("placement performance normalization", () => {
       ctr: 0.025,
       cpcCents: 48.2,
       cpaCents: 2410,
+      // 12050 centavos por 10.000 impressões.
+      cpmCents: 1205,
     });
     expect(explore.percentage).toBe(100);
   });
@@ -183,6 +185,8 @@ describe("placement performance totals", () => {
       ctr: 0.05,
       cpcCents: 200,
       cpaCents: 4000,
+      // 40000 centavos por 4.000 impressões.
+      cpmCents: 10000,
     });
     expect(model.cards[3].metrics.purchases).toBe(1);
     expect(model.totalSales).toBe(11);
@@ -209,6 +213,8 @@ describe("placement performance totals", () => {
       ctr: 0.0125,
       cpcCents: 180,
       cpaCents: 3950,
+      // 20000 centavos por 10.000 impressões.
+      cpmCents: 2000,
     });
   });
 
@@ -273,6 +279,7 @@ describe("placement performance totals", () => {
       ctr: null,
       cpcCents: null,
       cpaCents: null,
+      cpmCents: null,
     });
     expect(model.cards.every((card) => card.percentage === 0)).toBe(true);
     expect(JSON.stringify(model)).not.toContain("NaN");

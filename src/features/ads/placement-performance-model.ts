@@ -54,6 +54,7 @@ export interface PlacementDerivedMetrics {
   ctr: number | null;
   cpcCents: number | null;
   cpaCents: number | null;
+  cpmCents: number | null;
 }
 
 export type PlacementPerformanceCard = PlacementDefinition & {
@@ -232,6 +233,13 @@ function normalizeRecord(value: unknown): NormalizedRecord | null {
           row.cpaCents,
           cents(row.cpa),
         ) ?? calculated.cpaCents,
+      cpmCents:
+        firstNumber(
+          supplied.cpmCents,
+          m.cpmCents,
+          row.cpmCents,
+          cents(row.cpm),
+        ) ?? calculated.cpmCents,
     },
   };
 }
@@ -256,6 +264,7 @@ function summarize(records: readonly NormalizedRecord[]): {
       ctr: calculated.ctr,
       cpcCents: calculated.cpcCents,
       cpaCents: calculated.cpaCents,
+      cpmCents: calculated.cpmCents,
     },
   };
 }
