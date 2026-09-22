@@ -1,4 +1,12 @@
 .section {
+  /* A altura de um cartão de posicionamento, e o vão entre eles.
+
+     É daqui que sai TUDO: as fileiras dos cartões têm esta altura, e o
+     bloco do criativo ao lado tem a altura de dois deles mais o vão.
+     Ficando na mesma medida, não podem desencontrar-se. Se um dia o
+     cartão ganhar mais uma linha de métrica, é este número que sobe. */
+  --altura-do-cartao: 376px;
+  --vao-dos-cartoes: 16px;
   container: placement-section / inline-size;
   display: grid;
   gap: 24px;
@@ -252,7 +260,8 @@
 .cards {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 16px;
+  grid-auto-rows: var(--altura-do-cartao);
+  gap: var(--vao-dos-cartoes);
 }
 .section .card {
   container: placement-card / inline-size;
@@ -587,13 +596,22 @@
   .section .creativeBlock {
     grid-template-columns: 280px minmax(0, 1fr);
   }
+  /* O bloco do criativo tem a altura de DOIS cartões, não a da coluna
+     inteira: com três fileiras de cartões ao lado, esticava até ao fundo
+     e ficava uma tira alta e vazia. A prévia encolhe com ele, em vez de
+     ficar presa a uma proporção. */
   .summary {
     display: flex;
+    align-self: start;
+    height: calc(var(--altura-do-cartao) * 2 + var(--vao-dos-cartoes));
     border-bottom: 0;
     border-right: 1px solid #e5eaf2;
   }
   .preview {
-    aspect-ratio: 3 / 5;
+    flex: 1 1 auto;
+    aspect-ratio: auto;
+    min-height: 120px;
+    max-height: none;
   }
   .summaryMetrics {
     grid-template-columns: minmax(0, 1fr);
@@ -610,7 +628,6 @@
 @container placement-content (min-width: 400px) {
   .cards {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-auto-rows: 1fr;
   }
 }
 /* Três por linha só a partir dos 800px de área útil: abaixo disso cada
@@ -625,7 +642,6 @@
 @container placement-content (min-width: 800px) {
   .cards {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    grid-auto-rows: 1fr;
   }
   .legend {
     grid-template-columns: repeat(5, minmax(0, 1fr));
