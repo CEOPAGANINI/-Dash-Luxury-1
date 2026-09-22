@@ -250,8 +250,25 @@ export function areaComFaixas(vaga: string, t: Tamanho): string {
 /* O tamanho do bloco da campanha aberta: três blocos de largura por três
    de altura (as faixas ficam com dois blocos de largura, à esquerda). */
 export const PAINEL_DA_CAMPANHA = { largura: 3, altura: 3 } as const;
-/** Até onde o quadro devolve altura quando a página estoura por pouco. */
-export const ESTOURO_DEVOLVIDO = 96;
+/** A altura mínima que o quadro pode ter depois de devolver um estouro. */
+export const ALTURA_MINIMA_DO_QUADRO = 360;
+/*
+  Quanto o quadro devolve quando a página estoura.
+
+  Devolve o estouro inteiro, e não até um teto: o que a página estoura
+  por baixo do quadro é exatamente o que aparece como faixa em branco
+  quando se rola. Havia aqui um teto de 96px, pensado para o caso de o
+  conteúdo ser maior do que a tela; hoje as colunas e o painel rolam por
+  dentro, por isso encolher o quadro não deixa vazio nenhum — só encurta
+  esses rolamentos.
+
+  O piso continua: nunca abaixo de ALTURA_MINIMA_DO_QUADRO, senão um
+  estouro vindo de outra coisa qualquer esmagava o quadro à toa.
+*/
+export function alturaSemEstouro(altura: number, estouro: number): number {
+  if (!(estouro > 0)) return altura;
+  return Math.max(ALTURA_MINIMA_DO_QUADRO, altura - estouro);
+}
 export function vagaDoPainelDaCampanha(fileiras: number) {
   return { largura: Math.min(PAINEL_DA_CAMPANHA.largura, GRADE.colunas), altura: Math.min(PAINEL_DA_CAMPANHA.altura, Math.max(fileiras, 1)) };
 }
@@ -793,18 +810,18 @@ export function ClassBoard({
         const cs = getComputedStyle(pai);
         fundo += (parseFloat(cs.paddingBottom) || 0) + (parseFloat(cs.borderBottomWidth) || 0) + (parseFloat(cs.marginBottom) || 0);
       }
-      const medida = Math.max(360, window.innerHeight - topo - fundo);
+      const medida = Math.max(ALTURA_MINIMA_DO_QUADRO, window.innerHeight - topo - fundo);
       let altura = medida;
       el.style.setProperty("--quadro-altura", `${altura}px`);
-      /* Um estouro pequeno que ainda sobre é devolvido: é o que evita a
-         faixa em branco quando alguma coisa mudou de tamanho depois da
-         medida (o aviso do topo a quebrar em duas linhas, o menu da
-         direita). Um estouro grande vem de outra coisa — o conteúdo
-         maior do que a tela — e devolvê-lo encolhia o quadro até ao
-         piso e deixava justamente o vazio que se queria evitar. */
-      const sobra = document.documentElement.scrollHeight - window.innerHeight;
-      if (sobra > 0 && sobra <= ESTOURO_DEVOLVIDO && altura - sobra >= 360) {
-        altura -= sobra;
+      /* O estouro que ainda sobre é devolvido inteiro: é exatamente ele
+         que aparece como faixa em branco quando se rola para baixo. Duas
+         voltas, porque devolver altura muda o desenho e pode revelar um
+         resto — mais do que isso seria perseguir o próprio rabo. */
+      for (let volta = 0; volta < 2; volta++) {
+        const sobra = document.documentElement.scrollHeight - window.innerHeight;
+        const nova = alturaSemEstouro(altura, sobra);
+        if (nova === altura) break;
+        altura = nova;
         el.style.setProperty("--quadro-altura", `${altura}px`);
       }
     };
@@ -816,6 +833,14 @@ export function ClassBoard({
     vista?.addEventListener("resize", ajustar);
     const ro = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(ajustar);
     ro?.observe(document.body);
+    /* O body pode ter altura fixa e nunca mudar de tamanho. O que muda,
+       quando o aviso do topo aparece, some ou quebra numa linha a mais,
+       é a caixa que está acima do quadro — e é isso que empurra o quadro
+       para baixo e o faz estourar a página. */
+    if (el.parentElement) ro?.observe(el.parentElement);
+    for (let irmao = el.previousElementSibling; irmao; irmao = irmao.previousElementSibling) {
+      ro?.observe(irmao);
+    }
     // Abrir ou fechar o menu do topo também remede (o body pode nem mudar de tamanho).
     const painel = document.querySelector(".board-pager-sidebar");
     const mo = painel ? new MutationObserver(ajustar) : null;
@@ -895,8 +920,79 @@ export function ClassBoard({
                 >
                   Apagar faixa
                 </button>
+                {/* Com a campanha aberta, trocar de faixa e criar faixa
+                    vivem AQUI, nesta barra, e já não numa tira por baixo
+                    do quadro. A tira obrigava a reservar 84px de altura
+                    só para ela — e eram esses 84px que sobravam como
+                    faixa em branco ao rolar. Na barra não custam altura
+                    nenhuma: ela já existe. */}
+                {faixaSozinha !== null && (
+                  <>
+                    {pagerDasFaixas()}
+                    {botaoDeNovaFaixa("class-board-faixa-acao class-board-faixa-nova")}
+                  </>
+                )}
               </div>
             );
+  }
+  /* Trocar de faixa: a seta para a de cima, o número de cada faixa e a
+     seta para a de baixo. Substituem a rolagem da coluna esquerda. */
+  function pagerDasFaixas() {
+    if (faixaSozinha === null) return null;
+    return (
+      <nav className="class-board-faixa-pager" aria-label="Trocar de faixa">
+        <button
+          type="button"
+          className="class-board-faixa-passo"
+          aria-label="Faixa anterior"
+          title="Mostra a faixa de cima"
+          disabled={faixaSozinha <= 1}
+          onClick={() => setFaixaEscolhida(faixaSozinha - 1)}
+        >
+          <ChevronLeft aria-hidden="true" />
+        </button>
+        <ul className="class-board-faixa-numeros">
+          {Array.from({ length: fileiras }, (_, i) => i + 1).map((f) => (
+            <li key={f}>
+              <button
+                type="button"
+                aria-label={`Mostrar a faixa ${f}`}
+                aria-current={f === faixaSozinha ? "true" : undefined}
+                data-atual={f === faixaSozinha ? "true" : undefined}
+                onClick={() => setFaixaEscolhida(f)}
+              >
+                {f}
+              </button>
+            </li>
+          ))}
+        </ul>
+        <button
+          type="button"
+          className="class-board-faixa-passo"
+          aria-label="Próxima faixa"
+          title="Mostra a faixa de baixo"
+          disabled={faixaSozinha >= fileiras}
+          onClick={() => setFaixaEscolhida(faixaSozinha + 1)}
+        >
+          <ChevronRight aria-hidden="true" />
+        </button>
+      </nav>
+    );
+  }
+  /** Uma faixa nova, com cinco blocos. */
+  function botaoDeNovaFaixa(className: string) {
+    return (
+      <button
+        type="button"
+        className={className}
+        aria-label="Criar nova faixa com 5 blocos"
+        title="Cria a faixa seguinte com cinco blocos fixados"
+        onClick={criarFaixa}
+      >
+        <Plus aria-hidden="true" />
+        Nova faixa
+      </button>
+    );
   }
   function blocoDoQuadro(pilar: string) {
             const classe = pilar;
@@ -1172,47 +1268,6 @@ export function ClassBoard({
             />
           )}
       </div>
-      {/* Os botões que trocam de faixa: a seta para a de cima, o número de
-          cada faixa e a seta para a de baixo. Substituem a rolagem. */}
-      {faixaSozinha !== null && (
-        <nav className="class-board-faixa-pager" aria-label="Trocar de faixa">
-          <button
-            type="button"
-            className="class-board-faixa-passo"
-            aria-label="Faixa anterior"
-            title="Mostra a faixa de cima"
-            disabled={faixaSozinha <= 1}
-            onClick={() => setFaixaEscolhida(faixaSozinha - 1)}
-          >
-            <ChevronLeft aria-hidden="true" />
-          </button>
-          <ul className="class-board-faixa-numeros">
-            {Array.from({ length: fileiras }, (_, i) => i + 1).map((f) => (
-              <li key={f}>
-                <button
-                  type="button"
-                  aria-label={`Mostrar a faixa ${f}`}
-                  aria-current={f === faixaSozinha ? "true" : undefined}
-                  data-atual={f === faixaSozinha ? "true" : undefined}
-                  onClick={() => setFaixaEscolhida(f)}
-                >
-                  {f}
-                </button>
-              </li>
-            ))}
-          </ul>
-          <button
-            type="button"
-            className="class-board-faixa-passo"
-            aria-label="Próxima faixa"
-            title="Mostra a faixa de baixo"
-            disabled={faixaSozinha >= fileiras}
-            onClick={() => setFaixaEscolhida(faixaSozinha + 1)}
-          >
-            <ChevronRight aria-hidden="true" />
-          </button>
-        </nav>
-      )}
       {/* A campanha aberta: um bloco com a largura de três blocos e a
           altura de três, à direita; as faixas ficam à esquerda, com dois
           blocos de largura, e rolam. */}
@@ -1231,17 +1286,10 @@ export function ClassBoard({
           }}
         />
       )}
-      {/* Uma faixa nova, com cinco blocos, embaixo de tudo. */}
-      <button
-        type="button"
-        className="class-board-nova-faixa"
-        aria-label="Criar nova faixa com 5 blocos"
-        title="Cria a faixa seguinte com cinco blocos fixados"
-        onClick={criarFaixa}
-      >
-        <Plus aria-hidden="true" />
-        Nova faixa
-      </button>
+      {/* Sem campanha aberta não há barra de faixa onde pôr isto: o
+          botão fica embaixo do quadro, como sempre esteve. Com a
+          campanha aberta ele já foi para a barra. */}
+      {faixaSozinha === null && botaoDeNovaFaixa("class-board-nova-faixa")}
     </div>
   );
 }

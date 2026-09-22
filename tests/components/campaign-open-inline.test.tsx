@@ -326,18 +326,21 @@ describe("a seta abre os dados da campanha num bloco à direita do quadro", () =
     expect(faixas().map((f) => f.getAttribute("data-faixa"))).toEqual(["1"]);
     expect(within(grade).getByRole("region", { name: "Outras campanhas 1" })).toBeTruthy();
 
-    // Os botões trocam de faixa: um por faixa, mais as duas setas.
-    const pager = screen.getByRole("navigation", { name: "Trocar de faixa" });
-    expect(within(pager).getByRole("button", { name: "Faixa anterior" }).hasAttribute("disabled")).toBe(true);
-    expect(within(pager).getByRole("button", { name: "Mostrar a faixa 1" }).getAttribute("aria-current")).toBe("true");
+    /* Os botões trocam de faixa: um por faixa, mais as duas setas. O
+       seletor vive dentro da barra da faixa, e a barra é outra a cada
+       faixa — por isso procura-se de novo a cada vez, em vez de guardar
+       o nó (que fica órfão assim que a faixa muda). */
+    const pager = () => screen.getByRole("navigation", { name: "Trocar de faixa" });
+    expect(within(pager()).getByRole("button", { name: "Faixa anterior" }).hasAttribute("disabled")).toBe(true);
+    expect(within(pager()).getByRole("button", { name: "Mostrar a faixa 1" }).getAttribute("aria-current")).toBe("true");
 
-    fireEvent.click(within(pager).getByRole("button", { name: "Mostrar a faixa 3" }));
+    fireEvent.click(within(pager()).getByRole("button", { name: "Mostrar a faixa 3" }));
     expect(faixas().map((f) => f.getAttribute("data-faixa"))).toEqual(["3"]);
     expect(within(grade).queryByRole("region", { name: "Outras campanhas 1" })).toBeNull();
-    expect(within(pager).getByRole("button", { name: "Próxima faixa" }).hasAttribute("disabled")).toBe(true);
+    expect(within(pager()).getByRole("button", { name: "Próxima faixa" }).hasAttribute("disabled")).toBe(true);
 
     // A seta anterior volta uma faixa; os dados da campanha continuam abertos.
-    fireEvent.click(within(pager).getByRole("button", { name: "Faixa anterior" }));
+    fireEvent.click(within(pager()).getByRole("button", { name: "Faixa anterior" }));
     expect(faixas().map((f) => f.getAttribute("data-faixa"))).toEqual(["2"]);
     expect(screen.getByRole("group", { name: "Dados de Alfa" })).toBeTruthy();
 

@@ -26,8 +26,14 @@
   );
   container: placement-section / inline-size;
   display: grid;
+  align-content: stretch;
   gap: 24px;
   min-width: 0;
+  min-height: 0;
+  /* A secção estica até ao fim do painel; o bloco estica com ela. Sem
+     isto, a sobra de altura ficava toda numa faixa morta por baixo do
+     bloco — 111px numa janela de 1.400px. */
+  height: 100%;
   color: #10172f;
   color-scheme: light;
   font-family: var(--font-montserrat), Arial, sans-serif;
@@ -595,7 +601,10 @@
        células, quatro fileiras. */
     --fileiras: 4;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-auto-rows: var(--altura-do-cartao);
+    /* As fileiras nunca encolhem abaixo da altura do cartão, e repartem
+       entre si a altura que sobrar — em vez de a deixarem no fundo. */
+    grid-auto-rows: minmax(var(--altura-do-cartao), 1fr);
+    height: 100%;
   }
   .summary {
     display: flex;

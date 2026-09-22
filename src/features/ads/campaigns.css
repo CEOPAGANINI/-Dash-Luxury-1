@@ -4637,11 +4637,13 @@ html[data-tema="branco"] .class-board-painel-cartao.class-board-menu {
      quartos passa dos 1.060px, entra em quatro colunas e duas fileiras —
      que é o que faz tudo caber de uma vez. */
   grid-template-columns: minmax(0, 1fr) minmax(0, 3fr) !important;
-  grid-template-rows: minmax(0, 1fr) auto auto !important;
+  grid-template-rows: minmax(0, 1fr) !important;
   column-gap: 8px;
-  /* O que o seletor de faixas e o "Nova faixa" ocupam por baixo das duas
-     colunas: é o que se desconta da altura delas. */
-  --reserva-do-quadro: 84px;
+  /* Já não se reserva nada por baixo: o seletor de faixas e o "Nova
+     faixa" passaram para a barra da faixa, que já existia. Eram 84px
+     guardados só para uma tira, e eram eles que sobravam como faixa em
+     branco quando se rolava a página. */
+  --reserva-do-quadro: 0px;
 }
 /* A esquerda mostra uma faixa de cada vez, inteira e sem rolagem: uma
    coluna só, a barra com a altura dela e os blocos repartindo o resto em
@@ -4652,17 +4654,30 @@ html[data-tema="branco"] .class-board-painel-cartao.class-board-menu {
   display: flex !important;
   flex-direction: column;
   min-height: 0;
-  /* O que sobra depois do seletor de faixas e do "Nova faixa" (8+32+8+36
-     = 84px): é este o tecto das duas colunas, para acabarem na mesma
-     linha sem o quadro passar da tela. */
-  max-height: calc(var(--quadro-altura, 100%) - var(--reserva-do-quadro, 84px));
+  /* O tecto das duas colunas: a altura inteira do quadro, agora que não
+     há tira nenhuma por baixo. */
+  max-height: calc(var(--quadro-altura, 100%) - var(--reserva-do-quadro, 0px));
   overflow: hidden;
 }
-/* O seletor de faixas e o "Nova faixa" atravessam as duas colunas: se
-   ficassem só à esquerda, a coluna dos blocos acabava 84px acima do
-   painel e as duas caixas não fechavam na mesma linha. */
-.dash-skin .class-board-quadro[data-campanha-aberta="true"] > .class-board-faixa-pager { grid-column: 1 / -1; grid-row: 2; }
-.dash-skin .class-board-quadro[data-campanha-aberta="true"] > .class-board-nova-faixa { grid-column: 1 / -1; grid-row: 3; justify-self: center; }
+/* O seletor de faixas e o "Nova faixa" dentro da barra da faixa: à
+   direita do "Apagar faixa", na linha que a barra já ocupa. */
+.dash-skin .class-board-faixa-barra > .class-board-faixa-pager {
+  margin-left: auto;
+  padding: 0;
+  gap: 3px;
+  flex: 0 1 auto;
+}
+/* Na barra os botões são mais baixos do que na tira: 1.5rem em vez de
+   2rem, para a barra não crescer por causa deles. */
+.dash-skin .class-board-faixa-barra .class-board-faixa-passo,
+.dash-skin .class-board-faixa-barra .class-board-faixa-numeros > li > button {
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0 4px;
+}
+.dash-skin .class-board-faixa-barra .class-board-faixa-passo > svg { width: 0.875rem; height: 0.875rem; }
+.dash-skin .class-board-faixa-barra .class-board-faixa-numeros { gap: 3px; }
+.dash-skin .class-board-faixa-barra > .class-board-faixa-nova { flex: 0 0 auto; }
 /* Todos os blocos da esquerda com a mesma medida: a largura inteira da
    coluna e uma fatia igual da altura. */
 .dash-skin .class-board-quadro[data-campanha-aberta="true"] .class-board-pilares > section.class-board-pilar,
@@ -4680,14 +4695,14 @@ html[data-tema="branco"] .class-board-painel-cartao.class-board-menu {
 }
 /* Os botões que trocam de faixa: as setas nas pontas e o número de cada
    faixa no meio; o escolhido fica cheio. Mesmo desenho quadrado do resto. */
-.dash-skin .class-board-quadro > .class-board-faixa-pager {
+.dash-skin .class-board-faixa-pager {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
   min-width: 0;
-  margin-top: 8px;
 }
+.dash-skin .class-board-quadro > .class-board-faixa-pager { margin-top: 8px; }
 .dash-skin .class-board-faixa-pager .class-board-faixa-passo,
 .dash-skin .class-board-faixa-pager .class-board-faixa-numeros > li > button {
   display: inline-flex;
@@ -4745,7 +4760,7 @@ html[data-tema="branco"] .dash-skin .class-board-faixa-pager .class-board-faixa-
 .dash-skin .class-board-quadro > .class-board-dados {
   grid-column: 2;
   grid-row: 1;
-  max-height: calc(var(--quadro-altura, 100%) - var(--reserva-do-quadro, 84px));
+  max-height: calc(var(--quadro-altura, 100%) - var(--reserva-do-quadro, 0px));
   /* Uma grade de duas colunas: cada secção ocupa meia linha ou a linha
      toda, e é assim que se põem coisas lado a lado, em cima e em
      baixo. As secções entram na ordem escolhida. */
@@ -4826,7 +4841,7 @@ html[data-tema="branco"] .dash-skin .class-board-dados > .class-board-dados-topo
    painel aperta um pouco em vez de obrigar a rolar por dentro. */
 @media (max-height: 820px) {
   /* Em janela baixa o rodapé do quadro também aperta. */
-  .dash-skin .class-board-quadro[data-campanha-aberta="true"] { --reserva-do-quadro: 66px; row-gap: 6px; }
+  .dash-skin .class-board-quadro[data-campanha-aberta="true"] { row-gap: 6px; }
   .dash-skin .class-board-faixa-pager { margin-top: 4px; }
   .dash-skin .class-board-faixa-pager .class-board-faixa-passo,
   .dash-skin .class-board-faixa-pager .class-board-faixa-numeros > li > button { height: 1.75rem; }
@@ -4842,7 +4857,7 @@ html[data-tema="branco"] .dash-skin .class-board-dados > .class-board-dados-topo
 /* Janela muito baixa: aperta mais um pouco, para o painel continuar a
    caber sem rolar por dentro. */
 @media (max-height: 700px) {
-  .dash-skin .class-board-quadro[data-campanha-aberta="true"] { --reserva-do-quadro: 58px; row-gap: 5px; }
+  .dash-skin .class-board-quadro[data-campanha-aberta="true"] { row-gap: 5px; }
   .dash-skin .class-board-dados { --ficha-altura: 1.875rem; gap: 5px; }
   .dash-skin .class-board-dados-topo { padding-top: 8px; padding-bottom: 4px; }
   .dash-skin .class-board-dados-nome { font-size: 0.8125rem; }
@@ -4948,8 +4963,11 @@ html[data-tema="branco"] .dash-skin .class-board-dados-criativos-topo > span > i
    Quantos são é medido, não fixado — está em quantosCabem(). */
 .dash-skin .class-board-criativos-pagina {
   display: grid;
-  grid-auto-rows: min-content;
-  align-content: start;
+  /* As fileiras repartem a altura da página em vez de ficarem do
+     tamanho do conteúdo: era com min-content que a sobra de altura
+     caía toda num vão morto entre o último bloco e os pontinhos. */
+  grid-auto-rows: minmax(min-content, 1fr);
+  align-content: stretch;
   gap: 8px;
   min-width: 0;
   min-height: 0;
