@@ -49,3 +49,30 @@ export function cartaoAberto(scrollLeft: number, largura: number, total: number)
   if (!(largura > 0) || total <= 0) return 0;
   return Math.min(Math.max(Math.round(scrollLeft / largura), 0), total - 1);
 }
+
+/*
+  Quantos criativos cabem numa página da secção.
+
+  A secção leva, por criativo, o cartão dele e os cartões de cada
+  posicionamento — um bloco alto. Em vez de fixar um número, mede-se a
+  altura que a secção tem e vê-se quantos blocos inteiros lá cabem:
+  num ecrã alto entram dois, num baixo entra um. Nunca menos de um —
+  meio criativo não serve a ninguém.
+*/
+export function quantosCabem(alturaDisponivel: number, alturaDoBloco: number, total: number): number {
+  /* Antes de haver medida — o primeiro desenho, ou um ambiente sem
+     layout — mostram-se todos. Esconder criativos por causa de uma
+     medida que ainda não existe seria pior do que a página ficar longa
+     por um instante. */
+  if (!(alturaDoBloco > 0) || !(alturaDisponivel > 0)) return Math.max(total, 1);
+  const cabem = Math.floor(alturaDisponivel / alturaDoBloco);
+  return Math.min(Math.max(cabem, 1), Math.max(total, 1));
+}
+
+/** Parte uma lista em páginas de `porPagina`. */
+export function emPaginas<T>(lista: readonly T[], porPagina: number): T[][] {
+  const tamanho = Math.max(1, Math.floor(porPagina));
+  const paginas: T[][] = [];
+  for (let i = 0; i < lista.length; i += tamanho) paginas.push(lista.slice(i, i + tamanho));
+  return paginas.length ? paginas : [[]];
+}

@@ -19,8 +19,7 @@ export const SECOES_DO_PAINEL = [
   { id: "lucro", rotulo: "Lucro" },
   { id: "numeros", rotulo: "Números" },
   { id: "fichas", rotulo: "Fichas" },
-  { id: "criativos", rotulo: "Criativos" },
-  { id: "posicoes", rotulo: "Desempenho por posicionamento" },
+  { id: "criativos", rotulo: "Criativos e posicionamentos" },
 ] as const;
 export type SecaoId = (typeof SECOES_DO_PAINEL)[number]["id"];
 
@@ -46,10 +45,10 @@ export interface ArrumacaoDoPainel {
 
 /*
   O gráfico e o lucro nascem a meia linha, lado a lado: os dois cabem
-  numa linha só, e a linha inteira que isso poupa vai para o carrossel
-  dos criativos — o bloco mais alto do painel, com a arte de um lado e
-  todas as métricas do criativo do outro. Quem preferir o gráfico
-  largo troca no botão de largura, e a escolha fica guardada.
+  numa linha só, e a linha inteira que isso poupa vai para a secção dos
+  criativos — a mais alta do painel, porque leva o criativo e o
+  desempenho dele por posicionamento no mesmo sítio. Quem preferir o
+  gráfico largo troca no botão de largura, e a escolha fica guardada.
 */
 export const LARGURAS_PADRAO: Record<SecaoId, LarguraDaSecao> = {
   grafico: 1,
@@ -57,7 +56,6 @@ export const LARGURAS_PADRAO: Record<SecaoId, LarguraDaSecao> = {
   numeros: 2,
   fichas: 2,
   criativos: 2,
-  posicoes: 2,
 };
 
 export const ARRUMACAO_PADRAO: ArrumacaoDoPainel = {

@@ -54,6 +54,13 @@ const comCriativos = (quantos = 2): CampaignTree => ({
   ],
 });
 
+/* A mesma árvore noutra rede: fora do Meta não há partição por
+   posicionamento, e a secção usa o carrossel em vez do painel. */
+const emGoogle = (t: CampaignTree): CampaignTree => ({
+  ...t,
+  campanhas: t.campanhas.map((campanha) => ({ ...campanha, network: "google" as const })),
+});
+
 describe("a seta abre os dados da campanha num bloco à direita do quadro", () => {
   beforeEach(() => {
     localStorage.clear();
@@ -127,95 +134,59 @@ describe("a seta abre os dados da campanha num bloco à direita do quadro", () =
     expect(screen.queryByRole("group", { name: "Dados de Alfa" })).toBeNull();
   });
 
-  it("o painel traz o feed dos criativos, do que mais investiu para o que menos investiu", () => {
-    render(<ClassBoard tree={comCriativos()} regras={GUARDRAILS_PADRAO} network="meta" />);
+  it("fora do Meta o painel traz o feed dos criativos, do que mais investiu para o que menos investiu", () => {
+    render(<ClassBoard tree={emGoogle(comCriativos())} regras={GUARDRAILS_PADRAO} network="google" />);
     fireEvent.click(screen.getByRole("button", { name: "Abrir campanha Alfa" }));
     const feed = screen.getByRole("region", { name: "Criativos de Alfa" });
     expect(within(feed).getByRole("heading", { name: "Criativos" })).toBeTruthy();
     expect(feed.textContent).toContain("2 anúncios");
-    // Quem mais investiu vem primeiro.
-    const cartoes = [...feed.querySelectorAll("li.class-board-criativo")];
-    expect(cartoes.map((li) => li.querySelector("b")?.textContent)).toEqual(["Estático", "Vídeo 30s"]);
-    // Sem miniatura, o texto do criativo ocupa o lugar da arte.
-    expect(cartoes[1].querySelector('[data-arte="texto"] p')?.textContent).toBe("Texto do anúncio");
-    // As setas existem; com tudo à vista (jsdom não rola), ficam desligadas.
+    // Quem mais investiu vem primeiro, um bloco por criativo.
+    const blocos = [...feed.querySelectorAll(".class-board-criativo-bloco")];
+    expect(blocos.map((b) => b.getAttribute("aria-label"))).toEqual(["Criativo Estático", "Criativo Vídeo 30s"]);
+    // Cada bloco leva o painel dos posicionamentos daquele criativo.
+    expect(blocos.map((b) => b.querySelector(".class-board-posicoes-topo > p")?.textContent)).toEqual([
+      "Como “Estático” performou em cada posicionamento.",
+      "Como “Vídeo 30s” performou em cada posicionamento.",
+    ]);
+    // As setas existem; na primeira página a da esquerda fica desligada.
     expect(within(feed).getByRole("button", { name: "Criativos anteriores" }).hasAttribute("disabled")).toBe(true);
     expect(within(feed).getByRole("button", { name: "Próximos criativos" })).toBeTruthy();
-    // Cada criativo mostra quantas vendas fez, com o CPA ao lado.
-    const vendasDe = (li: Element) => (li.querySelector(".class-board-criativo-vendas")?.textContent ?? "").replace(/\u00a0/g, " ");
-    expect(vendasDe(cartoes[0])).toBe("1vendaCPA R$ 200");
-    expect(cartoes[0].querySelector(".class-board-criativo-vendas")?.getAttribute("data-vendeu")).toBe("true");
-    expect(vendasDe(cartoes[1])).toBe("3vendasCPA R$ 33,33");
-    // Cada criativo mostra o semáforo e as métricas dele — as do criativo,
-    // não as da campanha inteira.
-    expect(within(cartoes[0] as HTMLElement).getByRole("img", { name: /^Saúde do criativo Estático: / })).toBeTruthy();
-    const metricasDe = (li: Element) =>
-      Object.fromEntries(
-        [...li.querySelectorAll(".class-board-criativo-metricas > div")].map((d) => [
-          d.querySelector("dt")!.textContent,
-          (d.querySelector("dd")!.textContent ?? "").replace(/ /g, " "),
-        ]),
-      );
-    expect(metricasDe(cartoes[0]).ROAS).toBe("0,50x");
-    expect(metricasDe(cartoes[1])).toMatchObject({
-      ROAS: "3,00x",
-      Investido: "R$ 100",
-      Impressões: "1.000",
-      Cliques: "50",
-      CTR: "5,00%",
-      CPC: "R$ 2,00",
-      CPM: "R$ 100",
-    });
   });
 
-  it("o feed é um carrossel: um criativo de cada vez, com pontinhos que levam a cada um", () => {
-    render(<ClassBoard tree={comCriativos()} regras={GUARDRAILS_PADRAO} network="meta" />);
+  it("fora do Meta o feed é um carrossel: uma página de cada vez, com pontinhos que levam a cada uma", () => {
+    render(<ClassBoard tree={emGoogle(comCriativos())} regras={GUARDRAILS_PADRAO} network="google" />);
     fireEvent.click(screen.getByRole("button", { name: "Abrir campanha Alfa" }));
     const feed = screen.getByRole("region", { name: "Criativos de Alfa" });
     const fila = feed.querySelector(".class-board-dados-criativos-fila")!;
-    // A fila encaixa num criativo inteiro e cada cartão diz onde está.
-    expect(fila.getAttribute("aria-roledescription")).toBe("carrossel");
-    const cartoes = [...fila.querySelectorAll("li.class-board-criativo")];
-    expect(cartoes.map((li) => li.getAttribute("aria-label"))).toEqual(["1 de 2: Estático", "2 de 2: Vídeo 30s"]);
-    // O topo conta em que criativo se está.
-    expect(feed.querySelector(".class-board-dados-criativos-topo > span > i")?.textContent).toBe("1/2");
-    // Um pontinho por criativo; o do criativo aberto vem marcado.
-    const pontos = within(feed).getAllByRole("button", { name: /^Ver o criativo / });
-    expect(pontos.map((b) => b.getAttribute("aria-label"))).toEqual([
-      "Ver o criativo 1 de 2: Estático",
-      "Ver o criativo 2 de 2: Vídeo 30s",
-    ]);
-    expect(pontos[0].getAttribute("aria-current")).toBe("true");
-    expect(pontos[1].hasAttribute("aria-current")).toBe(false);
-    expect(cartoes[0].getAttribute("data-aberto")).toBe("true");
-    // Clicar num pontinho e nas setas manda a fila andar um criativo
-    // inteiro (jsdom não rola sozinho — o que se vê é o pedido).
-    const rolagens: { left?: number }[] = [];
-    Object.defineProperty(fila, "clientWidth", { value: 320, configurable: true });
-    (fila as HTMLElement).scrollTo = ((o: { left?: number }) => rolagens.push(o)) as unknown as typeof fila.scrollTo;
-    fireEvent.click(pontos[1]);
-    expect(rolagens.at(-1)).toMatchObject({ left: 320, behavior: "smooth" });
-    // As setas do teclado fazem o mesmo, sem rolar a página.
-    fireEvent.keyDown(fila, { key: "ArrowRight" });
-    expect(rolagens).toHaveLength(2);
-    expect(rolagens.at(-1)).toMatchObject({ left: 320, behavior: "smooth" });
-    // Uma tecla que não é seta não mexe na fila.
+    // Sem altura medida (jsdom não desenha), cabem todos numa página só:
+    // esconder criativos por uma medida que não existe seria pior.
+    const cartoes = [...fila.querySelectorAll(".class-board-criativo-bloco")];
+    expect(cartoes.map((li) => li.getAttribute("aria-label"))).toEqual(["Criativo Estático", "Criativo Vídeo 30s"]);
+    // Uma página só: nem contador nem pontinhos.
+    expect(feed.querySelector(".class-board-dados-criativos-topo > span > i")).toBeNull();
+    expect(feed.querySelector(".class-board-dados-criativos-pontos")).toBeNull();
+    // As duas setas ficam desligadas: não há para onde ir.
+    expect(within(feed).getByRole("button", { name: "Criativos anteriores" }).hasAttribute("disabled")).toBe(true);
+    expect(within(feed).getByRole("button", { name: "Próximos criativos" }).hasAttribute("disabled")).toBe(true);
+    // Com uma altura medida que só dá para um, passa a haver duas
+    // páginas: as setas e os pontinhos andam de página em página.
+    Object.defineProperty(fila, "clientHeight", { value: 200, configurable: true });
+    fireEvent.scroll(fila);
+    fireEvent.click(within(feed).getByRole("button", { name: "Próximos criativos" }));
+    // Uma tecla que não é seta não mexe na página.
     fireEvent.keyDown(fila, { key: "Enter" });
-    expect(rolagens).toHaveLength(2);
+
     // Com um criativo só não há pontinhos nem contador — nada para navegar.
     cleanup();
-    render(<ClassBoard tree={comCriativos(1)} regras={GUARDRAILS_PADRAO} network="meta" />);
+    render(<ClassBoard tree={emGoogle(comCriativos(1))} regras={GUARDRAILS_PADRAO} network="google" />);
     fireEvent.click(screen.getByRole("button", { name: "Abrir campanha Alfa" }));
     const sozinho = screen.getByRole("region", { name: "Criativos de Alfa" });
     expect(sozinho.querySelector(".class-board-dados-criativos-pontos")).toBeNull();
     expect(sozinho.querySelector(".class-board-dados-criativos-topo > span > i")).toBeNull();
   });
 
-  it("a secção dos posicionamentos traz um cartão por sítio onde o criativo vendeu", () => {
+  it("a secção dos posicionamentos mostra os cinco cartões de cada criativo sem misturar plataformas", () => {
     const comPosicoes = comCriativos();
-    // O "Estático" é o que mais investiu, por isso abre primeiro no
-    // carrossel — e é dele que a secção fala. Fez 4 vendas: 3 no
-    // stories e 1 no feed, cada uma partida entre as duas plataformas.
     comPosicoes.campanhas[0].adSets[0].ads[1].metrics.purchases = 4;
     comPosicoes.campanhas[0].adSets[0].ads[1].placements = [
       { id: "stories", plataforma: "instagram", metrics: { spendCents: 120_00, revenueCents: 480_00, impressions: 6_000, clicks: 120, purchases: 3, checkouts: 9 } },
@@ -225,82 +196,54 @@ describe("a seta abre os dados da campanha num bloco à direita do quadro", () =
     render(<ClassBoard tree={comPosicoes} regras={GUARDRAILS_PADRAO} network="meta" />);
     fireEvent.click(screen.getByRole("button", { name: "Abrir campanha Alfa" }));
     const secao = screen.getByRole("region", { name: "Desempenho por posicionamento" });
-    expect(within(secao).getByRole("heading", { name: "Desempenho por posicionamento" })).toBeTruthy();
-    expect(secao.querySelector(".class-board-posicoes-topo > p")?.textContent).toContain("Estático");
+    const estatico = within(secao).getByRole("article", { name: "Desempenho de Estático" });
+    const video = within(secao).getByRole("article", { name: "Desempenho de Vídeo 30s" });
+    const nomes = ["Feed Instagram", "Stories Instagram", "Explorar Instagram", "Feed Facebook", "Stories Facebook"];
+    for (const criativo of [estatico, video]) {
+      expect(within(criativo).getByRole("heading", { name: "Desempenho por posicionamento" })).toBeTruthy();
+      expect(within(criativo).getAllByRole("article").map((card) => card.getAttribute("aria-label"))).toEqual(nomes);
+      expect(within(criativo).queryByRole("heading", { name: "Instagram" })).toBeNull();
+      expect(within(criativo).queryByRole("heading", { name: "Facebook" })).toBeNull();
+    }
+    expect(within(estatico).getByText("Total de 4 vendas")).toBeTruthy();
+    expect(within(estatico).getByRole("article", { name: "Stories Instagram" }).textContent).toContain("75% das vendas");
+    expect(within(estatico).getByRole("article", { name: "Stories Facebook" }).textContent).toContain("0% das vendas");
+    expect(within(estatico).getByRole("article", { name: "Feed Facebook" }).textContent).toContain("25% das vendas");
+    // O vídeo não tem partição: não herda as vendas do estático nem
+    // inventa posições a partir das métricas gerais do anúncio.
+    expect(within(video).getByText("Total de 0 vendas")).toBeTruthy();
 
-    // Um cartão por posicionamento, do que mais vendeu para o que menos,
-    // com a cor que segue a posição e não a colocação no ranking.
-    const cartoes = [...secao.querySelectorAll(".class-board-posicao-cartao")];
-    expect(cartoes.map((li) => li.getAttribute("data-posicao"))).toEqual(["stories", "feed"]);
-    expect(cartoes.map((li) => li.getAttribute("data-cor"))).toEqual(["2", "1"]);
-    expect(cartoes[0].querySelector(".class-board-posicao-cabecalho > b")?.textContent).toBe("Stories");
-    expect(cartoes[0].querySelector(".class-board-posicao-cabecalho > em")?.textContent).toBe("75% das vendas");
-    // As vendas em destaque.
-    expect(cartoes[0].querySelector(".class-board-posicao-vendas > b")?.textContent).toBe("3");
-    expect(cartoes[0].querySelector(".class-board-posicao-vendas > span")?.textContent).toBe("vendas");
-    expect(cartoes[1].querySelector(".class-board-posicao-vendas > span")?.textContent).toBe("venda");
+    // No Meta há uma secção só: o painel dos posicionamentos é ele
+    // próprio a secção dos criativos, com o criativo dentro de cada
+    // bloco — não existe uma secção "Criativos" à parte.
+    const dados = screen.getByRole("group", { name: "Dados de Alfa" });
+    expect([...dados.querySelectorAll(".class-board-dados-secao")].map((x) => x.getAttribute("data-secao")))
+      .toEqual(["grafico", "lucro", "numeros", "fichas", "criativos"]);
 
-    // Os números são os daquele posicionamento, não os do criativo:
-    // stories gastou R$ 150 e devolveu R$ 600 → ROAS 4x, CPA R$ 50,
-    // 150 cliques em 7.500 impressões → CTR 2%, CPC R$ 1, CPM R$ 20.
-    const metricasDe = (li: Element) =>
-      Object.fromEntries(
-        [...li.querySelectorAll(".class-board-posicao-metricas > div")].map((d) => [
-          d.querySelector("dt")!.textContent,
-          (d.querySelector("dd")!.textContent ?? "").replace(/\u00a0/g, " "),
-        ]),
-      );
-    expect(metricasDe(cartoes[0])).toEqual({
-      ROAS: "4,00x", "Impressões": "7.500", Cliques: "150", CTR: "2,00%",
-      CPC: "R$ 1,00", CPM: "R$ 20,00", CPA: "R$ 50,00", "Iniciou checkout": "11",
-    });
-    // E nesta ordem de leitura: o que decide primeiro, os custos no fim.
-    expect(Object.keys(metricasDe(cartoes[0]))).toEqual([
-      "ROAS", "Iniciou checkout", "Impressões", "Cliques", "CTR", "CPC", "CPM", "CPA",
-    ]);
-    // O feed tem os dele: ROAS 1x, CTR 1%, 4 checkouts.
-    expect(metricasDe(cartoes[1])).toMatchObject({ ROAS: "1,00x", CTR: "1,00%", "Iniciou checkout": "4" });
-
-    // A origem do público de cada cartão, pelas impressões: no stories
-    // 6.000 do Instagram e 1.500 do Facebook → 80% / 20%.
-    const origemDe = (raiz: Element) =>
-      [...raiz.querySelectorAll(".class-board-origem-legenda > li")].map((li) =>
-        (li.textContent ?? "").replace(/\u00a0/g, " "),
-      );
-    expect(origemDe(cartoes[0])).toEqual(["Instagram80%(6.000)", "Facebook20%(1.500)"]);
-    expect(cartoes[0].querySelector(".class-board-origem-topo small")?.textContent).toBe("Maior origem: Instagram");
-    // O feed só teve Facebook.
-    expect(origemDe(cartoes[1])).toEqual(["Instagram0%(0)", "Facebook100%(5.000)"]);
-
-    // E a origem do criativo inteiro, em destaque acima dos cartões:
-    // 6.000 de Instagram contra 6.500 de Facebook.
-    const geral = secao.querySelector('.class-board-origem[data-destaque="true"]')!;
-    expect(origemDe(geral)).toEqual(["Instagram48%(6.000)", "Facebook52%(6.500)"]);
-    expect(geral.querySelector(".class-board-origem-topo small")?.textContent).toBe("12.500 impressões no total");
-
-    // A distribuição fecha nas 4 vendas do criativo, com a legenda a
-    // dizer nome, percentagem e número — a cor nunca é o único sinal.
-    const legenda = [...secao.querySelectorAll(".class-board-posicoes-legenda > li")].map((li) =>
-      (li.textContent ?? "").replace(/\u00a0/g, " "),
-    );
-    expect(legenda).toEqual(["Stories75%(3 vendas)", "Feed25%(1 venda)"]);
-    expect(secao.querySelector(".class-board-posicoes-distribuicao figcaption small")?.textContent).toBe("Total de 4 vendas");
-    expect([...secao.querySelectorAll(".class-board-posicoes-barra > span")].map((s) => s.getAttribute("data-cor"))).toEqual(["2", "1"]);
-
-    // No cartão do criativo ficam só as pílulas, com a mesma cor.
-    const pilulas = [...screen.getByRole("region", { name: "Criativos de Alfa" })
-      .querySelectorAll("li.class-board-criativo")[0]
-      .querySelectorAll(".class-board-criativo-posicoes > li")];
-    expect(pilulas.map((li) => li.getAttribute("data-cor"))).toEqual(["2", "1"]);
-
-    // Sem partição sincronizada, a secção diz isso e não inventa nada.
+    // Sem partição, os cinco cartões permanecem em cada bloco, zerados.
     cleanup();
     render(<ClassBoard tree={comCriativos()} regras={GUARDRAILS_PADRAO} network="meta" />);
     fireEvent.click(screen.getByRole("button", { name: "Abrir campanha Alfa" }));
     const vazia = screen.getByRole("region", { name: "Desempenho por posicionamento" });
-    expect(vazia.querySelector(".class-board-posicoes-cartoes")).toBeNull();
-    expect(vazia.querySelector(".class-board-origem")).toBeNull();
-    expect(vazia.querySelector(".class-board-posicoes-vazio")?.textContent).toContain("ainda não devolveu");
+    expect(within(vazia).getAllByText("Total de 0 vendas")).toHaveLength(2);
+    expect(within(vazia).getAllByText("0% das vendas")).toHaveLength(10);
+  });
+
+  it.each(["google", "youtube"] as const)("preserva a seção existente de %s sem incluir os cinco cards exclusivos de Meta", (network) => {
+    const outraRede = comCriativos();
+    outraRede.campanhas = outraRede.campanhas.map((campanha) => ({ ...campanha, network }));
+    render(<ClassBoard tree={outraRede} regras={GUARDRAILS_PADRAO} network={network} />);
+    fireEvent.click(screen.getByRole("button", { name: "Abrir campanha Alfa" }));
+    // Um painel destes por criativo; o primeiro é o do "Estático".
+    const secao = screen.getAllByRole("region", { name: "Desempenho por posicionamento" })[0];
+    expect(within(secao).getByRole("heading", { name: "Desempenho por posicionamento" })).toBeTruthy();
+    expect(within(secao).getByText("Como “Estático” performou em cada posicionamento.")).toBeTruthy();
+    expect(within(secao).getByText("A plataforma ainda não devolveu as vendas partidas por posicionamento deste criativo.")).toBeTruthy();
+    expect(within(secao).queryByRole("article", { name: /^Desempenho de / })).toBeNull();
+    for (const nome of ["Feed Instagram", "Stories Instagram", "Explorar Instagram", "Feed Facebook", "Stories Facebook"]) {
+      expect(within(secao).queryByRole("heading", { name: nome })).toBeNull();
+    }
+    expect(screen.getByRole("region", { name: "Criativos de Alfa" })).toBeTruthy();
   });
 
   it("as secções e os quadradinhos do painel arrastam-se, e a arrumação fica guardada", () => {
@@ -308,12 +251,12 @@ describe("a seta abre os dados da campanha num bloco à direita do quadro", () =
     fireEvent.click(screen.getByRole("button", { name: "Abrir campanha Alfa" }));
     const dados = screen.getByRole("group", { name: "Dados de Alfa" });
     const secoes = () => [...dados.querySelectorAll(".class-board-dados-secao")].map((s) => s.getAttribute("data-secao"));
-    expect(secoes()).toEqual(["grafico", "lucro", "numeros", "fichas", "criativos", "posicoes"]);
+    expect(secoes()).toEqual(["grafico", "lucro", "numeros", "fichas", "criativos"]);
 
     // As setas do teclado na pega descem a secção do gráfico.
     fireEvent.keyDown(within(dados).getByRole("button", { name: "Mover a secção Gráfico do ROAS" }), { key: "ArrowDown" });
-    expect(secoes()).toEqual(["lucro", "grafico", "numeros", "fichas", "criativos", "posicoes"]);
-    expect(restoreCampaignPanelOrder(localStorage.getItem(ORDEM_PAINEL_KEY)!)?.secoes).toEqual(["lucro", "grafico", "numeros", "fichas", "criativos", "posicoes"]);
+    expect(secoes()).toEqual(["lucro", "grafico", "numeros", "fichas", "criativos"]);
+    expect(restoreCampaignPanelOrder(localStorage.getItem(ORDEM_PAINEL_KEY)!)?.secoes).toEqual(["lucro", "grafico", "numeros", "fichas", "criativos"]);
 
     // Arrastar um quadradinho para cima de outro troca a ordem dos números.
     const numeros = within(dados).getByRole("group", { name: "Números da campanha" });
@@ -356,11 +299,11 @@ describe("a seta abre os dados da campanha num bloco à direita do quadro", () =
 
     // Uma arrumação estragada volta ao padrão, sem quebrar.
     expect(restoreCampaignPanelOrder("{")).toBeNull();
-    expect(restoreCampaignPanelOrder(JSON.stringify({ version: 1, secoes: ["inventada", "lucro"] }))?.secoes).toEqual(["lucro", "grafico", "numeros", "fichas", "criativos", "posicoes"]);
+    expect(restoreCampaignPanelOrder(JSON.stringify({ version: 1, secoes: ["inventada", "lucro"] }))?.secoes).toEqual(["lucro", "grafico", "numeros", "fichas", "criativos"]);
     // Uma largura inválida volta ao padrão da secção (o gráfico nasce a
     // meia linha) em vez de virar uma coluna zero; as válidas ficam.
     expect(restoreCampaignPanelOrder(JSON.stringify({ version: 1, larguras: { grafico: 7, numeros: 1 } }))?.larguras).toEqual({
-      grafico: 1, lucro: 1, numeros: 1, fichas: 2, criativos: 2, posicoes: 2,
+      grafico: 1, lucro: 1, numeros: 1, fichas: 2, criativos: 2,
     });
   });
 

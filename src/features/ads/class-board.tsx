@@ -53,12 +53,12 @@ import {
 } from "./board-blocks-store";
 import { CampaignHoverCard, type CampaignPreview } from "./campaign-hover-card";
 import { ROTULO_DA_SAUDE, Semaforo, descricaoDaSaude, saudeDasMetricas, saudeDoConjunto } from "./campaign-health";
-import { cartaoAberto, escalaDoPonto } from "./carousel-dots";
+import { emPaginas, escalaDoPonto, quantosCabem } from "./carousel-dots";
 import {
   COR_DA_POSICAO, distribuicaoDeVendas, fatiaDaPosicao, origemDoCriativo, origemDoPublico,
-  posicoesQueVenderam, rotuloCurtoDaPosicao, rotuloDaPosicao, vendasSemPosicao,
-  type OrigemDoPublico, type PosicaoId,
+  posicoesQueVenderam, rotuloDaPosicao, type OrigemDoPublico, type PosicaoId,
 } from "./creative-placements";
+import { PlacementPerformance } from "./placement-performance";
 import { GraficoRoas, JANELAS_MINUTO } from "./block-metrics-panel";
 import { INTERVALO_MINUTO_MS, chaveDaCampanhaNoHistorico, registrarRoasDaCampanha, roasDemonstrativo, useCampaignRoasHistory } from "./campaign-roas-history-store";
 import { lucroDaCampanha, useTaxas } from "./fees-store";
@@ -1352,8 +1352,21 @@ function DadosDaCampanha({
         aoGuardar={(ordem) => guardar({ fichas: ordem })}
       />
     ),
-    criativos: <FeedDeCriativos campanha={c} gateway={gateway} criativos={criativos} aberto={criativoAberto} aoAbrir={abrirCriativo} />,
-    posicoes: <PosicoesDoCriativo criativo={criativos[criativoAberto] ?? criativos[0] ?? null} />,
+    /* Uma secção só para os criativos e os posicionamentos deles.
+
+       No Meta quem a desenha é o painel do desempenho por
+       posicionamento: ele já faz um bloco por criativo, com a prévia
+       dele e os cartões de cada sítio onde vendeu. Fora do Meta não há
+       partição por posicionamento, e entra o carrossel, que mede
+       quantos criativos lhe cabem e pagina o resto. */
+    criativos: (
+      <FeedDeCriativos
+        campanha={c}
+        criativos={criativos}
+        aberto={criativoAberto}
+        aoAbrir={abrirCriativo}
+      />
+    ),
   };
   return (
     <div
@@ -1660,12 +1673,16 @@ function PosicoesDoCriativo({ criativo }: { criativo: (AdRow & { conjunto: strin
               const d = derivadas(p.metrics);
               const Icone = ICONE_DA_POSICAO[p.id];
               const origem = origemDoPublico(p.porPlataforma);
-              /* A ordem é de leitura, não de arquivo: primeiro o que
-                 decide (ROAS e quem chegou ao checkout), depois o
-                 alcance, e por fim os custos. */
-              const linhas: [string, string, string?][] = [
+              /* Os três que decidem ficam grandes e lado a lado; o resto
+                 vai numa grade de duas colunas por baixo. É a mesma
+                 ordem de leitura de antes, só que o cartão ocupa
+                 metade da altura. */
+              const destaques: [string, string, string?][] = [
+                [p.metrics.purchases === 1 ? "venda" : "vendas", formatInteger(p.metrics.purchases)],
                 ["ROAS", d.roas === null ? "—" : formatRatio(d.roas), "roas"],
-                ["Iniciou checkout", typeof p.metrics.checkouts === "number" ? formatInteger(p.metrics.checkouts) : "—"],
+                ["checkout", typeof p.metrics.checkouts === "number" ? formatInteger(p.metrics.checkouts) : "—"],
+              ];
+              const linhas: [string, string, string?][] = [
                 ["Impressões", formatInteger(p.metrics.impressions)],
                 ["Cliques", formatInteger(p.metrics.clicks)],
                 ["CTR", d.ctr === null ? "—" : formatPercent(d.ctr, 2)],
@@ -1683,11 +1700,16 @@ function PosicoesDoCriativo({ criativo }: { criativo: (AdRow & { conjunto: strin
                     <b>{rotuloDaPosicao(p.id)}</b>
                     <em>{percentagemDe.get(p.id) ?? Math.round(fatiaDaPosicao(p.metrics.purchases, total) * 100)}% das vendas</em>
                   </div>
-                  {/* As vendas em destaque: é o número que decide. */}
-                  <p className="class-board-posicao-vendas">
-                    <b>{formatInteger(p.metrics.purchases)}</b>
-                    <span>{p.metrics.purchases === 1 ? "venda" : "vendas"}</span>
-                  </p>
+                  {/* Vendas, ROAS e checkout iniciado: os três em
+                      destaque, lado a lado. */}
+                  <dl className="class-board-posicao-destaques">
+                    {destaques.map(([rotulo, valor, tom]) => (
+                      <div key={rotulo} data-tom={tom}>
+                        <dd>{valor}</dd>
+                        <dt>{rotulo}</dt>
+                      </div>
+                    ))}
+                  </dl>
                   <dl className="class-board-posicao-metricas">
                     {linhas.map(([rotulo, valor, tom]) => (
                       <div key={rotulo} data-tom={tom}>
@@ -1787,184 +1809,122 @@ function FaixaDeOrigem({ origem, titulo, resumo, destaque }: { origem: OrigemDoP
 */
 function FeedDeCriativos({
   campanha: c,
-  gateway,
   criativos,
   aberto,
   aoAbrir,
 }: {
   campanha: CampaignRow;
-  gateway: number;
   criativos: readonly (AdRow & { conjunto: string })[];
-  /** Qual criativo está à vista — vive no painel, porque a secção das
-      posições mostra as deste mesmo criativo. */
+  /** Que página de criativos está à vista. */
   aberto: number;
   aoAbrir: (indice: number) => void;
 }) {
-  const filaRef = React.useRef<HTMLUListElement>(null);
-  const [pontas, setPontas] = React.useState({ inicio: true, fim: true });
-  const total = criativos.length;
-  /* Onde a fila está: que criativo ficou à vista e se ainda há mais para
-     um dos lados. É uma leitura só, feita do que o navegador já rolou. */
-  const medirPontas = React.useCallback(() => {
-    const el = filaRef.current;
-    if (!el) return;
-    const sobra = el.scrollWidth - el.clientWidth;
-    setPontas({ inicio: el.scrollLeft <= 1, fim: sobra <= 1 || el.scrollLeft >= sobra - 1 });
-    aoAbrir(cartaoAberto(el.scrollLeft, el.clientWidth, el.childElementCount));
-  }, [aoAbrir]);
-  React.useEffect(() => {
-    medirPontas();
-    const el = filaRef.current;
-    if (!el || typeof ResizeObserver === "undefined") return;
-    const observador = new ResizeObserver(medirPontas);
-    observador.observe(el);
-    return () => observador.disconnect();
-  }, [medirPontas, total]);
-  /* Andar é sempre de um cartão inteiro — a largura da fila, porque cada
-     criativo ocupa a fila toda. */
-  const irPara = React.useCallback((indice: number) => {
-    const el = filaRef.current;
-    if (!el) return;
-    const destino = Math.min(Math.max(indice, 0), el.childElementCount - 1);
-    el.scrollTo({ left: destino * el.clientWidth, behavior: "smooth" });
+  const filaRef = React.useRef<HTMLDivElement>(null);
+  const blocoDaPagina = React.useRef<HTMLDivElement>(null);
+  /* Quantos criativos cabem numa página: mede-se a altura que a secção
+     tem e a altura de um criativo desenhado, em vez de fixar um número.
+     Antes de haver medida mostram-se todos. */
+  const [medida, setMedida] = React.useState({ fila: 0, bloco: 0 });
+  const cabem = quantosCabem(medida.fila, medida.bloco, criativos.length);
+  const paginas = React.useMemo(() => emPaginas(criativos, cabem), [criativos, cabem]);
+  const total = paginas.length;
+  const pagina = Math.min(Math.max(aberto, 0), total - 1);
+  const daPagina = paginas[pagina] ?? [];
+  const medir = React.useCallback(() => {
+    const fila = filaRef.current;
+    const caixa = blocoDaPagina.current;
+    if (!fila || !caixa) return;
+    /* O espaço que sobra não se pergunta à fila: ela cresce com o que
+       tem dentro, e a resposta seria sempre "o que eu já ocupo". Mede-se
+       do painel — que tem altura com teto — até onde a fila começa. */
+    const painel = fila.closest<HTMLElement>(".class-board-dados");
+    const sobra = painel
+      ? Math.round(painel.clientHeight - (fila.getBoundingClientRect().top - painel.getBoundingClientRect().top) - 8)
+      : 0;
+    /* A altura de UM criativo, medida no primeiro que está desenhado.
+       Dividir a caixa pelo número de criativos parecia equivalente e não
+       era: quem desenha pode envolvê-los, e a conta dava a caixa toda. */
+    const primeiro =
+      caixa.querySelector<HTMLElement>("[data-criativo]") ??
+      caixa.querySelector<HTMLElement>("article") ??
+      caixa.querySelector<HTMLElement>(".class-board-criativo-bloco");
+    const altura = primeiro?.getBoundingClientRect().height ?? 0;
+    setMedida((atual) => {
+      const nova = {
+        fila: Math.max(0, sobra),
+        bloco: Math.round(altura > 40 ? altura : atual.bloco),
+      };
+      return nova.fila === atual.fila && nova.bloco === atual.bloco ? atual : nova;
+    });
   }, []);
-  const andar = (lado: 1 | -1) => irPara(aberto + lado);
-  function teclado(e: React.KeyboardEvent<HTMLUListElement>) {
+  React.useEffect(() => {
+    medir();
+    const fila = filaRef.current;
+    if (!fila || typeof ResizeObserver === "undefined") return;
+    const observador = new ResizeObserver(medir);
+    observador.observe(fila);
+    if (blocoDaPagina.current) observador.observe(blocoDaPagina.current);
+    return () => observador.disconnect();
+  }, [medir, criativos.length, cabem]);
+  const pontas = { inicio: pagina <= 0, fim: pagina >= total - 1 };
+  const irPara = React.useCallback((indice: number) => aoAbrir(Math.min(Math.max(indice, 0), total - 1)), [aoAbrir, total]);
+  const andar = (lado: 1 | -1) => irPara(pagina + lado);
+  function teclado(e: React.KeyboardEvent<HTMLDivElement>) {
     if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
     e.preventDefault();
     andar(e.key === "ArrowRight" ? 1 : -1);
   }
-  const dinheiro = (v: number) => formatCurrency(v / 100, Math.abs(v) < 10_000 ? 2 : 0);
   return (
-    <section className="class-board-dados-criativos" aria-label={`Criativos de ${c.name}`}>
+    <section
+      className="class-board-dados-criativos"
+      aria-label={`Criativos de ${c.name}`}
+      data-cabem={cabem}
+    >
       <div className="class-board-dados-criativos-topo">
         <h3>Criativos</h3>
         <span>
-          {total} {total === 1 ? "anúncio" : "anúncios"}
-          {total > 1 && <i>{aberto + 1}/{total}</i>}
+          {criativos.length} {criativos.length === 1 ? "anúncio" : "anúncios"}
+          {total > 1 && <i>{pagina + 1}/{total}</i>}
         </span>
-        <button type="button" aria-label="Criativos anteriores" title="Anda um criativo para a esquerda" disabled={pontas.inicio} onClick={() => andar(-1)}>
+        <button type="button" aria-label="Criativos anteriores" title="Volta uma página de criativos" disabled={pontas.inicio} onClick={() => andar(-1)}>
           <ChevronLeft aria-hidden="true" />
         </button>
-        <button type="button" aria-label="Próximos criativos" title="Anda um criativo para a direita" disabled={pontas.fim} onClick={() => andar(1)}>
+        <button type="button" aria-label="Próximos criativos" title="Avança uma página de criativos" disabled={pontas.fim} onClick={() => andar(1)}>
           <ChevronRight aria-hidden="true" />
         </button>
       </div>
-      {total === 0 ? (
+      {criativos.length === 0 ? (
         <p className="class-board-dados-criativos-vazio">Esta campanha ainda não tem anúncios sincronizados.</p>
       ) : (
-        <ul
-          className="class-board-dados-criativos-fila"
-          ref={filaRef}
-          onScroll={medirPontas}
-          onKeyDown={teclado}
-          tabIndex={0}
-          aria-roledescription="carrossel"
-          aria-label={`Carrossel de criativos de ${c.name}`}
-        >
-          {criativos.map((a, i) => {
-            const da = derivadas(a.metrics);
-            return (
-              <li
-                key={a.id}
-                className="class-board-criativo"
-                data-aberto={i === aberto ? "true" : undefined}
-                aria-roledescription="slide"
-                aria-label={`${i + 1} de ${total}: ${a.name}`}
-              >
-                {/* A arte quando existe; sem ela, o texto do criativo — o
-                    espaço nunca fica a fazer de conta. */}
-                <div className="class-board-criativo-arte" data-arte={a.creative.thumbnailUrl ? "imagem" : "texto"}>
-                  {a.creative.thumbnailUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={a.creative.thumbnailUrl} alt={`Criativo de ${a.name}`} loading="lazy" />
-                  ) : (
-                    <>
-                      <Megaphone aria-hidden="true" />
-                      <p>{a.creative.body ?? a.creative.title ?? "Sem texto sincronizado"}</p>
-                    </>
-                  )}
+        <div className="class-board-dados-criativos-fila" ref={filaRef} onKeyDown={teclado} tabIndex={0}>
+          <div className="class-board-criativos-pagina" ref={blocoDaPagina}>
+            {/* No Meta quem desenha é o painel do desempenho por
+                posicionamento: ele já faz um bloco por criativo, com a
+                prévia dele e os cartões de cada sítio onde vendeu. Fora
+                do Meta não há partição por posicionamento. */}
+            {c.network === "meta" ? (
+              <PlacementPerformance creatives={daPagina} demo={c.source === "demo"} />
+            ) : (
+              daPagina.map((a) => (
+                <div key={a.id} className="class-board-criativo-bloco" role="article" aria-label={`Criativo ${a.name}`}>
+                  <PosicoesDoCriativo criativo={a} />
                 </div>
-                {/* Tudo o que não é a arte vive ao lado dela, numa coluna
-                    só: num cartão largo a arte fica à esquerda e os
-                    números à direita, como um post aberto. */}
-                <div className="class-board-criativo-corpo">
-                <div className="class-board-criativo-texto">
-                  <b title={a.name}>{a.name}</b>
-                  <span title={a.creative.title ?? a.conjunto}>{a.creative.title ?? a.conjunto}</span>
-                  <Semaforo saude={saudeDasMetricas(a.metrics, gateway)} rotulo={`Saúde do criativo ${a.name}`} />
-                </div>
-                {/* Quantas vendas este criativo fez — é o que decide se
-                    ele fica ou sai, mais do que o ROAS sozinho. */}
-                <p className="class-board-criativo-vendas" data-vendeu={a.metrics.purchases > 0 ? "true" : undefined}>
-                  <b>{formatInteger(a.metrics.purchases)}</b>
-                  <span>{a.metrics.purchases === 1 ? "venda" : "vendas"}</span>
-                  <i>{da.cpaCents === null ? "sem CPA" : `CPA ${dinheiro(da.cpaCents)}`}</i>
-                </p>
-                {/* Em que posicionamentos este criativo vendeu — só os
-                    nomes e o número, em pequeno. Os números de cada
-                    posicionamento vivem na secção "Desempenho por
-                    posicionamento", que segue o criativo aberto aqui. */}
-                {(() => {
-                  const posicoes = posicoesQueVenderam(a.placements ?? []);
-                  const sem = vendasSemPosicao(a.placements ?? [], a.metrics);
-                  if (!posicoes.length) return null;
-                  return (
-                    <ul className="class-board-criativo-posicoes" aria-label={`Posicionamentos onde ${a.name} vendeu`}>
-                      {posicoes.map((p) => (
-                        <li key={p.id} data-posicao={p.id} data-cor={COR_DA_POSICAO[p.id] ?? "neutra"}>
-                          <i aria-hidden="true" />
-                          <span>{rotuloCurtoDaPosicao(p.id)}</span>
-                          <b>{formatInteger(p.metrics.purchases)}</b>
-                        </li>
-                      ))}
-                      {sem > 0 && (
-                        <li data-posicao="sem" data-cor="vazia">
-                          <i aria-hidden="true" />
-                          <span>Sem posição</span>
-                          <b>{formatInteger(sem)}</b>
-                        </li>
-                      )}
-                    </ul>
-                  );
-                })()}
-                {/* As métricas do criativo, na mesma régua dos números da
-                    campanha: todas as células iguais. */}
-                <dl className="class-board-criativo-metricas">
-                  {([
-                    ["ROAS", da.roas === null ? "—" : formatRatio(da.roas)],
-                    ["Investido", dinheiro(a.metrics.spendCents)],
-                    ["Retorno", dinheiro(a.metrics.revenueCents)],
-                    ["Impressões", formatInteger(a.metrics.impressions)],
-                    ["Cliques", formatInteger(a.metrics.clicks)],
-                    ["CTR", da.ctr === null ? "—" : formatPercent(da.ctr, 2)],
-                    ["CPC", da.cpcCents === null ? "—" : dinheiro(da.cpcCents)],
-                    ["CPM", da.cpmCents === null ? "—" : dinheiro(da.cpmCents)],
-                  ] as [string, string][]).map(([rotulo, valor]) => (
-                    <div key={rotulo}>
-                      <dt>{rotulo}</dt>
-                      <dd>{valor}</dd>
-                    </div>
-                  ))}
-                </dl>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+              ))
+            )}
+          </div>
+        </div>
       )}
-      {/* Os pontinhos do carrossel: dizem onde se está e levam direto a
-          qualquer criativo. Com muitos, andam numa janela e os das
-          pontas encolhem, em vez de a fila crescer sem fim. */}
+      {/* Os pontinhos: um por página, com a mesma manha do Instagram —
+          com muitas, anda uma janela e as das pontas encolhem. */}
       {total > 1 && (
-        <ol className="class-board-dados-criativos-pontos" aria-label={`Criativos de ${c.name}`}>
-          {criativos.map((a, i) => (
-            <li key={a.id} data-escala={escalaDoPonto(i, aberto, total)}>
+        <ol className="class-board-dados-criativos-pontos" aria-label={`Páginas de criativos de ${c.name}`}>
+          {paginas.map((p, i) => (
+            <li key={p.map((a) => a.id).join("|") || i} data-escala={escalaDoPonto(i, pagina, total)}>
               <button
                 type="button"
-                aria-label={`Ver o criativo ${i + 1} de ${total}: ${a.name}`}
-                aria-current={i === aberto ? "true" : undefined}
-                title={a.name}
+                aria-label={`Ver a página ${i + 1} de ${total}: ${p.map((a) => a.name).join(", ")}`}
+                aria-current={i === pagina ? "true" : undefined}
+                title={p.map((a) => a.name).join(", ")}
                 onClick={() => irPara(i)}
               />
             </li>
@@ -2050,7 +2010,6 @@ function MenuDoBloco({
     </div>
   );
 }
-
 /*
   A lista de cartões de um bloco: faixas da mesma altura (a altura da
   faixa da tag), tantas quantas couberem na altura do bloco — medida

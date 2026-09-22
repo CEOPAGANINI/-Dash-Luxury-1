@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { PONTOS_A_VISTA, cartaoAberto, escalaDoPonto, inicioDaJanela } from "@/features/ads/carousel-dots";
+import { PONTOS_A_VISTA, cartaoAberto, emPaginas, escalaDoPonto, inicioDaJanela, quantosCabem } from "@/features/ads/carousel-dots";
 
 describe("os pontinhos do carrossel dos criativos", () => {
   it("com poucos criativos mostra todos os pontinhos do mesmo tamanho", () => {
@@ -51,5 +51,50 @@ describe("os pontinhos do carrossel dos criativos", () => {
     // Sem medida (jsdom, antes de desenhar) fica no primeiro.
     expect(cartaoAberto(0, 0, 3)).toBe(0);
     expect(cartaoAberto(100, 320, 0)).toBe(0);
+  });
+});
+
+describe("quantos criativos cabem numa página", () => {
+  it("divide a altura da secção pela altura de um bloco", () => {
+    // 700px de secção e blocos de 340px: cabem dois.
+    expect(quantosCabem(700, 340, 5)).toBe(2);
+    // 1.100px: cabem três.
+    expect(quantosCabem(1_100, 340, 5)).toBe(3);
+  });
+
+  it("nunca mostra menos de um — meio criativo não serve", () => {
+    expect(quantosCabem(200, 340, 5)).toBe(1);
+  });
+
+  it("antes de haver medida mostra todos, em vez de esconder por adivinhação", () => {
+    expect(quantosCabem(0, 340, 5)).toBe(5);
+    expect(quantosCabem(700, 0, 5)).toBe(5);
+    expect(quantosCabem(0, 0, 0)).toBe(1);
+  });
+
+  it("nunca promete mais criativos do que existem", () => {
+    expect(quantosCabem(5_000, 340, 2)).toBe(2);
+    expect(quantosCabem(5_000, 340, 0)).toBe(1);
+  });
+
+  it("aguenta uma altura de bloco impossível", () => {
+    expect(quantosCabem(700, -10, 5)).toBe(5);
+  });
+});
+
+describe("as páginas do carrossel", () => {
+  it("partem a lista em pedaços do tamanho pedido", () => {
+    expect(emPaginas([1, 2, 3, 4, 5], 2)).toEqual([[1, 2], [3, 4], [5]]);
+    expect(emPaginas([1, 2, 3], 3)).toEqual([[1, 2, 3]]);
+    expect(emPaginas([1, 2, 3], 9)).toEqual([[1, 2, 3]]);
+  });
+
+  it("uma lista vazia dá uma página vazia, não nenhuma", () => {
+    expect(emPaginas([], 3)).toEqual([[]]);
+  });
+
+  it("um tamanho impossível vira um por página, em vez de um ciclo sem fim", () => {
+    expect(emPaginas([1, 2], 0)).toEqual([[1], [2]]);
+    expect(emPaginas([1, 2], -3)).toEqual([[1], [2]]);
   });
 });
