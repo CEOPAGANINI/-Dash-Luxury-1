@@ -318,12 +318,47 @@ describe("desempenho por posicionamento de cada criativo", () => {
     expect(
       screen.queryByRole("button", { name: /^Mais opções de / }),
     ).toBeNull();
-    // Os cartões continuam nomeados para quem lê por leitor de ecrã.
+    // O nome da secção continua a existir para quem lê por leitor de
+    // ecrã — na secção que envolve os blocos, não numa faixa visível.
     expect(
-      within(block).getByRole("group", {
-        name: "Desempenho por posicionamento",
-      }),
+      screen.getByRole("region", { name: "Desempenho por posicionamento" }),
     ).toBeTruthy();
+  });
+
+  it("põe o criativo, os cinco posicionamentos e a distribuição na mesma grelha", () => {
+    render(<PlacementPerformance creatives={[creative()]} />);
+    const block = screen.getByRole("article", {
+      name: "Desempenho de Criativo dourado",
+    });
+    /* Filhos diretos do bloco: é isso que faz a grelha ser uma só. Um
+       invólucro a mais entre eles e as colunas deixariam de casar. */
+    const filhos = [...block.children].filter(
+      (el) => el.tagName !== "DIV" || el.hasAttribute("data-placement"),
+    );
+    expect(block.querySelector(":scope > aside")).toBeTruthy();
+    expect(block.querySelectorAll(":scope > article[data-placement]")).toHaveLength(5);
+    expect(block.querySelector(":scope > figure")).toBeTruthy();
+    // E o criativo vem antes dos cartões, que vêm antes da distribuição.
+    const ordem = filhos
+      .map((el) =>
+        el.tagName === "ASIDE"
+          ? "criativo"
+          : el.tagName === "ARTICLE"
+            ? "cartao"
+            : el.tagName === "FIGURE"
+              ? "distribuicao"
+              : null,
+      )
+      .filter(Boolean);
+    expect(ordem).toEqual([
+      "criativo",
+      "cartao",
+      "cartao",
+      "cartao",
+      "cartao",
+      "cartao",
+      "distribuicao",
+    ]);
   });
 
   it("preserva a identificação do criativo quando a prévia falha e não inventa metadados de mídia", () => {

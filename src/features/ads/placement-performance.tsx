@@ -125,7 +125,9 @@ function PlacementCard({ card }: { card: PlacementPerformanceCard }) {
       <header className={styles.cardHeader}>
         <PlatformIcon platform={card.platform} />
         <h4>{card.label}</h4>
-        <small>{card.platform === "instagram" ? "Instagram" : "Facebook"}</small>
+        <small>
+          {card.platform === "instagram" ? "Instagram" : "Facebook"}
+        </small>
         <span className={styles.badge}>{card.percentage}% das vendas</span>
       </header>
       <p className={styles.cardSales}>
@@ -226,75 +228,70 @@ function CreativePerformance({ creative }: { creative: Creative }) {
           Ver detalhes do criativo <ArrowRight aria-hidden="true" />
         </button>
       </aside>
-      <div className={styles.performance}>
-        {/* Sem faixa de cabeçalho: o título, o subtexto, o seletor de
-            período e o menu saíram. A secção já se apresenta pelo painel
-            que a contém, e o espaço que a faixa ocupava vai todo para os
-            cartões. O nome continua a existir para quem lê por leitor de
-            ecrã, no aria-label da grelha. */}
+      {/* O criativo, os cinco posicionamentos e a distribuição são todos
+          filhos da MESMA grelha: mesma largura de coluna, mesma altura de
+          fileira. O criativo ocupa duas fileiras — a altura de dois
+          cartões —, e a distribuição ocupa as colunas que sobram na
+          última fileira, para não ficar nenhuma célula vazia.
+
+          Estar tudo numa grelha só é o que faz o alinhamento ser um facto
+          e não uma coincidência: não há duas medidas para desencontrar. */}
+      {performance.cards.map((card) => (
+        <PlacementCard key={card.id} card={card} />
+      ))}
+      <figure className={styles.distribution}>
+        <figcaption>
+          <h4>Distribuição de vendas por posicionamento</h4>
+          <span>
+            Total de {formatInteger(performance.totalSales)}{" "}
+            {performance.totalSales === 1 ? "venda" : "vendas"}
+          </span>
+        </figcaption>
         <div
-          className={styles.cards}
-          aria-label="Desempenho por posicionamento"
-          role="group"
+          className={styles.bar}
+          role="img"
+          aria-label={
+            performance.totalSales
+              ? performance.cards
+                  .map(
+                    (c) =>
+                      `${c.label}: ${c.percentage}% (${formatInteger(c.metrics.purchases)} vendas)`,
+                  )
+                  .join("; ")
+              : "Nenhuma venda nos cinco posicionamentos"
+          }
         >
-          {performance.cards.map((card) => (
-            <PlacementCard key={card.id} card={card} />
-          ))}
-        </div>
-        <figure className={styles.distribution}>
-          <figcaption>
-            <h4>Distribuição de vendas por posicionamento</h4>
-            <span>
-              Total de {formatInteger(performance.totalSales)}{" "}
-              {performance.totalSales === 1 ? "venda" : "vendas"}
-            </span>
-          </figcaption>
-          <div
-            className={styles.bar}
-            role="img"
-            aria-label={
-              performance.totalSales
-                ? performance.cards
-                    .map(
-                      (c) =>
-                        `${c.label}: ${c.percentage}% (${formatInteger(c.metrics.purchases)} vendas)`,
-                    )
-                    .join("; ")
-                : "Nenhuma venda nos cinco posicionamentos"
-            }
-          >
-            {performance.cards
-              .filter((c) => c.metrics.purchases > 0)
-              .map((card) => (
-                <span
-                  key={card.id}
-                  style={{
-                    width: `${card.share * 100}%`,
-                    backgroundColor: card.color,
-                  }}
-                />
-              ))}
-          </div>
-          <ul className={styles.legend}>
-            {performance.cards.map((card) => (
-              <li key={card.id}>
-                <i aria-hidden="true" style={{ backgroundColor: card.color }} />
-                <div>
-                  <b>
-                    {card.percentage}% ({formatInteger(card.metrics.purchases)})
-                  </b>
-                  <span>{card.label}</span>
-                </div>
-              </li>
+          {performance.cards
+            .filter((c) => c.metrics.purchases > 0)
+            .map((card) => (
+              <span
+                key={card.id}
+                style={{
+                  width: `${card.share * 100}%`,
+                  backgroundColor: card.color,
+                }}
+              />
             ))}
-          </ul>
-          {performance.totalSales === 0 && (
-            <p className={styles.emptySales}>
-              Nenhuma venda no período disponível.
-            </p>
-          )}
-        </figure>
-      </div>
+        </div>
+        <ul className={styles.legend}>
+          {performance.cards.map((card) => (
+            <li key={card.id}>
+              <i aria-hidden="true" style={{ backgroundColor: card.color }} />
+              <div>
+                <b>
+                  {card.percentage}% ({formatInteger(card.metrics.purchases)})
+                </b>
+                <span>{card.label}</span>
+              </div>
+            </li>
+          ))}
+        </ul>
+        {performance.totalSales === 0 && (
+          <p className={styles.emptySales}>
+            Nenhuma venda no período disponível.
+          </p>
+        )}
+      </figure>
       <Dialog.Root open={detailsOpen} onOpenChange={setDetailsOpen}>
         <Dialog.Portal>
           <Dialog.Overlay className={styles.overlay} />
