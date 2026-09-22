@@ -4403,7 +4403,12 @@ html[data-tema="branco"] .dash-skin .class-board-semaforo > i { background: #e2e
 .dash-skin .class-board-quadro .class-board-pilares > .class-board-faixa-barra {
   display: flex;
   align-items: center;
-  gap: 10px;
+  /* Quebra para uma segunda linha em vez de espremer: com o seletor de
+     faixas e o "Nova faixa" aqui dentro, numa coluna estreita não cabia
+     tudo numa linha e o nome da faixa e o "Apagar faixa" ficavam
+     cortados. Duas linhas custam 32px; texto cortado não se lê. */
+  flex-wrap: wrap;
+  gap: 6px 10px;
   min-width: 0;
   min-height: 1.75rem;
   padding: 0 4px;
@@ -4414,7 +4419,15 @@ html[data-tema="branco"] .dash-skin .class-board-semaforo > i { background: #e2e
   text-transform: uppercase;
   white-space: nowrap;
 }
-.dash-skin .class-board-quadro .class-board-pilares > .class-board-faixa-barra > .class-board-faixa-nome { color: var(--foreground, #f5f5f5); }
+.dash-skin .class-board-quadro .class-board-pilares > .class-board-faixa-barra > .class-board-faixa-nome { color: var(--foreground, #f5f5f5); flex: 0 0 auto; }
+/* A conta de blocos é o que primeiro cede a largura: é informação de
+   apoio, ao contrário dos botões. */
+.dash-skin .class-board-quadro .class-board-pilares > .class-board-faixa-barra > .class-board-faixa-conta {
+  min-width: 0;
+  flex: 0 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .dash-skin .class-board-quadro .class-board-pilares > .class-board-faixa-barra > .class-board-faixa-conta { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.04em; text-transform: none; font-weight: 600; }
 .dash-skin .class-board-quadro .class-board-pilares > .class-board-faixa-barra > .class-board-faixa-acao {
   display: inline-flex;

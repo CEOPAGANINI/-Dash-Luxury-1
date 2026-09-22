@@ -3,20 +3,21 @@ import { describe, expect, it } from "vitest";
 import { ALTURA_MINIMA_DO_QUADRO, alturaSemEstouro } from "@/features/ads/class-board";
 
 /*
-  O que a página estoura por baixo do quadro é exatamente a faixa em
-  branco que aparece quando se rola. Por isso o quadro devolve esse
-  estouro — todo ele, e não até um teto.
+  O quadro só encolhe pelo que é dele: o quanto o próprio fundo cai
+  abaixo da janela. Descontar o estouro da página inteira — que pode vir
+  de outra coisa, como a lista do menu da direita — esmagava o quadro até
+  ao piso e deixava os cartões cortados com meia tela em branco.
 */
-describe("a altura do quadro depois de a página estourar", () => {
-  it("devolve o estouro inteiro, não só um pedaço", () => {
+describe("a altura do quadro quando ele passa da janela", () => {
+  it("devolve o excesso do próprio quadro", () => {
     expect(alturaSemEstouro(900, 40)).toBe(860);
-    // Antes havia um teto de 96px: um estouro maior ficava por devolver
-    // e era ele que se via como branco ao rolar.
     expect(alturaSemEstouro(900, 300)).toBe(600);
   });
 
-  it("não encolhe quando a página não estoura", () => {
+  it("não encolhe quando o quadro cabe", () => {
     expect(alturaSemEstouro(900, 0)).toBe(900);
+    // O quadro acabar acima do fim da janela não é motivo para crescer
+    // nem para encolher: quem manda na altura é a medida, não isto.
     expect(alturaSemEstouro(900, -20)).toBe(900);
   });
 

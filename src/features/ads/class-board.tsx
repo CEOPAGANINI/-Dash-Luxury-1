@@ -253,21 +253,21 @@ export const PAINEL_DA_CAMPANHA = { largura: 3, altura: 3 } as const;
 /** A altura mínima que o quadro pode ter depois de devolver um estouro. */
 export const ALTURA_MINIMA_DO_QUADRO = 360;
 /*
-  Quanto o quadro devolve quando a página estoura.
+  Quanto o quadro devolve quando passa da janela.
 
-  Devolve o estouro inteiro, e não até um teto: o que a página estoura
-  por baixo do quadro é exatamente o que aparece como faixa em branco
-  quando se rola. Havia aqui um teto de 96px, pensado para o caso de o
-  conteúdo ser maior do que a tela; hoje as colunas e o painel rolam por
-  dentro, por isso encolher o quadro não deixa vazio nenhum — só encurta
-  esses rolamentos.
+  O que entra aqui é o excesso DO PRÓPRIO QUADRO — o quanto o fundo dele
+  cai abaixo da janela —, e não o quanto a página inteira estoura. A
+  diferença é a razão desta função existir: a página pode estourar por
+  causa de outra coisa qualquer (o menu da direita tem quase 4.000px de
+  lista dentro do seu próprio rolamento), e descontar isso da altura do
+  quadro esmagava-o até ao piso, deixando os cartões cortados e meia
+  tela em branco por baixo. Só se encolhe o quadro pelo que é do quadro.
 
-  O piso continua: nunca abaixo de ALTURA_MINIMA_DO_QUADRO, senão um
-  estouro vindo de outra coisa qualquer esmagava o quadro à toa.
+  O piso continua: nunca abaixo de ALTURA_MINIMA_DO_QUADRO.
 */
-export function alturaSemEstouro(altura: number, estouro: number): number {
-  if (!(estouro > 0)) return altura;
-  return Math.max(ALTURA_MINIMA_DO_QUADRO, altura - estouro);
+export function alturaSemEstouro(altura: number, excessoDoQuadro: number): number {
+  if (!(excessoDoQuadro > 0)) return altura;
+  return Math.max(ALTURA_MINIMA_DO_QUADRO, altura - excessoDoQuadro);
 }
 export function vagaDoPainelDaCampanha(fileiras: number) {
   return { largura: Math.min(PAINEL_DA_CAMPANHA.largura, GRADE.colunas), altura: Math.min(PAINEL_DA_CAMPANHA.altura, Math.max(fileiras, 1)) };
@@ -813,13 +813,13 @@ export function ClassBoard({
       const medida = Math.max(ALTURA_MINIMA_DO_QUADRO, window.innerHeight - topo - fundo);
       let altura = medida;
       el.style.setProperty("--quadro-altura", `${altura}px`);
-      /* O estouro que ainda sobre é devolvido inteiro: é exatamente ele
-         que aparece como faixa em branco quando se rola para baixo. Duas
+      /* Se o fundo do quadro ainda cair abaixo da janela, devolve-se
+         essa diferença — medida no próprio quadro, não na página. Duas
          voltas, porque devolver altura muda o desenho e pode revelar um
-         resto — mais do que isso seria perseguir o próprio rabo. */
+         resto; mais do que isso seria perseguir o próprio rabo. */
       for (let volta = 0; volta < 2; volta++) {
-        const sobra = document.documentElement.scrollHeight - window.innerHeight;
-        const nova = alturaSemEstouro(altura, sobra);
+        const excesso = Math.round(el.getBoundingClientRect().bottom + fundo - window.innerHeight);
+        const nova = alturaSemEstouro(altura, excesso);
         if (nova === altura) break;
         altura = nova;
         el.style.setProperty("--quadro-altura", `${altura}px`);
