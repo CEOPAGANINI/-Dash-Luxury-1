@@ -4631,7 +4631,12 @@ html[data-tema="branco"] .class-board-painel-cartao.class-board-menu {
    de três. À esquerda todos os blocos têm a mesma medida: a largura
    inteira da coluna e um terço da altura da seção. */
 .dash-skin .class-board-quadro[data-campanha-aberta="true"] {
-  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr) !important;
+  /* Um quarto para a faixa de campanhas e três quartos para o painel.
+     Era dois para três; com o painel a 832px a secção dos criativos só
+     dava três colunas e três fileiras, e não cabia num ecrã. A três
+     quartos passa dos 1.060px, entra em quatro colunas e duas fileiras —
+     que é o que faz tudo caber de uma vez. */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 3fr) !important;
   grid-template-rows: minmax(0, 1fr) auto auto !important;
   column-gap: 8px;
   /* O que o seletor de faixas e o "Nova faixa" ocupam por baixo das duas

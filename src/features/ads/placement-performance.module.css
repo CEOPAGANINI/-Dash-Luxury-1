@@ -1,12 +1,29 @@
 .section {
-  /* A altura de um cartão de posicionamento, e o vão entre eles.
+  /*
+    A altura de um cartão não é um número escolhido: é o que sobra.
 
-     É daqui que sai TUDO: as fileiras dos cartões têm esta altura, e o
-     bloco do criativo ao lado tem a altura de dois deles mais o vão.
-     Ficando na mesma medida, não podem desencontrar-se. Se um dia o
-     cartão ganhar mais uma linha de métrica, é este número que sobe. */
-  --altura-do-cartao: 376px;
+    O painel da campanha tem uma altura conhecida (--quadro-altura, que o
+    componente mede da janela, menos a reserva do quadro). Tirando daí o
+    cabeçalho da secção e as molduras, fica o orçamento que esta secção
+    tem para caber DE UMA VEZ, sem obrigar a rolar. Esse orçamento
+    divide-se pelo número de fileiras da grade — e é isso que dá a altura
+    de um cartão.
+
+    Por isso --fileiras é declarado junto com cada número de colunas: com
+    quatro colunas o conteúdo cabe em duas fileiras, com três em três,
+    com duas em quatro. Mais colunas, fileiras mais altas.
+
+    O clamp põe os limites. O mínimo, 316px, não é escolhido: é a altura
+    natural da célula mais alta (o criativo, dividido pelas duas fileiras
+    que ocupa), medida no navegador. Abaixo disso o conteúdo passava a
+    transbordar para fora da moldura do cartão — que foi exatamente o que
+    aconteceu com 276px, com 46px a saírem por baixo. O máximo, 376px,
+    é onde o cartão já começava a ter branco a mais por dentro.
+  */
   --vao-dos-cartoes: 16px;
+  --altura-do-painel: calc(
+    var(--quadro-altura, 860px) - var(--reserva-do-quadro, 84px) - 76px
+  );
   container: placement-section / inline-size;
   display: grid;
   gap: 24px;
@@ -28,10 +45,21 @@
   célula ficar vazia.
 */
 .section .creativeBlock {
+  --fileiras: 3;
+  --altura-do-cartao: clamp(
+    316px,
+    calc(
+      (
+          var(--altura-do-painel) - 32px - (var(--fileiras) - 1) *
+            var(--vao-dos-cartoes)
+        ) / var(--fileiras)
+    ),
+    376px
+  );
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: var(--vao-dos-cartoes);
-  padding: 20px;
+  padding: 16px;
   background: #f8faff;
   border: 1px solid #e5eaf2;
   box-shadow: 0 3px 16px rgb(24 40 74 / 3%);
@@ -68,9 +96,10 @@
 .summary {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
   min-width: 0;
-  padding: 20px;
+  min-height: 0;
+  padding: 16px;
   border: 1px solid #e5eaf2;
   background: #fff;
 }
@@ -106,10 +135,10 @@
 }
 .identity {
   display: grid;
-  gap: 10px;
+  gap: 7px;
 }
 .identity h3 {
-  font-size: 22px;
+  font-size: clamp(17px, 7cqi, 22px);
   overflow-wrap: anywhere;
 }
 .identity p {
@@ -149,17 +178,17 @@
 }
 .summaryMetrics {
   display: grid;
-  gap: 14px;
-  padding-top: 16px;
+  gap: 10px;
+  padding-top: 12px;
   border-top: 1px solid #e5eaf2;
 }
 .summaryMetrics dt {
-  font-size: 14px;
+  font-size: 13px;
   color: #53627c;
-  margin-bottom: 3px;
+  margin-bottom: 2px;
 }
 .summaryMetrics dd {
-  font-size: 26px;
+  font-size: clamp(19px, 8cqi, 26px);
   font-weight: 750;
   line-height: 1.2;
   font-variant-numeric: tabular-nums;
@@ -167,11 +196,12 @@
 }
 .section .detailsButton {
   display: flex;
+  flex: none;
   justify-content: center;
   align-items: center;
   gap: 8px;
-  padding: 12px;
-  min-height: 46px;
+  padding: 10px;
+  min-height: 40px;
   margin-top: auto;
   width: 100%;
   color: #344562;
@@ -189,10 +219,17 @@
   background: #edf2fc;
 }
 
+/* O cartão enche exatamente a fileira que lhe toca: cabeçalho e vendas
+   com a altura do que escrevem, e as oito métricas a repartir o resto
+   entre si. Assim não sobra branco no fundo do cartão numa fileira alta
+   nem transborda numa fileira baixa — o cartão acompanha a medida em vez
+   de a ignorar. */
 .section .card {
   container: placement-card / inline-size;
+  display: flex;
+  flex-direction: column;
   min-width: 0;
-  padding: 20px;
+  padding: 16px;
   background: #fff;
   border: 1px solid #e5eaf2;
   box-shadow: 0 2px 8px rgb(24 40 74 / 2%);
@@ -204,6 +241,7 @@
    a partilhar a primeira linha com o emblema, "Feed Instagram" ainda
    ficava cortado. */
 .cardHeader {
+  flex: none;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   grid-template-areas:
@@ -275,15 +313,16 @@
    régua só. É o que faz os cartões lerem alinhados lado a lado, mesmo
    com nomes e números de tamanhos diferentes. */
 .cardSales {
+  flex: none;
   display: flex;
   align-items: baseline;
   gap: 7px;
   margin: 0;
-  padding: 16px 0 12px;
+  padding: 10px 0 8px;
   min-width: 0;
 }
 .cardSales b {
-  font-size: clamp(22px, 11cqi, 30px);
+  font-size: clamp(20px, 10cqi, 28px);
   font-weight: 750;
   line-height: 1.1;
   letter-spacing: -0.04em;
@@ -297,6 +336,10 @@
 .cardRows {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
+  /* minmax(min-content, 1fr) e não minmax(0, 1fr): com zero em baixo as
+     linhas encolhiam por baixo do texto e encavalitavam-se. */
+  grid-auto-rows: minmax(min-content, 1fr);
+  flex: 1 1 auto;
   gap: 0;
   margin: 0;
   min-width: 0;
@@ -304,10 +347,10 @@
 .cardRows > div {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  align-items: baseline;
+  align-items: center;
   gap: 10px;
   min-width: 0;
-  padding: 5px 0;
+  padding: 3px 0;
   border-top: 1px solid #e5eaf2;
 }
 .cardRows > div:first-child {
@@ -318,6 +361,7 @@
   min-width: 0;
   color: #53627c;
   font-size: 12px;
+  line-height: 1.35;
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
@@ -327,6 +371,7 @@
   margin: 0;
   color: #10172f;
   font-size: 13px;
+  line-height: 1.35;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -337,31 +382,37 @@
 .cardRows dd[data-tone="negative"] {
   color: #c00020;
 }
+/* A distribuição também enche a célula que lhe toca: o título e a barra
+   com a altura do que ocupam, e a legenda a repartir o resto. */
 .section .distribution {
   container: placement-dist / inline-size;
+  display: flex;
+  flex-direction: column;
   min-width: 0;
-  padding: 20px;
+  padding: 16px;
   border: 1px solid #e5eaf2;
   background: #fff;
 }
 .distribution figcaption {
+  flex: none;
   display: flex;
   justify-content: space-between;
-  gap: 12px;
+  gap: 4px 12px;
   flex-wrap: wrap;
   align-items: baseline;
 }
 .distribution h4 {
-  font-size: 18px;
+  font-size: clamp(13px, 4cqi, 18px);
 }
 .distribution figcaption > span {
-  font-size: 14px;
+  font-size: 12px;
   color: #53627c;
 }
 .bar {
   display: flex;
-  height: 26px;
-  margin: 16px 0 20px;
+  flex: none;
+  height: 18px;
+  margin: 10px 0 10px;
   background: #edf1f7;
   overflow: hidden;
 }
@@ -373,7 +424,10 @@
 .legend {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 18px;
+  grid-auto-rows: minmax(min-content, 1fr);
+  flex: 1 1 auto;
+  align-content: stretch;
+  gap: 6px 12px;
   padding: 0;
   margin: 0;
   list-style: none;
@@ -381,26 +435,28 @@
 .legend li {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
+  gap: 8px;
   min-width: 0;
 }
 .legend i {
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   margin-top: 4px;
   flex: none;
 }
 .legend b {
   display: block;
-  font-size: 14px;
+  font-size: 12px;
+  line-height: 1.3;
   color: #10172f;
 }
 .legend span {
   display: block;
-  margin-top: 4px;
-  font-size: 12px;
+  margin-top: 1px;
+  font-size: 10.5px;
   color: #53627c;
-  line-height: 1.5;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
 }
 .section .emptySales {
   font-size: 13px;
@@ -525,16 +581,19 @@
   }
 }
 /*
-  Lado a lado a partir dos 600px de secção — o painel da campanha dá
-  entre 690px e 1.080px, por isso liga em qualquer ecrã de trabalho.
+  Lado a lado a partir dos 540px de secção — abaixo disto o cartão ficava
+  com menos de 250px e o nome do posicionamento deixava de caber.
 
   Daqui para cima a grelha tem fileiras de altura fixa: o criativo passa
   a ocupar duas (a altura pedida, de dois cartões) e volta a ser uma
   coluna só, com a prévia a encolher com ele em vez de presa a uma
   proporção.
 */
-@container placement-section (min-width: 600px) {
+@container placement-section (min-width: 540px) {
   .section .creativeBlock {
+    /* Duas colunas: criativo (2 células) + 5 cartões + distribuição = 8
+       células, quatro fileiras. */
+    --fileiras: 4;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-auto-rows: var(--altura-do-cartao);
   }
@@ -545,14 +604,11 @@
   .preview {
     flex: 1 1 auto;
     aspect-ratio: auto;
-    min-height: 120px;
+    min-height: 90px;
     max-height: none;
   }
   .summaryMetrics {
     grid-template-columns: minmax(0, 1fr);
-  }
-  .legend {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 /*
@@ -568,20 +624,47 @@
 */
 @container placement-section (min-width: 800px) {
   .section .creativeBlock {
+    /* Três colunas: 9 células, três fileiras. A distribuição toma as
+       duas que sobram ao lado do quinto cartão. */
+    --fileiras: 3;
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
   .section .distribution {
     grid-column: span 2;
   }
 }
-@container placement-dist (min-width: 420px) {
+/*
+  Quatro colunas quando a secção passa dos 1.020px — o painel largo, que
+  é onde três colunas davam três fileiras e a secção deixava de caber num
+  ecrã. Com quatro, as oito células entram em DUAS fileiras: o criativo à
+  esquerda a ocupar as duas, três cartões em cima, dois em baixo e a
+  distribuição a fechar. Metade da altura, tudo à vista de uma vez.
+*/
+@container placement-section (min-width: 1020px) {
+  .section .creativeBlock {
+    --fileiras: 2;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .section .distribution {
+    grid-column: span 1;
+  }
+}
+/* A legenda conta as colunas pela largura da PRÓPRIA distribuição, e
+   não pela da secção: é a caixa dela que decide quantos nomes cabem
+   lado a lado. */
+@container placement-dist (min-width: 260px) {
   .legend {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
-@container placement-dist (min-width: 640px) {
+@container placement-dist (min-width: 480px) {
   .legend {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@container placement-dist (min-width: 760px) {
+  .legend {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 }
 @container placement-section (max-width: 380px) {
