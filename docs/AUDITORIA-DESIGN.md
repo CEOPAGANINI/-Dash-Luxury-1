@@ -26,7 +26,7 @@ Contraste medido no pixel real do screenshot de cada elemento, não no CSS.
 
 | P | Classe | Padrão | Prova | Dano | Remover ou corrigir |
 |---|---|---|---|---|---|
-| P0 | Defeito | Etiqueta e filtro escolhido sem contraste | `/calculadora`: botão "Todas as redes" a **1,07:1**; etiquetas "nota 15"/"Pausar" a **1,16:1** em 4 dos 12 cartões. `/clientes`: chip "Risco" do segmento e 2 linhas da tabela, **1,16:1** | O estado de alerta é o único ilegível | Corrigir a variante destrutiva do `Badge` e o estado escolhido do botão nos próprios componentes, com os tokens do Nebula — não página a página |
+| ✅ P0 | Defeito | Etiqueta e filtro escolhido sem contraste | `/calculadora`: botão "Todas as redes" a **1,07:1**; etiquetas "nota 15"/"Pausar" a **1,16:1** em 4 dos 12 cartões. `/clientes`: chip "Risco" do segmento e 2 linhas da tabela, **1,16:1** | O estado de alerta é o único ilegível | Corrigir a variante destrutiva do `Badge` e o estado escolhido do botão nos próprios componentes, com os tokens do Nebula — não página a página |
 | P1 | Defeito | Gráfico desenhado por cima de zero | `/dashboard`: **488px mortos** dentro de cartões de 596px (rosca "Margem" a 0%, anel "Saúde dos pagamentos", 4 barras a zero). `/calculadora`: **839px mortos** num cartão de 1424px | O olho procura dado numa forma feita para ter dado | Trocar o gráfico por um estado vazio de uma linha, na altura natural do cartão; não esticar o cartão para acompanhar o vizinho |
 | P1 | Slop | Veredito inventado sobre zero | `/dashboard`: "Receita líquida R$ 0 — Crítico", "Payback 0 compras — **Saudável**", "Lucro final R$ 0 — Atenção", e "0% vs. período anterior" cinco vezes | Apresenta julgamento como prova quando não há prova; "0 compras = saudável" contradiz-se | Esconder o selo de veredito e a linha de comparação quando o período não tem dado |
 | P1 | Defeito | Dois `h1` na mesma página | `/campanhas/calculadora` ("Calculadora" + "Calculadora de campanhas"); `/dashboard/trafego` | Quem usa leitor de tela recebe dois títulos de página | A migalha de pão passa a `span` |
@@ -46,3 +46,52 @@ Contraste medido no pixel real do screenshot de cada elemento, não no CSS.
 Devolver contraste à variante de alerta do `Badge` e ao estado escolhido do
 botão. É um ponto no design system e apaga os oito piores achados de leitura
 de uma vez, em todas as páginas ao mesmo tempo.
+
+
+---
+
+## Passagem de correção — P0 fechado
+
+### Causa raiz
+
+Uma regra só, em `nebula-dashboard.css`, inflava a própria especificidade:
+
+```css
+:is([data-slot="button"], …, input:not(…):not(…):not(…))
+```
+
+`:is()` vale o mais forte dos seus argumentos, e `input:not():not():not()`
+vale (0,3,1). As três regras de variante logo abaixo — `bg-primary`,
+`bg-destructive`, `bg-success` — valem (0,2,0), e perdiam. O **fundo** passava
+a vir da regra genérica enquanto a **cor do texto** continuava a vir da
+variante: os dois deixavam de combinar, e o selo de alerta desaparecia.
+
+### O que mudou
+
+- `nebula-dashboard.css`: o `input` saiu do `:is()`, com a mesma declaração
+  numa segunda linha do seletor. As variantes voltaram a ter o peso que já
+  tinham no papel.
+- `ui/badge.tsx`: a variante `destructive` passou de sólida a tingida
+  (`bg-destructive/15 text-destructive`), igual a `success`/`warning`/`info`.
+  A pele apaga o fundo com `!important` mas não toca na cor do texto — num
+  selo tingido quem manda na leitura é o texto.
+- Tema claro: `--nebula-positive`, `--nebula-negative`, `--nebula-cyan` e
+  `--warning` escurecidos o mínimo para passarem 4,5:1 nas três superfícies
+  onde assentam (painel `#f0f0f0`, cartão branco, faixa âmbar). Antes ficavam
+  entre 3,5 e 4,3:1.
+
+### Correção ao método de medição
+
+A primeira varredura usava percentil 10 contra percentil 90 dos pixels. Num
+selo de 12px o texto é menos de 10% da área, e o percentil 10 nunca chega à
+cor da letra: o método **subestimava** o contraste e acusou falhas a mais.
+
+O método em uso agora separa as duas fontes de verdade: a cor da letra sai do
+CSS, onde é exacta, e a cor do fundo sai da **moda do histograma** do pixel —
+a cor que mais se repete na foto do elemento é o fundo, por definição.
+
+### Estado
+
+`OK 1656 · FALHA 0 · ERROS 0` em 10 rotas × 2 temas. Guarda de regressão em
+`tests/unit/contraste-nebula.test.ts`, que refaz a conta a partir dos próprios
+tokens do CSS.

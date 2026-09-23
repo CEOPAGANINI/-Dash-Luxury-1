@@ -13,8 +13,13 @@ const badgeVariants = cva(
       variant: {
         default: "border-transparent bg-primary text-primary-foreground",
         secondary: "border-transparent bg-secondary text-secondary-foreground",
-        destructive:
-          "border-transparent bg-destructive text-destructive-foreground",
+        /* Tingido, e não sólido, como success/warning/info. A pele do
+           dashboard apaga o fundo de qualquer [data-slot="badge"] com
+           !important e deixa a cor do texto passar; um selo sólido perde
+           o fundo e fica com texto quase preto sobre painel quase preto.
+           Tingido, quem manda na leitura é a cor do texto — que a pele
+           não toca. */
+        destructive: "border-transparent bg-destructive/15 text-destructive",
         outline: "text-foreground",
         success: "border-transparent bg-success/15 text-success",
         warning:

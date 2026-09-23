@@ -125,9 +125,14 @@ html[data-tema="branco"]
   --nebula-accent-2: #737373;
   --nebula-selected: #090909;
   --nebula-selected-bg: rgb(0 0 0 / 8%);
-  --nebula-positive: #08774d;
-  --nebula-negative: #bc2748;
-  --nebula-cyan: #087d8b;
+  /* Escurecidas o mínimo para passarem 4,5:1 em TODAS as superfícies onde
+     de facto assentam no tema claro — o painel #f0f0f0, o cartão branco e
+     a faixa âmbar do aviso. Nos valores antigos ficavam entre 3,5 e 4,3
+     contra a faixa, e entre 4,27 e 4,32 contra o painel: falhavam por
+     pouco, mas falhavam. Medido, não estimado. */
+  --nebula-positive: #076d47;
+  --nebula-negative: #b42545;
+  --nebula-cyan: #076975;
   --nebula-shadow: 0 8px 28px rgb(0 0 0 / 4%);
   --camada-3: #e8e8e8;
   --camada-4: #dedede;
@@ -136,7 +141,7 @@ html[data-tema="branco"]
   --success-foreground: #ffffff;
   --destructive-foreground: #ffffff;
   --info-foreground: #ffffff;
-  --warning: #a16207;
+  --warning: #875206;
   --warning-foreground: #ffffff;
   --chart-1: #171717;
   --chart-2: #404040;
@@ -325,15 +330,17 @@ body:has(.dash-skin[data-design-system="nebula"])
   border-radius: var(--nebula-control-radius) !important;
   font-family: var(--font-inter), system-ui, sans-serif;
 }
+/* O campo de texto sai do :is() de propósito. :is() vale o mais forte dos
+   seus argumentos, e input:not():not():not() valia mais do que as regras
+   de variante logo abaixo — que ficavam sem efeito no fundo enquanto
+   continuavam a mandar na cor do texto. Fundo e texto deixavam de
+   combinar, e o selo de alerta desaparecia. */
 body:has(.dash-skin[data-design-system="nebula"])
   .dash-skin
-  :is(
-    [data-slot="button"],
-    [data-slot="select-trigger"],
-    select,
-    textarea,
-    input:not([type="checkbox"]):not([type="radio"]):not([type="range"])
-  ) {
+  :is([data-slot="button"], [data-slot="select-trigger"], select, textarea),
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]) {
   background: var(--nebula-panel-2) !important;
   border-color: var(--nebula-line-strong) !important;
   box-shadow: inset 0 0 0 1px var(--nebula-line) !important;
