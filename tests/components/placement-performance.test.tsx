@@ -111,11 +111,23 @@ function creative(overrides: Partial<AdRow> = {}): AdRow {
   };
 }
 
-/* Os cartões de posicionamento de uma coluna. A coluna leva também o
-   cartão do criativo, que é article na mesma — por isso filtra-se pelo
-   posicionamento, em vez de apanhar todos os articles. */
-function placementCardsIn(root: HTMLElement) {
-  return [...root.querySelectorAll<HTMLElement>("article[data-placement]")];
+/* As cinco linhas de posicionamento de uma coluna: já não são cinco
+   cartões, são cinco abas de um bloco só. */
+function placementRowsIn(root: HTMLElement) {
+  return [...root.querySelectorAll<HTMLElement>("[data-placement]")];
+}
+
+/* O painel que mostra as métricas do posicionamento apontado. */
+function panelIn(root: HTMLElement) {
+  return root.querySelector<HTMLElement>("[role='tabpanel']")!;
+}
+
+/* Aponta um posicionamento e devolve o painel já com as métricas dele. */
+function hover(root: HTMLElement, label: string) {
+  fireEvent.mouseEnter(
+    within(root).getByRole("tab", { name: new RegExp(`^${label}`) }),
+  );
+  return panelIn(root);
 }
 
 /* Todas as métricas de um cartão, pelo rótulo. As vendas são agora a
@@ -141,13 +153,10 @@ describe("desempenho por posicionamento de cada criativo", () => {
     const block = within(section).getByRole("group", {
       name: "Análise de Criativo dourado",
     });
-    const cards = placementCardsIn(block);
+    const linhas = placementRowsIn(block);
 
-    expect(cards.map((card) => card.getAttribute("aria-label"))).toEqual(
-      labels,
-    );
-    labels.forEach((label) =>
-      expect(within(block).getByRole("heading", { name: label })).toBeTruthy(),
+    expect(linhas.map((linha) => linha.textContent)).toEqual(
+      labels.map((l) => expect.stringContaining(l)),
     );
     expect(
       within(block).queryByRole("heading", { name: "Instagram" }),
@@ -162,7 +171,7 @@ describe("desempenho por posicionamento de cada criativo", () => {
 
     // As duas linhas de feed do Instagram são agregadas; o feed do
     // Facebook continua separado, com os próprios custos e resultados.
-    expect(metricsIn(cards[0])).toMatchObject({
+    expect(metricsIn(hover(block, "Feed Instagram"))).toMatchObject({
       vendas: "3",
       roas: "2,00x",
       checkout: "9",
@@ -174,7 +183,7 @@ describe("desempenho por posicionamento de cada criativo", () => {
     });
     // A ordem pedida: vendas, ROAS e checkout em destaque; as seis
     // secundárias por baixo, sempre na mesma sequência.
-    expect(Object.keys(metricsIn(cards[0]))).toEqual([
+    expect(Object.keys(metricsIn(hover(block, "Feed Instagram")))).toEqual([
       "vendas",
       "roas",
       "checkout",
@@ -185,7 +194,7 @@ describe("desempenho por posicionamento de cada criativo", () => {
       "cpm",
       "cpa",
     ]);
-    expect(metricsIn(cards[3])).toMatchObject({
+    expect(metricsIn(hover(block, "Feed Facebook"))).toMatchObject({
       vendas: "2",
       roas: "3,00x",
       checkout: "8",
@@ -253,8 +262,8 @@ describe("desempenho por posicionamento de cada criativo", () => {
 
   it("mostra zeros para posições ausentes e distingue checkout desconhecido de zero real", () => {
     render(<PlacementPerformance creatives={[creative()]} />);
-    const explore = screen.getByRole("article", { name: "Explorar Instagram" });
-    expect(metricsIn(explore)).toMatchObject({
+    const coluna = screen.getByRole("group", { name: "Análise de Criativo dourado" });
+    expect(metricsIn(hover(coluna, "Explorar Instagram"))).toMatchObject({
       vendas: "0",
       roas: "—",
       checkout: "0",
@@ -262,12 +271,10 @@ describe("desempenho por posicionamento de cada criativo", () => {
       cliques: "0",
     });
     expect(
-      metricsIn(screen.getByRole("article", { name: "Stories Instagram" }))
-        .checkout,
+      metricsIn(hover(coluna, "Stories Instagram")).checkout,
     ).toBe("—");
     expect(
-      metricsIn(screen.getByRole("article", { name: "Stories Facebook" }))
-        .checkout,
+      metricsIn(hover(coluna, "Stories Facebook")).checkout,
     ).toBe("0");
     expect(screen.queryByText(/NaN|Infinity/)).toBeNull();
   });
@@ -299,10 +306,10 @@ describe("desempenho por posicionamento de cada criativo", () => {
       )["vendas totais"];
     expect(totalDe(populated)).toBe("6");
     expect(totalDe(empty)).toBe("0");
-    expect(placementCardsIn(empty)).toHaveLength(5);
+    expect(placementRowsIn(empty)).toHaveLength(5);
     expect(within(empty).getAllByText("0% das vendas")).toHaveLength(5);
-    for (const card of placementCardsIn(empty)) {
-      expect(metricsIn(card)).toMatchObject({
+    for (const label of labels) {
+      expect(metricsIn(hover(empty, label))).toMatchObject({
         vendas: "0",
         checkout: "0",
         impressões: "0",
@@ -349,24 +356,22 @@ describe("desempenho por posicionamento de cada criativo", () => {
       .map((el) =>
         el.tagName === "FIGURE"
           ? "distribuicao"
-          : el.hasAttribute("data-placement")
-            ? "posicionamento"
+          : el.tagName === "SECTION"
+            ? "posicionamentos"
             : el.tagName === "ARTICLE"
               ? "criativo"
               : null,
       )
       .filter(Boolean);
-    expect(ordem).toEqual([
-      "criativo",
-      "distribuicao",
-      "posicionamento",
-      "posicionamento",
-      "posicionamento",
-      "posicionamento",
-      "posicionamento",
+    expect(ordem).toEqual(["criativo", "distribuicao", "posicionamentos"]);
+    // E os cinco posicionamentos vêm na ordem definida, dentro do bloco.
+    expect(placementRowsIn(coluna).map((c) => c.getAttribute("data-placement"))).toEqual([
+      "instagram-feed",
+      "instagram-stories",
+      "instagram-explore",
+      "facebook-feed",
+      "facebook-stories",
     ]);
-    // E os cinco posicionamentos vêm na ordem definida.
-    expect(placementCardsIn(coluna).map((c) => c.getAttribute("aria-label"))).toEqual(labels);
   });
 
   it("uma coluna por criativo, lado a lado na mesma grade", () => {
@@ -390,8 +395,65 @@ describe("desempenho por posicionamento de cada criativo", () => {
     expect(colunas.every((c) => c.parentElement === grade)).toBe(true);
     // E cada coluna leva os seus cinco posicionamentos, sem os misturar.
     for (const coluna of colunas) {
-      expect(placementCardsIn(coluna)).toHaveLength(5);
+      expect(placementRowsIn(coluna)).toHaveLength(5);
     }
+  });
+
+  it("mostra as métricas do posicionamento apontado, e nunca começa vazio", () => {
+    render(<PlacementPerformance creatives={[creative()]} />);
+    const coluna = screen.getByRole("group", {
+      name: "Análise de Criativo dourado",
+    });
+    const painel = panelIn(coluna);
+
+    /* Começa no que mais vendeu — o Feed Instagram, com 3 — para o
+       painel não estar à espera de um gesto que num telemóvel pode
+       nunca vir. */
+    expect(painel.querySelector("h4")?.textContent).toBe("Feed Instagram");
+    expect(metricsIn(painel)).toMatchObject({ vendas: "3", roas: "2,00x" });
+
+    // O rato troca o que se vê, e a linha apontada fica marcada.
+    expect(metricsIn(hover(coluna, "Feed Facebook"))).toMatchObject({
+      vendas: "2",
+      roas: "3,00x",
+      checkout: "8",
+    });
+    expect(painel.querySelector("h4")?.textContent).toBe("Feed Facebook");
+    const aba = (label: string) =>
+      within(coluna).getByRole("tab", { name: new RegExp(`^${label}`) });
+    expect(aba("Feed Facebook").getAttribute("aria-selected")).toBe("true");
+    expect(aba("Feed Instagram").getAttribute("aria-selected")).toBe("false");
+
+    /* O teclado anda pela lista com as setas: sem isto, as métricas só
+       existiriam para quem tem rato. */
+    fireEvent.keyDown(within(coluna).getByRole("tablist"), { key: "ArrowDown" });
+    expect(painel.querySelector("h4")?.textContent).toBe("Stories Facebook");
+    fireEvent.keyDown(within(coluna).getByRole("tablist"), { key: "ArrowDown" });
+    // Dá a volta, em vez de parar no fim.
+    expect(painel.querySelector("h4")?.textContent).toBe("Feed Instagram");
+    fireEvent.keyDown(within(coluna).getByRole("tablist"), { key: "End" });
+    expect(painel.querySelector("h4")?.textContent).toBe("Stories Facebook");
+
+    // E o toque, que não tem "passar por cima": o clique também escolhe.
+    fireEvent.click(aba("Explorar Instagram"));
+    expect(painel.querySelector("h4")?.textContent).toBe("Explorar Instagram");
+
+    // O painel pertence à aba escolhida, e não a todas.
+    expect(painel.getAttribute("aria-labelledby")).toBe(
+      aba("Explorar Instagram").getAttribute("id"),
+    );
+  });
+
+  it("uma coluna não mexe no painel da outra", () => {
+    render(
+      <PlacementPerformance
+        creatives={[creative(), creative({ id: "creative-2", name: "Outro" })]}
+      />,
+    );
+    const [uma, outra] = screen.getAllByRole("group", { name: /^Análise de / });
+    hover(uma, "Stories Facebook");
+    expect(panelIn(uma).querySelector("h4")?.textContent).toBe("Stories Facebook");
+    expect(panelIn(outra).querySelector("h4")?.textContent).toBe("Feed Instagram");
   });
 
   it("preserva a identificação do criativo quando a prévia falha e não inventa metadados de mídia", () => {

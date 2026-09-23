@@ -211,7 +211,7 @@ describe("a seta abre os dados da campanha num bloco à direita do quadro", () =
     const estatico = within(secao).getByRole("group", { name: "Análise de Estático" });
     const video = within(secao).getByRole("group", { name: "Análise de Vídeo 30s" });
     const nomes = ["Feed Instagram", "Stories Instagram", "Explorar Instagram", "Feed Facebook", "Stories Facebook"];
-    const posicionamentos = (coluna: HTMLElement) => [...coluna.querySelectorAll("article[data-placement]")];
+    const posicionamentos = (coluna: HTMLElement) => [...coluna.querySelectorAll("[data-placement]")];
     const vendasTotais = (coluna: HTMLElement) => {
       const cartao = within(coluna).getByRole("article", { name: /^Criativo / });
       const dt = [...cartao.querySelectorAll("dt")].find((t) => t.textContent === "Vendas totais");
@@ -220,14 +220,16 @@ describe("a seta abre os dados da campanha num bloco à direita do quadro", () =
     for (const criativo of [estatico, video]) {
       expect(within(criativo).queryByRole("heading", { name: "Desempenho por posicionamento" })).toBeNull();
       expect(within(criativo).queryByRole("combobox")).toBeNull();
-      expect(posicionamentos(criativo).map((card) => card.getAttribute("aria-label"))).toEqual(nomes);
+      expect(posicionamentos(criativo).map((linha) => linha.textContent)).toEqual(nomes.map((n) => expect.stringContaining(n)));
       expect(within(criativo).queryByRole("heading", { name: "Instagram" })).toBeNull();
       expect(within(criativo).queryByRole("heading", { name: "Facebook" })).toBeNull();
     }
     expect(vendasTotais(estatico)).toBe("4");
-    expect(within(estatico).getByRole("article", { name: "Stories Instagram" }).textContent).toContain("75% das vendas");
-    expect(within(estatico).getByRole("article", { name: "Stories Facebook" }).textContent).toContain("0% das vendas");
-    expect(within(estatico).getByRole("article", { name: "Feed Facebook" }).textContent).toContain("25% das vendas");
+    const fatia = (coluna: HTMLElement, nome: string) =>
+      within(coluna).getByRole("tab", { name: new RegExp(`^${nome}`) }).textContent;
+    expect(fatia(estatico, "Stories Instagram")).toContain("75% das vendas");
+    expect(fatia(estatico, "Stories Facebook")).toContain("0% das vendas");
+    expect(fatia(estatico, "Feed Facebook")).toContain("25% das vendas");
     // O vídeo não tem partição: não herda as vendas do estático nem
     // inventa posições a partir das métricas gerais do anúncio.
     expect(vendasTotais(video)).toBe("0");
@@ -245,7 +247,7 @@ describe("a seta abre os dados da campanha num bloco à direita do quadro", () =
     fireEvent.click(screen.getByRole("button", { name: "Abrir campanha Alfa" }));
     const vazia = screen.getByRole("region", { name: "Desempenho por posicionamento" });
     expect(within(vazia).getAllByRole("group", { name: /^Análise de / })).toHaveLength(2);
-    expect(within(vazia).getAllByText("0% das vendas")).toHaveLength(10);
+    expect(within(vazia).getAllByText(/0% das vendas/)).toHaveLength(10);
   });
 
   it.each(["google", "youtube"] as const)("preserva a seção existente de %s sem incluir os cinco cards exclusivos de Meta", (network) => {

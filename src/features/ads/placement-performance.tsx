@@ -99,14 +99,61 @@ function PlatformIcon({ platform }: { platform: "instagram" | "facebook" }) {
 }
 
 /*
-  Um cartão de posicionamento: o topo com o selo da plataforma, o nome e
-  a fatia das vendas; depois as três métricas principais (vendas, ROAS e
-  checkouts iniciados) em destaque; e por fim as seis secundárias, na
-  mesma régua para todos os cartões — é isso que os faz ler alinhados
-  quando estão uns por baixo dos outros na mesma coluna.
+  Os cinco posicionamentos num bloco só.
+
+  Em vez de cinco cartões empilhados — que davam à coluna a altura de
+  uma escada —, fica uma fila de cinco linhas e um painel por baixo. A
+  linha diz o essencial (quem é, quanto vendeu, que fatia das vendas
+  levou) e o painel mostra as métricas da que estiver sob o rato.
+
+  É o padrão das abas, de propósito: quem usa rato aponta, quem usa
+  teclado anda com as setas e o Tab entra no painel, quem usa toque
+  toca. Uma coisa que só aparecesse com o rato deixaria de fora metade
+  das pessoas.
+
+  Começa escolhido o que mais vendeu, para o painel nunca estar vazio à
+  espera de um gesto.
 */
-function PlacementCard({ card }: { card: PlacementPerformanceCard }) {
-  const { metrics, derived } = card;
+function PlacementsBlock({
+  cards,
+  creativeName,
+}: {
+  cards: readonly PlacementPerformanceCard[];
+  creativeName: string;
+}) {
+  const queMaisVendeu = React.useMemo(() => {
+    let melhor = 0;
+    cards.forEach((card, i) => {
+      if (card.metrics.purchases > cards[melhor].metrics.purchases) melhor = i;
+    });
+    return melhor;
+  }, [cards]);
+  const [escolhido, setEscolhido] = React.useState(queMaisVendeu);
+  const atual = cards[Math.min(escolhido, cards.length - 1)];
+  const base = React.useId();
+  const abaId = (i: number) => `${base}-aba-${i}`;
+  const painelId = `${base}-painel`;
+  const botoes = React.useRef<(HTMLButtonElement | null)[]>([]);
+
+  function teclado(e: React.KeyboardEvent<HTMLDivElement>) {
+    const passo =
+      e.key === "ArrowDown" || e.key === "ArrowRight"
+        ? 1
+        : e.key === "ArrowUp" || e.key === "ArrowLeft"
+          ? -1
+          : e.key === "Home"
+            ? -escolhido
+            : e.key === "End"
+              ? cards.length - 1 - escolhido
+              : 0;
+    if (!passo && e.key !== "Home" && e.key !== "End") return;
+    e.preventDefault();
+    const proximo = (escolhido + passo + cards.length) % cards.length;
+    setEscolhido(proximo);
+    botoes.current[proximo]?.focus();
+  }
+
+  const { metrics, derived } = atual;
   const principais: [string, React.ReactNode, string?][] = [
     [
       metrics.purchases === 1 ? "venda" : "vendas",
@@ -122,38 +169,77 @@ function PlacementCard({ card }: { card: PlacementPerformanceCard }) {
     ["impressões", formatInteger(metrics.impressions)],
     ["cliques", formatInteger(metrics.clicks)],
     ["CTR", formatPercent(derived.ctr ?? 0, 2)],
-    ["CPC", money(derived.cpcCents ?? (card.hasData ? null : 0))],
-    ["CPM", money(derived.cpmCents ?? (card.hasData ? null : 0))],
-    ["CPA", money(derived.cpaCents ?? (card.hasData ? null : 0))],
+    ["CPC", money(derived.cpcCents ?? (atual.hasData ? null : 0))],
+    ["CPM", money(derived.cpmCents ?? (atual.hasData ? null : 0))],
+    ["CPA", money(derived.cpaCents ?? (atual.hasData ? null : 0))],
   ];
+
   return (
-    <article
-      className={styles.placementCard}
-      aria-label={card.label}
-      data-placement={card.id}
+    <section
+      className={styles.placementsCard}
+      aria-label={`Posicionamentos de ${creativeName}`}
     >
-      <header className={styles.placementCardHeader}>
-        <PlatformIcon platform={card.platform} />
-        <h4>{card.label}</h4>
-        <span className={styles.badge}>{card.percentage}% das vendas</span>
-      </header>
-      <dl className={styles.placementMainMetrics}>
-        {principais.map(([rotulo, valor, toneName]) => (
-          <div key={rotulo}>
-            <dd data-tone={toneName}>{valor}</dd>
-            <dt>{rotulo}</dt>
-          </div>
+      <div
+        className={styles.placementRows}
+        role="tablist"
+        aria-orientation="vertical"
+        aria-label={`Posicionamentos de ${creativeName}`}
+        onKeyDown={teclado}
+      >
+        {cards.map((card, i) => (
+          <button
+            key={card.id}
+            ref={(el) => {
+              botoes.current[i] = el;
+            }}
+            type="button"
+            role="tab"
+            id={abaId(i)}
+            aria-controls={painelId}
+            aria-selected={i === escolhido}
+            tabIndex={i === escolhido ? 0 : -1}
+            data-placement={card.id}
+            data-escolhido={i === escolhido ? "true" : undefined}
+            className={styles.placementRow}
+            onMouseEnter={() => setEscolhido(i)}
+            onFocus={() => setEscolhido(i)}
+            onClick={() => setEscolhido(i)}
+          >
+            <PlatformIcon platform={card.platform} />
+            <span className={styles.rowName}>{card.label}</span>
+            <b className={styles.rowSales}>
+              {formatInteger(card.metrics.purchases)}
+            </b>
+            <span className={styles.badge}>{card.percentage}% das vendas</span>
+          </button>
         ))}
-      </dl>
-      <dl className={styles.placementSecondaryMetrics}>
-        {secundarias.map(([rotulo, valor]) => (
-          <div key={rotulo}>
-            <dd>{valor}</dd>
-            <dt>{rotulo}</dt>
-          </div>
-        ))}
-      </dl>
-    </article>
+      </div>
+      <div
+        className={styles.placementDetail}
+        role="tabpanel"
+        id={painelId}
+        aria-labelledby={abaId(escolhido)}
+        tabIndex={0}
+      >
+        <h4>{atual.label}</h4>
+        <dl className={styles.placementMainMetrics}>
+          {principais.map(([rotulo, valor, toneName]) => (
+            <div key={rotulo}>
+              <dd data-tone={toneName}>{valor}</dd>
+              <dt>{rotulo}</dt>
+            </div>
+          ))}
+        </dl>
+        <dl className={styles.placementSecondaryMetrics}>
+          {secundarias.map(([rotulo, valor]) => (
+            <div key={rotulo}>
+              <dd>{valor}</dd>
+              <dt>{rotulo}</dt>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </section>
   );
 }
 
@@ -300,9 +386,7 @@ function CreativeColumn({ creative }: { creative: Creative }) {
         )}
       </figure>
 
-      {performance.cards.map((card) => (
-        <PlacementCard key={card.id} card={card} />
-      ))}
+      <PlacementsBlock cards={performance.cards} creativeName={creative.name} />
 
       <Dialog.Root open={detailsOpen} onOpenChange={setDetailsOpen}>
         <Dialog.Portal>
