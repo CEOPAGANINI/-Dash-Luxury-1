@@ -93,9 +93,15 @@ describe("a seta abre os dados da campanha num bloco à direita do quadro", () =
     expect(bloco.style.gridArea.startsWith("2 /")).toBe(true);
     expect(dados.getAttribute("data-faixa")).toBe("1");
     expect(within(bloco).getByRole("button", { name: "Fechar campanha Alfa" }).getAttribute("aria-expanded")).toBe("true");
-    // O topo do painel diz de quem são os dados e onde ela está.
-    expect(dados.querySelector(".class-board-dados-nome")?.textContent).toBe("Alfa");
-    expect(dados.querySelector(".class-board-dados-onde")?.textContent).toBe("Faixa 1 · Outras campanhas 1");
+    /* O topo do painel não escreve mais nada: o nome e o "Faixa ·
+       Bloco" saíram. De quem são os dados diz-se onde importa — no nome
+       do próprio painel e no do botão que o fecha, que é o que um leitor
+       de ecrã anuncia. */
+    expect(dados.querySelector(".class-board-dados-nome")).toBeNull();
+    expect(dados.querySelector(".class-board-dados-onde")).toBeNull();
+    expect(within(dados).queryByText("Faixa 1 · Outras campanhas 1")).toBeNull();
+    expect(dados.getAttribute("aria-label")).toBe("Dados de Alfa");
+    expect(within(dados).getByRole("button", { name: "Fechar dados de Alfa" })).toBeTruthy();
 
     // O gráfico por minuto e o lucro com a taxa do gateway.
     expect(within(dados).getByRole("figure", { name: "ROAS de Alfa a cada 1 minuto" }).querySelector("svg")?.getAttribute("data-pontos")).toBe("3");
@@ -138,8 +144,9 @@ describe("a seta abre os dados da campanha num bloco à direita do quadro", () =
     render(<ClassBoard tree={emGoogle(comCriativos())} regras={GUARDRAILS_PADRAO} network="google" />);
     fireEvent.click(screen.getByRole("button", { name: "Abrir campanha Alfa" }));
     const feed = screen.getByRole("region", { name: "Criativos de Alfa" });
-    expect(within(feed).getByRole("heading", { name: "Criativos" })).toBeTruthy();
-    expect(feed.textContent).toContain("2 anúncios");
+    // Sem rótulo "Criativos" nem conta de anúncios: ficam só as setas.
+    expect(within(feed).queryByRole("heading", { name: "Criativos" })).toBeNull();
+    expect(feed.textContent).not.toContain("2 anúncios");
     // Quem mais investiu vem primeiro, um bloco por criativo.
     const blocos = [...feed.querySelectorAll(".class-board-criativo-bloco")];
     expect(blocos.map((b) => b.getAttribute("aria-label"))).toEqual(["Criativo Estático", "Criativo Vídeo 30s"]);

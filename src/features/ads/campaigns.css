@@ -4873,7 +4873,6 @@ html[data-tema="branco"] .dash-skin .class-board-dados > .class-board-dados-topo
   .dash-skin .class-board-quadro[data-campanha-aberta="true"] { row-gap: 5px; }
   .dash-skin .class-board-dados { --ficha-altura: 1.875rem; gap: 5px; }
   .dash-skin .class-board-dados-topo { padding-top: 8px; padding-bottom: 4px; }
-  .dash-skin .class-board-dados-nome { font-size: 0.8125rem; }
   .dash-skin .class-board-dados-lucro { padding: 5px 10px; }
   .dash-skin .class-board-dados-lucro > b { font-size: 0.9375rem; }
   .dash-skin .class-board-dados > .class-board-dados-secao[data-secao="grafico"] { min-height: 4rem; }
@@ -4911,25 +4910,14 @@ html[data-tema="branco"] .dash-skin .class-board-dados > .class-board-dados-topo
   gap: 6px;
   min-height: 5rem;
 }
+/* Sem o rótulo nem a conta de anúncios, sobram as duas setas: encostadas
+   à direita, na mesma régua em que acabam as secções. */
 .dash-skin .class-board-dados-criativos-topo {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 8px;
   min-width: 0;
-}
-.dash-skin .class-board-dados-criativos-topo > h3 {
-  margin: 0;
-  font-size: 0.625rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-.dash-skin .class-board-dados-criativos-topo > span {
-  flex: 1 1 auto;
-  min-width: 0;
-  color: var(--muted-foreground, #9e9e9e);
-  font-size: 0.625rem;
-  font-weight: 700;
 }
 .dash-skin .class-board-dados-criativos-topo > button {
   display: inline-flex;
@@ -4948,14 +4936,14 @@ html[data-tema="branco"] .dash-skin .class-board-dados > .class-board-dados-topo
 .dash-skin .class-board-dados-criativos-topo > button > svg { width: 0.875rem; height: 0.875rem; }
 .dash-skin .class-board-dados-criativos-topo > button:hover:not(:disabled) { background: var(--botao, rgb(255 255 255 / 6%)); border-color: var(--foreground, #f5f5f5); }
 .dash-skin .class-board-dados-criativos-topo > button:disabled { opacity: 0.3; cursor: not-allowed; }
-.dash-skin .class-board-dados-criativos-topo > span > i {
+.dash-skin .class-board-dados-criativos-topo i {
   margin-left: 6px;
   padding: 0 4px;
   background: var(--camada-3, rgb(255 255 255 / 6%));
   font-style: normal;
   font-variant-numeric: tabular-nums;
 }
-html[data-tema="branco"] .dash-skin .class-board-dados-criativos-topo > span > i { background: rgb(0 0 0 / 5%); }
+html[data-tema="branco"] .dash-skin .class-board-dados-criativos-topo i { background: rgb(0 0 0 / 5%); }
 .dash-skin .class-board-dados-criativos-fila {
   /* Carrossel: uma página de criativos de cada vez a ocupar a fila toda,
      encaixando sempre numa página inteira — nunca fica meio criativo à
@@ -5593,22 +5581,16 @@ html[data-tema="branco"] .dash-skin .class-board-quadro > .class-board-dados {
   background: #ffffff;
   box-shadow: inset 0 0 0 1px rgb(0 0 0 / 10%);
 }
+/* Sem o nome da campanha nem o "Faixa · Bloco", a faixa do topo deixou
+   de precisar de grade: é uma fila de controlos encostada à direita. */
 .dash-skin .class-board-dados > .class-board-dados-topo {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  grid-template-areas: "nome semaforo fechar" "onde pagina pagina";
+  display: flex;
   align-items: center;
-  gap: 6px 10px;
+  justify-content: flex-end;
+  gap: 10px;
   min-width: 0;
 }
-.dash-skin .class-board-dados-nome { grid-area: nome; }
-.dash-skin .class-board-dados-onde { grid-area: onde; }
-.dash-skin .class-board-dados > .class-board-dados-topo > .class-board-semaforo { grid-area: semaforo; }
-.dash-skin .class-board-dados-pagina { grid-area: pagina; }
-.dash-skin .class-board-dados-fechar { grid-area: fechar; }
-.dash-skin .class-board-dados-nome { min-width: 0; font-size: 0.875rem; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.dash-skin .class-board-dados-onde { flex: 1 1 auto; min-width: 0; color: var(--muted-foreground, #9e9e9e); font-size: 0.625rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.dash-skin .class-board-dados > .class-board-dados-topo > .class-board-semaforo { flex: none; }
+.dash-skin .class-board-dados > .class-board-dados-topo > .class-board-semaforo { flex: none; margin-right: auto; }
 .dash-skin .class-board-dados-fechar {
   display: grid;
   place-items: center;

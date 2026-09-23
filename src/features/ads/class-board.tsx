@@ -1278,7 +1278,6 @@ export function ClassBoard({
           gateway={gatewayPercentual}
           href={`/campanhas/campanha/${encodeURIComponent(campanha.id)}${tree.modo === "banco" ? "?modo=real" : ""}`}
           faixa={faixaAberta ?? 1}
-          bloco={blocoDaAberta ? rotulo(blocoDaAberta) : ""}
           vaga={vagaDoPainel}
           onClose={() => {
             setFaixaEscolhida(null);
@@ -1309,7 +1308,6 @@ function DadosDaCampanha({
   gateway,
   href,
   faixa,
-  bloco,
   vaga,
   onClose,
 }: {
@@ -1319,8 +1317,6 @@ function DadosDaCampanha({
   href: string;
   /** A faixa em que o bloco da campanha está (o painel entra logo abaixo). */
   faixa: number;
-  /** O nome do bloco que guarda a campanha. */
-  bloco: string;
   /** O tamanho do bloco da campanha, em blocos (três por três). */
   vaga: { largura: number; altura: number };
   onClose: () => void;
@@ -1433,9 +1429,12 @@ function DadosDaCampanha({
          acontecer. */
       style={{ gridTemplateRows: `auto ${"min-content ".repeat(Math.max(0, linhasDoPainel(arrumacao.secoes, arrumacao.larguras) - 1))}minmax(min-content, 1fr)` }}
     >
+      {/* Sem título escrito: o nome da campanha e o "Faixa · Bloco"
+          saíram, como em todos os blocos deste painel. Quem está aberta
+          vê-se na coluna da esquerda, e para leitor de ecrã o nome
+          continua no aria-label do painel e no do botão de fechar. Fica
+          só o que se clica. */}
       <div className="class-board-dados-topo">
-        <b className="class-board-dados-nome">{c.name}</b>
-        <span className="class-board-dados-onde">Faixa {faixa} · {bloco}</span>
         <Semaforo saude={saude} rotulo={`Saúde de ${c.name}`} />
         <Link href={href} className="class-board-dados-pagina">Abrir a página</Link>
         <button type="button" className="class-board-dados-fechar" aria-label={`Fechar dados de ${c.name}`} onClick={onClose}>
@@ -1928,12 +1927,10 @@ function FeedDeCriativos({
       aria-label={`Criativos de ${c.name}`}
       data-cabem={cabem}
     >
+      {/* Sem o rótulo "Criativos" nem a conta de anúncios: ficam só as
+          setas. Que página está aberta continua a ver-se nos pontinhos,
+          em baixo. */}
       <div className="class-board-dados-criativos-topo">
-        <h3>Criativos</h3>
-        <span>
-          {criativos.length} {criativos.length === 1 ? "anúncio" : "anúncios"}
-          {total > 1 && <i>{pagina + 1}/{total}</i>}
-        </span>
         <button type="button" aria-label="Criativos anteriores" title="Volta uma página de criativos" disabled={pontas.inicio} onClick={() => andar(-1)}>
           <ChevronLeft aria-hidden="true" />
         </button>
