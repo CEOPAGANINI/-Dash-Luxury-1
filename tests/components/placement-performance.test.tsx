@@ -231,7 +231,7 @@ describe("desempenho por posicionamento de cada criativo", () => {
       "roas geral": "2,15x",
       "cpa geral": "R$ 71,67",
     });
-    const distribution = within(block).getByRole("figure");
+    const distribution = panelIn(block);
     expect(
       within(distribution)
         .getAllByRole("listitem")
@@ -344,7 +344,7 @@ describe("desempenho por posicionamento de cada criativo", () => {
     ).toBeTruthy();
   });
 
-  it("põe numa coluna o criativo, a distribuição e os cinco posicionamentos, nessa ordem", () => {
+  it("põe numa coluna o criativo e, por baixo, o bloco com a geral e os cinco posicionamentos", () => {
     render(<PlacementPerformance creatives={[creative()]} />);
     const coluna = screen.getByRole("group", {
       name: "Análise de Criativo dourado",
@@ -363,7 +363,22 @@ describe("desempenho por posicionamento de cada criativo", () => {
               : null,
       )
       .filter(Boolean);
-    expect(ordem).toEqual(["criativo", "distribuicao", "posicionamentos"]);
+    expect(ordem).toEqual(["criativo", "posicionamentos"]);
+    /* A geral é a primeira aba do bloco, e os cinco posicionamentos
+       vêm a seguir: primeiro de onde vieram as vendas, depois cada
+       sítio de perto. */
+    expect(
+      within(coluna)
+        .getAllByRole("tab")
+        .map((t) => t.textContent?.trim().split(/\d/)[0].trim()),
+    ).toEqual([
+      "Distribuição de vendas",
+      "Feed Instagram",
+      "Stories Instagram",
+      "Explorar Instagram",
+      "Feed Facebook",
+      "Stories Facebook",
+    ]);
     // E os cinco posicionamentos vêm na ordem definida, dentro do bloco.
     expect(placementRowsIn(coluna).map((c) => c.getAttribute("data-placement"))).toEqual([
       "instagram-feed",
@@ -406,11 +421,13 @@ describe("desempenho por posicionamento de cada criativo", () => {
     });
     const painel = panelIn(coluna);
 
-    /* Começa no que mais vendeu — o Feed Instagram, com 3 — para o
-       painel não estar à espera de um gesto que num telemóvel pode
-       nunca vir. */
-    expect(painel.querySelector("h4")?.textContent).toBe("Feed Instagram");
-    expect(metricsIn(painel)).toMatchObject({ vendas: "3", roas: "2,00x" });
+    /* Começa na geral: é por onde se lê primeiro, e evita que o painel
+       fique à espera de um gesto que num telemóvel pode nunca vir. */
+    expect(painel.querySelector("h4")?.textContent).toBe(
+      "Distribuição de vendas por posicionamento",
+    );
+    expect(within(painel).getAllByRole("listitem")).toHaveLength(5);
+    expect(within(painel).getByRole("img")).toBeTruthy();
 
     // O rato troca o que se vê, e a linha apontada fica marcada.
     expect(metricsIn(hover(coluna, "Feed Facebook"))).toMatchObject({
@@ -429,8 +446,10 @@ describe("desempenho por posicionamento de cada criativo", () => {
     fireEvent.keyDown(within(coluna).getByRole("tablist"), { key: "ArrowDown" });
     expect(painel.querySelector("h4")?.textContent).toBe("Stories Facebook");
     fireEvent.keyDown(within(coluna).getByRole("tablist"), { key: "ArrowDown" });
-    // Dá a volta, em vez de parar no fim.
-    expect(painel.querySelector("h4")?.textContent).toBe("Feed Instagram");
+    // Dá a volta, em vez de parar no fim — e volta à geral.
+    expect(painel.querySelector("h4")?.textContent).toBe(
+      "Distribuição de vendas por posicionamento",
+    );
     fireEvent.keyDown(within(coluna).getByRole("tablist"), { key: "End" });
     expect(painel.querySelector("h4")?.textContent).toBe("Stories Facebook");
 
@@ -453,7 +472,9 @@ describe("desempenho por posicionamento de cada criativo", () => {
     const [uma, outra] = screen.getAllByRole("group", { name: /^Análise de / });
     hover(uma, "Stories Facebook");
     expect(panelIn(uma).querySelector("h4")?.textContent).toBe("Stories Facebook");
-    expect(panelIn(outra).querySelector("h4")?.textContent).toBe("Feed Instagram");
+    expect(panelIn(outra).querySelector("h4")?.textContent).toBe(
+      "Distribuição de vendas por posicionamento",
+    );
   });
 
   it("preserva a identificação do criativo quando a prévia falha e não inventa metadados de mídia", () => {

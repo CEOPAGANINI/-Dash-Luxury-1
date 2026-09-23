@@ -10,10 +10,7 @@ import {
   formatPercent,
   formatRatio,
 } from "@/features/unified-dashboard/formatters";
-import {
-  buildPlacementPerformance,
-  type PlacementPerformanceCard,
-} from "./placement-performance-model";
+import { buildPlacementPerformance } from "./placement-performance-model";
 import type { AdRow } from "./types";
 import styles from "./placement-performance.module.css";
 
@@ -99,41 +96,38 @@ function PlatformIcon({ platform }: { platform: "instagram" | "facebook" }) {
 }
 
 /*
-  Os cinco posicionamentos num bloco só.
+  A distribuição e os cinco posicionamentos, num bloco só.
 
-  Em vez de cinco cartões empilhados — que davam à coluna a altura de
-  uma escada —, fica uma fila de cinco linhas e um painel por baixo. A
-  linha diz o essencial (quem é, quanto vendeu, que fatia das vendas
-  levou) e o painel mostra as métricas da que estiver sob o rato.
+  São seis linhas e um painel. A primeira linha é a visão geral — como
+  as vendas se repartiram —, e as outras cinco são cada posicionamento.
+  A linha diz o essencial (quem é, quanto vendeu, que fatia levou) e o
+  painel mostra o detalhe do que estiver sob o rato: a barra e a legenda
+  para a geral, as métricas para um posicionamento.
 
   É o padrão das abas, de propósito: quem usa rato aponta, quem usa
   teclado anda com as setas e o Tab entra no painel, quem usa toque
   toca. Uma coisa que só aparecesse com o rato deixaria de fora metade
   das pessoas.
 
-  Começa escolhido o que mais vendeu, para o painel nunca estar vazio à
-  espera de um gesto.
+  Começa na visão geral, que é por onde se começa a ler: primeiro de
+  onde vieram as vendas, depois cada sítio de perto.
 */
+const LINHA_GERAL = 0;
+
 function PlacementsBlock({
-  cards,
+  performance,
   creativeName,
 }: {
-  cards: readonly PlacementPerformanceCard[];
+  performance: ReturnType<typeof buildPlacementPerformance>;
   creativeName: string;
 }) {
-  const queMaisVendeu = React.useMemo(() => {
-    let melhor = 0;
-    cards.forEach((card, i) => {
-      if (card.metrics.purchases > cards[melhor].metrics.purchases) melhor = i;
-    });
-    return melhor;
-  }, [cards]);
-  const [escolhido, setEscolhido] = React.useState(queMaisVendeu);
-  const atual = cards[Math.min(escolhido, cards.length - 1)];
+  const { cards, totalSales } = performance;
+  const [escolhido, setEscolhido] = React.useState(LINHA_GERAL);
   const base = React.useId();
   const abaId = (i: number) => `${base}-aba-${i}`;
   const painelId = `${base}-painel`;
   const botoes = React.useRef<(HTMLButtonElement | null)[]>([]);
+  const quantas = cards.length + 1;
 
   function teclado(e: React.KeyboardEvent<HTMLDivElement>) {
     const passo =
@@ -144,15 +138,17 @@ function PlacementsBlock({
           : e.key === "Home"
             ? -escolhido
             : e.key === "End"
-              ? cards.length - 1 - escolhido
+              ? quantas - 1 - escolhido
               : 0;
     if (!passo && e.key !== "Home" && e.key !== "End") return;
     e.preventDefault();
-    const proximo = (escolhido + passo + cards.length) % cards.length;
+    const proximo = (escolhido + passo + quantas) % quantas;
     setEscolhido(proximo);
     botoes.current[proximo]?.focus();
   }
 
+  const naGeral = escolhido === LINHA_GERAL;
+  const atual = cards[Math.min(Math.max(escolhido - 1, 0), cards.length - 1)];
   const { metrics, derived } = atual;
   const principais: [string, React.ReactNode, string?][] = [
     [
@@ -174,6 +170,43 @@ function PlacementsBlock({
     ["CPA", money(derived.cpaCents ?? (atual.hasData ? null : 0))],
   ];
 
+  /* Uma linha da fila. A geral e os posicionamentos partilham o mesmo
+     desenho de propósito: a fila lê-se como uma lista só. */
+  const linha = (
+    i: number,
+    chave: string,
+    selo: React.ReactNode,
+    nome: string,
+    numero: string,
+    emblema: string,
+    neon: string,
+    extra?: Record<string, string>,
+  ) => (
+    <button
+      key={chave}
+      ref={(el) => {
+        botoes.current[i] = el;
+      }}
+      type="button"
+      role="tab"
+      id={abaId(i)}
+      aria-controls={painelId}
+      aria-selected={i === escolhido}
+      tabIndex={i === escolhido ? 0 : -1}
+      className={styles.placementRow}
+      style={{ "--neon": neon } as React.CSSProperties}
+      onMouseEnter={() => setEscolhido(i)}
+      onFocus={() => setEscolhido(i)}
+      onClick={() => setEscolhido(i)}
+      {...extra}
+    >
+      {selo}
+      <span className={styles.rowName}>{nome}</span>
+      <b className={styles.rowSales}>{numero}</b>
+      <span className={styles.badge}>{emblema}</span>
+    </button>
+  );
+
   return (
     <section
       className={styles.placementsCard}
@@ -186,33 +219,44 @@ function PlacementsBlock({
         aria-label={`Posicionamentos de ${creativeName}`}
         onKeyDown={teclado}
       >
-        {cards.map((card, i) => (
-          <button
-            key={card.id}
-            ref={(el) => {
-              botoes.current[i] = el;
-            }}
-            type="button"
-            role="tab"
-            id={abaId(i)}
-            aria-controls={painelId}
-            aria-selected={i === escolhido}
-            tabIndex={i === escolhido ? 0 : -1}
-            data-placement={card.id}
-            data-escolhido={i === escolhido ? "true" : undefined}
-            className={styles.placementRow}
-            onMouseEnter={() => setEscolhido(i)}
-            onFocus={() => setEscolhido(i)}
-            onClick={() => setEscolhido(i)}
-          >
-            <PlatformIcon platform={card.platform} />
-            <span className={styles.rowName}>{card.label}</span>
-            <b className={styles.rowSales}>
-              {formatInteger(card.metrics.purchases)}
-            </b>
-            <span className={styles.badge}>{card.percentage}% das vendas</span>
-          </button>
-        ))}
+        {linha(
+          LINHA_GERAL,
+          "geral",
+          /* O selo da geral é a própria barra, em miniatura: diz de
+             relance o que a linha abre. */
+          <i className={styles.overviewIcon} aria-hidden="true">
+            {cards
+              .filter((c) => c.metrics.purchases > 0)
+              .map((c) => (
+                <span
+                  key={c.id}
+                  style={{
+                    width: `${c.share * 100}%`,
+                    backgroundColor: c.color,
+                  }}
+                />
+              ))}
+          </i>,
+          "Distribuição de vendas",
+          formatInteger(totalSales),
+          totalSales === 1 ? "venda no total" : "vendas no total",
+          /* O neon da geral é a cor de quem mais vendeu: a linha acende
+             da cor do posicionamento que domina a barra. */
+          (cards.find((c) => c.metrics.purchases > 0) ?? cards[0]).color,
+          { "data-geral": "true" },
+        )}
+        {cards.map((card, i) =>
+          linha(
+            i + 1,
+            card.id,
+            <PlatformIcon platform={card.platform} />,
+            card.label,
+            formatInteger(card.metrics.purchases),
+            `${card.percentage}% das vendas`,
+            card.color,
+            { "data-placement": card.id },
+          ),
+        )}
       </div>
       <div
         className={styles.placementDetail}
@@ -221,33 +265,89 @@ function PlacementsBlock({
         aria-labelledby={abaId(escolhido)}
         tabIndex={0}
       >
-        <h4>{atual.label}</h4>
-        <dl className={styles.placementMainMetrics}>
-          {principais.map(([rotulo, valor, toneName]) => (
-            <div key={rotulo}>
-              <dd data-tone={toneName}>{valor}</dd>
-              <dt>{rotulo}</dt>
+        {naGeral ? (
+          <>
+            <h4>Distribuição de vendas por posicionamento</h4>
+            <div
+              className={styles.bar}
+              role="img"
+              aria-label={
+                totalSales
+                  ? cards
+                      .map(
+                        (c) =>
+                          `${c.label}: ${c.percentage}% (${formatInteger(c.metrics.purchases)} vendas)`,
+                      )
+                      .join("; ")
+                  : "Nenhuma venda nos cinco posicionamentos"
+              }
+            >
+              {cards
+                .filter((c) => c.metrics.purchases > 0)
+                .map((card) => (
+                  <span
+                    key={card.id}
+                    style={{
+                      width: `${card.share * 100}%`,
+                      backgroundColor: card.color,
+                    }}
+                  />
+                ))}
             </div>
-          ))}
-        </dl>
-        <dl className={styles.placementSecondaryMetrics}>
-          {secundarias.map(([rotulo, valor]) => (
-            <div key={rotulo}>
-              <dd>{valor}</dd>
-              <dt>{rotulo}</dt>
-            </div>
-          ))}
-        </dl>
+            <ul className={styles.legend}>
+              {cards.map((card) => (
+                <li key={card.id}>
+                  <i
+                    aria-hidden="true"
+                    style={{ backgroundColor: card.color }}
+                  />
+                  <div>
+                    <b>
+                      {card.percentage}% (
+                      {formatInteger(card.metrics.purchases)})
+                    </b>
+                    <span>{card.label}</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            {totalSales === 0 && (
+              <p className={styles.emptySales}>
+                Nenhuma venda no período disponível.
+              </p>
+            )}
+          </>
+        ) : (
+          <>
+            <h4>{atual.label}</h4>
+            <dl className={styles.placementMainMetrics}>
+              {principais.map(([rotulo, valor, toneName]) => (
+                <div key={rotulo}>
+                  <dd data-tone={toneName}>{valor}</dd>
+                  <dt>{rotulo}</dt>
+                </div>
+              ))}
+            </dl>
+            <dl className={styles.placementSecondaryMetrics}>
+              {secundarias.map(([rotulo, valor]) => (
+                <div key={rotulo}>
+                  <dd>{valor}</dd>
+                  <dt>{rotulo}</dt>
+                </div>
+              ))}
+            </dl>
+          </>
+        )}
       </div>
     </section>
   );
 }
 
 /*
-  A coluna de um criativo: o cartão dele no topo, a distribuição das
-  vendas logo abaixo e os cinco posicionamentos em baixo, sempre na
-  mesma ordem. Cada coluna é um criativo inteiro e nada dela se mistura
-  com a do lado — é o que permite compará-los lendo na horizontal.
+  A coluna de um criativo: o cartão dele no topo e, por baixo, o bloco
+  que junta a distribuição das vendas e os cinco posicionamentos. Cada
+  coluna é um criativo inteiro e nada dela se mistura com a do lado — é
+  o que permite compará-los lendo na horizontal.
 */
 function CreativeColumn({ creative }: { creative: Creative }) {
   const [detailsOpen, setDetailsOpen] = React.useState(false);
@@ -271,7 +371,6 @@ function CreativeColumn({ creative }: { creative: Creative }) {
       : creative.status === "paused"
         ? "Pausado"
         : "Arquivado";
-  const comVendas = performance.cards.filter((c) => c.metrics.purchases > 0);
   return (
     <div
       className={styles.creativeColumn}
@@ -340,53 +439,7 @@ function CreativeColumn({ creative }: { creative: Creative }) {
         </button>
       </article>
 
-      <figure className={styles.distributionCard}>
-        <figcaption>Distribuição de vendas por posicionamento</figcaption>
-        <div
-          className={styles.bar}
-          role="img"
-          aria-label={
-            performance.totalSales
-              ? performance.cards
-                  .map(
-                    (c) =>
-                      `${c.label}: ${c.percentage}% (${formatInteger(c.metrics.purchases)} vendas)`,
-                  )
-                  .join("; ")
-              : "Nenhuma venda nos cinco posicionamentos"
-          }
-        >
-          {comVendas.map((card) => (
-            <span
-              key={card.id}
-              style={{
-                width: `${card.share * 100}%`,
-                backgroundColor: card.color,
-              }}
-            />
-          ))}
-        </div>
-        <ul className={styles.legend}>
-          {performance.cards.map((card) => (
-            <li key={card.id}>
-              <i aria-hidden="true" style={{ backgroundColor: card.color }} />
-              <div>
-                <b>
-                  {card.percentage}% ({formatInteger(card.metrics.purchases)})
-                </b>
-                <span>{card.label}</span>
-              </div>
-            </li>
-          ))}
-        </ul>
-        {performance.totalSales === 0 && (
-          <p className={styles.emptySales}>
-            Nenhuma venda no período disponível.
-          </p>
-        )}
-      </figure>
-
-      <PlacementsBlock cards={performance.cards} creativeName={creative.name} />
+      <PlacementsBlock performance={performance} creativeName={creative.name} />
 
       <Dialog.Root open={detailsOpen} onOpenChange={setDetailsOpen}>
         <Dialog.Portal>
