@@ -1,0 +1,176 @@
+/*
+  Barra e rosca de porcentagem, e o tema dos gráficos.
+
+  Hoje o painel desenha 46 barras de porcentagem espalhadas por 20
+  ficheiros, cada uma com o seu `style={{ width: … }}`, e 9 roscas com o
+  seu próprio `conic-gradient` escrito à mão. Mudar a aparência delas
+  significava abrir vinte ficheiros e esperar que nenhum ficasse para
+  trás — que é exactamente o que um design system existe para evitar.
+
+  Aqui ficam as três formas, uma vez só. Tudo o que é cor, espessura e
+  tempo sai do bloco de tokens em baixo; trocar a aparência é trocar esse
+  bloco, e não os vinte ficheiros.
+*/
+
+.medidas {
+  /* Os valores vêm da pele viva (Orbit · PicGen). */
+  --trilho: color-mix(in srgb, var(--foreground) 10%, transparent);
+  --preenchido: var(--foreground);
+  --altura-barra: 8px;
+  --raio-barra: 999px;
+  --anel: 10px;
+  --duracao: var(--orb-normal, 250ms);
+  --suavizacao: var(--orb-suavizacao, ease-out);
+}
+
+/* ─── Barra de porcentagem ─────────────────────────────────────────── */
+
+.barra {
+  composes: medidas;
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.barraTopo {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  font-size: var(--text-body, 0.875rem);
+}
+.barraNome {
+  overflow: hidden;
+  color: var(--muted-foreground);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.barraValor {
+  flex: none;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+/* O trilho é o todo; o preenchimento é a parte. A borda de dentro faz o
+   trilho existir mesmo quando a parte é zero — uma barra vazia continua a
+   dizer "aqui cabe alguma coisa". */
+.trilho {
+  position: relative;
+  overflow: hidden;
+  height: var(--altura-barra);
+  border-radius: var(--raio-barra);
+  background: var(--trilho);
+}
+.preenchido {
+  display: block;
+  height: 100%;
+  min-width: 2px;
+  border-radius: inherit;
+  background: var(--preenchido);
+  transition: width var(--duracao) var(--suavizacao);
+}
+@media (prefers-reduced-motion: reduce) {
+  .preenchido {
+    transition: none;
+  }
+}
+
+/* Barra repartida: vários pedaços no mesmo trilho, cada um com a sua cor
+   e o seu rótulo. */
+.pedacos {
+  display: flex;
+  height: 100%;
+}
+.pedaco {
+  height: 100%;
+  background: var(--cor);
+  transition: width var(--duracao) var(--suavizacao);
+}
+.pedaco:first-child {
+  border-start-start-radius: inherit;
+  border-end-start-radius: inherit;
+}
+.pedaco:last-child {
+  border-start-end-radius: inherit;
+  border-end-end-radius: inherit;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pedaco {
+    transition: none;
+  }
+}
+.legenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  font-size: var(--text-caption, 0.75rem);
+}
+.legenda > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted-foreground);
+}
+.legenda i {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 2px;
+  background: var(--cor);
+}
+
+/* ─── Círculo de porcentagem ───────────────────────────────────────── */
+
+/* O anel é um disco com um buraco: o conic-gradient pinta o disco, e uma
+   máscara abre o meio. Assim o número no centro fica sobre o fundo do
+   cartão, e não sobre a cor do anel — que mudaria de contraste conforme
+   a porcentagem. */
+.rosca {
+  composes: medidas;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: var(--tamanho, 132px);
+  height: var(--tamanho, 132px);
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--preenchido) 0 var(--parte),
+    var(--trilho) var(--parte) 100%
+  );
+  mask: radial-gradient(
+    farthest-side,
+    transparent calc(100% - var(--anel)),
+    #000 calc(100% - var(--anel) + 1px)
+  );
+  transition: background var(--duracao) var(--suavizacao);
+}
+@media (prefers-reduced-motion: reduce) {
+  .rosca {
+    transition: none;
+  }
+}
+.roscaCaixa {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: var(--tamanho, 132px);
+  height: var(--tamanho, 132px);
+}
+.roscaCentro {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  gap: 2px;
+  text-align: center;
+}
+.roscaCentro strong {
+  color: var(--foreground);
+  font-size: var(--text-stat, 1.75rem);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  line-height: 1.1;
+}
+.roscaCentro small {
+  color: var(--muted-foreground);
+  font-size: var(--text-caption, 0.75rem);
+}
