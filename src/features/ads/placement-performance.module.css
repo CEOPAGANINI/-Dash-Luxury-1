@@ -460,6 +460,17 @@
   width: 14px;
   height: 14px;
 }
+.badge > small {
+  font-size: inherit;
+}
+/* Coluna apertada: o emblema fica só com a percentagem, para o nome do
+   posicionamento caber inteiro. O nome é o que identifica a linha; a
+   palavra "das vendas" repete-se nas cinco e não acrescenta nada. */
+@container placement-card (max-width: 340px) {
+  .badge > small {
+    display: none;
+  }
+}
 .badge {
   flex: none;
   padding: 3px 7px;

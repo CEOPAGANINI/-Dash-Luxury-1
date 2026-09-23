@@ -247,7 +247,11 @@ describe("a seta abre os dados da campanha num bloco à direita do quadro", () =
     fireEvent.click(screen.getByRole("button", { name: "Abrir campanha Alfa" }));
     const vazia = screen.getByRole("region", { name: "Desempenho por posicionamento" });
     expect(within(vazia).getAllByRole("group", { name: /^Análise de / })).toHaveLength(2);
-    expect(within(vazia).getAllByText(/0% das vendas/)).toHaveLength(10);
+    expect(
+      [...vazia.querySelectorAll("[data-placement]")]
+        .map((linha) => linha.lastElementChild?.textContent)
+        .filter((texto) => texto === "0% das vendas"),
+    ).toHaveLength(10);
   });
 
   it.each(["google", "youtube"] as const)("preserva a seção existente de %s sem incluir os cinco cards exclusivos de Meta", (network) => {

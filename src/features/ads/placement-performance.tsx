@@ -178,7 +178,7 @@ function PlacementsBlock({
     selo: React.ReactNode,
     nome: string,
     numero: string,
-    emblema: string,
+    emblema: React.ReactNode,
     neon: string,
     extra?: Record<string, string>,
   ) => (
@@ -239,7 +239,10 @@ function PlacementsBlock({
           </i>,
           "Distribuição de vendas",
           formatInteger(totalSales),
-          totalSales === 1 ? "venda no total" : "vendas no total",
+          /* "no total" e não "vendas no total": na coluna de 339px que
+             um MacBook 16" dá, o emblema comprido empurrava o nome e
+             "Distribuição de vendas" ficava cortado a meio. */
+          "no total",
           /* O neon da geral é a cor de quem mais vendeu: a linha acende
              da cor do posicionamento que domina a barra. */
           (cards.find((c) => c.metrics.purchases > 0) ?? cards[0]).color,
@@ -252,7 +255,12 @@ function PlacementsBlock({
             <PlatformIcon platform={card.platform} />,
             card.label,
             formatInteger(card.metrics.purchases),
-            `${card.percentage}% das vendas`,
+            /* "das vendas" vai num <small> porque some quando a coluna
+               aperta: numa coluna de 320px o emblema inteiro empurrava
+               o nome e "Explorar Instagram" ficava cortado. */
+            <>
+              {card.percentage}%<small> das vendas</small>
+            </>,
             card.color,
             { "data-placement": card.id },
           ),

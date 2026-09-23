@@ -211,7 +211,12 @@ describe("desempenho por posicionamento de cada criativo", () => {
     const block = screen.getByRole("group", {
       name: "Análise de Criativo dourado",
     });
-    const badges = within(block).getAllByText(/\d+% das vendas/);
+    /* O emblema está partido em dois elementos — a percentagem e um
+       <small> com "das vendas", que some quando a coluna aperta —, por
+       isso lê-se o texto do emblema inteiro, e não por uma frase só. */
+    const badges = placementRowsIn(block).map(
+      (linha) => linha.lastElementChild as HTMLElement,
+    );
     expect(badges.map((badge) => badge.textContent)).toEqual([
       "50% das vendas",
       "17% das vendas",
@@ -307,7 +312,11 @@ describe("desempenho por posicionamento de cada criativo", () => {
     expect(totalDe(populated)).toBe("6");
     expect(totalDe(empty)).toBe("0");
     expect(placementRowsIn(empty)).toHaveLength(5);
-    expect(within(empty).getAllByText("0% das vendas")).toHaveLength(5);
+    expect(
+      placementRowsIn(empty)
+        .map((linha) => linha.lastElementChild?.textContent)
+        .filter((t) => t === "0% das vendas"),
+    ).toHaveLength(5);
     for (const label of labels) {
       expect(metricsIn(hover(empty, label))).toMatchObject({
         vendas: "0",
