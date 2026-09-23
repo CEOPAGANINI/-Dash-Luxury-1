@@ -227,14 +227,28 @@ export function CampaignCalculator({
             </div>
           </section>
 
-          {/* Achados em pilhas */}
-          <div className="grid gap-4 lg:grid-cols-2">
+          {/*
+            Achados em pilhas.
+
+            Fluxo em colunas, e não grade: os quatro montes têm alturas
+            muito diferentes — um pode ter dois achados e o vizinho vinte.
+            Numa grade de duas colunas a célula curta esticava até à altura
+            da alta, e o cartão de "falha" ficava com 839px ocos por dentro.
+            No fluxo em colunas cada cartão fica na sua altura natural e o
+            conteúdo reparte-se sozinho entre as duas colunas.
+          */}
+          <div className="grid gap-4 lg:block lg:columns-2 lg:gap-x-4">
             {ORDEM_GRAVIDADE.map((g) => {
               const lista = diagnostico.achados.filter((a) => a.gravidade === g);
               const def = GRAVIDADE[g];
               const Icon = def.icon;
               return (
-                <section key={g} className="bg-card overflow-hidden rounded-2xl border">
+                <section
+                  key={g}
+                  /* break-inside-avoid: o cartão não pode ser partido ao
+                     meio entre uma coluna e a outra. */
+                  className="bg-card overflow-hidden rounded-2xl border lg:mb-4 lg:break-inside-avoid"
+                >
                   <header className="flex items-center gap-2 border-b px-4 py-2.5">
                     <Icon aria-hidden className={cn("size-4", def.classe)} />
                     <b className="text-sm font-extrabold">{def.label}</b>

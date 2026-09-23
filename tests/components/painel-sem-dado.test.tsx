@@ -60,7 +60,9 @@ const diasVazios: DemoRevenueDay[] = Array.from({ length: 45 }, (_, i) => {
 });
 
 function painelVazio() {
-  return render(<VisualOverview days={diasVazios} anchorDays={diasVazios} />);
+  return render(
+    <VisualOverview days={diasVazios} anchorDays={diasVazios} demoMode={false} />,
+  );
 }
 
 describe("painel com o período vazio", () => {
