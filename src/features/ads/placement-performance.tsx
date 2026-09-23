@@ -98,19 +98,29 @@ function PlatformIcon({ platform }: { platform: "instagram" | "facebook" }) {
   );
 }
 
+/*
+  Um cartão de posicionamento: o topo com o selo da plataforma, o nome e
+  a fatia das vendas; depois as três métricas principais (vendas, ROAS e
+  checkouts iniciados) em destaque; e por fim as seis secundárias, na
+  mesma régua para todos os cartões — é isso que os faz ler alinhados
+  quando estão uns por baixo dos outros na mesma coluna.
+*/
 function PlacementCard({ card }: { card: PlacementPerformanceCard }) {
   const { metrics, derived } = card;
-  /* As vendas ficam sozinhas em destaque; tudo o resto desce em linhas
-     de rótulo à esquerda e valor à direita, na mesma régua em todos os
-     cartões — é o que os faz ler alinhados lado a lado. */
-  const rows: [string, React.ReactNode, string?][] = [
+  const principais: [string, React.ReactNode, string?][] = [
+    [
+      metrics.purchases === 1 ? "venda" : "vendas",
+      formatInteger(metrics.purchases),
+    ],
     ["ROAS", ratio(derived.roas), tone(derived.roas)],
     [
-      "Initiate Checkout",
+      "checkout",
       metrics.checkouts === undefined ? "—" : formatInteger(metrics.checkouts),
     ],
-    ["Impressões", formatInteger(metrics.impressions)],
-    ["Cliques", formatInteger(metrics.clicks)],
+  ];
+  const secundarias: [string, string][] = [
+    ["impressões", formatInteger(metrics.impressions)],
+    ["cliques", formatInteger(metrics.clicks)],
     ["CTR", formatPercent(derived.ctr ?? 0, 2)],
     ["CPC", money(derived.cpcCents ?? (card.hasData ? null : 0))],
     ["CPM", money(derived.cpmCents ?? (card.hasData ? null : 0))],
@@ -118,27 +128,28 @@ function PlacementCard({ card }: { card: PlacementPerformanceCard }) {
   ];
   return (
     <article
-      className={styles.card}
+      className={styles.placementCard}
       aria-label={card.label}
       data-placement={card.id}
     >
-      <header className={styles.cardHeader}>
+      <header className={styles.placementCardHeader}>
         <PlatformIcon platform={card.platform} />
         <h4>{card.label}</h4>
-        <small>
-          {card.platform === "instagram" ? "Instagram" : "Facebook"}
-        </small>
         <span className={styles.badge}>{card.percentage}% das vendas</span>
       </header>
-      <p className={styles.cardSales}>
-        <b>{formatInteger(metrics.purchases)}</b>
-        <span>{metrics.purchases === 1 ? "venda" : "vendas"}</span>
-      </p>
-      <dl className={styles.cardRows}>
-        {rows.map(([label, value, toneName]) => (
-          <div key={label}>
-            <dt>{label}</dt>
-            <dd data-tone={toneName}>{value}</dd>
+      <dl className={styles.placementMainMetrics}>
+        {principais.map(([rotulo, valor, toneName]) => (
+          <div key={rotulo}>
+            <dd data-tone={toneName}>{valor}</dd>
+            <dt>{rotulo}</dt>
+          </div>
+        ))}
+      </dl>
+      <dl className={styles.placementSecondaryMetrics}>
+        {secundarias.map(([rotulo, valor]) => (
+          <div key={rotulo}>
+            <dd>{valor}</dd>
+            <dt>{rotulo}</dt>
           </div>
         ))}
       </dl>
@@ -146,7 +157,13 @@ function PlacementCard({ card }: { card: PlacementPerformanceCard }) {
   );
 }
 
-function CreativePerformance({ creative }: { creative: Creative }) {
+/*
+  A coluna de um criativo: o cartão dele no topo, a distribuição das
+  vendas logo abaixo e os cinco posicionamentos em baixo, sempre na
+  mesma ordem. Cada coluna é um criativo inteiro e nada dela se mistura
+  com a do lado — é o que permite compará-los lendo na horizontal.
+*/
+function CreativeColumn({ creative }: { creative: Creative }) {
   const [detailsOpen, setDetailsOpen] = React.useState(false);
   const performance = buildPlacementPerformance(creative.placements ?? []);
   const media: CreativeMedia = creative.creative;
@@ -168,26 +185,29 @@ function CreativePerformance({ creative }: { creative: Creative }) {
       : creative.status === "paused"
         ? "Pausado"
         : "Arquivado";
+  const comVendas = performance.cards.filter((c) => c.metrics.purchases > 0);
   return (
-    <article
-      className={styles.creativeBlock}
-      aria-label={`Desempenho de ${creative.name}`}
+    <div
+      className={styles.creativeColumn}
+      role="group"
+      aria-label={`Análise de ${creative.name}`}
     >
-      <aside
-        className={styles.summary}
-        aria-label={`Resumo de ${creative.name}`}
+      <article
+        className={styles.creativeSummaryCard}
+        aria-label={`Criativo ${creative.name}`}
       >
-        <div className={styles.preview}>
+        <div className={styles.creativePreview}>
           <Preview
             key={`${media.videoUrl ?? ""}|${media.imageUrl ?? media.thumbnailUrl ?? ""}`}
             creative={creative}
           />
         </div>
-        <div className={styles.identity}>
+        {/* Só o nome do criativo: sem subtítulo e sem descrição. Quem
+            quiser o resto abre os detalhes no botão em baixo. */}
+        <div className={styles.creativeInfo}>
           <h3>{creative.name}</h3>
-          {media.title && <p>{media.title}</p>}
-          <div className={styles.metadata}>
-            <span>
+          <div className={styles.creativeBadges}>
+            <span className={styles.formatBadge}>
               {isVideo ? (
                 <Video aria-hidden="true" />
               ) : (
@@ -196,57 +216,46 @@ function CreativePerformance({ creative }: { creative: Creative }) {
               {kind}
               {duration && ` · ${duration}`}
             </span>
-            <b className={styles.status} data-status={creative.status}>
+            <span className={styles.statusBadge} data-status={creative.status}>
               {status}
-            </b>
+            </span>
           </div>
-          <p className={styles.description}>
-            {media.body || "Descrição não informada."}
-          </p>
         </div>
-        <dl className={styles.summaryMetrics}>
+        <dl className={styles.creativeKpiGrid}>
           <div>
-            <dt>Vendas (total)</dt>
             <dd>{formatInteger(performance.totalSales)}</dd>
+            <dt>Vendas totais</dt>
           </div>
           <div>
-            <dt>ROAS (geral)</dt>
             <dd data-tone={tone(performance.derived.roas)}>
               {ratio(performance.derived.roas)}
             </dd>
+            <dt>ROAS geral</dt>
           </div>
           <div>
-            <dt>CPA (geral)</dt>
             <dd>{money(performance.derived.cpaCents)}</dd>
+            <dt>CPA geral</dt>
           </div>
         </dl>
         <button
           type="button"
           className={styles.detailsButton}
+          data-acao="detalhes"
           onClick={() => setDetailsOpen(true)}
         >
-          Ver detalhes do criativo <ArrowRight aria-hidden="true" />
+          {/* O texto vai num <span> de propósito. A pele do dashboard
+              apaga o fundo de qualquer botão cujo único filho-ELEMENTO
+              seja um <svg> — e um nó de texto solto não conta como
+              filho-elemento, por isso este botão caía nessa regra e
+              ficava com letra clara sobre branco, invisível. Com o
+              <span>, passam a ser dois elementos e a regra não casa. */}
+          <span>Ver detalhes do criativo</span>
+          <ArrowRight aria-hidden="true" />
         </button>
-      </aside>
-      {/* O criativo, os cinco posicionamentos e a distribuição são todos
-          filhos da MESMA grelha: mesma largura de coluna, mesma altura de
-          fileira. O criativo ocupa duas fileiras — a altura de dois
-          cartões —, e a distribuição ocupa as colunas que sobram na
-          última fileira, para não ficar nenhuma célula vazia.
+      </article>
 
-          Estar tudo numa grelha só é o que faz o alinhamento ser um facto
-          e não uma coincidência: não há duas medidas para desencontrar. */}
-      {performance.cards.map((card) => (
-        <PlacementCard key={card.id} card={card} />
-      ))}
-      <figure className={styles.distribution}>
-        <figcaption>
-          <h4>Distribuição de vendas por posicionamento</h4>
-          <span>
-            Total de {formatInteger(performance.totalSales)}{" "}
-            {performance.totalSales === 1 ? "venda" : "vendas"}
-          </span>
-        </figcaption>
+      <figure className={styles.distributionCard}>
+        <figcaption>Distribuição de vendas por posicionamento</figcaption>
         <div
           className={styles.bar}
           role="img"
@@ -261,17 +270,15 @@ function CreativePerformance({ creative }: { creative: Creative }) {
               : "Nenhuma venda nos cinco posicionamentos"
           }
         >
-          {performance.cards
-            .filter((c) => c.metrics.purchases > 0)
-            .map((card) => (
-              <span
-                key={card.id}
-                style={{
-                  width: `${card.share * 100}%`,
-                  backgroundColor: card.color,
-                }}
-              />
-            ))}
+          {comVendas.map((card) => (
+            <span
+              key={card.id}
+              style={{
+                width: `${card.share * 100}%`,
+                backgroundColor: card.color,
+              }}
+            />
+          ))}
         </div>
         <ul className={styles.legend}>
           {performance.cards.map((card) => (
@@ -292,6 +299,11 @@ function CreativePerformance({ creative }: { creative: Creative }) {
           </p>
         )}
       </figure>
+
+      {performance.cards.map((card) => (
+        <PlacementCard key={card.id} card={card} />
+      ))}
+
       <Dialog.Root open={detailsOpen} onOpenChange={setDetailsOpen}>
         <Dialog.Portal>
           <Dialog.Overlay className={styles.overlay} />
@@ -351,10 +363,18 @@ function CreativePerformance({ creative }: { creative: Creative }) {
           </Dialog.Content>
         </Dialog.Portal>
       </Dialog.Root>
-    </article>
+    </div>
   );
 }
 
+/*
+  A comparação de criativos: uma coluna por criativo, lado a lado. No
+  desktop a grade corre na horizontal e rola quando há mais criativos do
+  que largura; em tablet passa a duas colunas por linha e no telemóvel a
+  uma. Todas as colunas começam no topo e levam os mesmos blocos pela
+  mesma ordem — é isso que faz a leitura na horizontal comparar sempre o
+  mesmo com o mesmo.
+*/
 export function PlacementPerformance({
   creatives,
 }: {
@@ -366,9 +386,11 @@ export function PlacementPerformance({
       aria-label="Desempenho por posicionamento"
     >
       {creatives.length ? (
-        creatives.map((creative) => (
-          <CreativePerformance key={creative.id} creative={creative} />
-        ))
+        <div className={styles.comparisonGrid}>
+          {creatives.map((creative) => (
+            <CreativeColumn key={creative.id} creative={creative} />
+          ))}
+        </div>
       ) : (
         <div className={styles.empty}>
           <h3>Desempenho por posicionamento</h3>

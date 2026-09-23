@@ -111,17 +111,19 @@ function creative(overrides: Partial<AdRow> = {}): AdRow {
   };
 }
 
-/* As vendas saíram da lista de métricas para o destaque do cartão: já
-   não são um par dt/dd, são o número grande com "venda(s)" ao lado. */
-function salesIn(root: HTMLElement) {
-  const p = root.querySelector("p");
-  return p?.querySelector("b")?.textContent?.trim();
+/* Os cartões de posicionamento de uma coluna. A coluna leva também o
+   cartão do criativo, que é article na mesma — por isso filtra-se pelo
+   posicionamento, em vez de apanhar todos os articles. */
+function placementCardsIn(root: HTMLElement) {
+  return [...root.querySelectorAll<HTMLElement>("article[data-placement]")];
 }
 
+/* Todas as métricas de um cartão, pelo rótulo. As vendas são agora a
+   primeira das três principais, e não um destaque à parte. */
 function metricsIn(root: HTMLElement) {
   return Object.fromEntries(
     [...root.querySelectorAll("dt")].map((term) => [
-      term.textContent?.trim().toLowerCase(),
+      term.textContent?.trim().toLowerCase().replace(/^venda$/, "vendas"),
       term.parentElement
         ?.querySelector("dd")
         ?.textContent?.trim()
@@ -136,10 +138,10 @@ describe("desempenho por posicionamento de cada criativo", () => {
     const section = screen.getByRole("region", {
       name: "Desempenho por posicionamento",
     });
-    const block = within(section).getByRole("article", {
-      name: "Desempenho de Criativo dourado",
+    const block = within(section).getByRole("group", {
+      name: "Análise de Criativo dourado",
     });
-    const cards = within(block).getAllByRole("article");
+    const cards = placementCardsIn(block);
 
     expect(cards.map((card) => card.getAttribute("aria-label"))).toEqual(
       labels,
@@ -160,19 +162,22 @@ describe("desempenho por posicionamento de cada criativo", () => {
 
     // As duas linhas de feed do Instagram são agregadas; o feed do
     // Facebook continua separado, com os próprios custos e resultados.
-    expect(salesIn(cards[0])).toBe("3");
     expect(metricsIn(cards[0])).toMatchObject({
+      vendas: "3",
       roas: "2,00x",
-      "initiate checkout": "9",
+      checkout: "9",
       impressões: "1.500",
       cliques: "30",
       ctr: "2,00%",
       cpc: "R$ 5,00",
       cpa: "R$ 50,00",
     });
+    // A ordem pedida: vendas, ROAS e checkout em destaque; as seis
+    // secundárias por baixo, sempre na mesma sequência.
     expect(Object.keys(metricsIn(cards[0]))).toEqual([
+      "vendas",
       "roas",
-      "initiate checkout",
+      "checkout",
       "impressões",
       "cliques",
       "ctr",
@@ -180,10 +185,10 @@ describe("desempenho por posicionamento de cada criativo", () => {
       "cpm",
       "cpa",
     ]);
-    expect(salesIn(cards[3])).toBe("2");
     expect(metricsIn(cards[3])).toMatchObject({
+      vendas: "2",
       roas: "3,00x",
-      "initiate checkout": "8",
+      checkout: "8",
       impressões: "4.000",
       cliques: "80",
       ctr: "2,00%",
@@ -194,8 +199,8 @@ describe("desempenho por posicionamento de cada criativo", () => {
 
   it("calcula o resumo e uma distribuição de 100% apenas sobre os posicionamentos aceitos", () => {
     render(<PlacementPerformance creatives={[creative()]} />);
-    const block = screen.getByRole("article", {
-      name: "Desempenho de Criativo dourado",
+    const block = screen.getByRole("group", {
+      name: "Análise de Criativo dourado",
     });
     const badges = within(block).getAllByText(/\d+% das vendas/);
     expect(badges.map((badge) => badge.textContent)).toEqual([
@@ -211,7 +216,12 @@ describe("desempenho por posicionamento de cada criativo", () => {
         0,
       ),
     ).toBe(100);
-    expect(within(block).getByText("Total de 6 vendas")).toBeTruthy();
+    // O total das vendas vive no cartão do criativo, em "Vendas totais".
+    expect(metricsIn(within(block).getByRole("article", { name: "Criativo Criativo dourado" }))).toMatchObject({
+      "vendas totais": "6",
+      "roas geral": "2,15x",
+      "cpa geral": "R$ 71,67",
+    });
     const distribution = within(block).getByRole("figure");
     expect(
       within(distribution)
@@ -244,22 +254,20 @@ describe("desempenho por posicionamento de cada criativo", () => {
   it("mostra zeros para posições ausentes e distingue checkout desconhecido de zero real", () => {
     render(<PlacementPerformance creatives={[creative()]} />);
     const explore = screen.getByRole("article", { name: "Explorar Instagram" });
-    expect(salesIn(explore)).toBe("0");
     expect(metricsIn(explore)).toMatchObject({
+      vendas: "0",
       roas: "—",
-      "initiate checkout": "0",
+      checkout: "0",
       impressões: "0",
       cliques: "0",
     });
     expect(
-      metricsIn(screen.getByRole("article", { name: "Stories Instagram" }))[
-        "initiate checkout"
-      ],
+      metricsIn(screen.getByRole("article", { name: "Stories Instagram" }))
+        .checkout,
     ).toBe("—");
     expect(
-      metricsIn(screen.getByRole("article", { name: "Stories Facebook" }))[
-        "initiate checkout"
-      ],
+      metricsIn(screen.getByRole("article", { name: "Stories Facebook" }))
+        .checkout,
     ).toBe("0");
     expect(screen.queryByText(/NaN|Infinity/)).toBeNull();
   });
@@ -279,20 +287,24 @@ describe("desempenho por posicionamento de cada criativo", () => {
         ]}
       />,
     );
-    const populated = screen.getByRole("article", {
-      name: "Desempenho de Criativo dourado",
+    const populated = screen.getByRole("group", {
+      name: "Análise de Criativo dourado",
     });
-    const empty = screen.getByRole("article", {
-      name: "Desempenho de Criativo sem partição",
+    const empty = screen.getByRole("group", {
+      name: "Análise de Criativo sem partição",
     });
-    expect(within(populated).getByText("Total de 6 vendas")).toBeTruthy();
-    expect(within(empty).getByText("Total de 0 vendas")).toBeTruthy();
-    expect(within(empty).getAllByRole("article")).toHaveLength(5);
+    const totalDe = (coluna: HTMLElement) =>
+      metricsIn(
+        within(coluna).getByRole("article", { name: /^Criativo / }),
+      )["vendas totais"];
+    expect(totalDe(populated)).toBe("6");
+    expect(totalDe(empty)).toBe("0");
+    expect(placementCardsIn(empty)).toHaveLength(5);
     expect(within(empty).getAllByText("0% das vendas")).toHaveLength(5);
-    for (const card of within(empty).getAllByRole("article")) {
-      expect(salesIn(card)).toBe("0");
+    for (const card of placementCardsIn(empty)) {
       expect(metricsIn(card)).toMatchObject({
-        "initiate checkout": "0",
+        vendas: "0",
+        checkout: "0",
         impressões: "0",
         cliques: "0",
       });
@@ -301,8 +313,8 @@ describe("desempenho por posicionamento de cada criativo", () => {
 
   it("não traz faixa de cabeçalho: nem título, nem subtexto, nem seletor de período, nem menu", () => {
     render(<PlacementPerformance creatives={[creative()]} />);
-    const block = screen.getByRole("article", {
-      name: "Desempenho de Criativo dourado",
+    const block = screen.getByRole("group", {
+      name: "Análise de Criativo dourado",
     });
     expect(
       within(block).queryByRole("heading", {
@@ -325,40 +337,61 @@ describe("desempenho por posicionamento de cada criativo", () => {
     ).toBeTruthy();
   });
 
-  it("põe o criativo, os cinco posicionamentos e a distribuição na mesma grelha", () => {
+  it("põe numa coluna o criativo, a distribuição e os cinco posicionamentos, nessa ordem", () => {
     render(<PlacementPerformance creatives={[creative()]} />);
-    const block = screen.getByRole("article", {
-      name: "Desempenho de Criativo dourado",
+    const coluna = screen.getByRole("group", {
+      name: "Análise de Criativo dourado",
     });
-    /* Filhos diretos do bloco: é isso que faz a grelha ser uma só. Um
-       invólucro a mais entre eles e as colunas deixariam de casar. */
-    const filhos = [...block.children].filter(
-      (el) => el.tagName !== "DIV" || el.hasAttribute("data-placement"),
-    );
-    expect(block.querySelector(":scope > aside")).toBeTruthy();
-    expect(block.querySelectorAll(":scope > article[data-placement]")).toHaveLength(5);
-    expect(block.querySelector(":scope > figure")).toBeTruthy();
-    // E o criativo vem antes dos cartões, que vêm antes da distribuição.
-    const ordem = filhos
+    /* A ordem dentro da coluna é o contrato desta secção: quem lê na
+       horizontal, comparando colunas, tem de encontrar o mesmo bloco na
+       mesma altura em todas elas. */
+    const ordem = [...coluna.children]
       .map((el) =>
-        el.tagName === "ASIDE"
-          ? "criativo"
-          : el.tagName === "ARTICLE"
-            ? "cartao"
-            : el.tagName === "FIGURE"
-              ? "distribuicao"
+        el.tagName === "FIGURE"
+          ? "distribuicao"
+          : el.hasAttribute("data-placement")
+            ? "posicionamento"
+            : el.tagName === "ARTICLE"
+              ? "criativo"
               : null,
       )
       .filter(Boolean);
     expect(ordem).toEqual([
       "criativo",
-      "cartao",
-      "cartao",
-      "cartao",
-      "cartao",
-      "cartao",
       "distribuicao",
+      "posicionamento",
+      "posicionamento",
+      "posicionamento",
+      "posicionamento",
+      "posicionamento",
     ]);
+    // E os cinco posicionamentos vêm na ordem definida.
+    expect(placementCardsIn(coluna).map((c) => c.getAttribute("aria-label"))).toEqual(labels);
+  });
+
+  it("uma coluna por criativo, lado a lado na mesma grade", () => {
+    render(
+      <PlacementPerformance
+        creatives={[
+          creative(),
+          creative({ id: "creative-2", name: "Segundo criativo" }),
+          creative({ id: "creative-3", name: "Terceiro criativo" }),
+        ]}
+      />,
+    );
+    const colunas = screen.getAllByRole("group", { name: /^Análise de / });
+    expect(colunas.map((c) => c.getAttribute("aria-label"))).toEqual([
+      "Análise de Criativo dourado",
+      "Análise de Segundo criativo",
+      "Análise de Terceiro criativo",
+    ]);
+    // Todas irmãs na mesma grade: é isso que as põe lado a lado.
+    const grade = colunas[0].parentElement!;
+    expect(colunas.every((c) => c.parentElement === grade)).toBe(true);
+    // E cada coluna leva os seus cinco posicionamentos, sem os misturar.
+    for (const coluna of colunas) {
+      expect(placementCardsIn(coluna)).toHaveLength(5);
+    }
   });
 
   it("preserva a identificação do criativo quando a prévia falha e não inventa metadados de mídia", () => {
@@ -375,8 +408,8 @@ describe("desempenho por posicionamento de cada criativo", () => {
         ]}
       />,
     );
-    const first = screen.getByRole("article", {
-      name: "Desempenho de Criativo dourado",
+    const first = screen.getByRole("group", {
+      name: "Análise de Criativo dourado",
     });
     // A miniatura pode ser de um vídeo: sozinha não revela o formato.
     expect(within(first).getByText("Formato não informado")).toBeTruthy();
@@ -388,8 +421,8 @@ describe("desempenho por posicionamento de cada criativo", () => {
     expect(
       within(first).getByRole("heading", { name: "Criativo dourado" }),
     ).toBeTruthy();
-    const second = screen.getByRole("article", {
-      name: "Desempenho de Vídeo 15s sem metadados",
+    const second = screen.getByRole("group", {
+      name: "Análise de Vídeo 15s sem metadados",
     });
     expect(within(second).getByText("Formato não informado")).toBeTruthy();
     expect(
@@ -409,8 +442,8 @@ describe("desempenho por posicionamento de cada criativo", () => {
         creatives={[creative({ creative: videoMetadata })]}
       />,
     );
-    const block = screen.getByRole("article", {
-      name: "Desempenho de Criativo dourado",
+    const block = screen.getByRole("group", {
+      name: "Análise de Criativo dourado",
     });
     expect(within(block).getByText("Vídeo · 15s")).toBeTruthy();
     const video = within(block).getByLabelText("Vídeo de Criativo dourado");
@@ -435,8 +468,8 @@ describe("desempenho por posicionamento de cada criativo", () => {
         ]}
       />,
     );
-    const second = screen.getByRole("article", {
-      name: "Desempenho de Segundo criativo",
+    const second = screen.getByRole("group", {
+      name: "Análise de Segundo criativo",
     });
     fireEvent.click(
       within(second).getByRole("button", { name: "Ver detalhes do criativo" }),

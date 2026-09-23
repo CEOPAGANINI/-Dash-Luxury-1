@@ -1872,7 +1872,13 @@ function FeedDeCriativos({
      tem e a altura de um criativo desenhado, em vez de fixar um número.
      Antes de haver medida mostram-se todos. */
   const [medida, setMedida] = React.useState({ fila: 0, bloco: 0 });
-  const cabem = quantosCabem(medida.fila, medida.bloco, criativos.length);
+  /* No Meta não se pagina por altura: a comparação de criativos põe uma
+     coluna por criativo e rola de lado sozinha. Paginar por altura ali
+     esconderia justamente as colunas que se quer comparar. */
+  const cabem =
+    c.network === "meta"
+      ? Math.max(criativos.length, 1)
+      : quantosCabem(medida.fila, medida.bloco, criativos.length);
   const paginas = React.useMemo(() => emPaginas(criativos, cabem), [criativos, cabem]);
   const total = paginas.length;
   const pagina = Math.min(Math.max(aberto, 0), total - 1);

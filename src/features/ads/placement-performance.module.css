@@ -1,39 +1,17 @@
+/*
+  Comparação de criativos: uma coluna por criativo.
+
+  Cada coluna leva, sempre pela mesma ordem, o cartão do criativo, a
+  distribuição das vendas e os cinco posicionamentos. Como todas as
+  colunas têm os mesmos blocos na mesma ordem, ler na horizontal compara
+  sempre o mesmo com o mesmo — é para isso que o desenho existe.
+*/
 .section {
-  /*
-    A altura de um cartão não é um número escolhido: é o que sobra.
-
-    O painel da campanha tem uma altura conhecida (--quadro-altura, que o
-    componente mede da janela, menos a reserva do quadro). Tirando daí o
-    cabeçalho da secção e as molduras, fica o orçamento que esta secção
-    tem para caber DE UMA VEZ, sem obrigar a rolar. Esse orçamento
-    divide-se pelo número de fileiras da grade — e é isso que dá a altura
-    de um cartão.
-
-    Por isso --fileiras é declarado junto com cada número de colunas: com
-    quatro colunas o conteúdo cabe em duas fileiras, com três em três,
-    com duas em quatro. Mais colunas, fileiras mais altas.
-
-    O clamp põe os limites. O mínimo, 316px, não é escolhido: é a altura
-    natural da célula mais alta (o criativo, dividido pelas duas fileiras
-    que ocupa), medida no navegador. Abaixo disso o conteúdo passava a
-    transbordar para fora da moldura do cartão — que foi exatamente o que
-    aconteceu com 276px, com 46px a saírem por baixo. O máximo, 376px,
-    é onde o cartão já começava a ter branco a mais por dentro.
-  */
-  --vao-dos-cartoes: 16px;
-  --altura-do-painel: calc(
-    var(--quadro-altura, 860px) - var(--reserva-do-quadro, 84px) - 76px
-  );
-  container: placement-section / inline-size;
-  display: grid;
-  align-content: stretch;
-  gap: 24px;
+  --fio: #e5eaf2;
+  --curva: 14px;
+  --sombra: 0 2px 10px rgb(24 40 74 / 4%);
+  --vao: 12px;
   min-width: 0;
-  min-height: 0;
-  /* A secção estica até ao fim do painel; o bloco estica com ela. Sem
-     isto, a sobra de altura ficava toda numa faixa morta por baixo do
-     bloco — 111px numa janela de 1.400px. */
-  height: 100%;
   color: #10172f;
   color-scheme: light;
   font-family: var(--font-montserrat), Arial, sans-serif;
@@ -41,55 +19,64 @@
 }
 
 /*
-  A grelha única: o criativo, os cinco posicionamentos e a distribuição
-  são todos células desta mesma grade. Mesma largura de coluna, mesma
-  altura de fileira — o alinhamento deixa de ser uma coincidência entre
-  duas medidas e passa a ser uma consequência de só haver uma.
-
-  O criativo ocupa duas fileiras (a altura de dois cartões, pedida) e a
-  distribuição ocupa as colunas que sobram na última, para nenhuma
-  célula ficar vazia.
+  No desktop a grade corre na horizontal: cada coluna entre 320px e
+  360px, e quando há mais criativos do que largura rola de lado em vez
+  de os espremer. O padding em baixo é o espaço da barra de rolagem,
+  para ela não tapar o último cartão.
 */
-.section .creativeBlock {
-  --fileiras: 3;
-  --altura-do-cartao: clamp(
-    316px,
-    calc(
-      (
-          var(--altura-do-painel) - 32px - (var(--fileiras) - 1) *
-            var(--vao-dos-cartoes)
-        ) / var(--fileiras)
-    ),
-    376px
-  );
+.comparisonGrid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--vao-dos-cartoes);
-  padding: 16px;
-  background: #f8faff;
-  border: 1px solid #e5eaf2;
-  box-shadow: 0 3px 16px rgb(24 40 74 / 3%);
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(320px, 360px);
+  align-items: start;
+  gap: 16px;
+  min-width: 0;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  scrollbar-width: thin;
+}
+.creativeColumn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--vao);
   min-width: 0;
 }
 
-.section :is(h3, h4, p, dl, dd, figure) {
+/* Tudo o que é caixa nesta secção partilha a mesma moldura: é o que faz
+   a coluna parecer uma peça só, e não sete pedaços avulsos. */
+.section .creativeSummaryCard,
+.section .distributionCard,
+.section .placementCard,
+.section .empty {
+  min-width: 0;
+  padding: 16px;
+  background: #fff !important;
+  border: 1px solid var(--fio) !important;
+  border-radius: var(--curva) !important;
+  box-shadow: var(--sombra) !important;
+  text-align: left !important;
+}
+
+.section :is(h3, h4, p, dl, dd, figure, figcaption) {
   margin: 0;
 }
 .section :is(h3, h4) {
   color: #10172f;
   font-weight: 750;
   text-transform: none;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.02em;
   line-height: 1.3;
 }
-.section :is(button, select) {
+.section button {
   font: inherit;
 }
-.section :is(button, select):focus-visible,
+.section button:focus-visible,
 .dialog button:focus-visible {
   outline: 3px solid #1877f2;
   outline-offset: 3px;
 }
+/* ROAS bom em verde, ROAS ruim em vermelho — os dois tons escolhidos
+   para se lerem sobre o branco. */
 .section [data-tone="positive"] {
   color: #07832d !important;
 }
@@ -97,26 +84,23 @@
   color: #d01928 !important;
 }
 
-/* O criativo é um cartão como os outros: mesma moldura, mesmo fundo,
-   mesmo enchimento. É o que o faz parecer da mesma família. */
-.summary {
+/* ─── O cartão do criativo ─────────────────────────────────────────── */
+
+.creativeSummaryCard {
+  container: creative-card / inline-size;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  min-width: 0;
-  min-height: 0;
-  padding: 16px;
-  border: 1px solid #e5eaf2;
-  background: #fff;
 }
-.preview {
+.creativePreview {
   display: grid;
   place-items: center;
   overflow: hidden;
+  border-radius: 10px;
   background: #f0f3f9;
   aspect-ratio: 4 / 5;
   width: 100%;
-  max-height: 420px;
+  max-height: 260px;
 }
 .media {
   display: block;
@@ -129,135 +113,192 @@
   display: grid;
   justify-items: center;
   align-content: center;
-  gap: 12px;
+  gap: 10px;
   color: #596881;
-  font-size: 14px;
-  min-height: 160px;
+  font-size: 13px;
+  min-height: 120px;
 }
 .placeholder svg {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   stroke-width: 1.3;
 }
-.identity {
+.creativeInfo {
   display: grid;
-  gap: 7px;
+  gap: 8px;
+  min-width: 0;
 }
-.identity h3 {
-  font-size: clamp(17px, 7cqi, 22px);
+/* Só o nome do criativo. Sem subtítulo e sem descrição: é o botão de
+   detalhes que abre o resto. */
+.creativeInfo h3 {
+  font-size: 17px;
   overflow-wrap: anywhere;
 }
-.identity p {
-  color: #53627c;
-  font-size: 14px;
-  line-height: 1.6;
-  overflow-wrap: anywhere;
-}
-.metadata {
+.creativeBadges {
   display: flex;
-  align-items: center;
   flex-wrap: wrap;
-  gap: 10px;
-  justify-content: space-between;
-  font-size: 13px;
-  color: #53627c;
-}
-.metadata > span {
-  display: inline-flex;
   gap: 6px;
-  align-items: center;
 }
-.metadata svg {
-  width: 18px;
-  height: 18px;
+.creativeBadges > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+.creativeBadges svg {
+  width: 13px;
+  height: 13px;
   flex: none;
 }
-.status {
-  padding: 4px 12px;
+.formatBadge {
+  background: #eef2f9;
+  color: #48587a;
+}
+.statusBadge {
   background: #edf0f6;
   color: #526078;
-  font-weight: 650;
 }
-.status[data-status="active"] {
+.statusBadge[data-status="active"] {
   background: #ddfae8;
   color: #087c32;
 }
-.summaryMetrics {
+/* As três respostas que o criativo tem de dar de relance: quantas
+   vendas fez, qual foi o ROAS e quanto custou cada venda. */
+.creativeKpiGrid {
   display: grid;
-  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
   padding-top: 12px;
-  border-top: 1px solid #e5eaf2;
+  border-top: 1px solid var(--fio);
 }
-.summaryMetrics dt {
-  font-size: 13px;
-  color: #53627c;
-  margin-bottom: 2px;
+.creativeKpiGrid > div {
+  min-width: 0;
 }
-.summaryMetrics dd {
-  font-size: clamp(19px, 8cqi, 26px);
+.creativeKpiGrid dd {
+  font-size: clamp(15px, 5.5cqi, 19px);
   font-weight: 750;
   line-height: 1.2;
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
 }
-.section .detailsButton {
+.creativeKpiGrid dt {
+  margin-top: 2px;
+  color: #5c6880;
+  font-size: 10.5px;
+  font-weight: 600;
+}
+.section .detailsButton[data-acao="detalhes"] {
   display: flex;
-  flex: none;
   justify-content: center;
   align-items: center;
   gap: 8px;
   padding: 10px;
-  min-height: 40px;
-  margin-top: auto;
+  min-height: 42px;
   width: 100%;
-  color: #344562;
-  background: #f9faff;
-  border: 1px solid #dce4ef;
+  color: #f4f7fd !important;
+  background: #101a33 !important;
+  border: 1px solid #101a33 !important;
+  border-radius: 10px;
   font-size: 13px;
+  font-weight: 650;
   cursor: pointer;
 }
 .detailsButton svg {
   flex: none;
-  height: 16px;
-  width: 16px;
+  height: 15px;
+  width: 15px;
 }
-.section .detailsButton:hover {
-  background: #edf2fc;
+.section .detailsButton[data-acao="detalhes"]:hover {
+  background: #1d2c50 !important;
 }
 
-/* O cartão enche exatamente a fileira que lhe toca: cabeçalho e vendas
-   com a altura do que escrevem, e as oito métricas a repartir o resto
-   entre si. Assim não sobra branco no fundo do cartão numa fileira alta
-   nem transborda numa fileira baixa — o cartão acompanha a medida em vez
-   de a ignorar. */
-.section .card {
+/* ─── A distribuição das vendas ────────────────────────────────────── */
+
+.distributionCard {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.distributionCard figcaption {
+  font-size: 13px;
+  font-weight: 750;
+  color: #10172f;
+}
+.bar {
+  display: flex;
+  height: 16px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #edf1f7;
+}
+.bar > span {
+  display: block;
+  height: 100%;
+  flex: none;
+}
+/* Duas colunas de legenda: cinco posicionamentos numa coluna só faziam
+   o cartão crescer sem necessidade. */
+.legend {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 10px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.legend li {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  min-width: 0;
+}
+.legend i {
+  width: 10px;
+  height: 10px;
+  margin-top: 3px;
+  border-radius: 3px;
+  flex: none;
+}
+.legend b {
+  display: block;
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.25;
+  color: #10172f;
+}
+.legend span {
+  display: block;
+  margin-top: 1px;
+  font-size: 10.5px;
+  color: #5c6880;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.section .emptySales {
+  font-size: 12px;
+  color: #5c6880;
+}
+
+/* ─── Os cartões de posicionamento ─────────────────────────────────── */
+
+.placementCard {
   container: placement-card / inline-size;
   display: flex;
   flex-direction: column;
-  min-width: 0;
-  padding: 16px;
-  background: #fff;
-  border: 1px solid #e5eaf2;
-  box-shadow: 0 2px 8px rgb(24 40 74 / 2%);
+  gap: 10px;
 }
-/* O cabeçalho é uma grade de duas linhas, não uma fila: o selo à
-   esquerda a ocupar as duas, o nome sozinho em cima com a linha toda, e
-   a rede e o emblema por baixo. Em fila, o emblema e o subtítulo
-   disputavam a largura com o nome e faziam-no encolher até desaparecer;
-   a partilhar a primeira linha com o emblema, "Feed Instagram" ainda
-   ficava cortado. */
-.cardHeader {
-  flex: none;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  grid-template-areas:
-    "selo nome nome"
-    "selo rede emblema";
+.placementCardHeader {
+  display: flex;
   align-items: center;
-  gap: 1px 8px;
+  gap: 8px;
+  min-width: 0;
 }
-.cardHeader h4 {
-  grid-area: nome;
+.placementCardHeader h4 {
+  flex: 1 1 auto;
   min-width: 0;
   font-size: 13px;
   font-weight: 700;
@@ -265,25 +306,16 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.cardHeader small {
-  grid-area: rede;
-  min-width: 0;
-  color: #53627c;
-  font-size: 11px;
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
 .platformIcon {
-  grid-area: selo;
   display: grid;
   place-items: center;
   flex: none;
   width: 26px;
   height: 26px;
+  border-radius: 8px;
   color: #fff;
 }
+/* Instagram em rosa, Facebook em azul — a cor de cada plataforma. */
 .platformIcon[data-platform="instagram"] {
   background: radial-gradient(
     circle at 24% 110%,
@@ -297,395 +329,188 @@
 .platformIcon[data-platform="facebook"] {
   background: #1877f2;
 }
-/* O desenho acompanha a caixa: com o selo a 26px, um svg de 28px
-   transbordava dois pixels. */
 .platformIcon svg {
-  width: 18px;
-  height: 18px;
+  width: 17px;
+  height: 17px;
 }
 .badge {
-  grid-area: emblema;
   flex: none;
-  padding: 4px 7px;
+  padding: 4px 8px;
+  border-radius: 999px;
   background: #f0f3fa;
   color: #33425d;
   font-size: 10px;
   font-weight: 650;
   white-space: nowrap;
-  margin-left: auto;
 }
-/* O cartão de posicionamento: as vendas sozinhas em destaque e todas as
-   outras métricas em linhas — rótulo à esquerda, valor à direita, uma
-   régua só. É o que faz os cartões lerem alinhados lado a lado, mesmo
-   com nomes e números de tamanhos diferentes. */
-.cardSales {
-  flex: none;
-  display: flex;
-  align-items: baseline;
-  gap: 7px;
-  margin: 0;
-  padding: 10px 0 8px;
+/* As três que mandam — vendas, ROAS e checkouts iniciados — em número
+   grande; as outras seis por baixo, mais pequenas. Assim a comparação
+   entre posicionamentos faz-se de relance e o resto fica ao alcance. */
+.placementMainMetrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
   min-width: 0;
 }
-.cardSales b {
-  font-size: clamp(20px, 10cqi, 28px);
+.placementMainMetrics > div {
+  min-width: 0;
+}
+.placementMainMetrics dd {
+  font-size: clamp(17px, 6.5cqi, 22px);
   font-weight: 750;
-  line-height: 1.1;
-  letter-spacing: -0.04em;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
-}
-.cardSales span {
-  color: #53627c;
-  font-size: 13px;
-  font-weight: 600;
-}
-.cardRows {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  /* minmax(min-content, 1fr) e não minmax(0, 1fr): com zero em baixo as
-     linhas encolhiam por baixo do texto e encavalitavam-se. */
-  grid-auto-rows: minmax(min-content, 1fr);
-  flex: 1 1 auto;
-  gap: 0;
-  margin: 0;
-  min-width: 0;
-}
-.cardRows > div {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-  padding: 3px 0;
-  border-top: 1px solid #e5eaf2;
-}
-.cardRows > div:first-child {
-  border-top: 0;
-  padding-top: 0;
-}
-.cardRows dt {
-  min-width: 0;
-  color: #53627c;
-  font-size: 12px;
-  line-height: 1.35;
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.cardRows dd {
-  margin: 0;
-  color: #10172f;
-  font-size: 13px;
-  line-height: 1.35;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-.cardRows dd[data-tone="positive"] {
-  color: #0b7a3b;
-}
-.cardRows dd[data-tone="negative"] {
-  color: #c00020;
-}
-/* A distribuição também enche a célula que lhe toca: o título e a barra
-   com a altura do que ocupam, e a legenda a repartir o resto. */
-.section .distribution {
-  container: placement-dist / inline-size;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  padding: 16px;
-  border: 1px solid #e5eaf2;
-  background: #fff;
-}
-.distribution figcaption {
-  flex: none;
-  display: flex;
-  justify-content: space-between;
-  gap: 4px 12px;
-  flex-wrap: wrap;
-  align-items: baseline;
-}
-.distribution h4 {
-  font-size: clamp(13px, 4cqi, 18px);
-}
-.distribution figcaption > span {
-  font-size: 12px;
-  color: #53627c;
-}
-.bar {
-  display: flex;
-  flex: none;
-  height: 18px;
-  margin: 10px 0 10px;
-  background: #edf1f7;
-  overflow: hidden;
-}
-.bar > span {
-  display: block;
-  height: 100%;
-  flex: none;
-}
-.legend {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  grid-auto-rows: minmax(min-content, 1fr);
-  flex: 1 1 auto;
-  align-content: stretch;
-  gap: 6px 12px;
-  padding: 0;
-  margin: 0;
-  list-style: none;
-}
-.legend li {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  min-width: 0;
-}
-.legend i {
-  width: 10px;
-  height: 10px;
-  margin-top: 4px;
-  flex: none;
-}
-.legend b {
-  display: block;
-  font-size: 12px;
-  line-height: 1.3;
-  color: #10172f;
-}
-.legend span {
-  display: block;
-  margin-top: 1px;
-  font-size: 10.5px;
-  color: #53627c;
-  line-height: 1.4;
   overflow-wrap: anywhere;
 }
-.section .emptySales {
-  font-size: 13px;
-  color: #53627c;
-  margin-top: 16px;
+.placementMainMetrics dt {
+  margin-top: 1px;
+  color: #5c6880;
+  font-size: 10.5px;
+  font-weight: 600;
 }
+.placementSecondaryMetrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--fio);
+  min-width: 0;
+}
+.placementSecondaryMetrics > div {
+  min-width: 0;
+}
+.placementSecondaryMetrics dd {
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1.25;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.placementSecondaryMetrics dt {
+  margin-top: 1px;
+  color: #5c6880;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+/* ─── Sem criativos ────────────────────────────────────────────────── */
+
 .empty {
-  padding: 24px;
-  border: 1px solid #e5eaf2;
-  background: #fff;
+  padding: 20px;
 }
 .empty h3 {
-  font-size: 20px;
+  font-size: 17px;
 }
 .empty p {
-  margin-top: 8px;
+  margin-top: 6px;
   color: #53627c;
-  font-size: 14px;
+  font-size: 13px;
+  line-height: 1.6;
 }
+
+/* ─── Os detalhes do criativo ──────────────────────────────────────── */
 
 .overlay {
   position: fixed;
   inset: 0;
+  background: rgb(8 14 30 / 55%);
   z-index: 80;
-  background: rgb(13 23 45 / 45%);
 }
 .dialog {
   position: fixed;
-  z-index: 81;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   width: min(560px, calc(100vw - 32px));
-  max-height: calc(100dvh - 48px);
+  max-height: min(80vh, 680px);
   overflow-y: auto;
+  padding: 24px;
   background: #fff;
+  border: 1px solid var(--fio);
+  border-radius: var(--curva);
   color: #10172f;
-  padding: 28px;
-  border: 1px solid #e5eaf2;
-  box-shadow: 0 20px 80px rgb(13 23 45 / 20%);
   color-scheme: light;
+  font-family: var(--font-montserrat), Arial, sans-serif;
+  text-align: left;
+  z-index: 81;
 }
 .dialog h2 {
-  margin: 0 32px 8px 0;
-  font-size: 22px;
-  font-weight: 700;
+  margin: 0;
+  font-size: 19px;
+  font-weight: 750;
 }
 .dialog > p {
+  margin: 6px 0 0;
   color: #53627c;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.6;
 }
 .detailList {
   display: grid;
-  gap: 14px;
-  margin-top: 20px;
-  font-size: 14px;
+  gap: 12px;
+  margin: 18px 0 0;
+}
+.detailList > div {
+  display: grid;
+  gap: 2px;
 }
 .detailList dt {
-  color: #53627c;
+  color: #5c6880;
+  font-size: 11px;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 .detailList dd {
-  margin: 3px 0 0;
+  margin: 0;
+  font-size: 14px;
   font-weight: 600;
   overflow-wrap: anywhere;
 }
 .closeButton {
   position: absolute;
-  top: 12px;
-  right: 12px;
+  top: 14px;
+  right: 14px;
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
-  background: #f0f3fa;
+  width: 34px;
+  height: 34px;
+  background: #f2f5fb;
+  border: 1px solid var(--fio);
+  border-radius: 10px;
   color: #344562;
-  border: 0;
   cursor: pointer;
 }
 .closeButton svg {
-  width: 18px;
-  height: 18px;
+  width: 17px;
+  height: 17px;
 }
 
-/* The dashboard skin styles every article, including nested cards. Keep this
-   explicitly light section isolated from those global material/centering rules. */
-.section .creativeBlock,
-.section .card {
-  background: #fff !important;
-  border: 1px solid #e5eaf2 !important;
-  box-shadow: 0 3px 16px rgb(24 40 74 / 3%) !important;
-  text-align: left !important;
-}
-.section .creativeBlock {
-  background: #f8faff !important;
-}
-.section .cardHeader {
-  background: none !important;
-  box-shadow: none !important;
-}
+/* ─── Tablet e telemóvel ───────────────────────────────────────────── */
 
 /*
-  Empilhado (secção estreita, telemóvel): uma coluna só, cada bloco com
-  a altura do seu conteúdo. Aqui o criativo não pode ter a altura de
-  dois cartões — sozinho numa coluna, seria uma caixa alta e vazia. A
-  prévia fica ao lado do texto para o criativo não ficar comprido.
+  Abaixo dos 1.024px a grade deixa de correr na horizontal: duas colunas
+  por linha em tablet, uma no telemóvel. Rolar de lado num ecrã de toque
+  onde já se rola para baixo é a receita para nunca se encontrar o que
+  se procura.
 */
-@container placement-section (min-width: 560px) {
-  .summary {
-    display: grid;
-    grid-template-columns: 180px minmax(0, 1fr);
-    align-items: start;
-  }
-  .preview {
-    grid-row: span 3;
-  }
-  .summaryMetrics {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-  .summaryMetrics dd {
-    font-size: 22px;
-  }
-}
-/*
-  Lado a lado a partir dos 540px de secção — abaixo disto o cartão ficava
-  com menos de 250px e o nome do posicionamento deixava de caber.
-
-  Daqui para cima a grelha tem fileiras de altura fixa: o criativo passa
-  a ocupar duas (a altura pedida, de dois cartões) e volta a ser uma
-  coluna só, com a prévia a encolher com ele em vez de presa a uma
-  proporção.
-*/
-@container placement-section (min-width: 540px) {
-  .section .creativeBlock {
-    /* Duas colunas: criativo (2 células) + 5 cartões + distribuição = 8
-       células, quatro fileiras. */
-    --fileiras: 4;
+@media (max-width: 1024px) {
+  .comparisonGrid {
+    grid-auto-flow: initial;
+    grid-auto-columns: initial;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    /* As fileiras nunca encolhem abaixo da altura do cartão, e repartem
-       entre si a altura que sobrar — em vez de a deixarem no fundo. */
-    grid-auto-rows: minmax(var(--altura-do-cartao), 1fr);
-    height: 100%;
+    overflow-x: visible;
+    padding-bottom: 0;
   }
-  .summary {
-    display: flex;
-    grid-row: span 2;
-  }
-  .preview {
-    flex: 1 1 auto;
-    aspect-ratio: auto;
-    min-height: 90px;
-    max-height: none;
-  }
-  .summaryMetrics {
+}
+@media (max-width: 640px) {
+  .comparisonGrid {
     grid-template-columns: minmax(0, 1fr);
   }
-}
-/*
-  Três por fileira a partir dos 800px de secção. Com o criativo a ocupar
-  a primeira coluna nas duas primeiras fileiras, sobram quatro células
-  para quatro cartões; o quinto abre a terceira fileira e a distribuição
-  toma as duas colunas que sobravam ao lado dele. Nove células, nove
-  ocupadas: nenhuma fica vazia.
-
-  Abaixo dos 800px são duas por fileira e a distribuição fica com uma
-  célula normal — a mandá-la ocupar duas, empurrava-se para uma fileira
-  nova e deixava-se um buraco na anterior.
-*/
-@container placement-section (min-width: 800px) {
-  .section .creativeBlock {
-    /* Três colunas: 9 células, três fileiras. A distribuição toma as
-       duas que sobram ao lado do quinto cartão. */
-    --fileiras: 3;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-  .section .distribution {
-    grid-column: span 2;
-  }
-}
-/*
-  Quatro colunas quando a secção passa dos 1.020px — o painel largo, que
-  é onde três colunas davam três fileiras e a secção deixava de caber num
-  ecrã. Com quatro, as oito células entram em DUAS fileiras: o criativo à
-  esquerda a ocupar as duas, três cartões em cima, dois em baixo e a
-  distribuição a fechar. Metade da altura, tudo à vista de uma vez.
-*/
-@container placement-section (min-width: 1020px) {
-  .section .creativeBlock {
-    --fileiras: 2;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-  .section .distribution {
-    grid-column: span 1;
-  }
-}
-/* A legenda conta as colunas pela largura da PRÓPRIA distribuição, e
-   não pela da secção: é a caixa dela que decide quantos nomes cabem
-   lado a lado. */
-@container placement-dist (min-width: 260px) {
-  .legend {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-@container placement-dist (min-width: 480px) {
-  .legend {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-@container placement-dist (min-width: 760px) {
-  .legend {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-  }
-}
-@container placement-section (max-width: 380px) {
-  .section .creativeBlock {
+  .section .creativeSummaryCard,
+  .section .distributionCard,
+  .section .placementCard {
     padding: 14px;
-  }
-  .summary,
-  .section .card,
-  .section .distribution {
-    padding: 16px;
-  }
-  .badge {
-    margin-left: auto;
   }
 }

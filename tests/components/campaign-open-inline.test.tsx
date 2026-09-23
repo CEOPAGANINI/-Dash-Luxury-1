@@ -206,25 +206,31 @@ describe("a seta abre os dados da campanha num bloco à direita do quadro", () =
     render(<ClassBoard tree={comPosicoes} regras={GUARDRAILS_PADRAO} network="meta" />);
     fireEvent.click(screen.getByRole("button", { name: "Abrir campanha Alfa" }));
     const secao = screen.getByRole("region", { name: "Desempenho por posicionamento" });
-    const estatico = within(secao).getByRole("article", { name: "Desempenho de Estático" });
-    const video = within(secao).getByRole("article", { name: "Desempenho de Vídeo 30s" });
+    /* Uma coluna por criativo: cada uma com o cartão do criativo, a
+       distribuição e os cinco posicionamentos, e nada de uma na outra. */
+    const estatico = within(secao).getByRole("group", { name: "Análise de Estático" });
+    const video = within(secao).getByRole("group", { name: "Análise de Vídeo 30s" });
     const nomes = ["Feed Instagram", "Stories Instagram", "Explorar Instagram", "Feed Facebook", "Stories Facebook"];
+    const posicionamentos = (coluna: HTMLElement) => [...coluna.querySelectorAll("article[data-placement]")];
+    const vendasTotais = (coluna: HTMLElement) => {
+      const cartao = within(coluna).getByRole("article", { name: /^Criativo / });
+      const dt = [...cartao.querySelectorAll("dt")].find((t) => t.textContent === "Vendas totais");
+      return dt?.parentElement?.querySelector("dd")?.textContent;
+    };
     for (const criativo of [estatico, video]) {
-      // A faixa de cabeçalho saiu: nem título, nem subtexto, nem o
-      // seletor de período, nem o menu de opções.
       expect(within(criativo).queryByRole("heading", { name: "Desempenho por posicionamento" })).toBeNull();
       expect(within(criativo).queryByRole("combobox")).toBeNull();
-      expect(within(criativo).getAllByRole("article").map((card) => card.getAttribute("aria-label"))).toEqual(nomes);
+      expect(posicionamentos(criativo).map((card) => card.getAttribute("aria-label"))).toEqual(nomes);
       expect(within(criativo).queryByRole("heading", { name: "Instagram" })).toBeNull();
       expect(within(criativo).queryByRole("heading", { name: "Facebook" })).toBeNull();
     }
-    expect(within(estatico).getByText("Total de 4 vendas")).toBeTruthy();
+    expect(vendasTotais(estatico)).toBe("4");
     expect(within(estatico).getByRole("article", { name: "Stories Instagram" }).textContent).toContain("75% das vendas");
     expect(within(estatico).getByRole("article", { name: "Stories Facebook" }).textContent).toContain("0% das vendas");
     expect(within(estatico).getByRole("article", { name: "Feed Facebook" }).textContent).toContain("25% das vendas");
     // O vídeo não tem partição: não herda as vendas do estático nem
     // inventa posições a partir das métricas gerais do anúncio.
-    expect(within(video).getByText("Total de 0 vendas")).toBeTruthy();
+    expect(vendasTotais(video)).toBe("0");
 
     // No Meta há uma secção só: o painel dos posicionamentos é ele
     // próprio a secção dos criativos, com o criativo dentro de cada
@@ -238,7 +244,7 @@ describe("a seta abre os dados da campanha num bloco à direita do quadro", () =
     render(<ClassBoard tree={comCriativos()} regras={GUARDRAILS_PADRAO} network="meta" />);
     fireEvent.click(screen.getByRole("button", { name: "Abrir campanha Alfa" }));
     const vazia = screen.getByRole("region", { name: "Desempenho por posicionamento" });
-    expect(within(vazia).getAllByText("Total de 0 vendas")).toHaveLength(2);
+    expect(within(vazia).getAllByRole("group", { name: /^Análise de / })).toHaveLength(2);
     expect(within(vazia).getAllByText("0% das vendas")).toHaveLength(10);
   });
 
