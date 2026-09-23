@@ -1,0 +1,530 @@
+/*
+  O CSS que faltava.
+
+  O ficheiro que veio trazia o esqueleto da página e os tokens, mas
+  apontava para um style.css que não existia — sem ele a página abria
+  como texto preto sobre branco. Isto é esse ficheiro, escrito a partir
+  dos tokens, sem inventar nenhum valor que não esteja lá.
+
+  Tudo o que é cor, tamanho, raio e tempo sai das variáveis que o
+  componente põe no elemento raiz, geradas por variaveisDoOrbit(). Não
+  há aqui um hexadecimal escrito à mão.
+*/
+
+.page {
+  --fio: var(--orbit-border);
+  min-width: 0;
+  padding: 32px clamp(16px, 4vw, 48px) 64px;
+  border-radius: var(--orbit-raio-node);
+  background: var(--orbit-canvas);
+  color: var(--orbit-text);
+  font-family: var(--orbit-fonte, Inter), system-ui, sans-serif;
+  text-align: left;
+}
+.page :is(h1, h2, h3, p, dl, dd, figure) {
+  margin: 0;
+}
+
+/* ─── Hero ─────────────────────────────────────────────────────────── */
+
+.intro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 32px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid var(--fio);
+}
+.eyebrow {
+  display: block;
+  color: var(--orbit-muted);
+  font-size: var(--orbit-texto-metadata);
+  font-weight: 600;
+  letter-spacing: 0.18em;
+}
+.intro h1 {
+  margin-top: 16px;
+  font-size: clamp(32px, 5vw, var(--orbit-texto-display));
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+/* A segunda linha do título não é uma cor: é o cinza de apoio. A paleta
+   principal é preto e branco, e o hero não abre exceção para si próprio. */
+.intro h1 > span {
+  color: var(--orbit-secondary);
+}
+.intro p {
+  margin-top: 16px;
+  max-width: 46ch;
+  color: var(--orbit-secondary);
+  font-size: var(--orbit-texto-body);
+  line-height: 1.6;
+}
+.stamp {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: none;
+  padding: 12px 16px;
+  border: 1px solid var(--fio);
+  border-radius: var(--orbit-raio-control);
+  background: var(--orbit-surface);
+  color: var(--orbit-secondary);
+  font-size: var(--orbit-texto-metadata);
+  line-height: 1.5;
+}
+.stamp svg {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  fill: none;
+  stroke: var(--orbit-positive);
+  stroke-width: 5;
+}
+
+/* ─── Navegação ────────────────────────────────────────────────────── */
+
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 24px 0 48px;
+}
+.page .nav a {
+  padding: 8px 14px;
+  border: 1px solid var(--fio);
+  border-radius: var(--orbit-raio-control);
+  background: var(--orbit-surface);
+  color: var(--orbit-secondary);
+  font-size: var(--orbit-texto-label);
+  font-weight: 500;
+  text-decoration: none;
+  transition: color var(--orbit-rapido) var(--orbit-suavizacao),
+    border-color var(--orbit-rapido) var(--orbit-suavizacao);
+}
+.page .nav a:hover {
+  color: var(--orbit-text);
+  border-color: var(--orbit-secondary);
+}
+
+/* ─── Secções ──────────────────────────────────────────────────────── */
+
+.section {
+  padding: 48px 0;
+  border-top: 1px solid var(--fio);
+  scroll-margin-top: 24px;
+}
+.sectionTitle {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 32px;
+}
+.sectionTitle > span {
+  color: var(--orbit-muted);
+  font-size: var(--orbit-texto-metadata);
+  font-weight: 600;
+  letter-spacing: 0.18em;
+}
+.sectionTitle h2 {
+  font-size: var(--orbit-texto-title);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+.sectionTitle p {
+  color: var(--orbit-secondary);
+  font-size: var(--orbit-texto-body);
+}
+
+/* ─── 01 Cores ─────────────────────────────────────────────────────── */
+
+.swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+/* Cada amostra copia o seu valor ao ser clicada: é para isso que se
+   olha uma paleta, e poupa ter de ir ao JSON buscar o hexadecimal. */
+.page .swatch {
+  display: grid;
+  gap: 2px;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--fio);
+  border-radius: var(--orbit-raio-control);
+  background: var(--orbit-surface);
+  color: var(--orbit-text);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--orbit-rapido) var(--orbit-suavizacao);
+}
+.page .swatch:hover {
+  border-color: var(--orbit-secondary);
+}
+.swatchChip {
+  display: block;
+  height: 72px;
+  border-bottom: 1px solid var(--fio);
+}
+.swatchInfo {
+  display: grid;
+  gap: 2px;
+  padding: 12px;
+}
+.swatchInfo b {
+  font-size: var(--orbit-texto-label);
+  font-weight: 500;
+}
+.swatchInfo code {
+  color: var(--orbit-secondary);
+  font-family: ui-monospace, monospace;
+  font-size: var(--orbit-texto-metadata);
+  text-transform: uppercase;
+}
+.swatchInfo small {
+  color: var(--orbit-muted);
+  font-size: var(--orbit-texto-metadata);
+}
+/* As cinco com significado ficam separadas das neutras: são as únicas
+   que dizem alguma coisa, e andam sempre com o rótulo ao lado. */
+.semantic {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+  margin-top: 24px;
+}
+.page .semantic > button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--fio);
+  border-radius: var(--orbit-raio-control);
+  background: var(--orbit-surface);
+  color: var(--orbit-text);
+  text-align: left;
+  cursor: pointer;
+}
+.page .semantic > button:hover {
+  border-color: var(--orbit-secondary);
+}
+.semanticDot {
+  width: 12px;
+  height: 12px;
+  flex: none;
+  border-radius: 50%;
+}
+.semanticInfo {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.semanticInfo b {
+  font-size: var(--orbit-texto-label);
+  font-weight: 500;
+}
+.semanticInfo small {
+  color: var(--orbit-muted);
+  font-size: var(--orbit-texto-metadata);
+}
+
+/* ─── 02 Tipografia ────────────────────────────────────────────────── */
+
+.typeGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+}
+.typeFeature {
+  display: grid;
+  align-content: space-between;
+  gap: 16px;
+  padding: 24px;
+  border: 1px solid var(--fio);
+  border-radius: var(--orbit-raio-node);
+  background: var(--orbit-surface);
+}
+.bigAa {
+  font-size: 96px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+.typeFeature p {
+  color: var(--orbit-secondary);
+  font-size: var(--orbit-texto-label);
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+.typeScale {
+  display: grid;
+  align-content: start;
+  gap: 24px;
+}
+.typeScale > div {
+  display: grid;
+  gap: 6px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--fio);
+}
+.typeScale > div:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+.typeScale span {
+  color: var(--orbit-muted);
+  font-size: var(--orbit-texto-metadata);
+  letter-spacing: 0.08em;
+}
+.typeScale strong {
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+/* ─── 03 e 04: os cartões de especificação ─────────────────────────── */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+.card {
+  display: grid;
+  align-content: start;
+  gap: 16px;
+  padding: 24px;
+  border: 1px solid var(--fio);
+  border-radius: var(--orbit-raio-node);
+  background: var(--orbit-surface);
+}
+.card h3 {
+  font-size: var(--orbit-texto-label);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--orbit-secondary);
+}
+.card > p {
+  color: var(--orbit-muted);
+  font-size: var(--orbit-texto-metadata);
+  line-height: 1.6;
+}
+.demo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Os botões: altura 40, raio de controlo, foco visível. */
+.page .button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--fio);
+  border-radius: var(--orbit-raio-control);
+  background: var(--orbit-raised);
+  color: var(--orbit-text);
+  font-size: var(--orbit-texto-label);
+  font-weight: 500;
+  cursor: pointer;
+  transition: filter var(--orbit-rapido) var(--orbit-suavizacao),
+    border-color var(--orbit-rapido) var(--orbit-suavizacao);
+}
+.page .button.primary {
+  background: var(--orbit-positive);
+  border-color: var(--orbit-positive);
+  color: var(--orbit-canvas);
+}
+.page .button:hover:not(:disabled) {
+  filter: brightness(1.08);
+  border-color: var(--orbit-secondary);
+}
+.page .button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.page .button:focus-visible {
+  outline: 2px solid var(--orbit-positive);
+  outline-offset: 2px;
+}
+
+.fieldLabel {
+  display: block;
+  color: var(--orbit-secondary);
+  font-size: var(--orbit-texto-label);
+  font-weight: 500;
+}
+.page input.field {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--fio);
+  border-radius: var(--orbit-raio-control);
+  background: var(--orbit-input);
+  color: var(--orbit-text);
+  font: inherit;
+  font-size: var(--orbit-texto-label);
+}
+.page input.field:focus-visible {
+  outline: 2px solid var(--orbit-positive);
+  outline-offset: 2px;
+}
+
+/* As portas: 8px, cor mais rótulo, halo discreto. */
+.ports {
+  display: grid;
+  gap: 10px;
+}
+.ports > span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--orbit-secondary);
+  font-size: var(--orbit-texto-label);
+}
+.port {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--porta);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--porta) 22%, transparent);
+}
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border: 1px solid var(--fio);
+  border-radius: var(--orbit-raio-tag);
+  background: var(--orbit-raised);
+  color: var(--orbit-secondary);
+  font-size: var(--orbit-texto-metadata);
+}
+
+/* Espaçamento: a escala de base 4 desenhada, não descrita. */
+.spacing {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.spacing > div {
+  display: grid;
+  place-items: center;
+  width: var(--s);
+  min-width: var(--s);
+  height: var(--s);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--orbit-secondary) 45%, transparent);
+  color: var(--orbit-muted);
+  font-size: 9px;
+}
+.spacingRotulo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: var(--orbit-muted);
+  font-size: var(--orbit-texto-metadata);
+}
+.radii {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.radii > span {
+  display: grid;
+  place-items: center;
+  gap: 2px;
+  width: 76px;
+  height: 76px;
+  border: 1px solid var(--fio);
+  border-radius: var(--r);
+  background: var(--orbit-raised);
+  color: var(--orbit-secondary);
+  font-size: var(--orbit-texto-label);
+  text-align: center;
+}
+.radii small {
+  color: var(--orbit-muted);
+  font-size: 10px;
+}
+/* Elevação: as três superfícies, do fundo ao que flutua. */
+.elevation {
+  display: grid;
+  gap: 8px;
+}
+.elevation > span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--fio);
+  border-radius: var(--orbit-raio-control);
+  color: var(--orbit-secondary);
+  font-size: var(--orbit-texto-label);
+}
+.elevation > span:nth-child(1) {
+  background: var(--orbit-canvas);
+}
+.elevation > span:nth-child(2) {
+  background: var(--orbit-surface);
+}
+.elevation > span:nth-child(3) {
+  background: var(--orbit-raised);
+  box-shadow: var(--orbit-sombra);
+}
+.elevation code {
+  font-family: ui-monospace, monospace;
+  font-size: var(--orbit-texto-metadata);
+  text-transform: uppercase;
+}
+/* Movimento: as duas durações, demonstradas ao passar o rato. */
+.motion {
+  display: grid;
+  gap: 10px;
+}
+.motion > span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--fio);
+  border-radius: var(--orbit-raio-control);
+  background: var(--orbit-raised);
+  color: var(--orbit-secondary);
+  font-size: var(--orbit-texto-label);
+  transform: translateX(0);
+  transition: transform var(--duracao) var(--orbit-suavizacao);
+}
+.motion > span:hover {
+  transform: translateX(12px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .motion > span {
+    transition: none;
+  }
+  .motion > span:hover {
+    transform: none;
+  }
+}
+
+/* ─── Rodapé ───────────────────────────────────────────────────────── */
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 32px;
+  border-top: 1px solid var(--fio);
+  color: var(--orbit-muted);
+  font-size: var(--orbit-texto-label);
+}

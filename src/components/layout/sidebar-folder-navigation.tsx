@@ -20,6 +20,7 @@ import {
   Megaphone,
   Plug,
   ScrollText,
+  Palette,
   Settings,
   ShieldCheck,
   ShoppingBag,
@@ -126,6 +127,7 @@ const groups: PastaDoMenu[] = [
     label: "Sistema",
     items: [
       { title: "Segurança", href: "/seguranca", icon: ShieldCheck },
+      { title: "Design system", href: "/design-system", icon: Palette },
       { title: "Integrações", href: "/integracoes", icon: Plug },
       {
         title: "Qualidade dos dados",

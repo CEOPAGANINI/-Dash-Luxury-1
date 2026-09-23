@@ -42,6 +42,7 @@ describe("navigation folders", () => {
       "Sistema",
       [
         "Segurança",
+        "Design system",
         "Integrações",
         "Qualidade dos dados",
         "Logs",
