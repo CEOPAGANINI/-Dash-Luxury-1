@@ -1999,6 +1999,11 @@ body:has(.dash-skin) .day-neon::before {
 [data-tom="neutral"] {
   --tom: var(--sem-neutral);
 }
+/* "Sem dado" não é um veredito mais brando: é a ausência de veredito.
+   Por isso lê o mesmo cinza de "sem meta", e nunca verde nem âmbar. */
+[data-tom="vazio"] {
+  --tom: var(--sem-neutral);
+}
 
 /* A etiqueta de estado: ponto, ícone e palavra. */
 .visual-overview-state {

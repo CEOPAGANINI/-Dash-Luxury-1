@@ -175,6 +175,10 @@ const ESTADOS = {
   info: { label: "Informativo", icon: Info },
   accent: { label: "Projeção", icon: Sparkles },
   neutral: { label: "Sem meta", icon: Minus },
+  /* O período não teve pedido nem gasto. Não é "saudável" nem "crítico":
+     é não haver o que julgar. Um painel que emite veredito sobre nada
+     apresenta julgamento como se fosse prova. */
+  vazio: { label: "Sem dado", icon: Minus },
 } as const;
 
 type TomEstado = keyof typeof ESTADOS;
@@ -196,6 +200,7 @@ const COR_ESTADO: Record<TomEstado, string> = {
   info: "#c2c2c2",
   accent: "#9e9e9e",
   neutral: "rgba(255,255,255,.45)",
+  vazio: "rgba(255,255,255,.45)",
 };
 
 function Estado({ tom }: { tom: TomEstado }) {
@@ -777,6 +782,19 @@ export function VisualOverview({
     fazer. Enquanto a fonte real não entra, o cartão diz na cara que a
     visita é estimada.
   */
+  /*
+    O período teve alguma coisa a acontecer?
+
+    Sem pedido e sem gasto de mídia não há o que julgar, e todo o veredito
+    desta tela passa a ser "Sem dado". Antes daqui, o painel dizia
+    "Payback 0 compras — Saudável", porque zero compras caía na faixa de
+    "até 1 compra"; e dizia "Receita R$ 0 — Crítico", que é um julgamento
+    sobre a ausência de dado, não sobre o dado.
+  */
+  const periodoSemDado = snapshot.pedidos === 0 && snapshot.gastoMidia === 0;
+  const veredito = (tom: TomEstado): TomEstado =>
+    periodoSemDado ? "vazio" : tom;
+
   const estadoMargem: TomEstado =
     snapshot.caixaRecebido <= 0
       ? "neutral"
@@ -959,23 +977,32 @@ export function VisualOverview({
                       <Info aria-hidden="true" />
                       <span className="sr-only">. {tile.hint}</span>
                     </p>
-                    <Estado tom={tile.estado} />
+                    <Estado tom={veredito(tile.estado)} />
                   </div>
                   <strong title={`${tile.short} — ${tile.hint}`}>
                     {tile.valor}
                   </strong>
-                  <p className={`visual-overview-kpi-delta ${tile.tomDelta}`}>
-                    {/* A seta mostra para onde o número foi; a cor diz se isso é
-                    bom. No payback, cair é uma seta para baixo em verde —
-                    misturar as duas coisas inverteria a leitura. */}
-                    {tile.delta === 0 ? null : tile.delta > 0 ? (
-                      <ArrowUpRight aria-hidden="true" />
-                    ) : (
-                      <ArrowDownRight aria-hidden="true" />
-                    )}
-                    <span>{tile.deltaTexto}</span>
-                    <em title={tile.comparacao}>vs. período anterior</em>
-                  </p>
+                  {periodoSemDado ? (
+                    /* Sem pedido e sem gasto não há o que comparar. Mostrar
+                       "0% vs. período anterior" cinco vezes seguidas é ruído
+                       com aparência de medida. */
+                    <p className="visual-overview-kpi-delta is-neutral">
+                      <span>Sem movimento no período</span>
+                    </p>
+                  ) : (
+                    <p className={`visual-overview-kpi-delta ${tile.tomDelta}`}>
+                      {/* A seta mostra para onde o número foi; a cor diz se isso
+                      é bom. No payback, cair é uma seta para baixo em verde —
+                      misturar as duas coisas inverteria a leitura. */}
+                      {tile.delta === 0 ? null : tile.delta > 0 ? (
+                        <ArrowUpRight aria-hidden="true" />
+                      ) : (
+                        <ArrowDownRight aria-hidden="true" />
+                      )}
+                      <span>{tile.deltaTexto}</span>
+                      <em title={tile.comparacao}>vs. período anterior</em>
+                    </p>
+                  )}
                 </article>
               );
             })}
@@ -997,12 +1024,12 @@ export function VisualOverview({
                       <span>Quanto fica de cada venda</span>
                     </div>
                     <Activity aria-hidden="true" />
-                    <Estado tom={estadoMargem} />
+                    <Estado tom={veredito(estadoMargem)} />
                   </div>
                   <div
                     className="visual-overview-donut"
                     style={{
-                      background: `conic-gradient(${COR_ESTADO[estadoMargem]} 0 ${marginProgress * 100}%, rgba(255,255,255,.08) ${marginProgress * 100}% 100%)`,
+                      background: `conic-gradient(${COR_ESTADO[veredito(estadoMargem)]} 0 ${marginProgress * 100}%, rgba(255,255,255,.08) ${marginProgress * 100}% 100%)`,
                     }}
                     role="img"
                     aria-label={`Margem de contribuição ${percent.format(snapshot.margemContribuicao)}`}
@@ -1086,7 +1113,7 @@ export function VisualOverview({
                       <span>Distribuição do volume</span>
                     </div>
                     <HeartPulse aria-hidden="true" />
-                    <Estado tom={estadoCheckout} />
+                    <Estado tom={veredito(estadoCheckout)} />
                   </div>
                   <div className="visual-overview-health-body">
                     <div
@@ -1271,12 +1298,14 @@ export function VisualOverview({
                         : "visual-overview-delta is-negative"
                     }
                   >
-                    {cashDelta >= 0 ? (
+                    {periodoSemDado ? null : cashDelta >= 0 ? (
                       <ArrowUpRight aria-hidden="true" />
                     ) : (
                       <ArrowDownRight aria-hidden="true" />
                     )}
-                    {deltaLabel(cashDelta)} vs. período anterior
+                    {periodoSemDado
+                      ? "Sem movimento no período"
+                      : `${deltaLabel(cashDelta)} vs. período anterior`}
                   </p>
                 </article>
               </div>
@@ -1485,7 +1514,7 @@ export function VisualOverview({
                       <span>Quanto do alvo já foi feito</span>
                     </div>
                     <Target aria-hidden="true" />
-                    <Estado tom={estadoMeta(metaReceita)} />
+                    <Estado tom={veredito(estadoMeta(metaReceita))} />
                   </div>
 
                   {metaReceita ? (
@@ -1494,7 +1523,7 @@ export function VisualOverview({
                         className="visual-overview-donut"
                         style={{
                           background: `conic-gradient(${
-                            COR_ESTADO[estadoMeta(metaReceita)]
+                            COR_ESTADO[veredito(estadoMeta(metaReceita))]
                           } 0 ${metaReceita.preenchimento * 100}%, rgba(255,255,255,.08) ${
                             metaReceita.preenchimento * 100
                           }% 100%)`,
@@ -1538,7 +1567,7 @@ export function VisualOverview({
                       <span>O que sobra depois de tudo</span>
                     </div>
                     <Target aria-hidden="true" />
-                    <Estado tom={estadoMeta(metaLucro)} />
+                    <Estado tom={veredito(estadoMeta(metaLucro))} />
                   </div>
 
                   {metaLucro ? (
@@ -1547,7 +1576,7 @@ export function VisualOverview({
                         className="visual-overview-donut"
                         style={{
                           background: `conic-gradient(${
-                            COR_ESTADO[estadoMeta(metaLucro)]
+                            COR_ESTADO[veredito(estadoMeta(metaLucro))]
                           } 0 ${metaLucro.preenchimento * 100}%, rgba(255,255,255,.08) ${
                             metaLucro.preenchimento * 100
                           }% 100%)`,
@@ -1694,7 +1723,7 @@ export function VisualOverview({
                       <span>O que ele devolve contra o que custou</span>
                     </div>
                     <Scale aria-hidden="true" />
-                    <Estado tom={estadoLtvCac(clientes.ltvCac)} />
+                    <Estado tom={veredito(estadoLtvCac(clientes.ltvCac))} />
                   </div>
 
                   {clientes.ltvCac !== null ? (
@@ -1763,7 +1792,7 @@ export function VisualOverview({
                       <span>Compras até o cliente se pagar</span>
                     </div>
                     <Repeat aria-hidden="true" />
-                    <Estado tom={estadoPayback(clientes.paybackCompras)} />
+                    <Estado tom={veredito(estadoPayback(clientes.paybackCompras))} />
                   </div>
 
                   {Number.isFinite(clientes.paybackCompras) ? (

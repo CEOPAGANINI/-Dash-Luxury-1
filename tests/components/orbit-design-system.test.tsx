@@ -24,9 +24,9 @@ describe("tokens do Orbit · Nebula", () => {
 
   it("nenhuma cor vai para o CSS como hexadecimal: todas apontam para o Nebula", () => {
     const vars = variaveisDoOrbit();
-    for (const chave of Object.keys(ORBIT_TOKENS.color)) {
+    for (const [chave, token] of Object.entries(ORBIT_TOKENS.color)) {
       const valor = vars[`--orbit-${chave}`];
-      expect(valor).toBe(`var(${ORBIT_TOKENS.color[chave as never].variavel})`);
+      expect(valor).toBe(`var(${token.variavel})`);
       expect(valor).not.toMatch(/#[0-9a-f]{3,8}/i);
     }
   });

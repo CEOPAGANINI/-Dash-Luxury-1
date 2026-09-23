@@ -28,7 +28,7 @@ Contraste medido no pixel real do screenshot de cada elemento, não no CSS.
 |---|---|---|---|---|---|
 | ✅ P0 | Defeito | Etiqueta e filtro escolhido sem contraste | `/calculadora`: botão "Todas as redes" a **1,07:1**; etiquetas "nota 15"/"Pausar" a **1,16:1** em 4 dos 12 cartões. `/clientes`: chip "Risco" do segmento e 2 linhas da tabela, **1,16:1** | O estado de alerta é o único ilegível | Corrigir a variante destrutiva do `Badge` e o estado escolhido do botão nos próprios componentes, com os tokens do Nebula — não página a página |
 | P1 | Defeito | Gráfico desenhado por cima de zero | `/dashboard`: **488px mortos** dentro de cartões de 596px (rosca "Margem" a 0%, anel "Saúde dos pagamentos", 4 barras a zero). `/calculadora`: **839px mortos** num cartão de 1424px | O olho procura dado numa forma feita para ter dado | Trocar o gráfico por um estado vazio de uma linha, na altura natural do cartão; não esticar o cartão para acompanhar o vizinho |
-| P1 | Slop | Veredito inventado sobre zero | `/dashboard`: "Receita líquida R$ 0 — Crítico", "Payback 0 compras — **Saudável**", "Lucro final R$ 0 — Atenção", e "0% vs. período anterior" cinco vezes | Apresenta julgamento como prova quando não há prova; "0 compras = saudável" contradiz-se | Esconder o selo de veredito e a linha de comparação quando o período não tem dado |
+| ✅ P1 | Slop | Veredito inventado sobre zero | `/dashboard`: "Receita líquida R$ 0 — Crítico", "Payback 0 compras — **Saudável**", "Lucro final R$ 0 — Atenção", e "0% vs. período anterior" cinco vezes | Apresenta julgamento como prova quando não há prova; "0 compras = saudável" contradiz-se | Esconder o selo de veredito e a linha de comparação quando o período não tem dado |
 | P1 | Defeito | Dois `h1` na mesma página | `/campanhas/calculadora` ("Calculadora" + "Calculadora de campanhas"); `/dashboard/trafego` | Quem usa leitor de tela recebe dois títulos de página | A migalha de pão passa a `span` |
 | P2 | Slop | Aviso de "sem dados" em duplicado | `/clientes`: faixa amarela + pílula "Demonstração — sem banco". `/calculadora`: faixa + "Demonstração interativa · dados fictícios…" | Mesma mensagem duas vezes; e a faixa fala de `.env` e `docs/DEPLOY.md` dentro do produto | Ficar com um; tirar os caminhos de ficheiro da faixa do utilizador |
 | P2 | Slop | Ícone decorativo no cabeçalho de cada cartão | `/dashboard`: "Visão geral da operação", "Margem", "Composição financeira", "Saúde dos pagamentos" — quatro quadradinhos arredondados intercambiáveis | Quatro ornamentos iguais competem com quatro títulos diferentes | Remover: o teste da remoção não perde nada |
@@ -95,3 +95,26 @@ a cor que mais se repete na foto do elemento é o fundo, por definição.
 `OK 1656 · FALHA 0 · ERROS 0` em 10 rotas × 2 temas. Guarda de regressão em
 `tests/unit/contraste-nebula.test.ts`, que refaz a conta a partir dos próprios
 tokens do CSS.
+
+
+## Passagem de correção — veredito sobre zero
+
+`estadoPayback(0)` devolvia `success`, porque zero cai na faixa de "até 1
+compra". Mas zero compras até o cliente se pagar quer dizer que não houve
+compra nenhuma, e não que ele se pagou à primeira. O mesmo com a receita:
+`R$ 0 — Crítico` é um veredito sobre a ausência de dado.
+
+Entrou um estado novo, `vazio` ("Sem dado"), que lê o mesmo cinza de "sem
+meta" e nunca verde nem âmbar, e um sinal único:
+
+```ts
+const periodoSemDado = snapshot.pedidos === 0 && snapshot.gastoMidia === 0;
+const veredito = (tom: TomEstado): TomEstado => (periodoSemDado ? "vazio" : tom);
+```
+
+Os dez vereditos de desempenho da tela passam por esse filtro. Os rótulos
+puramente informativos (`info`, `accent`) ficaram como estavam: não julgam
+nada. A linha "0% vs. período anterior", repetida cinco vezes sobre zero,
+deu lugar a "Sem movimento no período".
+
+Guarda de regressão em `tests/components/painel-sem-dado.test.tsx`.
