@@ -34,32 +34,59 @@ function pct(valor: number) {
   return `${valor.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`;
 }
 
+/**
+  O tom é para quando a cor é um veredito — margem boa ou má — e não a
+  identidade de uma série. Vem dos semáforos do painel, os mesmos que as
+  etiquetas de estado já usam.
+*/
+export type Tom = "positivo" | "negativo" | "atencao" | "informativo" | "neutro";
+
+const COR_DO_TOM: Record<Tom, string> = {
+  positivo: "var(--success)",
+  negativo: "var(--destructive)",
+  atencao: "var(--warning)",
+  informativo: "var(--info)",
+  neutro: "var(--foreground)",
+};
+
 export type Fatia = {
   chave: string;
   nome: string;
   valor: number;
   /** Fixa a série; sem isto, sai na ordem da lista. */
   serie?: Serie;
+  /** Pinta pelo significado em vez da série. Ganha à série se vierem os dois. */
+  tom?: Tom;
   /** O que aparece na legenda no lugar do número cru. */
   texto?: string;
 };
 
-function comFatias(fatias: Fatia[]) {
+function comFatias(fatias: Fatia[], total?: number) {
   const soma = fatias.reduce((s, f) => s + Math.max(0, f.valor), 0);
+  /*
+    Sobre o quê se mede.
+
+    Sem total, as fatias SÃO o todo: dividem-se pela própria soma, e o
+    trilho fica cheio. Com total, são parte de algo maior — 3 de 7
+    conexões, 64 de 100 de margem — e o que falta até ao total fica como
+    trilho vazio. Antes deste parâmetro, uma fatia sozinha dava sempre
+    100%: 3 de 7 enchia a barra inteira.
+  */
+  const base = total !== undefined && total > 0 ? Math.max(total, soma) : soma;
   const partes = fatias.map((f, i) => ({
     ...f,
-    cor: corDaSerie(f.serie, i),
-    parte: porcentagem(f.valor, soma),
+    cor: f.tom ? COR_DO_TOM[f.tom] : corDaSerie(f.serie, i),
+    parte: porcentagem(f.valor, base),
   }));
   /*
-    A última fatia absorve o arredondamento.
-
-    Arredondar cada uma por si dá somas como 100,1% — e numa fila de
-    pedaços lado a lado isso empurra o último para fora do trilho. Quem
-    fecha a conta é o último pedaço com valor, e não a soma de todos.
+    A última fatia absorve o arredondamento — mas só quando as fatias
+    fecham o todo. Arredondar cada uma por si dá somas como 100,1%, e
+    numa fila de pedaços lado a lado isso empurra o último para fora do
+    trilho. Quando há um resto de trilho, não há conta a fechar.
   */
+  const fechaOTodo = soma > 0 && soma >= base;
   const ultimo = partes.map((p) => p.parte > 0).lastIndexOf(true);
-  if (ultimo >= 0) {
+  if (fechaOTodo && ultimo >= 0) {
     const resto = partes.reduce(
       (s, p, i) => (i === ultimo ? s : s + p.parte),
       0,
@@ -73,29 +100,35 @@ function comFatias(fatias: Fatia[]) {
 
 export function Barra({
   nome,
-  total,
+  destaque,
   fatias,
+  total,
   legenda = true,
   className,
 }: {
   nome: string;
   /** O número grande ao lado do nome. */
-  total?: string;
+  destaque?: string;
   fatias: Fatia[];
+  /** O todo de que as fatias são parte. Sem ele, as fatias são o todo. */
+  total?: number;
   legenda?: boolean;
   className?: string;
 }) {
-  const partes = comFatias(fatias);
+  const partes = comFatias(fatias, total);
   const vazia = partes.every((p) => p.parte === 0);
+  const ocupado = partes.reduce((s, p) => s + p.parte, 0);
 
   return (
     <div className={className ? `${styles.barra} ${className}` : styles.barra}>
       <div className={styles.barraTopo}>
         <span className={styles.barraNome}>{nome}</span>
-        {total && <b className={styles.barraValor}>{total}</b>}
+        {destaque && <b className={styles.barraValor}>{destaque}</b>}
       </div>
       <div
-        className={vazia ? `${styles.trilho} ${styles.vazia}` : styles.trilho}
+        className={
+          vazia || ocupado < 100 ? `${styles.trilho} ${styles.vazia}` : styles.trilho
+        }
         role="img"
         aria-label={
           vazia
@@ -146,6 +179,7 @@ export function Barra({
 export function Rosca({
   nome,
   fatias,
+  total,
   centro,
   nota,
   tamanho,
@@ -154,6 +188,8 @@ export function Rosca({
 }: {
   nome: string;
   fatias: Fatia[];
+  /** O todo de que as fatias são parte. Sem ele, as fatias são o todo. */
+  total?: number;
   /** O que fica no meio: um número, uma porcentagem, o que for. */
   centro: string;
   nota?: string;
@@ -161,7 +197,7 @@ export function Rosca({
   legenda?: boolean;
   className?: string;
 }) {
-  const partes = comFatias(fatias);
+  const partes = comFatias(fatias, total);
   /*
     O conic-gradient é escrito por acumulação: cada fatia começa onde a
     anterior acabou. O que sobra até 100% fica com o trilho — é o buraco

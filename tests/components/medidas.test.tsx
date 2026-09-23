@@ -80,6 +80,94 @@ describe("Barra", () => {
   });
 });
 
+describe("Barra com total", () => {
+  /* O bug que este bloco guarda: sem "total", uma fatia sozinha era
+     sempre 100%, e 3 de 7 conexões enchia a barra inteira. */
+  it("3 de 7 enche 42,9%, e não a barra inteira", () => {
+    const { container } = render(
+      <Barra
+        nome="Conexões"
+        total={7}
+        fatias={[{ chave: "c", nome: "Conectadas", valor: 3 }]}
+      />,
+    );
+    const w = container.querySelector<HTMLElement>("[style*='width']")!.style.width;
+    expect(w).toBe("42.9%");
+  });
+
+  it("o que falta até ao total fica como trilho vazio", () => {
+    const { container } = render(
+      <Barra
+        nome="Conexões"
+        total={7}
+        fatias={[{ chave: "c", nome: "Conectadas", valor: 3 }]}
+      />,
+    );
+    const trilho = container.querySelector("[role='img']")!;
+    expect(trilho.className).toMatch(/vazia/);
+  });
+
+  it("com resto de trilho, a última fatia não é esticada para fechar a conta", () => {
+    const { container } = render(
+      <Barra
+        nome="Verba"
+        total={100}
+        fatias={[
+          { chave: "a", nome: "Meta", valor: 33.33 },
+          { chave: "b", nome: "Google", valor: 33.33 },
+        ]}
+      />,
+    );
+    const larguras = [
+      ...container.querySelectorAll<HTMLElement>("[style*='width']"),
+    ].map((e) => parseFloat(e.style.width));
+    expect(larguras).toEqual([33.3, 33.3]);
+  });
+
+  it("um valor acima do total não rebenta o trilho", () => {
+    const { container } = render(
+      <Barra
+        nome="Meta"
+        total={100}
+        fatias={[{ chave: "a", nome: "Atingido", valor: 140 }]}
+      />,
+    );
+    const w = container.querySelector<HTMLElement>("[style*='width']")!.style.width;
+    expect(w).toBe("100%");
+  });
+
+  it("o tom pinta pelo significado, e ganha à série", () => {
+    const { container } = render(
+      <Barra
+        nome="Margem"
+        total={100}
+        fatias={[{ chave: "m", nome: "Margem", valor: 20, serie: 3, tom: "negativo" }]}
+      />,
+    );
+    const cor = container
+      .querySelector<HTMLElement>("[style*='--cor']")!
+      .style.getPropertyValue("--cor");
+    expect(cor).toBe("var(--destructive)");
+  });
+});
+
+describe("Rosca com total", () => {
+  it("uma margem de 64% pinta 64% do anel, e o resto é trilho", () => {
+    const { container } = render(
+      <Rosca
+        nome="Margem"
+        centro="64%"
+        total={100}
+        fatias={[{ chave: "m", nome: "Margem", valor: 64, tom: "positivo" }]}
+      />,
+    );
+    const f = container
+      .querySelector<HTMLElement>("[style*='--fatias']")!
+      .style.getPropertyValue("--fatias");
+    expect(f).toBe("var(--success) 0% 64%, var(--trilho) 64% 100%");
+  });
+});
+
 describe("Rosca", () => {
   it("escreve as fatias por acumulação, e o resto fica com o trilho", () => {
     const { container } = render(
