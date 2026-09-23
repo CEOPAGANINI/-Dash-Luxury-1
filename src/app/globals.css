@@ -6133,8 +6133,13 @@ html[data-tema="branco"] .dash-skin :is(input, textarea)::placeholder { color: #
    borda e sombra e o ícone fica no mesmo lugar, na cor do texto em volta.
    Fica de fora o que está selecionado (estado) e o que é redondo (avatar,
    bolinha de estado).
+
+   Vale só para a pele legada. Qualquer pele com nome — Nebula, Orbit —
+   decide isto por si: a regra apanha `:has(> svg:only-child)`, que é
+   exactamente a forma da marca do produto (um quadrado com um raio
+   dentro), e apagava-lhe o fundo sem que nada o pedisse.
    ===================================================================== */
-.dash-skin:not([data-design-system="nebula"]) :is(div, span, a, button, label):not([aria-pressed="true"]):not([aria-checked="true"]):not([aria-selected="true"]):not([aria-current]):not(.is-active):not(.rounded-full):has(> svg:only-child) {
+.dash-skin:not([data-design-system]) :is(div, span, a, button, label):not([aria-pressed="true"]):not([aria-checked="true"]):not([aria-selected="true"]):not([aria-current]):not(.is-active):not(.rounded-full):has(> svg:only-child) {
   background: transparent !important;
   background-image: none !important;
   border-color: transparent !important;

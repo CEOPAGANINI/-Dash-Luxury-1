@@ -1,0 +1,405 @@
+/*
+  Orbit · PicGen — a pele do dashboard.
+
+  União de dois sistemas que o usuário trouxe:
+
+  - do **Orbit** (tokens.json + design-system.md) vem a ESTRUTURA: as
+    superfícies grafite em quatro degraus, a escala de tipos
+    48/28/16/14/12, o respiro de base 4, os raios com nome (etiqueta 6,
+    controlo 10, bloco 16) e o movimento de 150/250 ms com ease-out;
+  - do **PicGen** (a gravação do produto) vem a PELE: o preto #0D0D0D
+    contra o branco #FFFFFF, o canvas de pontinhos, os blocos com painel
+    interno mais escuro, o brilho colorido no que está escolhido, e as
+    três cores de acento com os seus hexadecimais exactos —
+    #6DB5FF, #FEFA3D, #FF5DE7.
+
+  Onde os dois discordavam, a regra foi: o papel vem do Orbit, o valor vem
+  do PicGen. Orbit chamava "model", "image" e "generator" a três cores
+  suas; o PicGen mostra exactamente três acentos. São os mesmos três
+  papéis, agora com a cor que o produto de facto usa.
+
+  Esta folha entra depois do globals.css e da pele Nebula, e sobrescreve
+  os mesmos tokens que elas já definem — nenhum componente precisou de
+  mudar para adoptá-la.
+*/
+
+body:has(.dash-skin[data-design-system="orbit"]),
+body:has(.dash-skin[data-design-system="orbit"]) .dash-skin {
+  /* ── As superfícies, do fundo ao que flutua ───────────────────────── */
+  --orb-canvas: #0d0d0d;
+  --orb-canvas-2: #111214;
+  --orb-surface: #202123;
+  --orb-raised: #292a2d;
+  --orb-raised-2: #313236;
+  --orb-input: #161719;
+  --orb-line: #36373a;
+  --orb-line-forte: #45464a;
+
+  /* ── O texto, em três forças ──────────────────────────────────────── */
+  --orb-text: #f1f1f3;
+  --orb-secondary: #a2a3aa;
+  --orb-muted: #787981;
+
+  /* ── As cores com significado ─────────────────────────────────────── */
+  /* Verde: a porta boa, e o botão Generate do PicGen. */
+  --orb-positive: #78f5ab;
+  /* Vermelho: a porta negativa, e o erro. */
+  --orb-negative: #fb747e;
+  /* Os três acentos do PicGen, nos papéis que o Orbit lhes deu. */
+  --orb-modelo: #fefa3d;
+  --orb-imagem: #6db5ff;
+  --orb-gerador: #ff5de7;
+  --orb-atencao: #fefa3d;
+
+  /* ── A ação principal: branco sólido, como o "Share" do PicGen ────── */
+  --orb-acento: #ffffff;
+  --orb-acento-texto: #0d0d0d;
+
+  /* ── Raios, com os nomes do Orbit ─────────────────────────────────── */
+  --orb-raio-etiqueta: 6px;
+  --orb-raio-controlo: 10px;
+  --orb-raio-bloco: 16px;
+  --orb-raio-painel: 24px;
+
+  /* ── Movimento ────────────────────────────────────────────────────── */
+  --orb-rapido: 150ms;
+  --orb-normal: 250ms;
+  --orb-suave: ease-out;
+
+  /* ── O canvas de pontinhos, a assinatura do PicGen ────────────────── */
+  --orb-pontos: radial-gradient(
+    circle at 1px 1px,
+    rgb(255 255 255 / 9%) 1px,
+    transparent 0
+  );
+  --orb-pontos-passo: 24px 24px;
+  --orb-sombra: 0 18px 48px rgb(0 0 0 / 55%);
+
+  /*
+    Ponte para a pele anterior.
+
+    Há regras de CSS escritas com os nomes do Nebula que não estão presas
+    ao seletor dele — a divisória do cabeçalho é uma. Sem estes apelidos
+    elas resolveriam para nada e o elemento desaparecia. Apontam todas
+    para o token equivalente desta pele; não há aqui nenhum valor novo.
+  */
+  --nebula-bg: var(--orb-canvas);
+  --nebula-bg-2: var(--orb-canvas-2);
+  --nebula-panel: var(--orb-surface);
+  --nebula-panel-2: var(--orb-raised);
+  --nebula-text: var(--orb-text);
+  --nebula-muted: var(--orb-secondary);
+  --nebula-faint: var(--orb-muted);
+  --nebula-line: var(--orb-line);
+  --nebula-line-strong: var(--orb-line-forte);
+  --nebula-accent: var(--orb-acento);
+  --nebula-accent-2: var(--orb-secondary);
+  --nebula-cyan: var(--orb-imagem);
+  --nebula-positive: var(--orb-positive);
+  --nebula-negative: var(--orb-negative);
+  --nebula-selected: var(--orb-acento);
+  --nebula-selected-bg: rgb(255 255 255 / 10%);
+  --nebula-shadow: var(--orb-sombra);
+  --nebula-radius: var(--orb-raio-bloco);
+  --nebula-radius-lg: var(--orb-raio-painel);
+  --nebula-control-radius: var(--orb-raio-controlo);
+
+  /* ══ Daqui para baixo: os tokens que o app já consome ══════════════ */
+  --font-display: var(--font-outfit), var(--font-inter), system-ui, sans-serif;
+  --font-montserrat: var(--font-outfit);
+  --radius: 0.625rem; /* controlo: 10px */
+  --radius-card: 1rem; /* bloco: 16px */
+  --radius-panel: 1.5rem; /* painel: 24px */
+
+  /* Escala de tipos do Orbit: 12 · 14 · 16 · 28 · 48 */
+  --text-caption: 0.75rem;
+  --text-body: 0.875rem;
+  --text-card-title: 1rem;
+  --text-section-title: clamp(1.125rem, 1.5vw, 1.75rem);
+  --text-page-title: clamp(1.5rem, 2.5vw, 2rem);
+  --text-stat: clamp(1.5rem, 2.5vw, 2.125rem);
+
+  --camada-0: var(--orb-canvas);
+  --camada-1: var(--orb-surface);
+  --camada-2: var(--orb-raised);
+  --camada-3: var(--orb-raised-2);
+  --camada-4: #3a3b40;
+  --botao: var(--orb-raised);
+  --botao-hover: var(--orb-raised-2);
+  --fio: var(--orb-line);
+  --fio-forte: var(--orb-line-forte);
+  --selecionado: rgb(255 255 255 / 10%);
+  --selecionado-texto: #ffffff;
+  --veu: var(--orb-canvas-2);
+  --material: none;
+  --material-hover: none;
+  --material-sombra: inset 0 0 0 1px var(--orb-line);
+  --vidro-brilho: none;
+  --vidro-pontos: none;
+  --vidro-sombra: inset 0 0 0 1px var(--orb-line), var(--orb-sombra);
+  --brilho: var(--orb-acento);
+  --brilho-texto: #ffffff;
+  --dash-shadow-card: inset 0 0 0 1px var(--orb-line);
+  --dash-shadow-control: inset 0 0 0 1px var(--orb-line);
+  --dash-shadow-inset: inset 0 0 0 1px var(--orb-line);
+  --dash-surface-base: var(--orb-canvas);
+  --dash-surface-card: var(--orb-surface);
+  --dash-surface-control: var(--orb-raised);
+  --dash-surface-hover: var(--orb-raised-2);
+  --dash-surface-overlay: var(--orb-raised);
+  --dash-surface-structure: var(--orb-canvas-2);
+
+  --background: var(--orb-canvas);
+  --foreground: var(--orb-text);
+  --card: var(--orb-surface);
+  --card-foreground: var(--orb-text);
+  --popover: var(--orb-raised);
+  --popover-foreground: var(--orb-text);
+  --primary: var(--orb-acento);
+  --primary-foreground: var(--orb-acento-texto);
+  --secondary: var(--orb-raised);
+  --secondary-foreground: var(--orb-text);
+  --muted: var(--orb-raised);
+  --muted-foreground: var(--orb-secondary);
+  --accent: rgb(255 255 255 / 10%);
+  --accent-foreground: #ffffff;
+  --border: var(--orb-line);
+  --input: var(--orb-line-forte);
+  --ring: var(--orb-imagem);
+  --success: var(--orb-positive);
+  --success-foreground: #04241a;
+  --warning: var(--orb-atencao);
+  --warning-foreground: #2a2600;
+  --destructive: var(--orb-negative);
+  --destructive-foreground: #33070f;
+  --info: var(--orb-imagem);
+  --info-foreground: #04203a;
+
+  /* Os semáforos que o painel já lê por nome. */
+  --sem-success: var(--orb-positive);
+  --sem-warning: var(--orb-atencao);
+  --sem-error: var(--orb-negative);
+  --sem-info: var(--orb-imagem);
+  --sem-accent: var(--orb-gerador);
+  --sem-neutral: var(--orb-muted);
+
+  /* Gráficos genéricos: monocromáticos, para a cor continuar a querer
+     dizer só uma coisa. As séries com legenda própria não passam aqui. */
+  --chart-1: #f1f1f3;
+  --chart-2: #c9cacf;
+  --chart-3: #a2a3aa;
+  --chart-4: #87888f;
+  --chart-5: #6b6c73;
+  --traffic-funnel-from: var(--orb-text);
+  --traffic-funnel-to: var(--orb-muted);
+  --glass-fill: var(--orb-surface);
+  --glass-border: var(--orb-line);
+  --glass-shadow: var(--orb-sombra);
+
+  color-scheme: dark;
+  color: var(--orb-text);
+  background: var(--orb-canvas);
+  font-family: var(--font-outfit), var(--font-inter), system-ui, sans-serif;
+  letter-spacing: -0.01em;
+}
+
+/*
+  O tema claro. O PicGen mostra o preto e o branco como par, e é isso que
+  esta inversão faz. As cores com significado ficam mais escuras do que no
+  tema escuro de propósito: as do escuro são claras, e texto claro sobre
+  fundo claro não se lê. Os valores passam 4,5:1 em todas as superfícies
+  onde de facto assentam — medido, não estimado.
+*/
+html[data-tema="branco"] body:has(.dash-skin[data-design-system="orbit"]),
+html[data-tema="branco"]
+  body:has(.dash-skin[data-design-system="orbit"])
+  .dash-skin {
+  --orb-canvas: #f4f4f5;
+  --orb-canvas-2: #ececee;
+  --orb-surface: #ffffff;
+  --orb-raised: #f1f1f3;
+  --orb-raised-2: #e6e6e9;
+  --orb-input: #f7f7f8;
+  --orb-line: #dedee2;
+  --orb-line-forte: #c6c6cc;
+  --orb-text: #131416;
+  --orb-secondary: #56575d;
+  --orb-muted: #6b6c73;
+  --orb-positive: #076d47;
+  --orb-negative: #b42545;
+  --orb-modelo: #7a5a00;
+  --orb-imagem: #0b5aa8;
+  --orb-gerador: #a31490;
+  --orb-atencao: #7a5a00;
+  --orb-acento: #131416;
+  --orb-acento-texto: #ffffff;
+  --orb-pontos: radial-gradient(
+    circle at 1px 1px,
+    rgb(0 0 0 / 9%) 1px,
+    transparent 0
+  );
+  --orb-sombra: 0 14px 36px rgb(0 0 0 / 8%);
+  --camada-4: #d8d8dd;
+  --nebula-selected-bg: rgb(0 0 0 / 7%);
+  --selecionado: rgb(0 0 0 / 7%);
+  --selecionado-texto: #131416;
+  --accent: rgb(0 0 0 / 7%);
+  --accent-foreground: #131416;
+  --success-foreground: #ffffff;
+  --warning-foreground: #ffffff;
+  --destructive-foreground: #ffffff;
+  --info-foreground: #ffffff;
+  --chart-1: #131416;
+  --chart-2: #3c3d42;
+  --chart-3: #56575d;
+  --chart-4: #7b7c83;
+  --chart-5: #9a9ba1;
+  color-scheme: light;
+}
+
+/* ══ A assinatura do PicGen ═════════════════════════════════════════ */
+
+/* O canvas de pontinhos. Fica só no fundo da área de trabalho: pôr o
+   ponteado também dentro dos blocos daria textura sobre textura, que é
+   ruído, e não profundidade. */
+body:has(.dash-skin[data-design-system="orbit"]) .dash-skin {
+  background-color: var(--orb-canvas);
+  background-image: var(--orb-pontos);
+  background-size: var(--orb-pontos-passo);
+  background-attachment: fixed;
+}
+body:has(.dash-skin[data-design-system="orbit"])
+  .dash-skin
+  :is([data-slot="card"], .dash-sidebar, .dash-band, [data-slot="popover-content"], [data-slot="dropdown-menu-content"]) {
+  background-image: none;
+}
+
+/* Os blocos são nós: raio de 16, uma linha fina em vez de sombra pesada,
+   e o painel interno um degrau mais claro do que a casca. */
+body:has(.dash-skin[data-design-system="orbit"])
+  .dash-skin
+  [data-slot="card"] {
+  border-radius: var(--orb-raio-bloco);
+  border-color: var(--orb-line);
+  box-shadow: var(--orb-sombra);
+}
+
+/* Os controlos são pílulas, como a barra de cima do PicGen. */
+body:has(.dash-skin[data-design-system="orbit"])
+  .dash-skin
+  :is([data-slot="button"], [data-slot="select-trigger"], select, textarea),
+body:has(.dash-skin[data-design-system="orbit"])
+  .dash-skin
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]) {
+  border-radius: var(--orb-raio-controlo) !important;
+  background: var(--orb-raised) !important;
+  border-color: var(--orb-line) !important;
+  box-shadow: inset 0 0 0 1px var(--orb-line) !important;
+  color: var(--orb-text);
+  font-family: var(--font-outfit), var(--font-inter), system-ui, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition:
+    background var(--orb-rapido) var(--orb-suave),
+    box-shadow var(--orb-rapido) var(--orb-suave);
+}
+/* As variantes mandam no fundo E na cor, sempre em par. Separá-las foi o
+   que, na pele anterior, fez o selo de alerta ficar preto sobre preto. */
+body:has(.dash-skin[data-design-system="orbit"])
+  .dash-skin
+  [data-slot="button"][class*="bg-primary"] {
+  background: var(--orb-acento) !important;
+  color: var(--orb-acento-texto) !important;
+}
+body:has(.dash-skin[data-design-system="orbit"])
+  .dash-skin
+  [data-slot="button"][class*="bg-destructive"] {
+  background: var(--orb-negative) !important;
+  color: var(--destructive-foreground) !important;
+}
+body:has(.dash-skin[data-design-system="orbit"])
+  .dash-skin
+  [data-slot="button"][class*="bg-success"] {
+  background: var(--orb-positive) !important;
+  color: var(--success-foreground) !important;
+}
+
+/* O que está escolhido acende, como o nó seleccionado do PicGen. Um anel
+   fino da cor e um halo curto — nunca um fundo chapado, que apagaria o
+   texto. */
+body:has(.dash-skin[data-design-system="orbit"])
+  .dash-skin
+  :is(
+    [aria-current="page"],
+    [aria-selected="true"],
+    .is-active,
+    .is-current
+  ):not(.class-board-semaforo *):not([role="option"]) {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--orb-acento) 55%, transparent),
+    0 0 18px color-mix(in srgb, var(--orb-acento) 14%, transparent);
+}
+
+/* A marca é sólida, como o botão "Share" do PicGen: branco no escuro,
+   preto no claro. A pele legada pintava qualquer .bg-primary com a camada
+   4 e apagava a identidade. */
+body:has(.dash-skin[data-design-system="orbit"]) .dash-skin .bg-primary {
+  background: var(--orb-acento) !important;
+  color: var(--orb-acento-texto) !important;
+}
+
+/* As etiquetas são tags de 6px, o raio mais pequeno do Orbit. */
+body:has(.dash-skin[data-design-system="orbit"])
+  .dash-skin
+  [data-slot="badge"] {
+  border-radius: var(--orb-raio-etiqueta) !important;
+  font-family: var(--font-outfit), var(--font-inter), system-ui, sans-serif;
+}
+
+/* A marca: quadrado sólido com o raio de controlo, como o botão "Share"
+   do PicGen. O símbolo herda a cor de contraste do quadrado. */
+body:has(.dash-skin[data-design-system="orbit"])
+  .dash-skin
+  :is(.nebula-brand, .dash-sidebar-cabecalho)
+  :is(.bg-primary, .nebula-brand-mark) {
+  border-radius: var(--orb-raio-controlo) !important;
+  background: var(--orb-acento) !important;
+  color: var(--orb-acento-texto) !important;
+}
+body:has(.dash-skin[data-design-system="orbit"])
+  .dash-skin
+  :is(.nebula-brand, .dash-sidebar-cabecalho)
+  :is(.bg-primary, .nebula-brand-mark)
+  > svg {
+  color: var(--orb-acento-texto) !important;
+}
+
+/* O nome da página, ao lado da marca, é apoio e não título. */
+body:has(.dash-skin[data-design-system="orbit"])
+  .dash-skin
+  .nebula-header-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--orb-secondary);
+}
+
+/* O respiro da área de trabalho, na escala de base 4 do Orbit. */
+body:has(.dash-skin[data-design-system="orbit"]) .dash-skin .dash-main {
+  padding: clamp(16px, 2.2vw, 32px);
+}
+
+/* Foco visível de teclado, na cor da porta "imagem". */
+body:has(.dash-skin[data-design-system="orbit"]) .dash-skin *:focus-visible {
+  outline: 2px solid var(--orb-imagem);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body:has(.dash-skin[data-design-system="orbit"]) *,
+  body:has(.dash-skin[data-design-system="orbit"]) *::before,
+  body:has(.dash-skin[data-design-system="orbit"]) *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

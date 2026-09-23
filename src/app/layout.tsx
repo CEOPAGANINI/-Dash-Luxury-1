@@ -1,19 +1,28 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono, Montserrat } from "next/font/google";
+import { Inter, JetBrains_Mono, Montserrat, Outfit } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
 import { brand } from "@/lib/brand";
 import "./globals.css";
 import "./nebula-dashboard.css";
+import "./orbit-dashboard.css";
 
 /*
   Sistema de fontes em três papéis:
-  - Montserrat (display): títulos e identidade da marca;
+  - Outfit (display): a fonte do PicGen — títulos, menus e controlos;
+  - Montserrat (display legado): usada pelas peles anteriores;
   - Inter (interface/dados): textos, controles, tabelas e números;
   - JetBrains Mono (técnica): IDs, códigos e timestamps copiáveis.
 */
 const montserrat = Montserrat({
   variable: "--font-montserrat",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+/* A fonte que o PicGen mostra por extenso na sua folha de estilo. */
+const outfit = Outfit({
+  variable: "--font-outfit",
   subsets: ["latin"],
   display: "swap",
 });
@@ -47,7 +56,7 @@ export default function RootLayout({
     <html
       lang="pt-BR"
       suppressHydrationWarning
-      className={`${montserrat.variable} ${inter.variable} ${jetbrainsMono.variable} h-full`}
+      className={`${outfit.variable} ${montserrat.variable} ${inter.variable} ${jetbrainsMono.variable} h-full`}
     >
       <body className="min-h-full flex flex-col">
         {/* Dois temas: preto (padrão) e branco com preto. O escolhido fica
