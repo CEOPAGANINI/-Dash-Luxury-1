@@ -318,9 +318,16 @@
   gap: 10px;
 }
 /*
-  A fila é um buraco: um vão escavado no cartão, fundo e escuro, como as
-  vagas livres dos pilares do quadro. É o contraste com o fundo branco
-  que diz "isto aqui é para mexer" sem precisar de escrever nada.
+  A fila é um soquete, e cada linha é uma lâmpada.
+
+  A receita é a mesma do semáforo da campanha, que é onde ela já existia
+  neste dashboard: um buraco escuro com sombra por dentro — borda de
+  cima escura, fio de luz em baixo — e, dentro dele, a luz. Apagada, a
+  cor quase preta, sem brilho; acesa, a cor cheia com o miolo mais claro
+  e o brilho a sair do buraco em três camadas.
+
+  É o contraste com o branco em volta que diz "isto aqui é para mexer",
+  sem precisar de o escrever.
 */
 .placementRows {
   display: grid;
@@ -328,10 +335,17 @@
   min-width: 0;
   padding: 6px;
   border-radius: 12px;
-  background: #0b1020;
+  background: radial-gradient(
+    120% 100% at 50% 0%,
+    #0f1526 0%,
+    #080c18 60%,
+    #05080f 100%
+  );
   box-shadow:
-    inset 0 2px 12px rgb(0 0 0 / 60%),
-    inset 0 0 0 1px rgb(255 255 255 / 7%);
+    inset 0 2px 4px rgb(0 0 0 / 85%),
+    inset 0 -1px 0 rgb(255 255 255 / 10%),
+    inset 0 0 22px rgb(0 0 0 / 70%),
+    0 1px 0 rgb(255 255 255 / 6%);
 }
 /* Cada linha: o selo, o nome, quantas vendeu e a fatia. É o suficiente
    para escolher qual olhar; o resto vem no painel de baixo. */
@@ -359,19 +373,29 @@
   color: #fff;
 }
 /*
-  O escolhido acende em neon, na cor da plataforma: tubo com aresta
-  luminosa por dentro e brilho à volta, a mesma receita das faixas do
-  quadro. O selector é longo porque a pele do dashboard pinta qualquer
-  aba escolhida de preto liso, com !important — entre dois !important
-  quem manda é a especificidade.
+  A linha acesa: a cor cheia com o miolo mais claro em cima, a aresta
+  luminosa e o brilho a sair do buraco em três camadas — 4px, 9px e
+  16px —, exatamente como a lâmpada do semáforo. É isso que a faz
+  parecer acesa dentro do soquete, e não pintada por cima dele.
+
+  O selector é longo porque a pele do dashboard pinta qualquer aba
+  escolhida de preto liso, com !important: entre dois !important quem
+  manda é a especificidade.
 */
 .section .placementRows .placementRow[aria-selected="true"] {
-  background: color-mix(in srgb, var(--neon) 20%, transparent) !important;
+  background: radial-gradient(
+    120% 160% at 40% 0%,
+    color-mix(in srgb, var(--neon) 42%, #ffffff) 0%,
+    color-mix(in srgb, var(--neon) 34%, transparent) 45%,
+    color-mix(in srgb, var(--neon) 16%, transparent) 100%
+  ) !important;
   color: #fff !important;
   box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--neon) 70%, #ffffff),
-    inset 0 0 16px color-mix(in srgb, var(--neon) 34%, transparent),
-    0 0 10px color-mix(in srgb, var(--neon) 55%, transparent);
+    inset 0 0 0 1px color-mix(in srgb, var(--neon) 78%, #ffffff),
+    inset 0 1px 0 color-mix(in srgb, var(--neon) 45%, #ffffff),
+    0 0 4px var(--neon),
+    0 0 9px color-mix(in srgb, var(--neon) 70%, transparent),
+    0 0 16px color-mix(in srgb, var(--neon) 35%, transparent);
 }
 .section .placementRows .placementRow:focus-visible {
   outline: 2px solid #fff;
