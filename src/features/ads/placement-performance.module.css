@@ -19,12 +19,19 @@
 }
 
 /*
-  No desktop a grade corre na horizontal e as colunas repartem entre si
-  toda a largura: minmax(320px, 1fr). O mínimo é o que faz a grade rolar
-  de lado quando há mais criativos do que espaço; o 1fr é o que impede
-  que sobre uma faixa em branco à direita quando há poucos. Com um teto
-  fixo — 360px — três criativos num painel de 1.850px deixavam 800px de
-  nada ao lado.
+  No desktop a grade corre na horizontal, e cada coluna vai de 320px a
+  440px.
+
+  Os dois limites vêm de erros medidos. Sem o mínimo, muitos criativos
+  espremiam-se todos até não se lerem — é ele que manda a grade rolar de
+  lado. Sem o máximo, um criativo sozinho esticava-se pela largura toda
+  do painel (novecentos e tal pixels para uma coluna) e ficava um cartaz,
+  não uma coluna de comparação.
+
+  Entre os dois, as colunas repartem a largura: com três num painel de
+  1.400px ficam nos 440px e enchem-no. Quando são poucas para a encher,
+  a grade centra-as — o que sobra fica repartido pelos dois lados, como
+  margem, em vez de cair todo numa faixa à direita.
 
   O padding em baixo é o espaço da barra de rolagem, para ela não tapar
   o último cartão.
@@ -32,8 +39,9 @@
 .comparisonGrid {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: minmax(320px, 1fr);
+  grid-auto-columns: minmax(320px, 440px);
   align-items: start;
+  justify-content: center;
   gap: 16px;
   min-width: 0;
   overflow-x: auto;
@@ -45,6 +53,30 @@
   flex-direction: column;
   gap: var(--vao);
   min-width: 0;
+}
+
+/*
+  Um criativo sozinho não tem com quem ser comparado, e uma coluna de
+  440px no meio de um painel largo deixava quase setecentos pixels de
+  branco de cada lado. Sozinho, os dois blocos põem-se lado a lado e
+  enchem a largura — o criativo à esquerda, os posicionamentos à
+  direita.
+
+  Só a partir dos 1.100px de janela: abaixo disso não há largura para
+  dois, e voltam a empilhar-se.
+*/
+@media (min-width: 1100px) {
+  .comparisonGrid:has(> .creativeColumn:only-child) {
+    grid-auto-columns: minmax(320px, 960px);
+  }
+  .creativeColumn:only-child {
+    flex-direction: row;
+    align-items: start;
+  }
+  .creativeColumn:only-child > * {
+    flex: 1 1 0;
+    min-width: 0;
+  }
 }
 
 /* Tudo o que é caixa nesta secção partilha a mesma moldura: é o que faz
