@@ -183,13 +183,26 @@ body:has(.dash-skin[data-design-system="orbit"]) .dash-skin {
   --sem-accent: var(--orb-gerador);
   --sem-neutral: var(--orb-muted);
 
-  /* Gráficos genéricos: monocromáticos, para a cor continuar a querer
-     dizer só uma coisa. As séries com legenda própria não passam aqui. */
-  --chart-1: #f1f1f3;
-  --chart-2: #c9cacf;
-  --chart-3: #a2a3aa;
-  --chart-4: #87888f;
-  --chart-5: #6b6c73;
+  /*
+    As séries dos gráficos, do design system "Capital Overview Dashboard".
+
+    A casca é preto e branco; as séries não. A cor de uma série é
+    identidade do dado — duas linhas no mesmo gráfico têm de se
+    distinguir —, e por isso a regra do monocromático sempre valeu para o
+    cromo e nunca para o que tem legenda ao lado.
+  */
+  --serie-1: #818cf8;
+  --serie-2: #34d399;
+  --serie-3: #fbbf24;
+  --serie-4: #f472b6;
+  --serie-5: #a78bfa;
+  --serie-6: #fb7185;
+  --serie-7: #9ca3af;
+  --chart-1: var(--serie-1);
+  --chart-2: var(--serie-2);
+  --chart-3: var(--serie-3);
+  --chart-4: var(--serie-4);
+  --chart-5: var(--serie-5);
   --traffic-funnel-from: var(--orb-text);
   --traffic-funnel-to: var(--orb-muted);
   --glass-fill: var(--orb-surface);
@@ -249,11 +262,15 @@ html[data-tema="branco"]
   --warning-foreground: #ffffff;
   --destructive-foreground: #ffffff;
   --info-foreground: #ffffff;
-  --chart-1: #131416;
-  --chart-2: #3c3d42;
-  --chart-3: #56575d;
-  --chart-4: #7b7c83;
-  --chart-5: #9a9ba1;
+  /* No claro as séries escurecem: as de cima são claras de mais contra
+     branco. Todas passam 3:1 — o mínimo de um elemento gráfico. */
+  --serie-1: #4f46e5;
+  --serie-2: #047857;
+  --serie-3: #b45309;
+  --serie-4: #be185d;
+  --serie-5: #7e22ce;
+  --serie-6: #be123c;
+  --serie-7: #6b7280;
   color-scheme: light;
 }
 

@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en" class="antialiased">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capital Overview Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+
+    <!-- GSAP & ScrollTrigger for Animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="bg-[#0e0e10] text-gray-300 font-['Inter'] min-h-screen flex flex-col items-center justify-start p-4 md:p-8" style="font-family: 'Inter', sans-serif;">
+
+    <!-- Added Header Section -->
+    <header class="w-full max-w-7xl flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 mt-2">
+        <div class="max-w-2xl">
+            <h1 class="text-3xl text-white font-semibold tracking-tight mb-2 reveal-text">Executive Financial Summary</h1>
+            <p class="text-sm text-gray-400 reveal-text">Monitor overall operational liquidity, structural outflow streams, and global aggregated metrics across enterprise accounts.</p>
+        </div>
+        <div class="flex-shrink-0">
+            <button class="bg-white text-black hover:bg-gray-100 px-5 py-2.5 rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center gap-2">
+                <iconify-icon icon="solar:document-add-linear" width="18" class="text-gray-600"></iconify-icon> Export Report
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Dashboard Container -->
+    <div class="w-full max-w-7xl bg-[#131316] rounded-[2rem] border border-gray-800/60 shadow-2xl overflow-hidden shadow-[0_0_50px_-12px_rgba(0,0,0,0.8)] transition-all duration-500 hover:shadow-[0_0_80px_-15px_rgba(255,255,255,0.05)]">
+
+        <!-- Top Navigation -->
+        <nav class="flex items-center justify-between px-8 py-5 border-b border-gray-800/40">
+            <!-- Logo -->
+            <div class="flex items-center gap-2 text-white font-semibold text-xl tracking-tight cursor-pointer group">
+                <iconify-icon icon="solar:infinity-linear" width="28" class="text-indigo-400 transition-transform duration-300 group-hover:rotate-180"></iconify-icon>
+                <span>vortex</span>
+            </div>
+
+            <!-- Nav Links -->
+            <div class="hidden md:flex items-center gap-10 text-sm font-medium text-gray-400">
+                <a href="#" class="hover:text-white transition-colors">Overview</a>
+                <a href="#" class="hover:text-white transition-colors">Wallets</a>
+                <a href="#" class="hover:text-white transition-colors">Funding</a>
+                <a href="#" class="text-white bg-gray-800/40 px-5 py-2 rounded-lg border border-gray-700/50 backdrop-blur-sm">Metrics</a>
+            </div>
+
+            <!-- Profile & Actions -->
+            <div class="flex items-center gap-6">
+                <button class="relative p-2 rounded-full hover:bg-gray-800/50 transition-colors text-gray-400 hover:text-white">
+                    <iconify-icon icon="solar:bell-bing-linear" width="22"></iconify-icon>
+                    <span class="absolute top-2 right-2 w-2 h-2 bg-indigo-400 rounded-full border-2 border-[#131316]"></span>
+                </button>
+                <div class="flex items-center gap-3 cursor-pointer hover:bg-gray-800/30 p-1.5 pr-4 rounded-full transition-colors border border-transparent hover:border-gray-800/50">
+                    <img src="https://i.pravatar.cc/150?u=a042581f4e29026704d" alt="Profile" class="w-9 h-9 rounded-full object-cover">
+                    <div class="hidden sm:block text-xs">
+                        <div class="text-white font-medium">Workspace</div>
+                        <div class="text-gray-500">Julian Bates</div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="p-8">
+
+            <!-- Dashboard Internal Header Section -->
+            <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+                <div>
+                    <h1 class="text-3xl text-white font-semibold tracking-tight mb-6">Capital Overview</h1>
+
+                    <!-- Sub Navigation Tabs -->
+                    <div class="flex gap-6 text-sm font-medium border-b border-gray-800/50 pb-px">
+                        <a href="#" class="text-white border-b-2 border-white pb-3 px-1">Overview</a>
+                        <a href="#" class="text-gray-400 hover:text-gray-200 pb-3 px-1 transition-colors">Assets</a>
+                        <a href="#" class="text-gray-400 hover:text-gray-200 pb-3 px-1 transition-colors">Outflow</a>
+                        <a href="#" class="text-gray-400 hover:text-gray-200 pb-3 px-1 transition-colors">Inflow</a>
+                        <a href="#" class="text-gray-400 hover:text-gray-200 pb-3 px-1 transition-colors">Net Gain</a>
+                        <a href="#" class="text-gray-400 hover:text-gray-200 pb-3 px-1 transition-colors">Reserves</a>
+                        <a href="#" class="text-gray-400 hover:text-gray-200 pb-3 px-1 transition-colors">Equity</a>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="flex items-center gap-4 text-xs font-medium text-gray-400 mb-3">
+                    <button class="flex items-center gap-1 hover:text-white transition-colors">
+                        Global Wallets <iconify-icon icon="solar:alt-arrow-down-linear" width="14"></iconify-icon>
+                    </button>
+                    <span class="text-gray-700">/</span>
+                    <div class="flex gap-3">
+                        <button class="hover:text-white transition-colors">Weekly</button>
+                        <button class="text-white">Monthly</button>
+                        <button class="hover:text-white transition-colors">Yearly</button>
+                    </div>
+                    <span class="text-gray-700">/</span>
+                    <button class="flex items-center gap-1 text-white hover:text-gray-300 transition-colors">
+                        2024 <iconify-icon icon="solar:alt-arrow-down-linear" width="14"></iconify-icon>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Top Charts Section -->
+            <div class="flex flex-col lg:flex-row gap-8 mb-8">
+
+                <!-- Main Bar Chart -->
+                <div class="flex-1 border-r border-gray-800/40 pr-8 relative group">
+                    <!-- Subtle background glow -->
+                    <div class="absolute inset-0 bg-gradient-to-tr from-indigo-500/5 to-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none blur-2xl"></div>
+
+                    <!-- Y-Axis Lines & Labels -->
+                    <div class="absolute left-0 top-4 bottom-8 flex flex-col justify-between text-[10px] text-gray-500 w-full pointer-events-none">
+                        <div class="flex items-center gap-4 w-full"><span>$60k</span><div class="h-px bg-gray-800/40 w-full"></div></div>
+                        <div class="flex items-center gap-4 w-full"><span>$0</span><div class="h-px bg-gray-800/40 w-full"></div></div>
+                        <div class="flex items-center gap-4 w-full"><span>-$60k</span><div class="h-px bg-gray-800/40 w-full"></div></div>
+                    </div>
+
+                    <!-- Bars Container -->
+                    <div class="ml-12 h-64 flex items-end justify-between relative z-10 pt-4 pb-2">
+
+                        <!-- Tooltip (Simulated on 'May') -->
+                        <div class="absolute top-0 left-[38%] bg-[#1c1c21] border border-gray-700/50 rounded-xl p-4 shadow-xl z-20 w-48 transition-all duration-300 transform scale-95 group-hover:scale-100 opacity-90 group-hover:opacity-100">
+                            <div class="text-xs text-gray-400 mb-3">June 2024</div>
+                            <div class="flex justify-between text-sm mb-2">
+                                <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-indigo-400"></span><span class="text-gray-300">Inflow</span></div>
+                                <span class="text-white font-medium">$42,100.50</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-emerald-400"></span><span class="text-gray-300">Outflow</span></div>
+                                <span class="text-white font-medium">$38,420.10</span>
+                            </div>
+                        </div>
+
+                        <!-- Bar Groups (Months) -->
+                        <div class="flex flex-col items-center justify-end h-full gap-1 w-10 sm:w-12 group/bar cursor-pointer">
+                            <div class="w-full h-[40%] rounded-md border border-gray-700/30 transition-all duration-300 group-hover/bar:border-gray-500/50" style="background: repeating-linear-gradient(-45deg, transparent, transparent 4px, rgba(255,255,255,0.03) 4px, rgba(255,255,255,0.03) 8px);"></div>
+                            <div class="w-full h-[30%] rounded-md border border-gray-700/30 transition-all duration-300 group-hover/bar:border-gray-500/50" style="background: repeating-linear-gradient(-45deg, transparent, transparent 4px, rgba(255,255,255,0.03) 4px, rgba(255,255,255,0.03) 8px);"></div>
+                        </div>
+                        <div class="flex flex-col items-center justify-end h-full gap-1 w-10 sm:w-12 group/bar cursor-pointer">
+                            <div class="w-full h-[35%] rounded-md border border-gray-700/30 transition-all duration-300 group-hover/bar:border-gray-500/50" style="background: repeating-linear-gradient(-45deg, transparent, transparent 4px, rgba(255,255,255,0.03) 4px, rgba(255,255,255,0.03) 8px);"></div>
+                            <div class="w-full h-[45%] rounded-md border border-gray-700/30 transition-all duration-300 group-hover/bar:border-gray-500/50" style="background: repeating-linear-gradient(-45deg, transparent, transparent 4px, rgba(255,255,255,0.03) 4px, rgba(255,255,255,0.03) 8px);"></div>
+                        </div>
+                        <div class="flex flex-col items-center justify-end h-full gap-1 w-10 sm:w-12 group/bar cursor-pointer">
+                            <div class="w-full h-[55%] rounded-md border border-gray-700/30 transition-all duration-300 group-hover/bar:border-gray-500/50" style="background: repeating-linear-gradient(-45deg, transparent, transparent 4px, rgba(255,255,255,0.03) 4px, rgba(255,255,255,0.03) 8px);"></div>
+                            <div class="w-full h-[35%] rounded-md border border-gray-700/30 transition-all duration-300 group-hover/bar:border-gray-500/50" style="background: repeating-linear-gradient(-45deg, transparent, transparent 4px, rgba(255,255,255,0.03) 4px, rgba(255,255,255,0.03) 8px);"></div>
+                        </div>
+                        <div class="flex flex-col items-center justify-end h-full gap-1 w-10 sm:w-12 group/bar cursor-pointer">
+                            <div class="w-full h-[40%] rounded-md border border-gray-700/30 transition-all duration-300 group-hover/bar:border-gray-500/50" style="background: repeating-linear-gradient(-45deg, transparent, transparent 4px, rgba(255,255,255,0.03) 4px, rgba(255,255,255,0.03) 8px);"></div>
+                            <div class="w-full h-[40%] rounded-md border border-gray-700/30 transition-all duration-300 group-hover/bar:border-gray-500/50" style="background: repeating-linear-gradient(-45deg, transparent, transparent 4px, rgba(255,255,255,0.03) 4px, rgba(255,255,255,0.03) 8px);"></div>
+                        </div>
+
+                        <!-- Active Month (May/June) -->
+                        <div class="flex flex-col items-center justify-end h-full gap-1 w-10 sm:w-12 group/bar cursor-pointer relative">
+                            <!-- Highlight background -->
+                            <div class="absolute -inset-x-2 -inset-y-4 bg-gray-800/20 rounded-lg -z-10 transition-opacity duration-300 opacity-100"></div>
+
+                            <div class="w-full h-[65%] rounded-md bg-indigo-400 shadow-[0_0_15px_rgba(129,140,248,0.4)] transition-all duration-300 hover:brightness-110"></div>
+                            <div class="w-full h-[30%] rounded-md bg-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.4)] transition-all duration-300 hover:brightness-110"></div>
+                        </div>
+
+                        <!-- Rest of months -->
+                        <div class="flex flex-col items-center justify-end h-full gap-1 w-10 sm:w-12 group/bar cursor-pointer">
+                            <div class="w-full h-[30%] rounded-md border border-gray-700/30 transition-all duration-300 group-hover/bar:border-gray-500/50" style="background: repeating-linear-gradient(-45deg, transparent, transparent 4px, rgba(255,255,255,0.03) 4px, rgba(255,255,255,0.03) 8px);"></div>
+                            <div class="w-full h-[45%] rounded-md border border-gray-700/30 transition-all duration-300 group-hover/bar:border-gray-500/50" style="background: repeating-linear-gradient(-45deg, transparent, transparent 4px, rgba(255,255,255,0.03) 4px, rgba(255,255,255,0.03) 8px);"></div>
+                        </div>
+                        <div class="flex flex-col items-center justify-end h-full gap-1 w-10 sm:w-12 group/bar cursor-pointer">
+                            <div class="w-full h-[50%] rounded-md border border-gray-700/30 transition-all duration-300 group-hover/bar:border-gray-500/50" style="background: repeating-linear-gradient(-45deg, transparent, transparent 4px, rgba(255,255,255,0.03) 4px, rgba(255,255,255,0.03) 8px);"></div>
+                            <div class="w-full h-[35%] rounded-md border border-gray-700/30 transition-all duration-300 group-hover/bar:border-gray-500/50" style="background: repeating-linear-gradient(-45deg, transparent, transparent 4px, rgba(255,255,255,0.03) 4px, rgba(255,255,255,0.03) 8px);"></div>
+                        </div>
+                         <div class="flex flex-col items-center justify-end h-full gap-1 w-10 sm:w-12 group/bar cursor-pointer">
+                            <div class="w-full h-[40%] rounded-md border border-gray-700/30 transition-all duration-300 group-hover/bar:border-gray-500/50" style="background: repeating-linear-gradient(-45deg, transparent, transparent 4px, rgba(255,255,255,0.03) 4px, rgba(255,255,255,0.03) 8px);"></div>
+                            <div class="w-full h-[40%] rounded-md border border-gray-700/30 transition-all duration-300 group-hover/bar:border-gray-500/50" style="background: repeating-linear-gradient(-45deg, transparent, transparent 4px, rgba(255,255,255,0.03) 4px, rgba(255,255,255,0.03) 8px);"></div>
+                        </div>
+                         <div class="flex flex-col items-center justify-end h-full gap-1 w-10 sm:w-12 group/bar cursor-pointer">
+                            <div class="w-full h-[60%] rounded-md border border-gray-700/30 transition-all duration-300 group-hover/bar:border-gray-500/50" style="background: repeating-linear-gradient(-45deg, transparent, transparent 4px, rgba(255,255,255,0.03) 4px, rgba(255,255,255,0.03) 8px);"></div>
+                            <div class="w-full h-[25%] rounded-md border border-gray-700/30 transition-all duration-300 group-hover/bar:border-gray-500/50" style="background: repeating-linear-gradient(-45deg, transparent, transparent 4px, rgba(255,255,255,0.03) 4px, rgba(255,255,255,0.03) 8px);"></div>
+                        </div>
+                    </div>
+
+                    <!-- X-Axis Labels -->
+                    <div class="ml-12 flex justify-between text-[10px] text-gray-500 mt-2 pr-2">
+                        <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span class="text-white font-medium">May</span><span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span>
+                    </div>
+                </div>
+
+                <!-- Summary Stats Right Side -->
+                <div class="w-full lg:w-64 flex flex-col gap-6 justify-center">
+
+                    <div class="group cursor-pointer">
+                        <div class="text-sm text-gray-400 mb-1 transition-colors group-hover:text-gray-300">Gross Revenue</div>
+                        <div class="flex items-center justify-between">
+                            <div class="text-3xl text-white font-semibold tracking-tight">$412,890.15</div>
+                            <div class="bg-emerald-500/10 text-emerald-400 text-xs px-2 py-1 rounded-full font-medium border border-emerald-500/20 group-hover:bg-emerald-500/20 transition-colors">+12.4%</div>
+                        </div>
+                    </div>
+
+                    <div class="group cursor-pointer">
+                        <div class="text-sm text-gray-400 mb-1 transition-colors group-hover:text-gray-300">Total Outflow</div>
+                        <div class="flex items-center justify-between">
+                            <div class="text-3xl text-white font-semibold tracking-tight">$310,442.20</div>
+                            <div class="bg-red-500/10 text-red-400 text-xs px-2 py-1 rounded-full font-medium border border-red-500/20 group-hover:bg-red-500/20 transition-colors">-4.2%</div>
+                        </div>
+                    </div>
+
+                    <div class="group cursor-pointer">
+                        <div class="text-sm text-gray-400 mb-1 transition-colors group-hover:text-gray-300">Net Gain</div>
+                        <div class="flex items-center justify-between">
+                            <div class="text-3xl text-white font-semibold tracking-tight">$102,447.95</div>
+                            <div class="bg-emerald-500/10 text-emerald-400 text-xs px-2 py-1 rounded-full font-medium border border-emerald-500/20 group-hover:bg-emerald-500/20 transition-colors">+18.1%</div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Bottom Cards Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+
+                <!-- Card 1: Revenue Sources -->
+                <div class="bg-[#18181c] rounded-2xl p-6 border border-gray-800/60 flex flex-col justify-between group hover:border-gray-700/80 transition-colors">
+                    <div>
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-sm font-medium text-gray-200">Revenue Sources</h3>
+                            <button class="bg-[#212126] border border-gray-700/50 text-xs text-gray-400 px-3 py-1.5 rounded-lg flex items-center gap-1 hover:text-white transition-colors">
+                                Source <iconify-icon icon="solar:alt-arrow-down-linear" width="12"></iconify-icon>
+                            </button>
+                        </div>
+
+                        <div class="text-4xl text-white font-semibold tracking-tight mb-6">$412,890.15</div>
+
+                        <!-- Segmented Progress Bar -->
+                        <div class="flex w-full h-2 rounded-full overflow-hidden mb-8 gap-0.5 opacity-90 group-hover:opacity-100 transition-opacity">
+                            <div class="bg-indigo-400 w-[48%] relative overflow-hidden">
+                                <div class="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+                            </div>
+                            <div class="bg-emerald-400 w-[35%] relative overflow-hidden">
+                                <div class="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 delay-100"></div>
+                            </div>
+                            <div class="bg-amber-400 w-[17%] relative overflow-hidden">
+                                <div class="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 delay-200"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Legend Grid -->
+                    <div class="grid grid-cols-3 gap-4">
+                        <div>
+                            <div class="flex items-center gap-1.5 text-xs text-gray-400 mb-1">
+                                <span class="w-2 h-2 rounded-full bg-indigo-400"></span> Product
+                            </div>
+                            <div class="text-white text-sm font-medium mb-0.5">$198K</div>
+                            <div class="text-[10px] text-gray-600">48%</div>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-1.5 text-xs text-gray-400 mb-1">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Services
+                            </div>
+                            <div class="text-white text-sm font-medium mb-0.5">$144K</div>
+                            <div class="text-[10px] text-gray-600">35%</div>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-1.5 text-xs text-gray-400 mb-1">
+                                <span class="w-2 h-2 rounded-full bg-amber-400"></span> Royalties
+                            </div>
+                            <div class="text-white text-sm font-medium mb-0.5">$70.8K</div>
+                            <div class="text-[10px] text-gray-600">17%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2: Cost Breakdown -->
+                <div class="bg-[#18181c] rounded-2xl p-6 border border-gray-800/60 flex flex-col group hover:border-gray-700/80 transition-colors">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-sm font-medium text-gray-200">Cost Breakdown</h3>
+                        <button class="bg-[#212126] border border-gray-700/50 text-xs text-gray-400 px-3 py-1.5 rounded-lg flex items-center gap-1 hover:text-white transition-colors">
+                            Operations <iconify-icon icon="solar:alt-arrow-down-linear" width="12"></iconify-icon>
+                        </button>
+                    </div>
+
+                    <div class="flex items-center justify-between flex-1 gap-4">
+                        <!-- Simulated Donut Chart -->
+                        <div class="relative w-32 h-32 flex-shrink-0">
+                            <!-- Outer gradient ring simulating segments -->
+                            <div class="absolute inset-0 rounded-full" style="background: conic-gradient(
+                                #f472b6 0% 35%,
+                                #a78bfa 35% 60%,
+                                #fb7185 60% 80%,
+                                #818cf8 80% 90%,
+                                rgba(255,255,255,0.1) 90% 100%
+                            ); opacity: 0.9;"></div>
+                            <!-- Hatched pattern overlay for a segment -->
+                            <div class="absolute inset-0 rounded-full" style="background: conic-gradient(transparent 0% 90%, rgba(0,0,0,0) 90% 100%);">
+                                <div class="absolute inset-0 rounded-full" style="clip-path: polygon(50% 50%, 0 0, 50% 0); background: repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(0,0,0,0.3) 3px, rgba(0,0,0,0.3) 6px);"></div>
+                            </div>
+
+                            <!-- Inner circle to make it a donut -->
+                            <div class="absolute inset-3 bg-[#18181c] rounded-full flex flex-col items-center justify-center shadow-inner transition-transform duration-500 group-hover:scale-95">
+                                <span class="text-2xl text-white font-semibold">145</span>
+                                <span class="text-[10px] text-gray-500">Entries</span>
+                            </div>
+                        </div>
+
+                        <!-- Legend List -->
+                        <div class="flex-1 flex flex-col gap-2.5">
+                            <div class="flex justify-between items-center text-xs">
+                                <div class="flex items-center gap-2 text-gray-400"><span class="w-1.5 h-1.5 rounded-full bg-pink-400"></span> Payroll</div>
+                                <span class="text-gray-300 font-medium">35%</span>
+                            </div>
+                            <div class="flex justify-between items-center text-xs">
+                                <div class="flex items-center gap-2 text-gray-400"><span class="w-1.5 h-1.5 rounded-full bg-purple-400"></span> Marketing</div>
+                                <span class="text-gray-300 font-medium">25%</span>
+                            </div>
+                            <div class="flex justify-between items-center text-xs">
+                                <div class="flex items-center gap-2 text-gray-400"><span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span> Server Costs</div>
+                                <span class="text-gray-300 font-medium">20%</span>
+                            </div>
+                            <div class="flex justify-between items-center text-xs">
+                                <div class="flex items-center gap-2 text-gray-400"><span class="w-1.5 h-1.5 rounded-full bg-indigo-400"></span> Travel</div>
+                                <span class="text-gray-300 font-medium">10%</span>
+                            </div>
+                            <div class="flex justify-between items-center text-xs">
+                                <div class="flex items-center gap-2 text-gray-400"><span class="w-1.5 h-1.5 rounded-full bg-gray-600"></span> Misc</div>
+                                <span class="text-gray-300 font-medium">10%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3: Trajectory -->
+                <div class="bg-[#18181c] rounded-2xl p-6 border border-gray-800/60 flex flex-col group hover:border-gray-700/80 transition-colors">
+                    <h3 class="text-sm font-medium text-gray-200 mb-4">Trajectory</h3>
+
+                    <!-- Line Chart Legend -->
+                    <div class="flex gap-4 text-xs text-gray-400 mb-4">
+                        <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-indigo-400"></span> Inflow</div>
+                        <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-pink-400"></span> Outflow</div>
+                    </div>
+
+                    <!-- Simulated Line Chart Area -->
+                    <div class="relative h-24 w-full mb-4 mt-2">
+                        <!-- Simulated tooltip badge -->
+                        <div class="absolute top-0 left-[45%] bg-[#212126] text-xs text-gray-300 px-3 py-1 rounded-full border border-gray-700/50 z-10 -translate-y-4 shadow-lg">June</div>
+
+                        <!-- SVG for Lines to simulate accurate WebGL-like chart drawing -->
+                        <svg class="w-full h-full overflow-visible" viewBox="0 0 100 40" preserveAspectRatio="none">
+                            <!-- Area under Inflow -->
+                            <path d="M0,35 L10,32 L20,33 L30,25 L40,28 L50,10 L60,18 L70,12 L80,5 L90,2 L100,0 L100,40 L0,40 Z" fill="url(#inflowGradient)" opacity="0.1" class="transition-opacity duration-500 group-hover:opacity-20"/>
+
+                            <!-- Area between lines (hatched simulated) -->
+                            <path d="M50,10 L60,18 L70,12 L80,5 L90,2 L100,0 L100,10 L90,15 L80,18 L70,25 L60,15 L50,10 Z" fill="url(#hatchPattern)" opacity="0.3"/>
+
+                            <!-- Outflow Line (Pink) -->
+                            <path d="M0,38 L10,36 L20,35 L30,30 L40,32 L50,15 L60,25 L70,20 L80,22 L90,18 L100,15" fill="none" stroke="#f472b6" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+                            <!-- Outflow Dots -->
+                            <circle cx="50" cy="15" r="1.5" fill="#f472b6" class="animate-pulse"/>
+                            <circle cx="60" cy="25" r="1" fill="#f472b6"/>
+                            <circle cx="70" cy="20" r="1" fill="#f472b6"/>
+
+                            <!-- Inflow Line (Indigo) -->
+                            <path d="M0,35 L10,32 L20,33 L30,25 L40,28 L50,10 L60,18 L70,12 L80,5 L90,2 L100,0" fill="none" stroke="#818cf8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <!-- Inflow Dots -->
+                            <circle cx="50" cy="10" r="1.5" fill="#818cf8" class="animate-pulse"/>
+                            <circle cx="60" cy="18" r="1" fill="#818cf8"/>
+                            <circle cx="70" cy="12" r="1" fill="#818cf8"/>
+                            <circle cx="80" cy="5" r="1" fill="#818cf8"/>
+                            <circle cx="90" cy="2" r="1" fill="#818cf8"/>
+
+                            <!-- Defs for gradients -->
+                            <defs>
+                                <linearGradient id="inflowGradient" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#818cf8" />
+                                    <stop offset="100%" stop-color="transparent" />
+                                </linearGradient>
+                                <pattern id="hatchPattern" width="2" height="2" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+                                    <line x1="0" y1="0" x2="0" y2="2" stroke="rgba(255,255,255,0.2)" stroke-width="0.5"/>
+                                </pattern>
+                            </defs>
+                        </svg>
+                    </div>
+
+                    <!-- Insight Box -->
+                    <div class="bg-[#111113] rounded-xl p-3 border border-gray-800/40 flex items-start gap-3 mt-auto">
+                        <iconify-icon icon="solar:lightbulb-bolt-linear" width="16" class="text-amber-400 mt-0.5 flex-shrink-0"></iconify-icon>
+                        <p class="text-xs text-gray-400 leading-relaxed">
+                            Projecting <span class="text-white font-medium">surplus in June</span>. Recommend allocating excess to Q3 marketing or <span class="text-white font-medium">infrastructure upgrades</span>.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+
+    <!-- GSAP Script implementation for masked text reveal on scroll -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            gsap.registerPlugin(ScrollTrigger);
+
+            const revealElements = document.querySelectorAll('.reveal-text');
+
+            revealElements.forEach((el) => {
+                const text = el.innerText;
+                const words = text.split(' ');
+                el.innerHTML = '';
+
+                words.forEach((word) => {
+                    const wordContainer = document.createElement('span');
+                    // inline-flex handles spaces neatly
+                    wordContainer.style.display = 'inline-flex';
+                    wordContainer.style.overflow = 'hidden';
+                    wordContainer.style.verticalAlign = 'top';
+
+                    const wordSpan = document.createElement('span');
+                    wordSpan.style.display = 'inline-block';
+                    wordSpan.style.transform = 'translateY(100%)';
+                    wordSpan.className = 'reveal-word';
+                    // Render the word along with a non-breaking space
+                    wordSpan.innerHTML = word + '&nbsp;';
+
+                    wordContainer.appendChild(wordSpan);
+                    el.appendChild(wordContainer);
+                });
+
+                // Animate words from below
+                gsap.to(el.querySelectorAll('.reveal-word'), {
+                    y: '0%',
+                    ease: 'power4.out',
+                    duration: 1.2,
+                    stagger: 0.03,
+                    scrollTrigger: {
+                        trigger: el,
+                        start: 'top 95%',
+                        toggleActions: 'play none none none'
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

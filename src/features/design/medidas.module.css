@@ -1,34 +1,62 @@
 /*
-  Barra e rosca de porcentagem, e o tema dos gráficos.
+  Barra, rosca, linha e colunas — as quatro formas de medida do painel.
 
-  Hoje o painel desenha 46 barras de porcentagem espalhadas por 20
-  ficheiros, cada uma com o seu `style={{ width: … }}`, e 9 roscas com o
-  seu próprio `conic-gradient` escrito à mão. Mudar a aparência delas
-  significava abrir vinte ficheiros e esperar que nenhum ficasse para
-  trás — que é exactamente o que um design system existe para evitar.
+  O desenho vem do design system "Capital Overview Dashboard" que o
+  usuário trouxe: a barra é repartida com uma fresta entre os pedaços e
+  sem trilho aparente; a rosca é um conic-gradient com um disco da cor do
+  cartão no meio; a linha é SVG com a área em degradê até ao transparente
+  e pontos nos vértices; as colunas têm um halo da própria cor.
 
-  Aqui ficam as três formas, uma vez só. Tudo o que é cor, espessura e
-  tempo sai do bloco de tokens em baixo; trocar a aparência é trocar esse
-  bloco, e não os vinte ficheiros.
+  A casca continua a ser a pele Orbit · PicGen: superfície, borda, raio e
+  texto saem dos tokens dela. O que este ficheiro traz de novo é a paleta
+  de séries — e só ela.
+
+  Por que uma paleta à parte, num painel preto e branco: a cor de uma
+  série é identidade do dado, não enfeite da casca. Duas séries no mesmo
+  gráfico precisam de se distinguir, e é por isso que a regra do
+  monocromático sempre valeu para o cromo e nunca para as séries com
+  legenda.
 */
 
 .medidas {
-  /* Os valores vêm da pele viva (Orbit · PicGen). */
-  --trilho: color-mix(in srgb, var(--foreground) 10%, transparent);
-  --preenchido: var(--foreground);
+  /* Séries, como no Capital Overview: os 400 do Tailwind sobre escuro. */
+  --serie-1: #818cf8; /* indigo  — a série principal */
+  --serie-2: #34d399; /* emerald — a segunda */
+  --serie-3: #fbbf24; /* amber   — a terceira */
+  --serie-4: #f472b6; /* pink    */
+  --serie-5: #a78bfa; /* purple  */
+  --serie-6: #fb7185; /* rose    */
+  --serie-7: #9ca3af; /* o resto */
+
+  --trilho: rgb(255 255 255 / 10%);
   --altura-barra: 8px;
-  --raio-barra: 999px;
-  --anel: 10px;
-  --duracao: var(--orb-normal, 250ms);
-  --suavizacao: var(--orb-suavizacao, ease-out);
+  --fresta: 2px;
+  --anel: 12px;
+  --rapido: 300ms;
+  --lento: 1000ms;
+  --suave: ease-out;
 }
 
-/* ─── Barra de porcentagem ─────────────────────────────────────────── */
+/* No tema claro as séries escurecem: as de cima são claras de mais para
+   se verem contra branco. Todas passam 3:1 — o mínimo de um elemento
+   gráfico — contra o cartão branco e contra o canvas. */
+:global(html[data-tema="branco"]) .medidas {
+  --serie-1: #4f46e5;
+  --serie-2: #047857;
+  --serie-3: #b45309;
+  --serie-4: #be185d;
+  --serie-5: #7e22ce;
+  --serie-6: #be123c;
+  --serie-7: #6b7280;
+  --trilho: rgb(0 0 0 / 10%);
+}
+
+/* ─── Barra repartida ──────────────────────────────────────────────── */
 
 .barra {
   composes: medidas;
   display: grid;
-  gap: 6px;
+  gap: 16px;
   min-width: 0;
 }
 .barraTopo {
@@ -37,140 +65,260 @@
   justify-content: space-between;
   gap: 12px;
   min-width: 0;
-  font-size: var(--text-body, 0.875rem);
 }
 .barraNome {
   overflow: hidden;
   color: var(--muted-foreground);
+  font-size: 0.875rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .barraValor {
   flex: none;
   color: var(--foreground);
+  font-size: 1.5rem;
   font-variant-numeric: tabular-nums;
   font-weight: 600;
+  letter-spacing: -0.02em;
 }
-/* O trilho é o todo; o preenchimento é a parte. A borda de dentro faz o
-   trilho existir mesmo quando a parte é zero — uma barra vazia continua a
-   dizer "aqui cabe alguma coisa". */
+/* Sem trilho: quem separa os pedaços é a fresta de 2px. Uma barra vazia
+   recebe o trilho de volta, senão não haveria o que olhar. */
 .trilho {
-  position: relative;
+  display: flex;
+  gap: var(--fresta);
   overflow: hidden;
   height: var(--altura-barra);
-  border-radius: var(--raio-barra);
+  border-radius: 999px;
+  opacity: 0.9;
+  transition: opacity var(--rapido) var(--suave);
+}
+.barra:hover .trilho {
+  opacity: 1;
+}
+.vazia {
   background: var(--trilho);
 }
-.preenchido {
-  display: block;
-  height: 100%;
-  min-width: 2px;
-  border-radius: inherit;
-  background: var(--preenchido);
-  transition: width var(--duracao) var(--suavizacao);
-}
-@media (prefers-reduced-motion: reduce) {
-  .preenchido {
-    transition: none;
-  }
-}
-
-/* Barra repartida: vários pedaços no mesmo trilho, cada um com a sua cor
-   e o seu rótulo. */
-.pedacos {
-  display: flex;
-  height: 100%;
-}
 .pedaco {
+  position: relative;
+  overflow: hidden;
   height: 100%;
   background: var(--cor);
-  transition: width var(--duracao) var(--suavizacao);
 }
-.pedaco:first-child {
-  border-start-start-radius: inherit;
-  border-end-start-radius: inherit;
+/* O brilho que atravessa o pedaço ao passar o rato, um a seguir ao
+   outro. É a única animação do conjunto, e some para quem pediu menos
+   movimento. */
+.pedaco::after {
+  position: absolute;
+  inset: 0;
+  background: rgb(255 255 255 / 20%);
+  content: "";
+  transform: translateX(-100%);
+  transition: transform var(--lento) var(--suave);
+  transition-delay: var(--atraso, 0ms);
 }
-.pedaco:last-child {
-  border-start-end-radius: inherit;
-  border-end-end-radius: inherit;
+.barra:hover .pedaco::after {
+  transform: translateX(100%);
 }
-@media (prefers-reduced-motion: reduce) {
-  .pedaco {
-    transition: none;
-  }
+
+/* A legenda em grelha: ponto e nome, o valor, e a porcentagem miúda. */
+.legendaGrelha {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+  gap: 16px;
 }
-.legenda {
+.legendaGrelha > div {
+  min-width: 0;
+}
+.legendaNome {
   display: flex;
-  flex-wrap: wrap;
-  gap: 4px 14px;
-  font-size: var(--text-caption, 0.75rem);
-}
-.legenda > span {
-  display: inline-flex;
   align-items: center;
   gap: 6px;
+  margin-bottom: 4px;
+  overflow: hidden;
   color: var(--muted-foreground);
+  font-size: 0.75rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-.legenda i {
+.ponto {
   width: 8px;
   height: 8px;
   flex: none;
-  border-radius: 2px;
+  border-radius: 999px;
   background: var(--cor);
 }
+.legendaValor {
+  margin-bottom: 2px;
+  color: var(--foreground);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+.legendaPct {
+  color: var(--muted-foreground);
+  font-size: 0.625rem;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.75;
+}
 
-/* ─── Círculo de porcentagem ───────────────────────────────────────── */
+/* ─── Rosca ────────────────────────────────────────────────────────── */
 
-/* O anel é um disco com um buraco: o conic-gradient pinta o disco, e uma
-   máscara abre o meio. Assim o número no centro fica sobre o fundo do
-   cartão, e não sobre a cor do anel — que mudaria de contraste conforme
-   a porcentagem. */
 .rosca {
   composes: medidas;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.anel {
   position: relative;
-  display: grid;
-  place-items: center;
-  width: var(--tamanho, 132px);
-  height: var(--tamanho, 132px);
-  border-radius: 50%;
-  background: conic-gradient(
-    var(--preenchido) 0 var(--parte),
-    var(--trilho) var(--parte) 100%
-  );
-  mask: radial-gradient(
-    farthest-side,
-    transparent calc(100% - var(--anel)),
-    #000 calc(100% - var(--anel) + 1px)
-  );
-  transition: background var(--duracao) var(--suavizacao);
+  width: var(--tamanho, 128px);
+  height: var(--tamanho, 128px);
+  flex: none;
 }
-@media (prefers-reduced-motion: reduce) {
-  .rosca {
-    transition: none;
-  }
-}
-.roscaCaixa {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: var(--tamanho, 132px);
-  height: var(--tamanho, 132px);
-}
-.roscaCentro {
+.anelFatias {
   position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(var(--fatias));
+  opacity: 0.9;
+}
+/* O disco do meio é da cor do cartão, e não transparente: é o que dá ao
+   número um fundo estável, seja qual for a fatia atrás dele. */
+.anelMiolo {
+  position: absolute;
+  inset: var(--anel);
   display: grid;
   place-items: center;
-  gap: 2px;
+  border-radius: 50%;
+  background: var(--card);
+  box-shadow: inset 0 2px 8px rgb(0 0 0 / 25%);
   text-align: center;
+  transition: transform 500ms var(--suave);
 }
-.roscaCentro strong {
+.rosca:hover .anelMiolo {
+  transform: scale(0.95);
+}
+.anelMiolo strong {
+  display: block;
   color: var(--foreground);
-  font-size: var(--text-stat, 1.75rem);
+  font-size: 1.5rem;
   font-variant-numeric: tabular-nums;
   font-weight: 600;
   line-height: 1.1;
 }
-.roscaCentro small {
+.anelMiolo small {
+  display: block;
   color: var(--muted-foreground);
-  font-size: var(--text-caption, 0.75rem);
+  font-size: 0.625rem;
+}
+.legendaLista {
+  display: grid;
+  flex: 1;
+  gap: 10px;
+  min-width: 0;
+}
+.legendaLista > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.75rem;
+}
+.legendaLista .legendaNome {
+  margin-bottom: 0;
+}
+.legendaLista b {
+  flex: none;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+
+/* ─── Linha ────────────────────────────────────────────────────────── */
+
+.linha {
+  composes: medidas;
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+.linhaLegenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+}
+.linhaLegenda > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.linhaTela {
+  position: relative;
+  width: 100%;
+  height: var(--altura, 96px);
+}
+.linhaTela svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* ─── Colunas ──────────────────────────────────────────────────────── */
+
+.colunas {
+  composes: medidas;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: var(--altura, 120px);
+  min-width: 0;
+}
+.coluna {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 2px;
+  height: 100%;
+}
+/* O halo da própria cor é o que separa a coluna do fundo sem lhe pôr uma
+   borda por cima. */
+.pilha {
+  width: 100%;
+  border-radius: 6px;
+  background: var(--cor);
+  box-shadow: 0 0 15px color-mix(in srgb, var(--cor) 40%, transparent);
+  transition:
+    filter var(--rapido) var(--suave),
+    height var(--rapido) var(--suave);
+}
+.coluna:hover .pilha {
+  filter: brightness(1.1);
+}
+.colunaRotulo {
+  margin-top: 6px;
+  overflow: hidden;
+  color: var(--muted-foreground);
+  font-size: 0.625rem;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pedaco::after,
+  .anelMiolo,
+  .pilha,
+  .trilho {
+    transition: none;
+  }
+  .barra:hover .pedaco::after {
+    transform: translateX(-100%);
+  }
+  .rosca:hover .anelMiolo {
+    transform: none;
+  }
 }
