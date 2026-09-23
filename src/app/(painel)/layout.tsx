@@ -31,6 +31,7 @@ export default async function PainelLayout({
       <ConnectionsProvider initial={conexoes}>
         <div
           className="dash-skin bg-background text-foreground flex min-h-svh w-full"
+          data-design-system="nebula"
           data-demo-mode={session.demoMode ? "true" : undefined}
         >
           <AppSidebar user={session.user} unreadCount={unreadCount} />

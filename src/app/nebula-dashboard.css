@@ -1,0 +1,755 @@
+/* Nebula adaptation for the existing dashboard, based on the supplied
+   tokens.css / DESIGN-SYSTEM.md, with the requested black-and-white palette.
+   Kept separate from legacy layout rules.
+   The body scope also supplies Radix portals; public/store pages are untouched. */
+body:has(.dash-skin[data-design-system="nebula"]),
+body:has(.dash-skin[data-design-system="nebula"]) .dash-skin {
+  --nebula-bg: #090909;
+  --nebula-bg-2: #0d0d0d;
+  --nebula-panel: #121212;
+  --nebula-panel-2: #191919;
+  --nebula-text: #f5f5f5;
+  --nebula-muted: #a3a3a3;
+  --nebula-faint: #929292;
+  --nebula-line: rgb(255 255 255 / 8%);
+  --nebula-line-strong: rgb(255 255 255 / 15%);
+  --nebula-accent: #f5f5f5;
+  --nebula-accent-2: #a3a3a3;
+  --nebula-cyan: #4fd1e0;
+  --nebula-positive: #6ee7b7;
+  --nebula-negative: #fb7185;
+  --nebula-selected: #ffffff;
+  --nebula-selected-bg: rgb(255 255 255 / 12%);
+  --nebula-shadow: 0 10px 32px rgb(0 0 0 / 12%);
+  --nebula-radius: 16px;
+  --nebula-radius-lg: 24px;
+  --nebula-control-radius: 11px;
+  --font-display: var(--font-inter), system-ui, sans-serif;
+  --font-montserrat: var(--font-inter);
+  --radius: 0.6875rem;
+  --radius-card: 1rem;
+  --radius-panel: 1.5rem;
+  --text-caption: 0.75rem;
+  --text-body: 0.875rem;
+  --text-card-title: 1rem;
+  --text-section-title: clamp(1.125rem, 1.5vw, 1.375rem);
+  --text-page-title: clamp(1.5rem, 2.5vw, 2rem);
+  --text-stat: clamp(1.5rem, 2.5vw, 2.125rem);
+  --camada-0: var(--nebula-bg);
+  --camada-1: var(--nebula-panel);
+  --camada-2: var(--nebula-panel-2);
+  --camada-3: #222222;
+  --camada-4: #2b2b2b;
+  --botao: var(--nebula-panel-2);
+  --botao-hover: var(--camada-3);
+  --fio: var(--nebula-line);
+  --fio-forte: var(--nebula-line-strong);
+  --selecionado: var(--nebula-selected-bg);
+  --selecionado-texto: var(--nebula-selected);
+  --veu: var(--nebula-bg-2);
+  --material: none;
+  --material-hover: none;
+  --material-sombra: inset 0 0 0 1px var(--nebula-line);
+  --vidro-brilho: none;
+  --vidro-pontos: none;
+  --vidro-sombra: inset 0 0 0 1px var(--nebula-line), var(--nebula-shadow);
+  --brilho: var(--nebula-accent);
+  --brilho-texto: var(--nebula-selected);
+  --dash-shadow-card: inset 0 0 0 1px var(--nebula-line);
+  --dash-shadow-control: inset 0 0 0 1px var(--nebula-line);
+  --dash-shadow-inset: inset 0 0 0 1px var(--nebula-line);
+  --dash-surface-base: var(--nebula-bg);
+  --dash-surface-card: var(--nebula-panel);
+  --dash-surface-control: var(--nebula-panel-2);
+  --dash-surface-hover: var(--camada-3);
+  --dash-surface-overlay: var(--nebula-panel-2);
+  --dash-surface-structure: var(--nebula-bg-2);
+  --background: var(--nebula-bg);
+  --foreground: var(--nebula-text);
+  --card: var(--nebula-panel);
+  --card-foreground: var(--nebula-text);
+  --popover: var(--nebula-panel-2);
+  --popover-foreground: var(--nebula-text);
+  --primary: #f5f5f5;
+  --primary-foreground: #090909;
+  --secondary: var(--nebula-panel-2);
+  --secondary-foreground: var(--nebula-text);
+  --muted: var(--nebula-panel-2);
+  --muted-foreground: var(--nebula-muted);
+  --accent: var(--nebula-selected-bg);
+  --accent-foreground: var(--nebula-selected);
+  --border: var(--nebula-line);
+  --input: var(--nebula-line-strong);
+  --ring: var(--nebula-accent);
+  --success: var(--nebula-positive);
+  --success-foreground: #07281d;
+  --warning: #fbbf24;
+  --warning-foreground: #352400;
+  --destructive: var(--nebula-negative);
+  --destructive-foreground: #350914;
+  --info: var(--nebula-cyan);
+  --info-foreground: #052b30;
+  --chart-1: #f5f5f5;
+  --chart-2: #d4d4d4;
+  --chart-3: #b5b5b5;
+  --chart-4: #949494;
+  --chart-5: #737373;
+  --traffic-funnel-from: var(--nebula-accent);
+  --traffic-funnel-to: var(--nebula-accent-2);
+  --glass-fill: var(--nebula-panel);
+  --glass-border: var(--nebula-line);
+  --glass-shadow: var(--nebula-shadow);
+  color-scheme: dark;
+  color: var(--nebula-text);
+  background: var(--nebula-bg);
+  font-family: var(--font-inter), system-ui, sans-serif;
+  letter-spacing: -0.011em;
+}
+
+/* The original light preference remains available. This is an adaptation,
+   not a light palette claimed to be part of the supplied Nebula catalog. */
+html[data-tema="branco"] body:has(.dash-skin[data-design-system="nebula"]),
+html[data-tema="branco"]
+  body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin {
+  --nebula-bg: #f5f5f5;
+  --nebula-bg-2: #eeeeee;
+  --nebula-panel: #ffffff;
+  --nebula-panel-2: #f0f0f0;
+  --nebula-text: #171717;
+  --nebula-muted: #5e5e5e;
+  --nebula-faint: #686868;
+  --nebula-line: rgb(0 0 0 / 9%);
+  --nebula-line-strong: rgb(0 0 0 / 17%);
+  --nebula-accent: #171717;
+  --nebula-accent-2: #737373;
+  --nebula-selected: #090909;
+  --nebula-selected-bg: rgb(0 0 0 / 8%);
+  --nebula-positive: #08774d;
+  --nebula-negative: #bc2748;
+  --nebula-cyan: #087d8b;
+  --nebula-shadow: 0 8px 28px rgb(0 0 0 / 4%);
+  --camada-3: #e8e8e8;
+  --camada-4: #dedede;
+  --primary: #171717;
+  --primary-foreground: #ffffff;
+  --success-foreground: #ffffff;
+  --destructive-foreground: #ffffff;
+  --info-foreground: #ffffff;
+  --warning: #a16207;
+  --warning-foreground: #ffffff;
+  --chart-1: #171717;
+  --chart-2: #404040;
+  --chart-3: #606060;
+  --chart-4: #808080;
+  --chart-5: #909090;
+  color-scheme: light;
+}
+
+/* Author-level specificity intentionally supersedes the old square-material
+   !important rules without changing the underlying layout or data styles. */
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  :is(h1, h2, h3, h4, .font-display) {
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.25;
+}
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  :is(
+    [data-slot="card"],
+    section.bg-card,
+    aside.bg-card,
+    article,
+    .dash-glass,
+    .visual-overview-zone,
+    .visual-overview-kpi,
+    .acquisition-block,
+    .campaign-surface,
+    .campaign-board-column,
+    .campaign-board-card,
+    .class-board-pilar,
+    .class-board-cartao,
+    .campaign-source,
+    .campaign-metrics > div,
+    .executive-filter-panel
+  ) {
+  border-radius: var(--nebula-radius) !important;
+  border-color: var(--nebula-line) !important;
+  background: var(--nebula-panel) !important;
+  box-shadow: var(--dash-shadow-card) !important;
+}
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  :is(
+    .rounded,
+    .rounded-sm,
+    .rounded-md,
+    .rounded-lg,
+    .rounded-xl,
+    .rounded-2xl,
+    .rounded-3xl,
+    [class*="rounded-["]
+  ):not(.rounded-full) {
+  border-radius: var(--nebula-radius) !important;
+}
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  :is(
+    [data-slot="card"],
+    section.bg-card,
+    aside.bg-card,
+    article,
+    .campaign-surface,
+    .campaign-board-column,
+    .campaign-board-card
+  ) {
+  text-align: left;
+}
+body:has(.dash-skin[data-design-system="nebula"]) .dash-skin .text-left {
+  text-align: left;
+}
+body:has(.dash-skin[data-design-system="nebula"]) .dash-skin .text-right {
+  text-align: right;
+}
+body:has(.dash-skin[data-design-system="nebula"]) .dash-skin .justify-start {
+  justify-content: flex-start;
+}
+body:has(.dash-skin[data-design-system="nebula"]) .dash-skin .justify-end {
+  justify-content: flex-end;
+}
+body:has(.dash-skin[data-design-system="nebula"]) .dash-skin .lucide {
+  stroke-width: 1.8;
+}
+
+/* Shared chrome: a slim working header, quiet dividers, one-scroll drawers. */
+body:has(.dash-skin[data-design-system="nebula"]) .dash-skin .dash-band {
+  background: color-mix(in srgb, var(--nebula-bg) 88%, transparent) !important;
+  border-bottom: 1px solid var(--nebula-line) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(16px) !important;
+}
+.nebula-header-divider {
+  width: 1px;
+  height: 22px;
+  background: var(--nebula-line-strong);
+  margin-inline: 8px;
+}
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  .nebula-header-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--nebula-muted);
+}
+body:has(.dash-skin[data-design-system="nebula"]) .dash-skin .dash-main {
+  padding: clamp(16px, 2.2vw, 32px);
+}
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  :is(
+    .dash-sidebar,
+    .dash-sidebar-tray,
+    .sessoes-lateral-caixa,
+    .board-pager-nav
+  ) {
+  background: var(--nebula-bg-2) !important;
+  border-color: var(--nebula-line) !important;
+  box-shadow: none !important;
+  color: var(--nebula-text) !important;
+}
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  .dash-sidebar-cabecalho {
+  min-height: 76px;
+  border-color: var(--nebula-line);
+  margin-bottom: 8px;
+}
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  :is(.nebula-brand, .dash-sidebar-cabecalho)
+  :is(.bg-primary, .nebula-brand-mark) {
+  border-radius: 9px !important;
+  background: var(--primary) !important;
+  color: var(--primary-foreground) !important;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 12%) !important;
+}
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  :is(.nebula-brand, .dash-sidebar-cabecalho)
+  :is(.bg-primary, .nebula-brand-mark)
+  > svg {
+  color: var(--primary-foreground) !important;
+}
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  :is(.dash-sidebar-block, .board-pager-nav-item) {
+  border: 1px solid transparent !important;
+  border-radius: 11px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--nebula-muted) !important;
+  font-weight: 500;
+  text-align: left;
+}
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  :is(.dash-sidebar-block, .board-pager-nav-item):hover {
+  background: var(--nebula-panel-2) !important;
+  color: var(--nebula-text) !important;
+  transform: none;
+}
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  .dash-sidebar-rodape {
+  border-color: var(--nebula-line);
+}
+
+/* Controls use Nebula's 11px radius; selection is separate from primary CTA. */
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  :is(
+    [data-slot="button"],
+    button,
+    [role="radio"],
+    [role="tab"],
+    select,
+    textarea,
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+    .block-picker-toggle,
+    [data-slot="select-trigger"]
+  ):not(.rounded-full):not(.class-board-semaforo *) {
+  border-radius: var(--nebula-control-radius) !important;
+  font-family: var(--font-inter), system-ui, sans-serif;
+}
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  :is(
+    [data-slot="button"],
+    [data-slot="select-trigger"],
+    select,
+    textarea,
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"])
+  ) {
+  background: var(--nebula-panel-2) !important;
+  border-color: var(--nebula-line-strong) !important;
+  box-shadow: inset 0 0 0 1px var(--nebula-line) !important;
+  color: var(--nebula-text);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  :is(input, textarea) {
+  text-align: left;
+}
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  :is(input, textarea)::placeholder {
+  color: var(--nebula-faint);
+}
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  [data-slot="button"][class*="bg-primary"] {
+  background: var(--primary) !important;
+  color: var(--primary-foreground) !important;
+}
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  [data-slot="button"][class*="bg-destructive"] {
+  background: var(--destructive) !important;
+  color: var(--destructive-foreground) !important;
+}
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  [data-slot="button"][class*="bg-success"] {
+  background: var(--success) !important;
+  color: var(--success-foreground) !important;
+}
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  :is(
+    .block-picker[data-tone="claro"],
+    .visual-overview-filters,
+    .visual-overview-freshness,
+    .board-pager-mobile-nav,
+    .campaign-view-switch
+  ) {
+  border-radius: 12px !important;
+  background: var(--nebula-panel-2) !important;
+  box-shadow: inset 0 0 0 1px var(--nebula-line) !important;
+}
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  .block-picker[data-tone="claro"]
+  > [role="radio"] {
+  background: transparent;
+  color: var(--nebula-muted);
+  box-shadow: none;
+}
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  :is(
+    [role="tab"][aria-selected="true"],
+    [role="tab"][data-state="active"],
+    [role="radio"][aria-checked="true"],
+    button[aria-pressed="true"],
+    button[data-state="on"],
+    .dash-sidebar-block[aria-current="page"],
+    .dash-sidebar-block.is-active,
+    .dash-sidebar-block.is-current,
+    .board-pager-nav-item.is-active,
+    .board-pager-sessao.is-active,
+    .board-pager-rede.is-active
+  ):not([data-placement]):not([data-geral]) {
+  background: var(--nebula-selected-bg) !important;
+  color: var(--nebula-selected) !important;
+  border-color: color-mix(
+    in srgb,
+    var(--nebula-accent) 28%,
+    transparent
+  ) !important;
+  box-shadow: inset 0 0 0 1px
+    color-mix(in srgb, var(--nebula-accent) 22%, transparent) !important;
+}
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  :is(
+    button,
+    a,
+    input,
+    textarea,
+    select,
+    [role="radio"],
+    summary
+  ):focus-visible {
+  outline: 2px solid var(--nebula-accent) !important;
+  outline-offset: 3px;
+}
+
+/* Overview: lighter typography, spacious but compact numeric cards. */
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  .visual-overview-toolbar {
+  min-height: 80px;
+  padding: 16px 20px;
+  border-radius: 16px !important;
+  background: var(--nebula-panel) !important;
+  box-shadow: inset 0 0 0 1px var(--nebula-line) !important;
+}
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  .visual-overview-kpi {
+  padding: 18px;
+  min-height: 116px;
+  text-align: left;
+}
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  .visual-overview-kpi
+  > strong {
+  font-size: clamp(24px, 2.3vw, 32px);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1.25;
+}
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  .visual-overview-zone {
+  padding: 24px;
+}
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  :is(
+    .visual-overview-kpi-top p,
+    .visual-overview-kpi-delta,
+    .visual-overview-caption,
+    .visual-overview-zone-heading p,
+    .visual-overview-bar-row,
+    .visual-overview-health li
+  ) {
+  font-size: 0.75rem;
+}
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  .visual-overview-kpi-top
+  p {
+  white-space: normal;
+}
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  .visual-overview-toolbar-title
+  p {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  .visual-overview-toolbar-title
+  > span {
+  background: var(--nebula-selected-bg) !important;
+  color: var(--nebula-selected);
+  border-radius: 11px !important;
+}
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  .visual-overview-zone-heading
+  > svg {
+  color: var(--nebula-selected);
+  background: var(--nebula-selected-bg) !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+}
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  :is(.visual-overview-zone-heading, .visual-overview-toolbar)
+  h2 {
+  font-weight: 600;
+}
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  :is(
+    .visual-overview-supporting-metrics > div,
+    .visual-overview-kpi-grid > div
+  ) {
+  border-radius: 10px !important;
+}
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  :is(.visual-overview, .campaign-workspace) {
+  --overview-muted: var(--nebula-muted);
+  --overview-line: var(--nebula-line);
+  color: var(--nebula-text);
+  font-family: var(--font-inter), system-ui, sans-serif;
+}
+
+/* Data tables keep their own alignment and scroll behavior. */
+body:has(.dash-skin[data-design-system="nebula"]) .dash-skin table :is(th, td) {
+  box-shadow: none !important;
+  border-bottom: 1px solid var(--nebula-line);
+  background: transparent;
+}
+body:has(.dash-skin[data-design-system="nebula"]) .dash-skin table th {
+  background: var(--nebula-panel-2);
+  color: var(--nebula-muted);
+  font-weight: 500;
+}
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  table
+  tbody
+  tr:hover {
+  background: var(--nebula-selected-bg);
+}
+
+/* Campaign workspace uses custom surfaces in addition to the shared cards. */
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  table
+  .bg-success.text-success-foreground {
+  --nebula-state: var(--success);
+}
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  table
+  .bg-warning.text-warning-foreground {
+  --nebula-state: var(--warning);
+}
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  table
+  .bg-destructive.text-destructive-foreground {
+  --nebula-state: var(--destructive);
+}
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  table
+  :is(
+    .bg-success.text-success-foreground,
+    .bg-warning.text-warning-foreground,
+    .bg-destructive.text-destructive-foreground
+  ) {
+  color: var(--nebula-state) !important;
+  background: color-mix(
+    in srgb,
+    var(--nebula-state) 12%,
+    var(--nebula-panel)
+  ) !important;
+  box-shadow: inset 0 0 0 1px
+    color-mix(in srgb, var(--nebula-state) 20%, transparent) !important;
+  border-radius: 8px !important;
+}
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  .class-board-quadro
+  > .class-board-dados {
+  border-radius: 20px;
+  background: var(--nebula-panel);
+  box-shadow: inset 0 0 0 1px var(--nebula-line);
+}
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  :is(.class-board-dados-topo, .class-board-pilar-cabecalho) {
+  background: var(--nebula-panel-2) !important;
+  border-radius: 12px;
+  box-shadow: none !important;
+}
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  :is(
+    .class-board-dados-secao,
+    .class-board-criativo,
+    .campanha-numero,
+    .class-board-dados-fichas > div
+  ) {
+  border-radius: 12px;
+}
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  .class-board-dados-nome {
+  font-weight: 600;
+}
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  .class-board-faixa-pager
+  .class-board-faixa-numeros
+  > li
+  > button[data-atual="true"] {
+  background: var(--nebula-selected-bg);
+  border-color: var(--nebula-accent);
+  color: var(--nebula-selected);
+}
+body:has(.dash-skin[data-design-system="nebula"])
+  .class-board-painel-cartao.class-board-menu {
+  --menu-fundo: var(--nebula-panel-2);
+  --menu-fundo-hover: var(--camada-3);
+  --menu-texto: var(--nebula-text);
+  --menu-texto-2: var(--nebula-muted);
+  --menu-fio: var(--nebula-line);
+  --menu-cheio: var(--primary);
+  --menu-cheio-texto: var(--primary-foreground);
+  background: var(--nebula-panel);
+  color: var(--nebula-text);
+  border-radius: 16px;
+}
+
+/* Portal surfaces must be opaque and readable in both saved themes. */
+body:has(.dash-skin[data-design-system="nebula"])
+  :is(
+    [data-slot="dialog-content"],
+    [data-slot="dropdown-menu-content"],
+    [data-slot="popover-content"],
+    [data-slot="select-content"],
+    [data-slot="tooltip-content"],
+    [data-slot="sheet-content"]
+  ) {
+  --popover: var(--nebula-panel-2);
+  --popover-foreground: var(--nebula-text);
+  --foreground: var(--nebula-text);
+  --muted-foreground: var(--nebula-muted);
+  --accent: var(--nebula-selected-bg);
+  --accent-foreground: var(--nebula-selected);
+  --border: var(--nebula-line);
+  color: var(--nebula-text) !important;
+  background: var(--nebula-panel-2) !important;
+  border: 1px solid var(--nebula-line-strong) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 20px 60px rgb(0 0 0 / 28%) !important;
+  font-family: var(--font-inter), system-ui, sans-serif;
+}
+body:has(.dash-skin[data-design-system="nebula"]) [data-slot="sheet-content"] {
+  border-radius: 0 !important;
+}
+body:has(.dash-skin[data-design-system="nebula"])
+  .dash-skin
+  [data-slot="badge"] {
+  border-radius: 999px !important;
+}
+
+@media (max-width: 639px) {
+  body:has(.dash-skin[data-design-system="nebula"])
+    .dash-skin
+    .visual-overview {
+    gap: 16px;
+  }
+  body:has(.dash-skin[data-design-system="nebula"])
+    .dash-skin
+    .visual-overview-filters {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+    width: 100%;
+    padding: 8px;
+  }
+  body:has(.dash-skin[data-design-system="nebula"])
+    .dash-skin
+    .visual-overview-filter-label {
+    grid-column: 1 / -1;
+    padding: 2px 4px;
+    font-size: 0.6875rem;
+  }
+  body:has(.dash-skin[data-design-system="nebula"])
+    .dash-skin
+    .visual-overview-filters
+    button {
+    min-height: 40px;
+    padding: 6px 2px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+  }
+  body:has(.dash-skin[data-design-system="nebula"])
+    .dash-skin
+    .visual-overview-kpis {
+    gap: 12px;
+  }
+  body:has(.dash-skin[data-design-system="nebula"])
+    .dash-skin
+    .visual-overview-kpi:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+  body:has(.dash-skin[data-design-system="nebula"])
+    .dash-skin
+    .visual-overview-page
+    .visual-overview-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+  body:has(.dash-skin[data-design-system="nebula"])
+    .dash-skin
+    .visual-overview-page
+    .visual-overview-grid
+    > * {
+    grid-column: auto;
+    grid-row: auto;
+  }
+  .nebula-header-divider {
+    margin-inline: 2px;
+  }
+  body:has(.dash-skin[data-design-system="nebula"])
+    .dash-skin
+    .visual-overview-toolbar {
+    padding: 14px;
+  }
+  body:has(.dash-skin[data-design-system="nebula"])
+    .dash-skin
+    .visual-overview-zone {
+    padding: 18px;
+  }
+  body:has(.dash-skin[data-design-system="nebula"])
+    .dash-skin
+    .visual-overview-kpi {
+    padding: 14px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  body:has(.dash-skin[data-design-system="nebula"]) *,
+  body:has(.dash-skin[data-design-system="nebula"]) *::before,
+  body:has(.dash-skin[data-design-system="nebula"]) *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

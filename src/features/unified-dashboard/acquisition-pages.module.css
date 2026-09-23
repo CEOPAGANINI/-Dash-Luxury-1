@@ -1,10 +1,10 @@
 .root {
-  --color-success: #eee;
-  --color-warning: #aaa;
-  --color-destructive: #999;
-  --color-primary: #fff;
+  --color-success: var(--nebula-positive, #eee);
+  --color-warning: var(--warning, #aaa);
+  --color-destructive: var(--nebula-negative, #999);
+  --color-primary: var(--nebula-accent, #6b7cff);
   min-width: 0;
-  color: #f4f4f4;
+  color: var(--nebula-text, #f4f5f7);
   font-family: var(--font-montserrat), system-ui, sans-serif;
 }
 .root :global(.board-pager-content) {
@@ -31,11 +31,11 @@
   font-weight: 800;
 }
 .heading p {
-  color: #bebebe;
+  color: var(--nebula-muted, #9598a3);
   font-size: 0.875rem;
 }
 .heading .eyebrow {
-  color: #d9d9d9;
+  color: var(--nebula-accent, #6b7cff);
   font-size: 0.6875rem;
   font-weight: 750;
   letter-spacing: 0.08em;
@@ -45,10 +45,10 @@
   min-width: 0;
   max-width: 100%;
   min-height: 2.5rem;
-  background: var(--camada-2);
-  color: #f5f5f5;
-  border: 0;
-  border-radius: 0;
+  background: var(--nebula-panel-2, #131720);
+  color: var(--nebula-text, #f4f5f7);
+  border: 1px solid var(--nebula-line, rgb(255 255 255 / 8%));
+  border-radius: 12px;
   padding: 0.6rem 0.75rem;
   font: inherit;
   font-size: 0.75rem;
@@ -61,12 +61,12 @@
   background: var(--camada-4);
 }
 :is(.header, .panel) button[aria-pressed="true"] {
-  background: #f5f5f5;
-  color: #111;
+  background: var(--primary, #f5f5f5);
+  color: var(--primary-foreground, #090909);
   box-shadow: var(--dash-shadow-control) !important;
 }
 .root :is(button, a, input, select, summary):focus-visible {
-  outline: 2px solid #fff !important;
+  outline: 2px solid var(--nebula-accent, #6b7cff) !important;
   outline-offset: 3px;
 }
 .filters {
@@ -75,7 +75,7 @@
   align-items: end;
   gap: 0.75rem;
   padding: 0.875rem;
-  background: var(--camada-1);
+  background: var(--nebula-panel, #0f1217);
   box-shadow: var(--dash-shadow-card);
 }
 .filters label,
@@ -83,7 +83,7 @@
 .comparisonFilters label {
   display: grid;
   gap: 0.35rem;
-  color: #bebebe;
+  color: var(--nebula-muted, #9598a3);
   font-size: 0.6875rem;
   font-weight: 700;
 }
@@ -93,11 +93,11 @@
   gap: 0.75rem;
   align-items: end;
   padding: 0.875rem;
-  background: var(--camada-1);
+  background: var(--nebula-panel, #0f1217);
 }
 .comparisonFilters p {
   font-size: 0.75rem;
-  color: #bebebe;
+  color: var(--nebula-muted, #9598a3);
 }
 .source {
   display: flex;
@@ -105,7 +105,7 @@
   flex-wrap: wrap;
   gap: 0.35rem 1rem;
   font-size: 0.75rem;
-  color: #bebebe;
+  color: var(--nebula-muted, #9598a3);
 }
 .source small {
   font-size: 0.6875rem;
@@ -116,7 +116,7 @@
   min-width: 0;
 }
 .panel {
-  background: var(--camada-1);
+  background: var(--nebula-panel, #0f1217);
   padding: clamp(0.875rem, 1.5vw, 1.25rem);
   box-shadow: var(--dash-shadow-card);
   display: grid;
@@ -135,7 +135,7 @@
 .note {
   font-size: 0.75rem;
   line-height: 1.6;
-  color: #b7b7b7;
+  color: var(--nebula-muted, #9598a3);
 }
 .channelChoices {
   display: flex;
@@ -150,7 +150,7 @@
   font-weight: 650;
 }
 .channelChoices input {
-  accent-color: #fff;
+  accent-color: var(--nebula-accent, #6b7cff);
   min-height: 1rem;
   width: 1rem;
 }
@@ -160,7 +160,7 @@
   gap: 0.75rem;
 }
 .channelCard {
-  background: var(--camada-2);
+  background: var(--nebula-panel-2, #131720);
   display: grid;
   gap: 1rem;
   padding: 1rem;
@@ -189,6 +189,8 @@
 .track {
   height: 0.5rem;
   background: var(--camada-0);
+  border-radius: 999px;
+  overflow: hidden;
 }
 .track span {
   display: block;
@@ -206,7 +208,7 @@
 }
 .channelMetrics dt {
   font-size: 0.6875rem;
-  color: #bebebe;
+  color: var(--nebula-muted, #9598a3);
 }
 .channelMetrics dd {
   font-size: 0.8125rem;
@@ -219,7 +221,7 @@
   gap: 1rem;
   font-size: 0.8rem;
   font-weight: 700;
-  color: #eee;
+  color: var(--nebula-accent, #6b7cff);
 }
 .links a {
   text-decoration: underline;
@@ -236,7 +238,7 @@
   display: grid;
   gap: 0.75rem;
   text-align: center;
-  background: var(--camada-2);
+  background: var(--nebula-panel-2, #131720);
 }
 .summaryCard h3 {
   font-size: 0.75rem;
@@ -250,7 +252,7 @@
 }
 .summaryCard span {
   font-size: 0.6875rem;
-  color: #bebebe;
+  color: var(--nebula-muted, #9598a3);
 }
 .comparisonRows {
   display: grid;
@@ -261,7 +263,7 @@
   grid-template-columns: 1.2fr 1fr 1fr 1.2fr;
   gap: 0.75rem;
   align-items: center;
-  background: var(--camada-2);
+  background: var(--nebula-panel-2, #131720);
   padding: 1rem;
   min-width: 0;
 }
@@ -274,7 +276,7 @@
   margin-top: 0.3rem;
   font-size: 0.65rem;
   font-weight: 500;
-  color: #bebebe;
+  color: var(--nebula-muted, #9598a3);
 }
 .comparisonRow > div {
   display: grid;
@@ -285,7 +287,7 @@
 }
 .comparisonRow span {
   font-size: 0.6875rem;
-  color: #bebebe;
+  color: var(--nebula-muted, #9598a3);
 }
 .comparisonRow b {
   overflow-wrap: anywhere;
@@ -296,8 +298,16 @@
 }
 .empty {
   padding: 2rem;
-  color: #bebebe;
+  color: var(--nebula-muted, #9598a3);
   text-align: center;
+}
+.root :is(.filters, .comparisonFilters, .panel) {
+  border: 1px solid var(--nebula-line, rgb(255 255 255 / 8%));
+  border-radius: 16px;
+}
+.root :is(.channelCard, .summaryCard, .comparisonRow) {
+  border: 1px solid var(--nebula-line, rgb(255 255 255 / 8%));
+  border-radius: 12px;
 }
 @container acquisition-page (min-width: 1050px) {
   .header {

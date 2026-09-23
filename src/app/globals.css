@@ -6129,7 +6129,7 @@ html[data-tema="branco"] .dash-skin :is(input, textarea)::placeholder { color: #
    Fica de fora o que está selecionado (estado) e o que é redondo (avatar,
    bolinha de estado).
    ===================================================================== */
-.dash-skin :is(div, span, a, button, label):not([aria-pressed="true"]):not([aria-checked="true"]):not([aria-selected="true"]):not([aria-current]):not(.is-active):not(.rounded-full):has(> svg:only-child) {
+.dash-skin:not([data-design-system="nebula"]) :is(div, span, a, button, label):not([aria-pressed="true"]):not([aria-checked="true"]):not([aria-selected="true"]):not([aria-current]):not(.is-active):not(.rounded-full):has(> svg:only-child) {
   background: transparent !important;
   background-image: none !important;
   border-color: transparent !important;
@@ -6147,7 +6147,7 @@ html[data-tema="branco"] .dash-skin :is(input, textarea)::placeholder { color: #
    ===================================================================== */
 html[data-tema="branco"] .dash-skin { color: #0a0a0a; }
 html[data-tema="branco"] .dash-skin :is(h1, h2, h3, h4, h5, h6, p, span, b, strong, em, i, small, label, li, td, th, dt, dd, legend, figcaption, a, button, summary, time, div, section, article, header, footer, nav, aside, main, input, textarea, select)
-  :not([class*="text-"]):not([style*="color"]):not([data-neon]):not(.dash-sidebar-selo):not(.class-board-quadro *):not(.class-board-painel-cartao *):not(.campanha-card-flutuante *):not([data-slot="badge"]):not([data-slot="badge"] *):not(.recharts-wrapper *):not(svg *):not([aria-pressed="true"]):not([aria-selected="true"]):not([aria-current="page"]):not(.is-active):not(.bg-primary):not(.bg-primary *):not(.bg-foreground):not(.bg-foreground *) {
+  :not([class*="text-"]):not([style*="color"]):not([data-neon]):not([data-tone]):not([data-status]):not([data-platform]):not([data-platform] *):not([role="tab"][data-placement]):not([role="tab"][data-geral]):not(.dash-sidebar-selo):not(.class-board-quadro *):not(.class-board-painel-cartao *):not(.campanha-card-flutuante *):not([data-slot="badge"]):not([data-slot="badge"] *):not(.recharts-wrapper *):not(svg *):not([aria-pressed="true"]):not([aria-selected="true"]):not([aria-current="page"]):not(.is-active):not(.bg-primary):not(.bg-primary *):not(.bg-foreground):not(.bg-foreground *):not(.nebula-brand-mark):not(.nebula-brand-mark *) {
   color: inherit !important;
 }
 html[data-tema="branco"] .dash-skin :is(h1, h2, h3, h4, h5, h6, p, span, b, strong, em, i, small, label, li, td, th, dt, dd, legend, figcaption, a, button, summary, time, div, section, article, header, footer, nav, aside, main, input, textarea, select)

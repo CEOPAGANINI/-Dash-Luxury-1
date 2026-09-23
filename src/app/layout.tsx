@@ -4,6 +4,7 @@ import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
 import { brand } from "@/lib/brand";
 import "./globals.css";
+import "./nebula-dashboard.css";
 
 /*
   Sistema de fontes em três papéis:
