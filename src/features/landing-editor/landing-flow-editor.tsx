@@ -114,6 +114,13 @@ function Editor({
   const [selectedId, setSelectedId] = React.useState(
     initialFlow.pages[0]?.id ?? "",
   );
+  /* O cartão aberto mostra, dentro dele, a configuração da própria página.
+     Um por vez: abrir outro fecha o anterior. */
+  const [aberta, setAberta] = React.useState<string | null>(
+    initialFlow.pages[0]?.id ?? null,
+  );
+  const [alturaAberta, setAlturaAberta] = React.useState(NODE_HEIGHT);
+  const cartaoAberto = React.useRef<HTMLElement>(null);
   const [kind, setKind] = React.useState<PageKind>("landing");
   const [view, setView] = React.useState<"flow" | "files">("flow");
   const [pagePackages, setPagePackages] = React.useState<
@@ -156,10 +163,28 @@ function Editor({
     1100,
     ...flow.pages.map((page) => page.x + NODE_WIDTH + 60),
   );
+  const paginaAberta = flow.pages.find((page) => page.id === aberta) ?? null;
   const boardHeight = Math.max(
     660,
     ...flow.pages.map((page) => page.y + NODE_HEIGHT + 60),
+    paginaAberta ? paginaAberta.y + alturaAberta + 60 : 0,
   );
+
+  /* O cartão aberto cresce com o formulário; o quadro cresce junto, para
+     o fim da configuração nunca ficar fora da área de blocos. */
+  React.useLayoutEffect(() => {
+    const cartao = cartaoAberto.current;
+    if (!cartao) return;
+    const medir = () =>
+      setAlturaAberta((atual) =>
+        atual === cartao.offsetHeight ? atual : cartao.offsetHeight,
+      );
+    medir();
+    if (typeof ResizeObserver === "undefined") return;
+    const observador = new ResizeObserver(medir);
+    observador.observe(cartao);
+    return () => observador.disconnect();
+  }, [aberta]);
 
   React.useEffect(() => {
     if (!dirty && !hasPackages) return;
@@ -206,8 +231,9 @@ function Editor({
     const page = createFlowPage(kind, flow.pages.length);
     change({ ...flow, pages: [...flow.pages, page] });
     setSelectedId(page.id);
+    setAberta(page.id);
     setMessage(
-      `${PAGE_KIND_LABELS[kind]} adicionada. Configure a página no painel ao lado.`,
+      `${PAGE_KIND_LABELS[kind]} adicionada. Configure a página no próprio cartão.`,
     );
   }
   function save() {
@@ -317,6 +343,183 @@ function Editor({
       x: clampPosition(page.x + delta[0]),
       y: clampPosition(page.y + delta[1]),
     });
+  }
+
+  /** A configuração mora dentro do cartão da própria página. */
+  function configuracao(pagina: FlowPage) {
+    return (
+      <div
+        id={`config-${pagina.id}`}
+        role="region"
+        aria-label={`Configuração de ${pagina.name || "página sem nome"}`}
+        className={styles.nodeConfig}
+      >
+        <header className={styles.configHeader}>
+          <h3>Configurar página</h3>
+          <button
+            type="button"
+            className={styles.iconButton}
+            aria-label={`Remover ${pagina.name}`}
+            onClick={() => {
+              change(removeFlowPage(flow, pagina.id));
+              setSelectedId(
+                flow.pages.find((page) => page.id !== pagina.id)?.id ?? "",
+              );
+              setAberta(null);
+              setMessage("Página removida. Use Desfazer para recuperá-la.");
+            }}
+          >
+            <Trash2 size={16} />
+          </button>
+        </header>
+        <div className={styles.fields}>
+          <label>
+            Nome da página
+            <input
+              value={pagina.name}
+              maxLength={120}
+              onChange={(event) =>
+                updatePage(pagina.id, { name: event.target.value })
+              }
+            />
+          </label>
+          <label>
+            Endereço da página
+            <input
+              value={pagina.url}
+              maxLength={2048}
+              placeholder="https://sualoja.com/oferta"
+              aria-invalid={Boolean(
+                pagina.url && !validateDestinationUrl(pagina.url),
+              )}
+              onChange={(event) =>
+                updatePage(pagina.id, { url: event.target.value })
+              }
+            />
+            <small>
+              {pagina.url && !validateDestinationUrl(pagina.url)
+                ? "Use https:// ou um caminho interno iniciado por /."
+                : "Isso não publica nem cria a rota."}
+            </small>
+          </label>
+          <label>
+            Título da landing page
+            <input
+              value={pagina.headline}
+              maxLength={240}
+              onChange={(event) =>
+                updatePage(pagina.id, {
+                  headline: event.target.value,
+                })
+              }
+            />
+          </label>
+          <label>
+            Descrição
+            <textarea
+              rows={3}
+              value={pagina.description}
+              maxLength={2000}
+              onChange={(event) =>
+                updatePage(pagina.id, {
+                  description: event.target.value,
+                })
+              }
+            />
+          </label>
+          <label>
+            Texto do botão
+            <input
+              value={pagina.buttonLabel}
+              maxLength={80}
+              onChange={(event) =>
+                updatePage(pagina.id, {
+                  buttonLabel: event.target.value,
+                })
+              }
+            />
+          </label>
+          <label>
+            Imagem de capa <span className={styles.optional}>(opcional)</span>
+            <input
+              value={pagina.imageUrl}
+              maxLength={2048}
+              placeholder="https://…/imagem.jpg"
+              aria-invalid={Boolean(
+                pagina.imageUrl && !validateDestinationUrl(pagina.imageUrl),
+              )}
+              onChange={(event) =>
+                updatePage(pagina.id, {
+                  imageUrl: event.target.value,
+                })
+              }
+            />
+          </label>
+          <button
+            type="button"
+            className={styles.previewButton}
+            onClick={() => {
+              setPreviewId(pagina.id);
+              setPreviewOpen(true);
+            }}
+          >
+            <Monitor size={16} /> Pré-visualizar página
+          </button>
+          <button
+            type="button"
+            className={styles.previewButton}
+            onClick={() => setView("files")}
+          >
+            <Download size={16} /> Exportar esta página (ZIP)
+          </button>
+        </div>
+        <form className={styles.linkForm} onSubmit={connect}>
+          <h3>
+            <Link2 size={16} /> Ligar a outra página
+          </h3>
+          <p>
+            Escolha o próximo destino a partir de {pagina.name || "esta página"}
+            .
+          </p>
+          <label>
+            Destino
+            <select
+              value={targetId}
+              onChange={(event) => setTargetId(event.target.value)}
+              required
+            >
+              <option value="">Selecione uma página</option>
+              {flow.pages
+                .filter((page) => page.id !== pagina.id)
+                .map((page) => (
+                  <option key={page.id} value={page.id}>
+                    {page.name || "Página sem nome"}
+                  </option>
+                ))}
+            </select>
+          </label>
+          <label>
+            Nome da ligação
+            <input
+              value={connectionLabel}
+              maxLength={100}
+              onChange={(event) => setConnectionLabel(event.target.value)}
+              required
+            />
+          </label>
+          <button
+            type="submit"
+            disabled={
+              !targetId ||
+              !connectionLabel.trim() ||
+              flow.connections.length >= 40
+            }
+          >
+            <Plus size={16} /> Criar ligação
+          </button>
+        </form>
+      </div>
+    );
   }
 
   return (
@@ -502,7 +705,10 @@ function Editor({
                   ◎
                 </span>
                 <strong>Fluxo de páginas</strong>
-                <span>{flow.pages.length} {flow.pages.length === 1 ? "bloco" : "blocos"}</span>
+                <span>
+                  {flow.pages.length}{" "}
+                  {flow.pages.length === 1 ? "bloco" : "blocos"}
+                </span>
               </div>
               <div className={styles.addControls}>
                 <select
@@ -528,6 +734,12 @@ function Editor({
             <div
               className={styles.viewport}
               ref={viewport}
+              data-cartao-aberto={paginaAberta ? "true" : undefined}
+              style={
+                {
+                  "--altura-do-quadro": `${boardHeight * zoom + 2}px`,
+                } as React.CSSProperties
+              }
               tabIndex={0}
               aria-label="Área de blocos; role para explorar"
             >
@@ -588,9 +800,11 @@ function Editor({
                           </div>
                         ) : null}
                         <article
+                          ref={aberta === page.id ? cartaoAberto : undefined}
                           className={styles.node}
                           data-kind={page.kind}
                           data-selected={selected?.id === page.id}
+                          data-aberto={aberta === page.id || undefined}
                           style={{ left: page.x, top: page.y }}
                           aria-label={`Página ${page.name}`}
                         >
@@ -622,8 +836,16 @@ function Editor({
                             onClick={() => {
                               setSelectedId(page.id);
                               setTargetId("");
+                              setAberta((atual) =>
+                                atual === page.id ? null : page.id,
+                              );
                             }}
-                            aria-pressed={selected?.id === page.id}
+                            aria-expanded={aberta === page.id}
+                            aria-controls={
+                              aberta === page.id
+                                ? `config-${page.id}`
+                                : undefined
+                            }
                             aria-label={`Configurar ${page.name}`}
                           >
                             <span className={styles.nodeName}>
@@ -637,6 +859,7 @@ function Editor({
                               {page.url || "Endereço não definido"}
                             </span>
                           </button>
+                          {aberta === page.id ? configuracao(page) : null}
                           <footer className={styles.nodeFooter}>
                             <span>
                               <i />
@@ -718,196 +941,6 @@ function Editor({
               </div>
             </footer>
           </section>
-          <aside
-            className={styles.inspector}
-            aria-label="Configuração da página"
-          >
-            {selected ? (
-              <>
-                <header className={styles.inspectorHeader}>
-                  <span className={styles.nodeIcon} data-kind={selected.kind}>
-                    <FileText size={18} />
-                  </span>
-                  <div>
-                    <h2>Configurar página</h2>
-                    <p>{PAGE_KIND_LABELS[selected.kind]}</p>
-                  </div>
-                  <button
-                    type="button"
-                    className={styles.iconButton}
-                    aria-label={`Remover ${selected.name}`}
-                    onClick={() => {
-                      change(removeFlowPage(flow, selected.id));
-                      setSelectedId(
-                        flow.pages.find((page) => page.id !== selected.id)
-                          ?.id ?? "",
-                      );
-                      setMessage(
-                        "Página removida. Use Desfazer para recuperá-la.",
-                      );
-                    }}
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </header>
-                <div className={styles.fields}>
-                  <label>
-                    Nome da página
-                    <input
-                      value={selected.name}
-                      maxLength={120}
-                      onChange={(event) =>
-                        updatePage(selected.id, { name: event.target.value })
-                      }
-                    />
-                  </label>
-                  <label>
-                    Endereço da página
-                    <input
-                      value={selected.url}
-                      maxLength={2048}
-                      placeholder="https://sualoja.com/oferta"
-                      aria-invalid={Boolean(
-                        selected.url && !validateDestinationUrl(selected.url),
-                      )}
-                      onChange={(event) =>
-                        updatePage(selected.id, { url: event.target.value })
-                      }
-                    />
-                    <small>
-                      {selected.url && !validateDestinationUrl(selected.url)
-                        ? "Use https:// ou um caminho interno iniciado por /."
-                        : "Isso não publica nem cria a rota."}
-                    </small>
-                  </label>
-                  <label>
-                    Título da landing page
-                    <input
-                      value={selected.headline}
-                      maxLength={240}
-                      onChange={(event) =>
-                        updatePage(selected.id, {
-                          headline: event.target.value,
-                        })
-                      }
-                    />
-                  </label>
-                  <label>
-                    Descrição
-                    <textarea
-                      rows={3}
-                      value={selected.description}
-                      maxLength={2000}
-                      onChange={(event) =>
-                        updatePage(selected.id, {
-                          description: event.target.value,
-                        })
-                      }
-                    />
-                  </label>
-                  <label>
-                    Texto do botão
-                    <input
-                      value={selected.buttonLabel}
-                      maxLength={80}
-                      onChange={(event) =>
-                        updatePage(selected.id, {
-                          buttonLabel: event.target.value,
-                        })
-                      }
-                    />
-                  </label>
-                  <label>
-                    Imagem de capa{" "}
-                    <span className={styles.optional}>(opcional)</span>
-                    <input
-                      value={selected.imageUrl}
-                      maxLength={2048}
-                      placeholder="https://…/imagem.jpg"
-                      aria-invalid={Boolean(
-                        selected.imageUrl &&
-                        !validateDestinationUrl(selected.imageUrl),
-                      )}
-                      onChange={(event) =>
-                        updatePage(selected.id, {
-                          imageUrl: event.target.value,
-                        })
-                      }
-                    />
-                  </label>
-                  <button
-                    type="button"
-                    className={styles.previewButton}
-                    onClick={() => {
-                      setPreviewId(selected.id);
-                      setPreviewOpen(true);
-                    }}
-                  >
-                    <Monitor size={16} /> Pré-visualizar página
-                  </button>
-                  <button
-                    type="button"
-                    className={styles.previewButton}
-                    onClick={() => setView("files")}
-                  >
-                    <Download size={16} /> Exportar esta página (ZIP)
-                  </button>
-                </div>
-                <form className={styles.linkForm} onSubmit={connect}>
-                  <h3>
-                    <Link2 size={16} /> Ligar a outra página
-                  </h3>
-                  <p>
-                    Escolha o próximo destino a partir de{" "}
-                    {selected.name || "esta página"}.
-                  </p>
-                  <label>
-                    Destino
-                    <select
-                      value={targetId}
-                      onChange={(event) => setTargetId(event.target.value)}
-                      required
-                    >
-                      <option value="">Selecione uma página</option>
-                      {flow.pages
-                        .filter((page) => page.id !== selected.id)
-                        .map((page) => (
-                          <option key={page.id} value={page.id}>
-                            {page.name || "Página sem nome"}
-                          </option>
-                        ))}
-                    </select>
-                  </label>
-                  <label>
-                    Nome da ligação
-                    <input
-                      value={connectionLabel}
-                      maxLength={100}
-                      onChange={(event) =>
-                        setConnectionLabel(event.target.value)
-                      }
-                      required
-                    />
-                  </label>
-                  <button
-                    type="submit"
-                    disabled={
-                      !targetId ||
-                      !connectionLabel.trim() ||
-                      flow.connections.length >= 40
-                    }
-                  >
-                    <Plus size={16} /> Criar ligação
-                  </button>
-                </form>
-              </>
-            ) : (
-              <div className={styles.emptyInspector}>
-                <FileText size={28} />
-                <p>Adicione uma página para configurar seu conteúdo.</p>
-              </div>
-            )}
-          </aside>
         </div>
         <section
           className={styles.connections}
@@ -918,7 +951,10 @@ function Editor({
               <h2>Ligações do fluxo</h2>
               <p>Confira os destinos sem depender do desenho.</p>
             </div>
-            <span>{flow.connections.length} {flow.connections.length === 1 ? "ligação" : "ligações"}</span>
+            <span>
+              {flow.connections.length}{" "}
+              {flow.connections.length === 1 ? "ligação" : "ligações"}
+            </span>
           </header>
           {flow.connections.length ? (
             <ul>
@@ -934,14 +970,20 @@ function Editor({
                     <Link2 size={16} />
                     <button
                       type="button"
-                      onClick={() => setSelectedId(source.id)}
+                      onClick={() => {
+                        setSelectedId(source.id);
+                        setAberta(source.id);
+                      }}
                     >
                       {source.name}
                     </button>
                     <ArrowRight size={15} aria-hidden />
                     <button
                       type="button"
-                      onClick={() => setSelectedId(target.id)}
+                      onClick={() => {
+                        setSelectedId(target.id);
+                        setAberta(target.id);
+                      }}
                     >
                       {target.name}
                     </button>
@@ -985,7 +1027,8 @@ function Editor({
         <div className={styles.statusBar}>
           <span>
             <Check size={14} />
-            {flow.pages.length} {flow.pages.length === 1 ? "página" : "páginas"} / {flow.connections.length}{" "}
+            {flow.pages.length} {flow.pages.length === 1 ? "página" : "páginas"}{" "}
+            / {flow.connections.length}{" "}
             {flow.connections.length === 1 ? "ligação" : "ligações"}
           </span>
           <span>
@@ -1178,6 +1221,7 @@ function Editor({
                   setPagePackages({});
                   setPackageRevision((revision) => revision + 1);
                   setSelectedId(imported.pages[0]?.id ?? "");
+                  setAberta(imported.pages[0]?.id ?? null);
                   setTargetId("");
                   setImported(null);
                   setMessage("Fluxo importado. Revise e salve o rascunho.");

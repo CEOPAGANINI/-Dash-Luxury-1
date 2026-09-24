@@ -41,10 +41,9 @@ function renderEditor() {
   return render(<LandingFlowEditor storageId="editor-test-user" />);
 }
 
+/** A configuração mora dentro do cartão aberto; só um fica aberto por vez. */
 function inspector() {
-  return within(
-    screen.getByRole("complementary", { name: "Configuração da página" }),
-  );
+  return within(screen.getByRole("region", { name: /^Configuração de / }));
 }
 
 function connections() {
@@ -73,6 +72,56 @@ describe("Orbit landing-page flow editor", () => {
     expect(save).not.toHaveBeenCalled();
   });
 
+  it("keeps each page's settings inside its own card, one card open at a time", () => {
+    renderEditor();
+    // Não há mais painel lateral de configuração.
+    expect(screen.queryByRole("complementary")).toBeNull();
+    const landing = screen.getByRole("article", {
+      name: "Página Landing page",
+    });
+    const checkout = screen.getByRole("article", { name: "Página Checkout" });
+    // O primeiro cartão abre já com a configuração dentro dele.
+    expect(
+      within(landing).getByRole("region", {
+        name: "Configuração de Landing page",
+      }),
+    ).toBeTruthy();
+    expect(within(checkout).queryByRole("region")).toBeNull();
+
+    const abrirCheckout = within(checkout).getByRole("button", {
+      name: "Configurar Checkout",
+    });
+    fireEvent.click(abrirCheckout);
+    expect(abrirCheckout.getAttribute("aria-expanded")).toBe("true");
+    const config = within(checkout).getByRole("region", {
+      name: "Configuração de Checkout",
+    });
+    expect(abrirCheckout.getAttribute("aria-controls")).toBe(config.id);
+    for (const campo of [
+      "Nome da página",
+      "Título da landing page",
+      "Descrição",
+      "Texto do botão",
+    ])
+      expect(within(config).getByRole("textbox", { name: campo })).toBeTruthy();
+    expect(
+      within(config).getByRole("button", { name: "Pré-visualizar página" }),
+    ).toBeTruthy();
+    expect(
+      within(config).getByRole("button", { name: "Criar ligação" }),
+    ).toBeTruthy();
+    expect(
+      within(config).getByRole("button", { name: "Remover Checkout" }),
+    ).toBeTruthy();
+    // Abrir um fecha o outro; clicar de novo fecha o próprio.
+    expect(within(landing).queryByRole("region")).toBeNull();
+    fireEvent.click(abrirCheckout);
+    expect(abrirCheckout.getAttribute("aria-expanded")).toBe("false");
+    expect(
+      screen.queryByRole("region", { name: /^Configuração de / }),
+    ).toBeNull();
+  });
+
   it("selects and edits only the chosen page, saving solely on explicit request", () => {
     renderEditor();
     expect(useLandingFlowDraft).toHaveBeenCalledWith("editor-test-user");
@@ -85,12 +134,12 @@ describe("Orbit landing-page flow editor", () => {
     expect(
       screen
         .getByRole("button", { name: "Configurar Checkout" })
-        .getAttribute("aria-pressed"),
+        .getAttribute("aria-expanded"),
     ).toBe("true");
     expect(
       screen
         .getByRole("button", { name: "Configurar Landing page" })
-        .getAttribute("aria-pressed"),
+        .getAttribute("aria-expanded"),
     ).toBe("false");
 
     editField("Nome da página", "Pagamento seguro");
@@ -201,14 +250,12 @@ describe("Orbit landing-page flow editor", () => {
         target: { value: "external" },
       },
     );
-    fireEvent.click(
-      screen.getByRole("button", { name: "Adicionar" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "Adicionar" }));
     expect(screen.getAllByRole("article")).toHaveLength(4);
     expect(
       screen
         .getByRole("button", { name: "Configurar Página externa 4" })
-        .getAttribute("aria-pressed"),
+        .getAttribute("aria-expanded"),
     ).toBe("true");
     expect(
       (
