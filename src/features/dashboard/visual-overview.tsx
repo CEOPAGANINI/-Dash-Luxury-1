@@ -2,27 +2,21 @@
 
 import * as React from "react";
 import {
-  Activity,
   AlertTriangle,
   ArrowDownRight,
   ArrowUpRight,
-  BarChart3,
   CalendarDays,
   CheckCircle2,
   Coins,
-  Filter,
   Gauge,
-  HeartPulse,
   Info,
   LineChart,
   Minus,
-  PieChart,
   PiggyBank,
   Repeat,
   Scale,
   Sparkles,
   Target,
-  TrendingUp,
   Users,
   Wallet,
   XCircle,
@@ -915,9 +909,6 @@ export function VisualOverview({
 
           <header className="visual-overview-toolbar">
             <div className="visual-overview-toolbar-title">
-              <span aria-hidden="true">
-                <Sparkles />
-              </span>
               <div>
                 <p>Visão geral da operação</p>
                 <span>{snapshot.label}</span>
@@ -1023,7 +1014,6 @@ export function VisualOverview({
                       <p>Margem</p>
                       <span>Quanto fica de cada venda</span>
                     </div>
-                    <Activity aria-hidden="true" />
                     <Estado tom={veredito(estadoMargem)} />
                   </div>
                   <div
@@ -1067,7 +1057,6 @@ export function VisualOverview({
                       <p>Composição financeira</p>
                       <span>Comparação na mesma escala</span>
                     </div>
-                    <BarChart3 aria-hidden="true" />
                   </div>
                   <div className="visual-overview-bars">
                     {composition.map((item) => (
@@ -1112,7 +1101,6 @@ export function VisualOverview({
                       <p>Saúde dos pagamentos</p>
                       <span>Distribuição do volume</span>
                     </div>
-                    <HeartPulse aria-hidden="true" />
                     <Estado tom={veredito(estadoCheckout)} />
                   </div>
                   <div className="visual-overview-health-body">
@@ -1182,7 +1170,6 @@ export function VisualOverview({
                         <p>Receita líquida</p>
                         <span>Fluxo diário no período</span>
                       </div>
-                      <LineChart aria-hidden="true" />
                     </div>
                     <strong className="visual-overview-hero-value">
                       {compactCurrency.format(snapshot.receitaLiquida)}
@@ -1285,7 +1272,6 @@ export function VisualOverview({
                       <p>Caixa recebido</p>
                       <span>Valor já disponível</span>
                     </div>
-                    <Wallet aria-hidden="true" />
                   </div>
                   <strong className="visual-overview-secondary-value">
                     {compactCurrency.format(snapshot.caixaRecebido)}
@@ -1325,7 +1311,6 @@ export function VisualOverview({
                       <p>Receita por canal</p>
                       <span>Participação da aquisição</span>
                     </div>
-                    <PieChart aria-hidden="true" />
                   </div>
                   <div className="visual-overview-bubbles" aria-hidden="true">
                     {channels.map((channel, index) => {
@@ -1372,7 +1357,6 @@ export function VisualOverview({
                       <p>Resultado final</p>
                       <span>Depois de mídia, taxas e produto</span>
                     </div>
-                    <Coins aria-hidden="true" />
                   </div>
                   <div className="visual-overview-profit-body">
                     <strong>
@@ -1411,7 +1395,6 @@ export function VisualOverview({
                         <p>Funil do site</p>
                         <span>Da visita ao pedido</span>
                       </div>
-                      <Filter aria-hidden="true" />
                       {/* Destaque marca o número que é estimativa, não medição. */}
                       <Estado tom="accent" />
                     </div>
@@ -1513,7 +1496,6 @@ export function VisualOverview({
                       <p>Meta de receita</p>
                       <span>Quanto do alvo já foi feito</span>
                     </div>
-                    <Target aria-hidden="true" />
                     <Estado tom={veredito(estadoMeta(metaReceita))} />
                   </div>
 
@@ -1566,7 +1548,6 @@ export function VisualOverview({
                       <p>Meta de lucro</p>
                       <span>O que sobra depois de tudo</span>
                     </div>
-                    <Target aria-hidden="true" />
                     <Estado tom={veredito(estadoMeta(metaLucro))} />
                   </div>
 
@@ -1623,7 +1604,6 @@ export function VisualOverview({
                           : "Projeção do mês corrente"}
                       </span>
                     </div>
-                    <TrendingUp aria-hidden="true" />
                     {/* Destaque, e não sucesso ou erro: isto não aconteceu
                     ainda. Dar a um número projetado a mesma cor de um
                     medido faria a tela afirmar como fato o que é só a
@@ -1722,7 +1702,6 @@ export function VisualOverview({
                       <p>Retorno por cliente</p>
                       <span>O que ele devolve contra o que custou</span>
                     </div>
-                    <Scale aria-hidden="true" />
                     <Estado tom={veredito(estadoLtvCac(clientes.ltvCac))} />
                   </div>
 
@@ -1791,7 +1770,6 @@ export function VisualOverview({
                       <p>Payback</p>
                       <span>Compras até o cliente se pagar</span>
                     </div>
-                    <Repeat aria-hidden="true" />
                     <Estado tom={veredito(estadoPayback(clientes.paybackCompras))} />
                   </div>
 
@@ -1843,7 +1821,6 @@ export function VisualOverview({
                       <p>Recompra</p>
                       <span>O aviso que chega antes do LTV</span>
                     </div>
-                    <Users aria-hidden="true" />
                     {/* Informativo: não existe meta de recompra cadastrada no
                     modelo, e inventar uma faria a etiqueta mentir. */}
                     <Estado tom="info" />

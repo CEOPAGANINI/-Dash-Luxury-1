@@ -131,7 +131,7 @@ export async function syncMetaAction(): Promise<ResultadoAds> {
     revalidatePath("/campanhas", "layout");
     return {
       ok: true,
-      mensagem: `Sincronizado: ${r.campanhas} campanha(s), ${r.conjuntos} conjunto(s), ${r.anuncios} anúncio(s).`,
+      mensagem: `Sincronizado: ${r.campanhas} ${r.campanhas === 1 ? "campanha" : "campanhas"}, ${r.conjuntos} ${r.conjuntos === 1 ? "conjunto" : "conjuntos"}, ${r.anuncios} ${r.anuncios === 1 ? "anúncio" : "anúncios"}.`,
     };
   } catch (error) {
     console.error("[ads] sync falhou:", error);
@@ -553,13 +553,14 @@ export async function bulkStatusAction(
     }
   }
   revalidatePath("/campanhas");
-  const verbo = status === "active" ? "ativada(s)" : status === "paused" ? "pausada(s)" : "arquivada(s)";
+  const participio = status === "active" ? "ativada" : status === "paused" ? "pausada" : "arquivada";
+  const verbo = (n: number) => (n === 1 ? participio : `${participio}s`);
   return {
     ok: ok > 0,
     mensagem:
       barradas.length === 0
-        ? `${ok} campanha(s) ${verbo}.`
-        : `${ok} ${verbo}; ${barradas.length} barrada(s): ${barradas[0]}`,
+        ? `${ok} ${ok === 1 ? "campanha" : "campanhas"} ${verbo(ok)}.`
+        : `${ok} ${verbo(ok)}; ${barradas.length} ${barradas.length === 1 ? "barrada" : "barradas"}: ${barradas[0]}`,
   };
 }
 

@@ -193,6 +193,27 @@ function itemAtivo(pathname: string, item: PaginaDoMenu) {
     : itemIsActive(pathname, item.href);
 }
 
+/** Páginas que existem mas não estão no menu: sem isto o topo diria só "Painel". */
+const TITULOS_FORA_DO_MENU: Record<string, string> = {
+  "/carrinhos": "Carrinhos",
+  "/catalogo/categorias": "Categorias",
+  "/catalogo/cupons": "Cupons",
+  "/catalogo/estoque": "Estoque",
+  "/catalogo/produtos": "Produtos",
+  "/editor/checkout": "Editor de checkout",
+  "/editor/fretes": "Fretes",
+  "/editor/loja": "Editor da loja",
+  "/emails": "E-mails",
+  "/financeiro": "Financeiro",
+  "/financeiro/entradas-saidas": "Entradas e saídas",
+  "/financeiro/links-de-pagamento": "Links de pagamento",
+  "/financeiro/processador": "Processador",
+  "/financeiro/repasses": "Repasses",
+  "/pixel": "Pixel",
+  "/provas-sociais": "Provas sociais",
+  "/webhooks": "Webhooks",
+};
+
 export function sidebarPageTitle(pathname: string) {
   for (const group of groups) {
     const item = group.items.find((item) => itemAtivo(pathname, item));
@@ -201,7 +222,10 @@ export function sidebarPageTitle(pathname: string) {
   for (const group of groups) {
     if (group.raiz && itemIsActive(pathname, group.raiz)) return group.titulo ?? group.label;
   }
-  return "Painel";
+  const fora = Object.keys(TITULOS_FORA_DO_MENU)
+    .filter((rota) => pathname === rota || pathname.startsWith(`${rota}/`))
+    .sort((a, b) => b.length - a.length)[0];
+  return fora ? TITULOS_FORA_DO_MENU[fora] : "Painel";
 }
 
 /** Uma pasta por vez; as outras categorias não ficam renderizadas nem focáveis. */

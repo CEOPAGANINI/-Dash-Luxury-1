@@ -161,7 +161,7 @@ export function PainelDoBloco({
       <GraficoRoas amostras={amostras} rotulo={rotulo} />
       <div className="class-board-bloco-numeros-cabecalho">
         <p className="class-board-bloco-numeros-titulo">
-          <b>{selecionadas.length}</b> {selecionadas.length === 1 ? "campanha" : "campanhas"} somadas
+          <b>{selecionadas.length}</b> {selecionadas.length === 1 ? "campanha somada" : "campanhas somadas"}
           {paginaValida !== "todas" && <span> · página {paginaValida}</span>}
         </p>
         {paginas > 1 && (
@@ -319,6 +319,9 @@ export function GraficoRoas({
 }) {
   const [janela, setJanela] = React.useState<JanelaId>(janelas[janelas.length - 1].id);
   const [ativo, setAtivo] = React.useState<number | null>(null);
+  /* Onde está o mouse dentro da área, em pixels: o cartão vai atrás dele. */
+  const [ponteiro, setPonteiro] = React.useState<{ x: number; y: number } | null>(null);
+  const cartaoRef = React.useRef<HTMLDivElement>(null);
   const visiveis = leiturasDaJanela(amostras, janela, janelas);
   const n = visiveis.length;
   /* O desenho vale em pixels de verdade: o viewBox acompanha a largura
@@ -389,14 +392,41 @@ export function GraficoRoas({
     let melhor = 0;
     for (let i = 1; i < pontos.length; i++) if (Math.abs(pontos[i].x - px) < Math.abs(pontos[melhor].x - px)) melhor = i;
     setAtivo(melhor);
+    const area = areaRef.current?.getBoundingClientRect();
+    if (area) setPonteiro({ x: e.clientX - area.left, y: e.clientY - area.top });
   }
+  function aoSair() {
+    setAtivo(null);
+    setPonteiro(null);
+  }
+  /* O cartão fica ao lado do mouse, à direita; perto da borda direita
+     passa para a esquerda, e nunca sai da área do gráfico. A conta usa o
+     tamanho real do cartão, que muda com o texto. */
+  React.useLayoutEffect(() => {
+    const cartao = cartaoRef.current;
+    const area = areaRef.current;
+    if (!cartao || !area || !ponteiro) return;
+    const DISTANCIA = 14;
+    const w = cartao.offsetWidth;
+    const h = cartao.offsetHeight;
+    const larguraArea = area.clientWidth;
+    const alturaArea = area.clientHeight;
+    const cabeDireita = ponteiro.x + DISTANCIA + w <= larguraArea;
+    const cabeEsquerda = ponteiro.x - DISTANCIA - w >= 0;
+    const direita = cabeDireita || (!cabeEsquerda && larguraArea - ponteiro.x >= ponteiro.x);
+    let left = direita ? ponteiro.x + DISTANCIA : ponteiro.x - DISTANCIA - w;
+    left = Math.min(Math.max(0, left), Math.max(0, larguraArea - w));
+    const top = Math.min(Math.max(0, ponteiro.y - h / 2), Math.max(0, alturaArea - h));
+    cartao.style.transform = `translate(${Math.round(left)}px, ${Math.round(top)}px)`;
+    cartao.dataset.lado = left < ponteiro.x ? "esquerda" : "direita";
+  });
   return (
     <figure className="class-board-grafico" aria-label={`ROAS de ${rotulo} a cada ${cadencia}`} style={{ ["--serie" as string]: cor }} data-faixa={faixa} data-compacto={compacto ? "true" : undefined}>
       <div className="class-board-grafico-topo">
         <figcaption className="sr-only">ROAS a cada {cadencia}, ao vivo</figcaption>
         <div className="class-board-grafico-janelas" role="group" aria-label="Período do gráfico">
           {janelas.map((j) => (
-            <button key={j.id} type="button" aria-pressed={janela === j.id} onClick={() => { setJanela(j.id); setAtivo(null); }}>
+            <button key={j.id} type="button" aria-pressed={janela === j.id} onClick={() => { setJanela(j.id); aoSair(); }}>
               {j.rotulo}
             </button>
           ))}
@@ -413,7 +443,7 @@ export function GraficoRoas({
             aria-label={`${n} leituras; a mais nova ${formatRatio(ultimo.roas)} às ${hora(ultimo.t)}`}
             data-pontos={n}
             onPointerMove={aoMover}
-            onPointerLeave={() => setAtivo(null)}
+            onPointerLeave={aoSair}
           >
             {/* Sem linhas nenhumas: só os números do eixo à esquerda. */}
             {passos.map((v) => (
@@ -450,7 +480,7 @@ export function GraficoRoas({
             ))}
           </svg>
           {escolhido && primeiro && (
-            <div className="class-board-grafico-cartao" role="status" aria-live="polite" data-faixa={faixaDoRoas(escolhido.roas)}>
+            <div ref={cartaoRef} className="class-board-grafico-cartao" role="status" aria-live="polite" data-faixa={faixaDoRoas(escolhido.roas)}>
               <span className="class-board-grafico-cartao-quando">{dataHora(escolhido.t)}</span>
               <b className="class-board-grafico-cartao-valor">{formatRatio(escolhido.roas)}</b>
               <span className="class-board-grafico-cartao-variacao" data-sinal={escolhido.roas > primeiro.roas ? "sobe" : escolhido.roas < primeiro.roas ? "desce" : "igual"}>

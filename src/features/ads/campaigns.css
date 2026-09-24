@@ -9,7 +9,7 @@
   display: grid;
   gap: 12px;
 }
-.campaign-manager .campaign-page-heading h1 {
+.campaign-manager .campaign-page-heading h2 {
   font-size: clamp(1.65rem, 2.5cqi, 2rem);
 }
 .campaign-manager .campaign-source {
@@ -670,7 +670,7 @@
 .campaign-page-heading > div {
   min-width: 0;
 }
-.campaign-page-heading h1 {
+.campaign-page-heading h2 {
   font-size: clamp(1.65rem, 3cqi, 2.4rem);
   font-weight: 800;
   line-height: 1.2;
@@ -1527,7 +1527,7 @@
    --------------------------------------------------------------------- */
 .campaign-manager .campaign-inventory { padding: 12px; }
 .campaign-manager .campaign-toolbar-linha { min-height: 36px; gap: 8px; }
-.campaign-manager .campaign-toolbar-linha h1 { font-size: 0.9375rem; line-height: 1.3; }
+.campaign-manager .campaign-toolbar-linha h2 { font-size: 0.9375rem; line-height: 1.3; }
 .campaign-manager .campaign-toolbar-linha p { margin: 0; font-size: 0.6875rem; line-height: 1.4; }
 .campaign-manager .campaign-board-toolbar { gap: 6px; }
 .campaign-manager .campaign-control {
@@ -3886,10 +3886,13 @@
 .class-board-grafico-janelas > button:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }
 .class-board-grafico-area > svg { background: rgb(255 255 255 / 2%); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 5%); }
 .class-board-grafico-cursor { stroke: rgb(255 255 255 / 45%); stroke-width: 1; stroke-dasharray: 3 3; }
+/* O cartão acompanha o mouse: a posição vem do componente, por transform,
+   a partir do canto de cima à esquerda da área do gráfico. */
 .class-board-grafico-cartao {
   position: absolute;
-  top: 10px;
-  right: 12px;
+  top: 0;
+  left: 0;
+  z-index: 2;
   display: grid;
   gap: 2px;
   min-width: 11rem;
@@ -4626,7 +4629,9 @@ html[data-tema="branco"] .class-board-painel-cartao.class-board-menu {
    caber nos 288px do card sem apertar as métricas. */
 .campanha-card-flutuante .class-board-grafico[data-compacto="true"] { gap: 6px; }
 .campanha-card-flutuante .class-board-grafico[data-compacto="true"] .class-board-grafico-janelas > button { min-height: 1.5rem; padding: 0 8px; font-size: 0.625rem; }
-.campanha-card-flutuante .class-board-grafico[data-compacto="true"] .class-board-grafico-cartao { padding: 5px 7px; font-size: 0.625rem; }
+/* No card de 288px o cartão da leitura encolhe ao próprio texto: com os
+   11rem do painel grande ele não cabia de lado nenhum do mouse. */
+.campanha-card-flutuante .class-board-grafico[data-compacto="true"] .class-board-grafico-cartao { min-width: 0; padding: 5px 7px; font-size: 0.625rem; white-space: nowrap; }
 .campanha-card-flutuante .class-board-grafico[data-compacto="true"] .class-board-grafico-cartao-valor { font-size: 0.8125rem; }
 .campanha-card-flutuante .class-board-grafico[data-compacto="true"] .class-board-grafico-vazio { font-size: 0.6875rem; }
 

@@ -64,7 +64,7 @@ describe("o painel do bloco: gráfico primeiro, filtro por página e métricas a
     expect(valor(painel, "investimento")).toMatch(/^R\$\s200$/);
     expect(valor(painel, "receita")).toMatch(/^R\$\s400$/);
     fireEvent.click(within(paginas).getByRole("button", { name: "Página 3" }));
-    expect(painel.querySelector(".class-board-bloco-numeros-titulo")?.textContent).toContain("1 campanha somadas · página 3");
+    expect(painel.querySelector(".class-board-bloco-numeros-titulo")?.textContent).toContain("1 campanha somada · página 3");
     expect(valor(painel, "investimento")).toMatch(/^R\$\s10,00$/);
     expect(campanhasDaPagina(cinco, 2, 2).map((c) => c.id)).toEqual(["c", "d"]);
     expect(campanhasDaPagina(cinco, undefined, 2)).toBe(cinco);

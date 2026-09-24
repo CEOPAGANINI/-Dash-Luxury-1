@@ -47,13 +47,17 @@ dentro de Páginas.
 O contrato entre os dois lados é testado em
 `tests/integration/editor-para-servidor.test.ts`: o painel aceita o ZIP de
 cada etapa dos modelos do funil, e o agente extrai byte a byte o que o editor
-gera. Três divergências ficaram fixadas nesse teste:
+gera. As três divergências que a união deixou estão fechadas: o editor
+confere as regras do Servidor antes de gerar o ZIP (`conferirParaOServidor`,
+em `static-page-export.ts`, com a mesma `segmentoDoZipOk` e o mesmo
+`INDEX_HTML_MAX_BYTES` de `src/features/vps/modelo.ts`) e recusa com uma
+mensagem que diz o que fazer:
 
-- arquivo ou pasta oculta (ex.: `.well-known/`): o editor exporta, o Servidor
-  recusa;
-- nome acima de 255 bytes: o editor conta caracteres, o Linux conta bytes;
-- `index.html` acima de 2 MB: o editor aceita, o Servidor recusa porque a
-  conferência “No ar” baixa só 2 MB.
+- arquivo ou pasta oculta (ex.: `.well-known/`), que o nginx do site nunca
+  serve;
+- nome acima de 255 bytes, contados como o Linux conta (letra com acento
+  vale 2);
+- `index.html` acima de 2 MB, o teto da conferência "No ar".
 
 ## Banco e agente
 

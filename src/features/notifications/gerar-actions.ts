@@ -86,7 +86,7 @@ export async function gerarAvisosAction(): Promise<ResultadoGeracao> {
       mensagem:
         novos.length === 0
           ? "Todos os avisos de agora já estavam na lista."
-          : `${novos.length} aviso(s) novo(s)${repetidas ? `, ${repetidas} já existia(m)` : ""}.`,
+          : `${novos.length} ${novos.length === 1 ? "aviso novo" : "avisos novos"}${repetidas ? `, ${repetidas} ${repetidas === 1 ? "já existia" : "já existiam"}` : ""}.`,
     };
   } catch (error) {
     console.error("[notifications] erro ao gerar avisos:", error);

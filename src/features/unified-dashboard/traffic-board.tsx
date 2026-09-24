@@ -206,14 +206,14 @@ export function TrafficBoard({
 
   const header = (active: number) =>
     active === 0 ? (
-      <h1 className="sr-only">Calendário de aquisição</h1>
+      <h2 className="sr-only">Calendário de aquisição</h2>
     ) : (
       <header className={styles.header}>
         <div className={styles.heading}>
           <p className={styles.eyebrow}>
             Aquisição · {active + 1} de {PAGES.length} · {PAGES[active]}
           </p>
-          <h1>{TITLES[active]}</h1>
+          <h2>{TITLES[active]}</h2>
           <p>
             {isDemo
               ? "Explore esta análise com um cenário demonstrativo."

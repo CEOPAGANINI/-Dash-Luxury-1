@@ -142,7 +142,7 @@ export default async function NotificacoesPage() {
             </p>
           </div>
           <Badge variant={avisos.length === 0 ? "success" : "warning"}>
-            {avisos.length === 0 ? "Nada a avisar" : `${avisos.length} aviso(s)`}
+            {avisos.length === 0 ? "Nada a avisar" : `${avisos.length} ${avisos.length === 1 ? "aviso" : "avisos"}`}
           </Badge>
         </header>
 

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
+import { isDatabaseConfigured } from "@/database/client";
 import { getSession } from "@/lib/auth/session";
 import { ConnectionsProvider } from "@/lib/data-connections";
 import { Header } from "@/components/layout/header";
@@ -14,6 +15,7 @@ export default async function PainelLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   const session = await getSession();
   if (!session) redirect("/login");
+  const semBanco = !isDatabaseConfigured();
 
   const [unreadCount, conexoes] = await Promise.all([
     countUnreadNotifications(),
@@ -37,7 +39,7 @@ export default async function PainelLayout({
           <AppSidebar user={session.user} unreadCount={unreadCount} />
           <div className="flex min-w-0 flex-1 flex-col">
             <Header user={session.user} unreadCount={unreadCount} />
-            {session.demoMode && <DemoBanner />}
+            {(session.demoMode || semBanco) && <DemoBanner semBanco={semBanco} />}
             <main className="dash-main w-full flex-1 px-3 py-3 sm:px-4 sm:py-4 md:px-6 md:py-6 3xl:px-8">
               {children}
             </main>

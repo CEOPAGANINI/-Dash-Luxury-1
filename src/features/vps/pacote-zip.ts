@@ -3,6 +3,8 @@ import { crc32, inflateRawSync } from "node:zlib";
 
 import { normalizeVpsRelativePath, VPS_UPLOAD_MAX_BYTES } from "./file-paths";
 import {
+  ehArquivoDeSistema,
+  INDEX_HTML_MAX_BYTES,
   R_SEGMENTO,
   SEGMENTO_MAX_BYTES,
   segmentoDoZipOk,
@@ -57,14 +59,8 @@ export const EXTENSOES_PERMITIDAS = [
   "pdf",
 ] as const;
 
-/** Ignorados sem recusar: pastas de sistema e nomes de sistema (e "._*"). */
-export const IGNORAR_NO_ZIP = ["__MACOSX/"] as const;
-export const IGNORAR_NOME = [
-  ".DS_Store",
-  "Thumbs.db",
-  "desktop.ini",
-  ".htaccess",
-] as const;
+/** Ignorados sem recusar: a regra mora em modelo.ts, que o editor também usa. */
+export { IGNORAR_NO_ZIP, IGNORAR_NOME } from "./modelo";
 
 export const LIMITES_DO_ZIP = {
   zip: VPS_UPLOAD_MAX_BYTES,
@@ -82,7 +78,7 @@ export const LIMITES_DO_ZIP = {
    * O index.html descomprimido aqui tem teto de 2 MB, o mesmo que a
    * conferência "No ar" baixa para comparar o sha256 (conferencia.ts).
    */
-  index: 2 << 20,
+  index: INDEX_HTML_MAX_BYTES,
 } as const;
 
 /** Só confere a razão acima disto: arquivo pequeno não esconde nada. */
@@ -122,14 +118,7 @@ type Entrada = {
 const ZIP_TODO = "(o ZIP)";
 const MAX_PROBLEMAS = 50;
 
-function ehLixo(nome: string): boolean {
-  const base = nome.slice(nome.lastIndexOf("/") + 1);
-  return (
-    IGNORAR_NO_ZIP.some((p) => nome.startsWith(p)) ||
-    (IGNORAR_NOME as readonly string[]).includes(base) ||
-    base.startsWith("._")
-  );
-}
+const ehLixo = ehArquivoDeSistema;
 
 const UTF8_ESTRITO = new TextDecoder("utf-8", {
   fatal: true,

@@ -110,7 +110,7 @@ export function CampaignCalculator({
   return (
     <div className="space-y-4">
       {tree.modo === "demo" && <>
-        <p className="campaign-note">Demonstração interativa · dados fictícios salvos neste navegador. A simulação não altera o orçamento das campanhas.</p>
+        <p className="campaign-note">Campanhas de exemplo, salvas só neste navegador · simular não altera nenhum orçamento.</p>
         <CampaignDemoControls page="calculadora" />
       </>}
       {/* O que entra */}
@@ -149,21 +149,24 @@ export function CampaignCalculator({
             const leitura = diagnostico.campanhas.find((l) => l.id === c.id);
             return (
               <li key={c.id} className={cn("flex items-start gap-2.5 rounded-xl border px-3 py-2.5", marcada ? "border-foreground/40 bg-muted/30" : "bg-card")}>
-                <input type="checkbox" checked={marcada} onChange={() => alternar(c.id)} aria-label={`Incluir ${c.name}`} className="accent-foreground mt-1 size-4 shrink-0" />
-                <span className="min-w-0 flex-1">
-                  <b className="block truncate text-sm">{c.name}</b>
-                  <span className="text-muted-foreground block text-[0.6875rem] leading-4">
-                    {NETWORK_LABEL[c.network]} · {STATUS_LABEL[c.status]} · gasto {cents(c.metrics.spendCents)}
-                  </span>
-                  {marcada && leitura && leitura.metrics.spendCents > 0 && (
-                    <span className="mt-1 flex flex-wrap items-center gap-1.5">
-                      <Badge variant={leitura.nota >= 75 ? "success" : leitura.nota >= 50 ? "warning" : "destructive"}>nota {leitura.nota}</Badge>
-                      {leitura.decisao && <VereditoBadge veredito={leitura.decisao.veredito} />}
+                {/* O rótulo inteiro marca a campanha: o alvo é o cartão, não os 16px da caixa. */}
+                <label className="flex min-w-0 flex-1 cursor-pointer items-start gap-2.5">
+                  <input type="checkbox" checked={marcada} onChange={() => alternar(c.id)} aria-label={`Incluir ${c.name}`} className="accent-foreground mt-1 size-4 shrink-0" />
+                  <span className="min-w-0 flex-1">
+                    <b className="block truncate text-sm">{c.name}</b>
+                    <span className="text-muted-foreground block text-[0.6875rem] leading-4">
+                      {NETWORK_LABEL[c.network]} · {STATUS_LABEL[c.status]} · gasto {cents(c.metrics.spendCents)}
                     </span>
-                  )}
-                </span>
-                <button type="button" onClick={() => soEsta(c.id)} className="text-muted-foreground hover:text-foreground min-h-6 shrink-0 px-1.5 text-[0.6875rem] font-bold underline-offset-2 hover:underline">
-                  só esta
+                    {marcada && leitura && leitura.metrics.spendCents > 0 && (
+                      <span className="mt-1 flex flex-wrap items-center gap-1.5">
+                        <Badge variant={leitura.nota >= 75 ? "success" : leitura.nota >= 50 ? "warning" : "destructive"}>nota {leitura.nota}</Badge>
+                        {leitura.decisao && <VereditoBadge veredito={leitura.decisao.veredito} />}
+                      </span>
+                    )}
+                  </span>
+                </label>
+                <button type="button" onClick={() => soEsta(c.id)} className="text-muted-foreground hover:text-foreground min-h-8 shrink-0 px-2 text-xs font-bold underline-offset-2 hover:underline">
+                  Analisar só esta<span className="sr-only">: {c.name}</span>
                 </button>
               </li>
             );
@@ -183,7 +186,7 @@ export function CampaignCalculator({
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-muted-foreground text-[0.6875rem] font-extrabold tracking-[0.12em] uppercase">
-                  Visão geral · {escolhidas.length} campanha(s) · últimos 7 dias
+                  Visão geral · {escolhidas.length} {escolhidas.length === 1 ? "campanha" : "campanhas"} · últimos 7 dias
                 </p>
                 <h3 className="mt-1 flex flex-wrap items-center gap-2 text-lg font-extrabold tracking-tight sm:text-xl">
                   Nota {diagnostico.nota}

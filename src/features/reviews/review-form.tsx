@@ -102,7 +102,7 @@ export function ReviewForm({ products }: { products: ProductOption[] }) {
                         "group-hover:text-amber-400",
                       )}
                     />
-                    <span className="sr-only">{n} estrelas</span>
+                    <span className="sr-only">{n} {n === 1 ? "estrela" : "estrelas"}</span>
                   </label>
                 ))}
               </div>

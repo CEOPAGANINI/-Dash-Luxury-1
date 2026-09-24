@@ -545,7 +545,7 @@ export function ClassBoard({
     ids.forEach((id, i) => proximo.set(id, `${fileira} / ${i + 1}`));
     guardarOrdem([...ordemVisivel, ...ids]);
     guardarFixos(proximo);
-    setAviso(`Faixa ${fileira} criada com ${ids.length} blocos.`);
+    setAviso(`Faixa ${fileira} criada com ${ids.length} ${ids.length === 1 ? "bloco" : "blocos"}.`);
   }
   function apagarFaixa(fileira: number) {
     const vagasAtuais = vagasDaGrade(ordemPorRoas, fixos, tamanho);
@@ -563,7 +563,7 @@ export function ClassBoard({
       proximo.set(id, linha > fileira ? `${linha - 1} / ${m[2]}` : vaga);
     }
     guardarFixos(proximo);
-    setAviso(`Faixa ${fileira} apagada (${daFaixa.length} blocos). Os pilares de fábrica podem ser restaurados pelo menu de qualquer bloco.`);
+    setAviso(`Faixa ${fileira} apagada (${daFaixa.length} ${daFaixa.length === 1 ? "bloco" : "blocos"}). Os pilares de fábrica podem ser restaurados pelo menu de qualquer bloco.`);
   }
   function restaurarBloco(pilar: PilarId) {
     cofreDeBlocos.restaurar(pilar);

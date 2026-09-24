@@ -176,6 +176,35 @@ export const R_SEGMENTO =
   /^[^.\x00-\x1f\x7f-\x9f\/\\<>:"|?*][^\x00-\x1f\x7f-\x9f\/\\<>:"|?*]*$/u;
 /** Nome de arquivo no Linux da VPS: até 255 BYTES (NAME_MAX). */
 export const SEGMENTO_MAX_BYTES = 255;
+/** Ignorados sem recusar: pastas de sistema e nomes de sistema (e "._*"). */
+export const IGNORAR_NO_ZIP = ["__MACOSX/"] as const;
+export const IGNORAR_NOME = [
+  ".DS_Store",
+  "Thumbs.db",
+  "desktop.ini",
+  ".htaccess",
+] as const;
+
+/**
+ * Lixo de sistema que o Servidor e o agente descartam sem recusar o ZIP:
+ * __MACOSX/, .DS_Store, Thumbs.db, desktop.ini, .htaccess e os "._*" que
+ * o macOS cria em pendrive e pasta de rede. O editor do funil tira os
+ * mesmos antes de gerar o ZIP.
+ */
+export function ehArquivoDeSistema(caminho: string): boolean {
+  const base = caminho.slice(caminho.lastIndexOf("/") + 1);
+  return (
+    IGNORAR_NO_ZIP.some((prefixo) => caminho.startsWith(prefixo)) ||
+    (IGNORAR_NOME as readonly string[]).includes(base) ||
+    base.startsWith("._")
+  );
+}
+
+/**
+ * Teto do index.html: é o que a conferência "No ar" baixa para comparar o
+ * sha256. O Servidor recusa acima disto, e o editor do funil não gera.
+ */
+export const INDEX_HTML_MAX_BYTES = 2 << 20;
 export const R_IPV4_FORMA = /^\d{1,3}(?:\.\d{1,3}){3}$/;
 
 const utf8 = new TextEncoder();

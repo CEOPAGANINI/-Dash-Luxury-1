@@ -21,7 +21,7 @@ export default async function CalculatorPage({
     <>
       <header className="campaign-page-heading">
         <p className="campaign-eyebrow">Campanhas / Planejamento</p>
-        <h1>Calculadora de campanhas</h1>
+        <h2>Calculadora de campanhas</h2>
         <p>
           Simule a distribuição de verba e consulte os limites de segurança.
           Simular não altera suas campanhas.

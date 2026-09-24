@@ -52,9 +52,10 @@ import { problemaDoArquivo } from "@/features/vps/vps-cliente";
   prova: tudo o que o editor gera, o Servidor aceita e o agente extrai
   igual, byte a byte; o que o Servidor recusa, o editor não gera.
 
-  As exceções que ainda existem estão em "divergências conhecidas", cada
-  uma com o motivo: se um dos lados mudar, o teste quebra e obriga a
-  rever o contrato.
+  As três divergências que sobraram da união (arquivo oculto, nome acima de
+  255 bytes e index.html acima de 2 MB) estão fechadas: o editor confere as
+  mesmas regras do Servidor antes de gerar o ZIP e recusa com o mesmo
+  motivo. Estão em "o que o editor recusa", ao lado dos outros casos.
 
   O ZIP "cru" dos casos de borda sai do mesmo fflate e do mesmo nível 6 do
   editor: é o ZIP que o editor geraria se não recusasse antes.
@@ -381,11 +382,29 @@ const EDITOR_GERA_SERVIDOR_ACEITA: Borda[] = [
     arquivos: { "index.html": HTML, [`${"a".repeat(251)}.css`]: "a{}" },
   },
   {
+    // O macOS deixa "._logo.png" ao lado do original em pendrive e pasta de
+    // rede. O Servidor descarta sem recusar; o editor nem o põe no ZIP.
+    caso: "arquivo \"._\" do macOS fora de __MACOSX",
+    arquivos: { "index.html": HTML, "img/logo.png": PNG, "img/._logo.png": PNG },
+    publicados: ["img/logo.png", "index.html"],
+  },
+  {
     caso: "arquivo de 1 MB que comprime mais de 1000 vezes",
     arquivos: { "index.html": HTML, "dados.json": "0".repeat(1 << 20) },
     publicados: ["dados.json", "index.html"],
   },
 ];
+
+/** Letras pseudoaleatórias: comprimem pouco, e o ZIP fica abaixo de 3 MB. */
+function indexAcimaDoTeto(): Uint8Array {
+  let semente = 7;
+  const letras = new Uint8Array(LIMITES_DO_ZIP.index + 1024);
+  for (let i = 0; i < letras.length; i++) {
+    semente = (semente * 1103515245 + 12345) >>> 0;
+    letras[i] = 97 + ((semente >>> 16) % 26);
+  }
+  return letras;
+}
 
 const EDITOR_RECUSA: BordaRecusadaPeloEditor[] = [
   {
@@ -430,6 +449,27 @@ const EDITOR_RECUSA: BordaRecusadaPeloEditor[] = [
     arquivos: { "index.html": HTML, ".css": "a{}" },
     editor: /Tipo de arquivo não permitido: \.css\./,
     servidor: "arquivo ou pasta oculta (começa com ponto) não é aceito",
+  },
+  {
+    caso: "pasta oculta (.well-known: o nginx nega /. e ela é do certbot)",
+    arquivos: {
+      "index.html": HTML,
+      ".well-known/security.txt": "Contact: mailto:seguranca@exemplo.com.br",
+    },
+    editor: /arquivo ou pasta oculta/,
+    servidor: "arquivo ou pasta oculta (começa com ponto) não é aceito",
+  },
+  {
+    caso: "nome acima de 255 bytes (132 letras, mas 260 bytes no Linux)",
+    arquivos: { "index.html": HTML, [`${"ã".repeat(128)}.css`]: "a{}" },
+    editor: /passa de 255 bytes/,
+    servidor: "nome longo demais (até 255 bytes)",
+  },
+  {
+    caso: "index.html acima de 2 MB (o teto do que o 'No ar' baixa)",
+    arquivos: { "index.html": indexAcimaDoTeto() },
+    editor: /index\.html passa de 2 MB/,
+    servidor: "o index.html passa de 2 MB",
   },
 ];
 
@@ -480,49 +520,6 @@ describe("casos de borda: o que o editor recusa (e o que o Servidor faria)", () 
       }
     },
   );
-});
-
-describe("divergências conhecidas: o editor gera, o Servidor recusa", () => {
-  /*
-    Nenhuma delas se resolve do lado do Servidor sem perder algo que ele
-    precisa; o conserto é o editor não gerar. Ficam aqui, fixadas, para que
-    qualquer mudança de um dos lados apareça.
-  */
-
-  it("arquivo ou pasta oculta: o nginx do site nega todo caminho com /. e /.well-known é do certbot", async () => {
-    const saida = await exportar({
-      "index.html": HTML,
-      ".well-known/security.txt": "Contact: mailto:seguranca@exemplo.com.br",
-    });
-    expect(recusas(saida.bytes)).toEqual([
-      {
-        arquivo: ".well-known/security.txt",
-        motivo: "arquivo ou pasta oculta (começa com ponto) não é aceito",
-      },
-    ]);
-  });
-
-  it("nome acima de 255 bytes: o editor conta caracteres, o Linux da VPS conta bytes", async () => {
-    const nome = `${"ã".repeat(128)}.css`; // 132 caracteres, 260 bytes
-    const saida = await exportar({ "index.html": HTML, [nome]: "a{}" });
-    expect(recusas(saida.bytes)).toEqual([
-      { arquivo: nome, motivo: "nome longo demais (até 255 bytes)" },
-    ]);
-  });
-
-  it("index.html acima de 2 MB: é o teto do que o 'No ar' baixa para conferir", async () => {
-    let semente = 7;
-    const letras = new Uint8Array(LIMITES_DO_ZIP.index + 1024);
-    for (let i = 0; i < letras.length; i++) {
-      semente = (semente * 1103515245 + 12345) >>> 0;
-      letras[i] = 97 + ((semente >>> 16) % 26);
-    }
-    const saida = await exportar({ "index.html": letras });
-    expect(saida.bytes.byteLength).toBeLessThan(STATIC_EXPORT_MAX_BYTES);
-    expect(recusas(saida.bytes)).toEqual([
-      { arquivo: "index.html", motivo: "o index.html passa de 2 MB" },
-    ]);
-  });
 });
 
 // ---------------------------------------------------------------------------
@@ -720,12 +717,13 @@ describe.skipIf(!PYTHON)("agente Python real extrai o ZIP do editor", () => {
   );
 
   it("o que o Servidor recusa, o agente também recusa (arquivo oculto)", async () => {
-    const saida = await exportar({
+    // O editor já não gera este ZIP; o cru prova a terceira camada.
+    const bytes = zipCru({
       "index.html": HTML,
       ".well-known/security.txt": "Contact: mailto:seguranca@exemplo.com.br",
     });
-    expect(inspecionarZip(saida.bytes).ok).toBe(false);
-    const { resultado, destino } = extrairNoAgente(saida.bytes);
+    expect(inspecionarZip(bytes).ok).toBe(false);
+    const { resultado, destino } = extrairNoAgente(bytes);
     expect(resultado).toMatchObject({ ok: false, codigo: "zip_nome" });
     expect(lerPasta(destino).size).toBe(0);
   });

@@ -851,7 +851,7 @@ function paginasPresentes(versao: ReleaseDTO): string {
     p.obrigado ? "obrigado" : null,
     p.upsell ? "upsell" : null,
     p.downsell ? "downsell" : null,
-    p.legais?.length ? `${p.legais.length} legais` : null,
+    p.legais?.length ? `${p.legais.length} ${p.legais.length === 1 ? "legal" : "legais"}` : null,
   ].filter(Boolean);
   return lista.join(", ");
 }

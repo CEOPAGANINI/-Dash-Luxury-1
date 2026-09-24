@@ -86,3 +86,17 @@ describe("painel com o período vazio", () => {
     ).toBeGreaterThan(0);
   });
 });
+
+describe("cabeçalho dos cartões", () => {
+  /* O título do cartão já diz o que ele mostra. O ícone solto ao lado era
+     o mesmo quadradinho em catorze cartões: enfeite que disputava com o
+     nome. Só a etiqueta de estado mora ao lado do título. */
+  it("não leva ícone decorativo ao lado do título", () => {
+    const { container } = painelVazio();
+    const cabecalhos = container.querySelectorAll(".visual-overview-zone-heading");
+    expect(cabecalhos.length).toBeGreaterThan(0);
+    for (const cabecalho of cabecalhos) {
+      expect(cabecalho.querySelectorAll(":scope > svg")).toHaveLength(0);
+    }
+  });
+});

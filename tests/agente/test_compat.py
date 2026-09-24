@@ -171,7 +171,9 @@ class IgualdadeComTs(unittest.TestCase):
         self.assertEqual(literal_ts(texto, "PAGINA_DE_ESPERA"), agente.PAGINA_DE_ESPERA)
 
     def test_lixo_do_zip(self):
-        texto = ts("src/features/vps/pacote-zip.ts")
+        # A lista e o "._" moram em modelo.ts (o Servidor e o editor do funil
+        # usam de lá); pacote-zip.ts só a reexporta.
+        texto = ts("src/features/vps/modelo.ts")
         for nome in sorted(agente.IGNORAR_NOME) + list(agente.IGNORAR_NO_ZIP):
             self.assertIn(f'"{nome}"', texto, nome)
         self.assertIn('"._"', texto)

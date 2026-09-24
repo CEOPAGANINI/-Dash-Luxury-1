@@ -329,7 +329,9 @@ describe("antes do painel (PainelIndisponivel)", () => {
     expect(container.textContent).not.toMatch(/\d+\.\d+\.\d+\.\d+/);
     expect(container.textContent).not.toMatch(/%|GB|Online/);
     // Não repete o banner do modo demo.
-    expect(container.textContent).not.toMatch(/Sem dados conectados/);
+    expect(container.textContent).not.toMatch(
+      /Modo demonstração:|Entrada de demonstração:|os números são de exemplo/,
+    );
   });
 
   it("sem permissão: só a frase", () => {

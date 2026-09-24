@@ -1,5 +1,11 @@
 import { zip, type Zippable } from "fflate";
 
+import {
+  ehArquivoDeSistema,
+  INDEX_HTML_MAX_BYTES,
+  SEGMENTO_MAX_BYTES,
+  segmentoDoZipOk,
+} from "@/features/vps/modelo";
 import { parseFlow, type LandingFlow, type FlowPage } from "./flow-model";
 import {
   importSiteFiles,
@@ -112,6 +118,38 @@ async function validateFiles(files: SiteFile[]): Promise<SiteFile[]> {
     ...entry,
     path: prefix ? `${prefix}/${entry.path}` : entry.path,
   }));
+}
+
+/**
+ * As regras de Servidor → Sites, conferidas antes de o ZIP existir: o que o
+ * Servidor recusaria na publicação, o editor não gera. A regra de nome é a
+ * mesma função que o Servidor e o agente da VPS usam; o fflate grava todo
+ * nome com acento marcado como UTF-8, e os caminhos já chegam em NFC.
+ */
+function conferirParaOServidor(files: SiteFile[]): void {
+  for (const entry of files) {
+    for (const segmento of entry.path.split("/")) {
+      if (segmento.startsWith("."))
+        throw new Error(
+          `“${entry.path}” é um arquivo ou pasta oculta (o nome começa com ponto). O Servidor não publica esse tipo de arquivo: remova-o do pacote e exporte de novo.`,
+        );
+      if (encoder.encode(segmento).byteLength > SEGMENTO_MAX_BYTES)
+        throw new Error(
+          `O nome “${segmento}” passa de ${SEGMENTO_MAX_BYTES} bytes, o limite de nome de arquivo da VPS (cada letra com acento conta 2). Encurte o nome e exporte de novo.`,
+        );
+      if (!segmentoDoZipOk(segmento, true))
+        throw new Error(
+          `O nome “${segmento}” tem um caractere que o Servidor não aceita (< > : " | ? * ou de controle). Renomeie e exporte de novo.`,
+        );
+    }
+    if (
+      entry.path === "index.html" &&
+      entry.data.byteLength > INDEX_HTML_MAX_BYTES
+    )
+      throw new Error(
+        "O index.html passa de 2 MB, o máximo que o Servidor confere ao publicar. Leve imagens e scripts embutidos para arquivos separados e exporte de novo.",
+      );
+  }
 }
 
 const PAGE_CSS = `:root{color-scheme:light;font-family:Arial,Helvetica,sans-serif;color:#111;background:#f4f4f4}*{box-sizing:border-box;border-radius:0}body{margin:0;padding:clamp(20px,5vw,72px)}main{max-width:980px;margin:0 auto;background:#fff;border:1px solid #d8d8d8;box-shadow:8px 8px 0 #e0e0e0;padding:clamp(24px,7vw,88px)}.eyebrow{font-size:14px;font-weight:700;overflow-wrap:anywhere}h1{max-width:18ch;font-size:clamp(32px,6vw,72px);line-height:1.06;letter-spacing:-.045em;margin:40px 0 24px;overflow-wrap:anywhere}.description{max-width:64ch;font-size:clamp(16px,2vw,20px);line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere}.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:36px}.action{display:inline-block;background:#111;color:#fff;border:1px solid #111;padding:16px 22px;font-size:15px;font-weight:700;text-decoration:none;overflow-wrap:anywhere}.action.secondary{background:#fff;color:#111}.action:hover{background:#333;color:#fff}.action:focus-visible{outline:3px solid #555;outline-offset:4px}@media(max-width:480px){.actions{display:grid}.action{width:100%;text-align:center}h1{margin-top:28px}}`;
@@ -234,9 +272,12 @@ export async function exportFlowPage(
     );
   const page = validated.pages.find((candidate) => candidate.id === pageId);
   if (!page) throw new Error("Selecione uma página do funil para exportar.");
-  const files = site
-    ? await importedFiles(site)
-    : generatedFiles(validated, page);
+  // O lixo de sistema que o Servidor descartaria (o "._logo.png" que o
+  // macOS cria em pendrive) nem entra no ZIP; o resto passa pela regra dele.
+  const files = (
+    site ? await importedFiles(site) : generatedFiles(validated, page)
+  ).filter((entry) => !ehArquivoDeSistema(entry.path));
+  conferirParaOServidor(files);
   const entries = Object.fromEntries(
     files.map((entry) => [entry.path, entry.data]),
   ) as Zippable;

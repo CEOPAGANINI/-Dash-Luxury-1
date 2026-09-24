@@ -29,7 +29,7 @@ export function CampaignAnalysis({
       <header className="campaign-page-heading">
         <div>
           <p className="campaign-eyebrow">Campanhas / Análise</p>
-          <h1>Comparativo entre redes</h1>
+          <h2>Comparativo entre redes</h2>
           <p>
             Receita, investimento e retorno calculados a partir das mesmas
             campanhas dos gerenciadores.
@@ -44,7 +44,8 @@ export function CampaignAnalysis({
               : "Dados dos gerenciadores"}
           </strong>
           <p>
-            {tree.campanhas.length} campanhas · {exampleCount} de exemplo.
+            {tree.campanhas.length}{" "}
+            {tree.campanhas.length === 1 ? "campanha" : "campanhas"} · {exampleCount} de exemplo.
             Métricas dos últimos 7 dias; confira a última sincronização em cada
             gerenciador.
           </p>
@@ -73,8 +74,12 @@ export function CampaignAnalysis({
               <div>
                 <h2>{NETWORK_MANAGERS[network].label}</h2>
                 <p className="campaign-note">
-                  {campaigns.length} campanhas ·{" "}
-                  {campaigns.filter((c) => c.status === "active").length} ativas
+                  {campaigns.length}{" "}
+                  {campaigns.length === 1 ? "campanha" : "campanhas"} ·{" "}
+                  {campaigns.filter((c) => c.status === "active").length}{" "}
+                  {campaigns.filter((c) => c.status === "active").length === 1
+                    ? "ativa"
+                    : "ativas"}
                 </p>
               </div>
               <CampaignMetrics metrics={metrics} compact />

@@ -12,7 +12,7 @@ export function CampaignDataUnavailable({ title }: { title: string }) {
       <header className="campaign-page-heading">
         <div>
           <p className="campaign-eyebrow">Campanhas</p>
-          <h1>{title}</h1>
+          <h2>{title}</h2>
         </div>
       </header>
       <div className="campaign-empty" role="alert">

@@ -104,9 +104,9 @@ export function OrbitDesignSystem() {
       <header className={styles.intro}>
         <div>
           <span className={styles.eyebrow}>DESIGN SYSTEM</span>
-          <h1>
+          <h2>
             Orbit <span>· Nebula</span>
-          </h1>
+          </h2>
           <p>
             Dois sistemas fundidos num só. Do Orbit ficou a estrutura — a
             escala de tipos, os respiros, os raios com nome e os blocos

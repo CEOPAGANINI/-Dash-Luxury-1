@@ -279,7 +279,7 @@ export function CampaignTable({
                 {campaigns.filter((c) => c.status === "active").length} ativas
               </td>
               <th scope="row" className="campaign-name-column">
-                Total de {campaigns.length} campanhas
+                Total de {campaigns.length} {campaigns.length === 1 ? "campanha" : "campanhas"}
                 <span className="campaign-table-secondary">
                   Resultados dos filtros atuais
                 </span>

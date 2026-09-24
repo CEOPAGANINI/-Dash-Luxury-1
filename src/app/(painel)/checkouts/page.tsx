@@ -131,7 +131,7 @@ export default async function CheckoutsPage() {
                       {c.orderCount}
                       {c.paidCount > 0 && (
                         <span className="text-success block text-xs">
-                          {c.paidCount} pagos
+                          {c.paidCount} {c.paidCount === 1 ? "pago" : "pagos"}
                         </span>
                       )}
                     </td>

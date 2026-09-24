@@ -96,9 +96,6 @@ export default async function ClientesPage(props: {
             nele.
           </p>
         </div>
-        <Badge variant={bancoConfigurado ? "success" : "warning"}>
-          {bancoConfigurado ? "Dados reais" : "Demonstração — sem banco"}
-        </Badge>
       </header>
 
       {/* Segmentos: o placar e o filtro são a mesma coisa. */}
@@ -216,7 +213,7 @@ export default async function ClientesPage(props: {
                         {c.orderCount}
                         {c.paidCount > 0 && (
                           <span className="text-success block text-xs">
-                            {c.paidCount} pagos
+                            {c.paidCount} {c.paidCount === 1 ? "pago" : "pagos"}
                           </span>
                         )}
                       </td>

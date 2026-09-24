@@ -196,7 +196,7 @@ export function CampaignBoardMonday({
 
         {selecionadas.size > 0 && (
           <div className="bg-foreground text-background sticky top-2 z-20 flex flex-wrap items-center gap-2 rounded-xl px-4 py-2 text-sm shadow-lg">
-            <b className="tabular-nums">{selecionadas.size} selecionada(s)</b>
+            <b className="tabular-nums">{selecionadas.size} {selecionadas.size === 1 ? "selecionada" : "selecionadas"}</b>
             <span className="ml-auto flex gap-2">
               <Button size="sm" variant="secondary" disabled={pendente} onClick={() => emLote("active")}>Ativar</Button>
               <Button size="sm" variant="secondary" disabled={pendente} onClick={() => emLote("paused")}>Pausar</Button>
@@ -280,7 +280,8 @@ function Grupo({
         <span aria-hidden className="h-5 w-1 rounded-full" style={{ backgroundColor: COR_REDE[rede] }} />
         <b className="text-base font-extrabold tracking-tight">{NETWORK_LABEL[rede]}</b>
         <span className="text-muted-foreground text-xs tabular-nums">
-          {campanhas.length} campanha(s) · {contagemEstado.active} ativa(s)
+          {campanhas.length} {campanhas.length === 1 ? "campanha" : "campanhas"} · {contagemEstado.active}{" "}
+          {contagemEstado.active === 1 ? "ativa" : "ativas"}
         </span>
         <span className="text-muted-foreground ml-auto text-xs tabular-nums">
           gasto {cents(totais.spendCents)} · receita {cents(totais.revenueCents)}
@@ -322,7 +323,7 @@ function Grupo({
                   {expandidas.has(c.id) &&
                     c.adSets.map((s) => (
                       <React.Fragment key={s.id}>
-                        <LinhaFilha tipo="ad_set" nivel={1} id={s.id} nome={s.name} legenda={`Conjunto · ${s.ads.length} anúncio(s)`} status={s.status} dailyBudgetCents={s.dailyBudgetCents} metrics={s.metrics} regras={regras} />
+                        <LinhaFilha tipo="ad_set" nivel={1} id={s.id} nome={s.name} legenda={`Conjunto · ${s.ads.length} ${s.ads.length === 1 ? "anúncio" : "anúncios"}`} status={s.status} dailyBudgetCents={s.dailyBudgetCents} metrics={s.metrics} regras={regras} />
                         {s.ads.map((a) => (
                           <LinhaFilha key={a.id} tipo="ad" nivel={2} id={a.id} nome={a.name} legenda={[a.creative.title, a.creative.body].filter(Boolean).join(" — ") || "Anúncio"} status={a.status} dailyBudgetCents={null} metrics={a.metrics} regras={regras} />
                         ))}

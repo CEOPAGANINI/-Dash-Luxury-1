@@ -97,7 +97,7 @@ export function ExecutiveActionPlan({ risks }: { risks: ExecutiveRisk[] }) {
               Converte diagnóstico em responsabilidade, prazo e acompanhamento.
             </CardDescription>
           </div>
-          <Badge variant="outline">{risks.length} ações</Badge>
+          <Badge variant="outline">{risks.length} {risks.length === 1 ? "ação" : "ações"}</Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-2 px-5">

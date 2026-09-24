@@ -125,7 +125,7 @@ export function avaliarGuardrails(
       ...base,
       veredito: "pausar",
       regra: "pausarDiaNegativo",
-      motivo: `${leitura.diasSeguidosNegativos} dia(s) seguidos no prejuízo — a tolerância é ${regras.diasToleranciaNegativo}. Verba pausada até o resultado virar.`,
+      motivo: `${leitura.diasSeguidosNegativos} ${leitura.diasSeguidosNegativos === 1 ? "dia" : "dias seguidos"} no prejuízo — a tolerância é ${regras.diasToleranciaNegativo}. Verba pausada até o resultado virar.`,
     };
   }
 

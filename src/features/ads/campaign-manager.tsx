@@ -144,7 +144,7 @@ export function CampaignManager({
       >
         <div className="campaign-section-heading campaign-toolbar-linha">
           <div>
-            <h1>Suas campanhas</h1>
+            <h2>Suas campanhas</h2>
             <p role="status">
               {campaigns.length} de {allCampaigns.length} ·{" "}
               {campaigns.filter((c) => c.status === "active").length} ativas
@@ -304,7 +304,7 @@ export function CampaignManager({
             <span className="campaign-pager-nome" aria-live="polite">
               {focoValido !== null
                 ? `${focoValido} de ${campaigns.length} · ${campaigns[focoValido - 1].name}`
-                : `${campaigns.length} campanhas`}
+                : `${campaigns.length} ${campaigns.length === 1 ? "campanha" : "campanhas"}`}
             </span>
           </div>
         )}

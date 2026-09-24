@@ -185,7 +185,7 @@ export function CampaignsDashboard({
         <UnifiedMetricCard
           label="Gasto em mídia"
           value={formatCompactCurrency(totais.gasto)}
-          note={`${campaigns.length} campanha(s) no filtro.`}
+          note={`${campaigns.length} ${campaigns.length === 1 ? "campanha" : "campanhas"} no filtro.`}
         />
         <UnifiedMetricCard
           label="Receita no checkout"

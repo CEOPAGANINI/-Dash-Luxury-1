@@ -253,7 +253,7 @@ export default async function CampanhaPage({ params, searchParams }: Props) {
               <Mini rotulo="Aumento em R$" valor={dec && dec.aumentoEmReais > 0 ? formatCurrency(dec.aumentoEmReais) : "—"} nota={dec?.exigeAprovacao ? "pede aprovação" : `livre até ${formatCurrency(regras.aprovacaoAcimaDe)}`} />
               <Mini rotulo="Regra que decidiu" valor={dec ? REGRA_LABEL[dec.regra] : "—"} nota={dec ? (dec.regra === "nenhuma" ? "tudo passou" : "travou aqui") : "sem dados"} />
               <Mini rotulo="Teto por dia" valor={regras.gastoMaximoDia > 0 ? formatCurrency(regras.gastoMaximoDia) : "sem teto"} nota={c.dailyBudgetCents !== null ? `hoje ${formatCurrency(c.dailyBudgetCents / 100)}` : "sem orçamento"} />
-              <Mini rotulo="Dia no prejuízo" valor={regras.pausarDiaNegativo ? "pausa" : "avisa"} nota={`após ${regras.diasToleranciaNegativo} dia(s)`} />
+              <Mini rotulo="Dia no prejuízo" valor={regras.pausarDiaNegativo ? "pausa" : "avisa"} nota={`após ${regras.diasToleranciaNegativo} ${regras.diasToleranciaNegativo === 1 ? "dia" : "dias"}`} />
             </div>
           </div>
 
@@ -335,7 +335,7 @@ export default async function CampanhaPage({ params, searchParams }: Props) {
               <h3 id="sessao-diario"><ScrollText aria-hidden className="mr-1.5 inline size-4 align-[-2px]" />Diário de mudanças</h3>
               <p>Tudo o que foi alterado nesta campanha, com quem fez e se chegou à rede.</p>
             </div>
-            <span className="sessao-selo">{diario.length} registro(s)</span>
+            <span className="sessao-selo">{diario.length} {diario.length === 1 ? "registro" : "registros"}</span>
           </header>
           <div className="sessao-corpo sessao-corpo-bloco">
             {diario.length === 0 ? (

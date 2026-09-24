@@ -126,7 +126,7 @@ export function CampaignBoard({
                     <h3>{column.title}</h3>
                     <span
                       className="campaign-board-count"
-                      aria-label={`${cards.length} campanhas`}
+                      aria-label={`${cards.length} ${cards.length === 1 ? "campanha" : "campanhas"}`}
                     >
                       {cards.length}
                     </span>

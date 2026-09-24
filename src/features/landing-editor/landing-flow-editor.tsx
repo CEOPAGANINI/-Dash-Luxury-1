@@ -502,7 +502,7 @@ function Editor({
                   ◎
                 </span>
                 <strong>Fluxo de páginas</strong>
-                <span>{flow.pages.length} blocos</span>
+                <span>{flow.pages.length} {flow.pages.length === 1 ? "bloco" : "blocos"}</span>
               </div>
               <div className={styles.addControls}>
                 <select
@@ -918,7 +918,7 @@ function Editor({
               <h2>Ligações do fluxo</h2>
               <p>Confira os destinos sem depender do desenho.</p>
             </div>
-            <span>{flow.connections.length} ligações</span>
+            <span>{flow.connections.length} {flow.connections.length === 1 ? "ligação" : "ligações"}</span>
           </header>
           {flow.connections.length ? (
             <ul>
@@ -985,7 +985,8 @@ function Editor({
         <div className={styles.statusBar}>
           <span>
             <Check size={14} />
-            {flow.pages.length} páginas / {flow.connections.length} ligações
+            {flow.pages.length} {flow.pages.length === 1 ? "página" : "páginas"} / {flow.connections.length}{" "}
+            {flow.connections.length === 1 ? "ligação" : "ligações"}
           </span>
           <span>
             {pending

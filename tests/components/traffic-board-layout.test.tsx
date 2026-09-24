@@ -137,7 +137,7 @@ function expectBefore(before: Element, after: Element) {
 function expectCalendarChromeRemoved(container: HTMLElement) {
   const title = screen.getByRole("heading", {
     name: "Calendário de aquisição",
-    level: 1,
+    level: 2,
   });
   expect(title.classList.contains("sr-only")).toBe(true);
   for (const label of [
@@ -212,7 +212,7 @@ describe("independent acquisition pages", () => {
     expect(
       screen.getByRole("heading", {
         name: "Calendário de aquisição",
-        level: 1,
+        level: 2,
       }),
     ).toBeTruthy();
     const calendar = screen.getByRole("region", {
@@ -284,7 +284,9 @@ describe("independent acquisition pages", () => {
 
     for (const name of [...PAGE_NAMES.slice(1), "Calendário"]) {
       openPage(name);
-      expect(screen.getByRole("heading", { level: 1 })).toBeTruthy();
+      // O h1 da página é a faixa do topo; o título da seção é h2.
+      expect(screen.queryAllByRole("heading", { level: 1 })).toHaveLength(0);
+      expect(screen.getAllByRole("heading", { level: 2 }).length).toBeGreaterThan(0);
       expect(
         container
           .querySelector(".board-pager-page:not([hidden])")
@@ -499,6 +501,8 @@ describe("independent acquisition pages", () => {
     ).toBeTruthy();
   });
 
+  // Percorre doze meses do calendário: leva uns 4s sozinho, e com a máquina
+  // ocupada passava dos 5s padrão. O limite maior é só deste teste.
   it("applies month and year filters from another page to Calendar, including year boundaries and leap February", () => {
     render(<TrafficBoard />);
 
@@ -527,7 +531,7 @@ describe("independent acquisition pages", () => {
         ),
       ).not.toBeNull();
     }
-  });
+  }, 15_000);
 
   it("previews adjacent-month data without changing the shared month filter", async () => {
     render(
@@ -643,7 +647,7 @@ describe("independent acquisition pages", () => {
     ).toBe("true");
     pick("Páginas da Aquisição", String(PAGE_NAMES.indexOf("Resumo")));
     expect(
-      screen.getByRole("heading", { name: "Resumo do período", level: 1 }),
+      screen.getByRole("heading", { name: "Resumo do período", level: 2 }),
     ).toBeTruthy();
     expect(
       screen.queryByRole("region", { name: "Calendário de aquisição" }),

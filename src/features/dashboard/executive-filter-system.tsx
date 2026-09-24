@@ -325,7 +325,7 @@ export function ExecutiveFilterSystem({
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="outline">{activeFilters.length} ativos</Badge>
+          <Badge variant="outline">{activeFilters.length} {activeFilters.length === 1 ? "ativo" : "ativos"}</Badge>
           <Button
             variant="ghost"
             size="sm"

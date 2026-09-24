@@ -153,6 +153,15 @@ describe("navigation folders", () => {
     expect(sidebarPageTitle(`/servidor/sites/${UUID}`)).toBe("Servidor");
   });
 
+  it("names the pages that exist outside the menu instead of saying Painel", () => {
+    expect(sidebarPageTitle("/carrinhos")).toBe("Carrinhos");
+    expect(sidebarPageTitle("/catalogo/cupons")).toBe("Cupons");
+    expect(sidebarPageTitle("/financeiro")).toBe("Financeiro");
+    expect(sidebarPageTitle("/financeiro/repasses")).toBe("Repasses");
+    expect(sidebarPageTitle("/webhooks")).toBe("Webhooks");
+    expect(sidebarPageTitle("/rota-que-nao-existe")).toBe("Painel");
+  });
+
   it.each([
     ["/landing-pages", "Landing pages"],
     ["/editor/landing-page", "Editor de páginas"],

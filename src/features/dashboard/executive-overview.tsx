@@ -318,7 +318,8 @@ function KpiPillars({ kpi, color }: { kpi: ExecutiveKpi; color: string }) {
       data-kpi-pillars
     >
       <p className="executive-kpi__chart-title text-muted-foreground truncate px-1 whitespace-nowrap">
-        Evolução no período · {chartData.length} pilares
+        Evolução no período · {chartData.length}{" "}
+        {chartData.length === 1 ? "pilar" : "pilares"}
       </p>
       <div
         className="mt-1 h-24 min-w-0"
@@ -1524,7 +1525,7 @@ function DecisionCenter({
                 : "outline"
             }
           >
-            {risks.length} prioridades
+            {risks.length} {risks.length === 1 ? "prioridade" : "prioridades"}
           </Badge>
         </div>
       </CardHeader>
@@ -2014,7 +2015,8 @@ export function ExecutiveOverview({
                   : "outline"
               }
             >
-              {model.risks.length} prioridades
+              {model.risks.length}{" "}
+              {model.risks.length === 1 ? "prioridade" : "prioridades"}
             </Badge>
           }
         >

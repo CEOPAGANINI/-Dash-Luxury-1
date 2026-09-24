@@ -109,7 +109,7 @@ describe("campaign network pages", () => {
           ?.firstElementChild?.classList.contains("campaign-inventory"),
       ).toBe(true);
       expect(
-        screen.getByRole("heading", { level: 1, name: "Suas campanhas" }),
+        screen.getByRole("heading", { level: 2, name: "Suas campanhas" }),
       ).not.toBeNull();
       expect(container.querySelector(".campaign-page-heading")).toBeNull();
       expect(container.querySelector(".campaign-source")).toBeNull();
