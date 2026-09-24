@@ -64,11 +64,62 @@ function luminance(hex: string) {
   return linear[0] * 0.2126 + linear[1] * 0.7152 + linear[2] * 0.0722;
 }
 
+function expectNeutral(value: string, context: string) {
+  const hex = /^#([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i.exec(value);
+  const rgb = /^rgb\(\s*(\d+)\s+(\d+)\s+(\d+)(?:\s*\/\s*[\d.]+%?)?\s*\)$/.exec(
+    value,
+  );
+  const channels = hex
+    ? hex.slice(1).map((channel) => parseInt(channel, 16))
+    : rgb
+      ? rgb.slice(1).map(Number)
+      : null;
+  expect(channels, `${context}: ${value}`).not.toBeNull();
+  expect(channels![0], context).toBe(channels![1]);
+  expect(channels![1], context).toBe(channels![2]);
+}
+
 describe("dashboard CommandLayer palette", () => {
   it.each(["preto", "branco"])(
-    "keeps the %s structural palette distinct from semantic colors",
+    "keeps the %s structure monochromatic while retaining colored data and indicators",
     (theme) => {
       const tokens = tokensFor(theme);
+      for (const token of [
+        "--background",
+        "--card",
+        "--muted",
+        "--secondary",
+        "--popover",
+        "--foreground",
+        "--card-foreground",
+        "--muted-foreground",
+        "--secondary-foreground",
+        "--popover-foreground",
+        "--border",
+        "--input",
+        "--ring",
+        "--accent-foreground",
+        "--primary",
+        "--primary-foreground",
+        "--cl-canvas",
+        "--cl-screen",
+        "--cl-chassis",
+        "--cl-well",
+        "--cl-terminal",
+        "--cl-readout",
+        "--cl-card-top",
+        "--cl-raised",
+        "--cl-hover",
+        "--cl-text-primary",
+        "--cl-text-secondary",
+        "--cl-text-body",
+        "--cl-text-muted",
+        "--cl-text-dim",
+        "--cl-border",
+        "--cl-border-strong",
+        "--cl-accent",
+      ])
+        expectNeutral(resolveColor(token, tokens), `${theme}: ${token}`);
       const surfaces = ["--background", "--card", "--muted", "--secondary"].map(
         (token) => resolveColor(token, tokens),
       );
@@ -91,6 +142,17 @@ describe("dashboard CommandLayer palette", () => {
           ),
         ).size,
       ).toBe(5);
+      expect(resolveColor("--chart-1", tokens)).toBe(
+        resolveColor("--cl-activity", tokens),
+      );
+      for (let index = 1; index <= 5; index += 1) {
+        const color = resolveColor(`--chart-${index}`, tokens);
+        const channels = color.slice(1).match(/../g)!;
+        expect(
+          new Set(channels).size,
+          `${theme}: chart ${index} remains colored`,
+        ).toBeGreaterThan(1);
+      }
     },
   );
 
@@ -116,7 +178,7 @@ describe("dashboard CommandLayer palette", () => {
     },
   );
 
-  it("uses the active shell's contrasting brand tokens instead of the old white mark", () => {
+  it("uses the active shell's neutral brand surface and theme-aware foreground", () => {
     const shell = rulesOf(
       read("src/components/command-layer/shell.module.css"),
     );
@@ -163,8 +225,11 @@ describe("dashboard CommandLayer palette", () => {
           `[data-slot="button"][data-variant="${variant}"]`,
         ),
       );
-      expect(rule?.declarations.get("background")).toBe(`var(--cl-${token})`);
-      expect(rule?.declarations.get("color")).toBe("var(--cl-on-status)");
+      expect(rule?.declarations.get("background")).toBe("var(--cl-raised)");
+      expect(rule?.declarations.get("color")).toBe(`var(--cl-${token})`);
+      expect(rule?.declarations.get("border-color")).toBe(
+        "var(--cl-border-strong)",
+      );
     }
   });
 
@@ -182,6 +247,9 @@ describe("dashboard CommandLayer palette", () => {
         expect(depth, token).toMatch(/,\s*0\s+\d+px/);
         expect(depth, token).not.toContain("--cl-accent");
         expect(depth, token).not.toContain("--cl-activity");
+        for (const color of depth.matchAll(/rgb\([^)]*\)/g)) {
+          expectNeutral(color[0], `${theme}: ${token}`);
+        }
       }
       expect(tokens.get("--dash-shadow-card")).toBe("var(--cl-shadow-card)");
       expect(tokens.get("--dash-shadow-overlay")).toBe(

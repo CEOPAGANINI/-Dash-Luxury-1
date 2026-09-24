@@ -10,7 +10,7 @@
   min-width: 0;
   padding: 4px;
   border: 1px solid var(--cl-border);
-  border-radius: 12px;
+  border-radius: 0;
   background: var(--cl-chassis);
   box-shadow: var(--cl-shadow-card);
 }
@@ -21,7 +21,7 @@
   min-width: 0;
   padding: 24px;
   border: 1px solid var(--cl-inner-border);
-  border-radius: 8px;
+  border-radius: 0;
   background: linear-gradient(var(--cl-card-top), var(--cl-chassis));
   box-shadow: var(--cl-shadow-highlight);
 }
@@ -47,7 +47,7 @@
 .stageLabel > span {
   flex: 0 0 6px;
   height: 6px;
-  border-radius: 50%;
+  border-radius: 0;
   background: var(--cl-warning);
   box-shadow: 0 0 6px color-mix(in srgb, var(--cl-warning) 40%, transparent);
 }
@@ -83,7 +83,7 @@
   min-height: 44px;
   padding: 10px 16px;
   border: 1px solid var(--cl-border-strong);
-  border-radius: 4px;
+  border-radius: 0;
   background: var(--cl-raised);
   color: var(--cl-text-secondary);
   box-shadow: var(--cl-shadow-highlight);
@@ -94,7 +94,7 @@
 }
 .primaryLink {
   border-color: color-mix(in srgb, var(--cl-accent) 20%, transparent);
-  color: white;
+  color: var(--primary-foreground);
   background: var(--cl-button-fill);
   box-shadow: var(--cl-shadow-button);
 }
@@ -124,7 +124,7 @@
   margin: 0;
   overflow: hidden;
   border: 1px solid var(--cl-border);
-  border-radius: 8px;
+  border-radius: 0;
   background: var(--cl-screen);
   box-shadow: var(--cl-shadow-screen);
 }
@@ -175,7 +175,7 @@
   width: 64px;
   height: 64px;
   border: 1px solid var(--cl-border-strong);
-  border-radius: 8px;
+  border-radius: 0;
   background: linear-gradient(var(--cl-card-top), var(--cl-chassis));
   box-shadow: var(--cl-shadow-card);
   color: var(--cl-text-muted);
@@ -292,7 +292,7 @@
   gap: 16px 24px;
   padding: 16px 20px;
   border: 1px solid var(--cl-border);
-  border-radius: 8px;
+  border-radius: 0;
   background: var(--cl-screen);
   box-shadow: var(--cl-shadow-inset);
   color: var(--cl-text-muted);
@@ -323,9 +323,9 @@
   align-items: center;
   gap: 14px;
   padding: 16px 20px;
-  border: 1px solid color-mix(in srgb, var(--cl-success) 30%, var(--cl-border));
-  border-radius: 8px;
-  background: color-mix(in srgb, var(--cl-success) 4%, var(--cl-screen));
+  border: 1px solid var(--cl-border);
+  border-radius: 0;
+  background: var(--cl-screen);
 }
 .readyNotice svg {
   flex-shrink: 0;
@@ -372,7 +372,7 @@
   margin-top: 12px;
   padding: 12px;
   border: 1px solid var(--cl-border);
-  border-radius: 4px;
+  border-radius: 0;
   background: var(--cl-screen);
   box-shadow: var(--cl-shadow-inset);
   color: var(--cl-text-muted);

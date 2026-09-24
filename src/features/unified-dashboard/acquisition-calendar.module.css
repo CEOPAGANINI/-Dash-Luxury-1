@@ -24,7 +24,7 @@
   padding: clamp(0.5rem, 1.2vw, 1rem);
   background: linear-gradient(var(--cl-card-top), var(--cl-chassis));
   border: 1px solid var(--cl-border);
-  border-radius: 12px;
+  border-radius: var(--cl-radius-panel);
   box-shadow:
     inset 0 0 0 4px var(--cl-chassis),
     inset 0 0 0 5px var(--cl-inner-border),
@@ -96,7 +96,7 @@
   background: var(--cl-raised);
   color: var(--cl-text-primary);
   border: 1px solid var(--cl-border);
-  border-radius: 4px;
+  border-radius: var(--cl-radius-control);
   cursor: pointer;
   box-shadow: inset 0 -2px var(--efficiency) !important;
 }
@@ -191,7 +191,7 @@
   padding: 0.5rem;
   font-weight: 650;
   background: var(--cl-raised);
-  border-radius: 4px;
+  border-radius: var(--cl-radius-control);
 }
 
 .weekControls button:disabled {
@@ -211,7 +211,7 @@
   padding: 0.5rem 0.1rem;
   color: var(--cl-text-primary);
   background: var(--cl-raised);
-  border-radius: 8px;
+  border-radius: var(--cl-radius-inner);
   box-shadow: inset 0 -4px var(--efficiency) !important;
   font-size: 0.65rem;
   font-weight: 700;
@@ -235,7 +235,7 @@
   gap: 0.35rem;
   padding: 0.4rem 0.5rem;
   background: var(--cl-chassis);
-  border-radius: 8px;
+  border-radius: var(--cl-radius-inner);
   font-size: 0.625rem;
 }
 
@@ -276,7 +276,7 @@
   background: linear-gradient(var(--cl-card-top), var(--cl-chassis));
   color: var(--cl-text-primary);
   border: 1px solid var(--cl-border);
-  border-radius: 12px;
+  border-radius: var(--cl-radius-panel);
   box-shadow:
     inset 0 0 0 4px var(--cl-chassis),
     inset 0 0 0 5px var(--cl-inner-border),
@@ -303,7 +303,7 @@
   padding: 0.5rem 0.75rem;
   background: var(--cl-card-top);
   color: var(--cl-text-primary);
-  border-radius: 10px;
+  border-radius: var(--cl-radius-inner);
   cursor: pointer;
 }
 
@@ -339,7 +339,7 @@
 .metrics > div {
   padding: 0.65rem 0.4rem;
   background: var(--cl-chassis);
-  border-radius: 12px;
+  border-radius: var(--cl-radius-panel);
   text-align: center;
   min-width: 0;
 }
@@ -411,7 +411,7 @@
 .hourlyTable dl > div {
   padding: 0.3rem;
   background: var(--cl-chassis);
-  border-radius: 8px;
+  border-radius: var(--cl-radius-inner);
 }
 
 .hourlyTable dd {

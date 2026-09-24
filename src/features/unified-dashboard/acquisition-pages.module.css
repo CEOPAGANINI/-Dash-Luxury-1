@@ -48,7 +48,7 @@
   background: var(--cl-raised);
   color: var(--cl-text-primary);
   border: 1px solid var(--cl-border);
-  border-radius: 4px;
+  border-radius: var(--cl-radius-control);
   padding: 0.6rem 0.75rem;
   font: inherit;
   font-size: 0.75rem;
@@ -311,11 +311,11 @@
 }
 .root :is(.filters, .comparisonFilters, .panel) {
   border: 1px solid var(--cl-border);
-  border-radius: 12px;
+  border-radius: var(--cl-radius-panel);
 }
 .root :is(.channelCard, .summaryCard, .comparisonRow) {
   border: 1px solid var(--cl-border);
-  border-radius: 12px;
+  border-radius: var(--cl-radius-panel);
 }
 @container acquisition-page (min-width: 1050px) {
   .header {

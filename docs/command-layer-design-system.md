@@ -4,7 +4,7 @@
 
 Referência visual: [CommandLayer](https://command-layer.aura.build/). A implementação parte do pacote fornecido pelo usuário (`desing dashbord desiing.zip`), em especial `GUIA.md`, `tokens.json`, `command-layer.css` e o código original da página. Não é uma cópia do conteúdo comercial da landing page.
 
-O tema escuro preserva os materiais e as cores-base da referência. O tema claro é uma **adaptação para o dashboard**, solicitada pelo usuário: não foi extraído de uma variante clara da landing page. Campos, tabelas, menus, feedback, estados vazios e a composição operacional também são adaptações. Não se alega equivalência pixel a pixel entre uma landing page e todas as telas do produto.
+Os dois temas preservam os materiais e a profundidade da referência, com uma **paleta estrutural monocromática solicitada pelo usuário em 24/09/2026**: branco, preto e cinzas neutros. Cores ficam reservadas a gráficos, porcentagens, ícones e indicadores semânticos. O tema claro e os componentes operacionais são adaptações para o dashboard, não variantes extraídas da landing. Não se alega equivalência pixel a pixel.
 
 A cena de hero do Unicorn Studio não integra o dashboard. Nenhum gradiente CSS ou elemento estático é apresentado como reprodução dessa cena.
 
@@ -22,39 +22,39 @@ O host visual é identificado por `data-design-system="commandlayer"` e pela cla
 
 Use as variáveis semânticas, não valores hexadecimais dentro dos componentes. Os valores abaixo descrevem os temas implementados:
 
-| Token                 | Escuro — referência | Claro — adaptação | Papel                       |
-| --------------------- | ------------------- | ----------------- | --------------------------- |
-| `--cl-canvas`         | `#0f0f11`           | `#e8ecef`         | Fundo externo               |
-| `--cl-chassis`        | `#18181b`           | `#f8fafc`         | Estrutura e moldura         |
-| `--cl-screen`         | `#131315`           | `#eef1f4`         | Display rebaixado           |
-| `--cl-well`           | `#09090b`           | `#dde3e9`         | Cavidade e trilhos          |
-| `--cl-terminal`       | `#0c0c0e`           | `#e3e9ef`         | Leitura técnica             |
-| `--cl-card-top`       | `#202023`           | `#ffffff`         | Topo do gradiente interno   |
-| `--cl-raised`         | `#27272a`           | `#e2e8f0`         | Controles elevados          |
-| `--cl-border`         | `#27272a`           | `#cbd5e1`         | Borda padrão                |
-| `--cl-border-strong`  | `#3f3f46`           | `#94a3b8`         | Borda de controle           |
-| `--cl-text-primary`   | `#f1f5f9`           | `#0f172a`         | Títulos                     |
-| `--cl-text-secondary` | `#e2e8f0`           | `#1e293b`         | Texto forte                 |
-| `--cl-text-body`      | `#cbd5e1`           | `#334155`         | Texto de leitura            |
-| `--cl-text-muted`     | `#94a3b8`           | `#475569`         | Descrições                  |
-| `--cl-text-dim`       | `#64748b`           | `#596b82`         | Metadados secundários       |
-| `--cl-accent`         | `#22d3ee`           | `#0e7490`         | Ação e seleção              |
-| `--cl-activity`       | `#06b6d4`           | `#0891b2`         | Atividade                   |
-| `--cl-success`        | `#34d399`           | `#047857`         | Sucesso                     |
-| `--cl-warning`        | `#f59e0b`           | `#92400e`         | Aviso                       |
-| `--cl-info`           | `#60a5fa`           | `#1d4ed8`         | Informação                  |
-| `--cl-danger`         | `#fb7185`           | `#be123c`         | Erro — extensão             |
-| `--cl-violet`         | `#a78bfa`           | `#6d28d9`         | Série de gráfico — extensão |
-| `--cl-pink`           | `#f472b6`           | `#be185d`         | Série de gráfico — extensão |
+| Token                 | Escuro — adaptação | Claro — adaptação | Papel                       |
+| --------------------- | ------------------ | ----------------- | --------------------------- |
+| `--cl-canvas`         | `#050505`          | `#ededed`         | Fundo externo               |
+| `--cl-chassis`        | `#0b0b0b`          | `#fafafa`         | Estrutura e moldura         |
+| `--cl-screen`         | `#080808`          | `#f2f2f2`         | Display rebaixado           |
+| `--cl-well`           | `#000000`          | `#e3e3e3`         | Cavidade e trilhos          |
+| `--cl-terminal`       | `#020202`          | `#e9e9e9`         | Leitura técnica             |
+| `--cl-card-top`       | `#111111`          | `#ffffff`         | Topo do gradiente interno   |
+| `--cl-raised`         | `#101010`          | `#e8e8e8`         | Controles elevados          |
+| `--cl-border`         | `#202020`          | `#d4d4d4`         | Borda padrão                |
+| `--cl-border-strong`  | `#303030`          | `#a3a3a3`         | Borda de controle           |
+| `--cl-text-primary`   | `#f5f5f5`          | `#171717`         | Títulos                     |
+| `--cl-text-secondary` | `#e5e5e5`          | `#262626`         | Texto forte                 |
+| `--cl-text-body`      | `#d4d4d4`          | `#404040`         | Texto de leitura            |
+| `--cl-text-muted`     | `#a3a3a3`          | `#525252`         | Descrições                  |
+| `--cl-text-dim`       | `#858585`          | `#666666`         | Metadados secundários       |
+| `--cl-accent`         | `#fafafa`          | `#171717`         | Ação e seleção neutras      |
+| `--cl-activity`       | `#06b6d4`          | `#0e7490`         | Atividade                   |
+| `--cl-success`        | `#34d399`          | `#065f46`         | Sucesso                     |
+| `--cl-warning`        | `#f59e0b`          | `#92400e`         | Aviso                       |
+| `--cl-info`           | `#60a5fa`          | `#1d4ed8`         | Informação                  |
+| `--cl-danger`         | `#fb7185`          | `#be123c`         | Erro — extensão             |
+| `--cl-violet`         | `#a78bfa`          | `#6d28d9`         | Série de gráfico — extensão |
+| `--cl-pink`           | `#f472b6`          | `#be185d`         | Série de gráfico — extensão |
 
-Ciano permanece localizado nas ações, no foco e nos indicadores. Verde, âmbar, azul, rosa e violeta diferenciam estados ou séries. Rótulos, ícones e legendas acompanham as cores: a cor sozinha não comunica um estado. Metadados discretos não devem substituir a cor de leitura das informações essenciais.
+`--cl-accent` é neutro e controla ações, foco e seleção. `--cl-activity` e as séries de gráficos permanecem coloridas, sem tingir o fundo da interface. Verde, âmbar, azul, rosa e violeta diferenciam dados e estados; rótulos, ícones e legendas acompanham as cores. Botões, menus, molduras e sombras não devem usar pigmentos de dados.
 
 ## Tipografia, estrutura e profundidade
 
 - **Inter** (`--cl-sans`): títulos e leitura. Títulos de página entre 24–30px, peso 500 e tracking `-0.025em`; corpo de 14px com altura de linha próxima de 1.625.
 - **JetBrains Mono** (`--cl-mono`): controles, rótulos, métricas e registros técnicos. Botões com 12px; métricas com 30px e números tabulares; unidades separadas do valor.
-- **Painel em duas camadas**: moldura externa de 4px, borda de 1px, raio externo de 12px e interno de 8px. A superfície interna usa gradiente `--cl-card-top → --cl-chassis`, borda interna discreta e brilho superior.
-- **Controles**: raio de 4px. A proteção contra raios grandes não elimina os pequenos raios expressamente pedidos no novo briefing CommandLayer.
+- **Painel em duas camadas**: moldura externa de 4px, borda de 1px e cantos retos (raio zero). A superfície interna usa gradiente `--cl-card-top → --cl-chassis`, borda interna discreta e brilho superior.
+- **Controles**: raio zero em ambos os temas, inclusive menus e diálogos em portal. O pedido posterior do usuário substitui os raios 12/8/4 da referência. A geometria dos gráficos e o conteúdo autoral das páginas não são alterados.
 - **Displays**: fundo `--cl-screen` com sombra inset. O trilho usa `--cl-well`; as superfícies elevadas usam `--cl-raised`.
 - **LEDs**: pontos de 6–8px, brilho pequeno e localizado. No catálogo, a amostra usa 7px. Não representam conexão real por si só.
 - **Espaços**: 20–24px dentro dos módulos, 24–32px entre composições; grupos compactos podem usar 8–16px conforme densidade.
@@ -65,14 +65,16 @@ O shell conserva uma região principal de rolagem dentro do chassis, com `min-he
 
 ## Botões e ajuste de contraste
 
-Os stops cromáticos originais do CTA permanecem nos tokens:
+Os CTAs usam camadas de preto com texto branco, sem scrim nem halo azul:
 
-- Normal: `#0891b2 → #0e7490`.
-- Hover: `#06b6d4 → #0891b2`.
+- Escuro: normal `#171717 → #080808`; hover `#202020 → #111111`.
+- Claro: normal `#262626 → #111111`; hover `#404040 → #262626`.
 
-Como adaptação de legibilidade para texto branco de 12px, `--cl-button-fill` sobrepõe uma camada preta uniforme de **24%** ao gradiente normal. `--cl-button-hover-fill` usa **40%** sobre o gradiente de hover. O gradiente de origem continua intacto nos tokens; a aparência final fica mais escura. Isso é uma correção de contraste documentada, não uma extração literal da referência. A auditoria final deve medir o contraste renderizado em cada estado; esta especificação não substitui essa medição.
+Os testes calculam contraste mínimo de 4,5:1 nos dois extremos de cada
+gradiente, nos dois temas. As cores originais continuam disponíveis no
+histórico Git; não são a aparência ativa.
 
-O botão pressionado desloca 1px. Variantes secundária, contorno e discreta mantêm hierarquia sem competir com a ação principal. Destrutivo e sucesso utilizam seus tokens semânticos. `loading` bloqueia nova ação e informa `aria-busy`; `disabled` não simula uma operação concluída. O foco visível tem contorno ciano. A preferência `prefers-reduced-motion` desativa animações e transições na camada do painel.
+O botão pressionado desloca 1px. Variantes secundária, contorno e discreta mantêm hierarquia. Destrutivo e sucesso mantêm cor semântica no texto, com fundo neutro. `loading` bloqueia nova ação e informa `aria-busy`; `disabled` não simula uma operação concluída. O foco visível tem contorno branco no escuro e preto no claro. A preferência `prefers-reduced-motion` desativa animações e transições na camada do painel.
 
 ## Componentes funcionais e catálogo
 
@@ -128,3 +130,21 @@ a camada ativa, incluindo portais, foco, contraste e raios 12/8/4.
 Após essa segunda união, o build de produção local (incluindo TypeScript),
 o ESLint e os 31 testes focados de integração visual, paleta, geometria e
 contraste passaram novamente.
+
+## Revisão monocromática e cantos retos
+
+O pedido posterior de 24/09/2026 substitui os raios da referência por zero e
+os fundos cinza do tema escuro por camadas pretas entre `#000000` e `#111111`.
+Branco e tons neutros de texto garantem leitura; bordas discretas e sombras
+separam as superfícies. Azul não é usado na estrutura nem em ações ou seleção.
+Cores são reservadas a dados, porcentagens, ícones e indicadores.
+Donuts e outros gráficos mantêm sua geometria; previews e exportações das
+landing pages continuam independentes da aparência do dashboard.
+
+A correção paralela `3f3567b` foi integrada: o catálogo não duplica o h1 do
+shell, o verde de sucesso claro tem contraste reforçado e os textos neutros
+usam tons legíveis. A regra monocromática mais recente prevalece sobre os
+antigos acentos azulados.
+
+Após a revisão e a união: build de produção com TypeScript, ESLint e suíte
+completa aprovados (1.286 testes; 15 ignorados; timeout de teste de 10s).

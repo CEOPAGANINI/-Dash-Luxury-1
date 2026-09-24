@@ -47,12 +47,12 @@ const dark = blockAfter(
 );
 const light = blockAfter(stylesheet, 'html[data-tema="branco"] body:has(');
 
-function whiteContrastAfterBlackScrim(hex: string, scrim: number) {
+function whiteContrast(hex: string) {
   const channels = hex.slice(1).match(/../g);
   if (!channels || channels.length !== 3)
     throw new Error(`Invalid color: ${hex}`);
   const linear = channels.map((channel) => {
-    const value = (Number.parseInt(channel, 16) * (1 - scrim)) / 255;
+    const value = Number.parseInt(channel, 16) / 255;
     return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
   });
   const luminance =
@@ -82,17 +82,38 @@ describe("CommandLayer token contracts", () => {
     expect([...new Set(missing)]).toEqual([]);
   });
 
-  it("preserves distinct reference surfaces and explicit light-theme equivalents", () => {
+  it("keeps structural colors monochromatic in both themes and indicators colored", () => {
+    const structural = [
+      "--cl-canvas",
+      "--cl-chassis",
+      "--cl-screen",
+      "--cl-well",
+      "--cl-terminal",
+      "--cl-readout",
+      "--cl-card-top",
+      "--cl-raised",
+      "--cl-border",
+      "--cl-border-strong",
+      "--cl-hover",
+      "--cl-text-primary",
+      "--cl-text-secondary",
+      "--cl-text-body",
+      "--cl-text-muted",
+      "--cl-text-dim",
+      "--cl-accent",
+    ];
+    for (const source of [dark, light]) {
+      for (const token of structural) {
+        const color = declaration(source, token);
+        const rgb = /^#([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i.exec(color);
+        expect(rgb, `${token}: ${color}`).not.toBeNull();
+        expect(rgb![1], token).toBe(rgb![2]);
+        expect(rgb![2], token).toBe(rgb![3]);
+      }
+    }
     const tokens = [
-      ["--cl-canvas", "#0f0f11", "#e8ecef"],
-      ["--cl-chassis", "#18181b", "#f8fafc"],
-      ["--cl-screen", "#131315", "#eef1f4"],
-      ["--cl-well", "#09090b", "#dde3e9"],
-      ["--cl-terminal", "#0c0c0e", "#e3e9ef"],
-      ["--cl-card-top", "#202023", "#ffffff"],
-      ["--cl-raised", "#27272a", "#e2e8f0"],
-      ["--cl-text-primary", "#f1f5f9", "#0f172a"],
-      ["--cl-accent", "#22d3ee", "#155e75"],
+      ["--cl-accent", "#fafafa", "#171717"],
+      ["--cl-activity", "#06b6d4", "#0e7490"],
       ["--cl-success", "#34d399", "#065f46"],
       ["--cl-warning", "#f59e0b", "#92400e"],
       ["--cl-info", "#60a5fa", "#1d4ed8"],
@@ -104,12 +125,30 @@ describe("CommandLayer token contracts", () => {
     }
     expect(declaration(dark, "color-scheme")).toBe("dark");
     expect(declaration(light, "color-scheme")).toBe("light");
+    expect(declaration(dark, "--serie-1")).toBe("var(--cl-activity)");
   });
 
-  it("keeps the 12/8/4px hierarchy, 4px frame, and shared font families", () => {
-    expect(declaration(dark, "--cl-radius-panel")).toBe("12px");
-    expect(declaration(dark, "--cl-radius-inner")).toBe("8px");
-    expect(declaration(dark, "--cl-radius-control")).toBe("4px");
+  it("keeps dark surfaces in distinct black layers instead of gray blocks", () => {
+    for (const [token, value] of [
+      ["--cl-canvas", "#050505"],
+      ["--cl-screen", "#080808"],
+      ["--cl-chassis", "#0b0b0b"],
+      ["--cl-well", "#000000"],
+      ["--cl-terminal", "#020202"],
+      ["--cl-readout", "#060606"],
+      ["--cl-card-top", "#111111"],
+      ["--cl-raised", "#101010"],
+      ["--cl-border", "#202020"],
+      ["--cl-border-strong", "#303030"],
+      ["--cl-hover", "#171717"],
+    ])
+      expect(declaration(dark, token), token).toBe(value);
+  });
+
+  it("keeps straight UI corners, 4px frame, and shared font families", () => {
+    expect(declaration(dark, "--cl-radius-panel")).toBe("0px");
+    expect(declaration(dark, "--cl-radius-inner")).toBe("0px");
+    expect(declaration(dark, "--cl-radius-control")).toBe("0px");
     expect(declaration(dark, "--cl-frame")).toBe("4px");
     expect(declaration(dark, "--cl-sans")).toContain("var(--font-inter)");
     expect(declaration(dark, "--cl-mono")).toContain(
@@ -118,42 +157,60 @@ describe("CommandLayer token contracts", () => {
   });
 
   it.each([
-    ["normal", "--cl-button-fill", "--cl-cta-top", "--cl-cta-bottom", 24, 5.84],
     [
-      "hover",
+      "dark normal",
+      dark,
+      "--cl-button-fill",
+      "--cl-cta-top",
+      "--cl-cta-bottom",
+    ],
+    [
+      "dark hover",
+      dark,
       "--cl-button-hover-fill",
       "--cl-cta-hover-top",
       "--cl-cta-hover-bottom",
-      40,
-      5.99,
+    ],
+    [
+      "light normal",
+      light,
+      "--cl-button-fill",
+      "--cl-cta-top",
+      "--cl-cta-bottom",
+    ],
+    [
+      "light hover",
+      light,
+      "--cl-button-hover-fill",
+      "--cl-cta-hover-top",
+      "--cl-cta-hover-bottom",
     ],
   ] as const)(
-    "keeps accessible white CTA text in %s",
-    (_state, fillToken, topToken, bottomToken, scrimPercent, minimum) => {
+    "keeps white CTA text accessible on neutral gradients in %s",
+    (_state, theme, fillToken, topToken, bottomToken) => {
       const fill = declaration(dark, fillToken);
-      const scrims = [...fill.matchAll(/rgb\(0 0 0\s*\/\s*(\d+)%\)/g)].map(
-        (match) => Number(match[1]),
+      expect(fill.replace(/\s+/g, "")).toBe(
+        `linear-gradient(var(${topToken}),var(${bottomToken}))`,
       );
-      expect(scrims).toEqual([scrimPercent, scrimPercent]);
-      expect(fill).toContain(`var(${topToken})`);
-      expect(fill).toContain(`var(${bottomToken})`);
       const contrasts = [topToken, bottomToken].map((token) =>
-        whiteContrastAfterBlackScrim(declaration(dark, token), scrims[0] / 100),
+        whiteContrast(declaration(theme, token)),
       );
-      // Compute from CSS tokens, not a hardcoded pass; rounded expected values
-      // are 5.84 normal and 5.99 hover. Both exceed the 4.5:1 text threshold.
+      // Grayscale linear gradients cannot exceed their lighter endpoint's
+      // luminance. Compute the worst stop; do not hardcode a passing ratio.
       expect(Math.min(...contrasts)).toBeGreaterThanOrEqual(4.5);
-      expect(Number(Math.min(...contrasts).toFixed(2))).toBeGreaterThanOrEqual(
-        minimum,
-      );
     },
   );
 
-  it("preserves original CTA hue stops underneath the contrast scrim", () => {
-    expect(declaration(dark, "--cl-cta-top")).toBe("#0891b2");
-    expect(declaration(dark, "--cl-cta-bottom")).toBe("#0e7490");
-    expect(declaration(dark, "--cl-cta-hover-top")).toBe("#06b6d4");
-    expect(declaration(dark, "--cl-cta-hover-bottom")).toBe("#0891b2");
+  it("uses the requested grayscale CTA stops instead of cyan fills or scrims", () => {
+    for (const [token, darkValue, lightValue] of [
+      ["--cl-cta-top", "#171717", "#262626"],
+      ["--cl-cta-bottom", "#080808", "#111111"],
+      ["--cl-cta-hover-top", "#202020", "#404040"],
+      ["--cl-cta-hover-bottom", "#111111", "#262626"],
+    ]) {
+      expect(declaration(dark, token), token).toBe(darkValue);
+      expect(declaration(light, token), token).toBe(lightValue);
+    }
     expect(stylesheet).toContain("background: var(--cl-button-fill)");
     expect(stylesheet).toContain("background: var(--cl-button-hover-fill)");
   });

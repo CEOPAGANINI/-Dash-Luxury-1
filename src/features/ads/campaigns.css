@@ -9285,7 +9285,7 @@ html[data-tema]
 html[data-tema]
   body:has([data-design-system="commandlayer"])
   .class-board-grafico {
-  --grafico-tinta: var(--cl-accent);
+  --grafico-tinta: var(--cl-activity);
   --grafico-fundo: var(--cl-screen);
 }
 html[data-tema]

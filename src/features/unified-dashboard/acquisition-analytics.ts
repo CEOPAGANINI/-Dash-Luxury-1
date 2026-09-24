@@ -80,7 +80,7 @@ export const EFFICIENCY_TIERS = [
   {
     id: "bom",
     label: "ROAS de 1,40 a 1,80",
-    color: "var(--cl-accent)",
+    color: "var(--cl-activity)",
     min: 1.4,
     max: 1.8,
     range: "1,40x ≤ ROAS < 1,80x",

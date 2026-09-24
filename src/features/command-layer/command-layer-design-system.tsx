@@ -137,15 +137,15 @@ export function CommandLayerDesignSystem() {
             <CardContent className={styles.materialRules}>
               <div>
                 <span>Controles</span>
-                <code>4px</code>
+                <code>0px</code>
               </div>
               <div>
                 <span>Superfície interna</span>
-                <code>8px</code>
+                <code>0px</code>
               </div>
               <div>
                 <span>Painéis</span>
-                <code>12px</code>
+                <code>0px</code>
               </div>
               <div>
                 <span>Respiro entre módulos</span>
@@ -155,8 +155,8 @@ export function CommandLayerDesignSystem() {
           </Card>
         </div>
         <p className={styles.note}>
-          O tema escuro vem da referência CommandLayer. O tema claro e os
-          estados operacionais são adaptações para este dashboard.
+          A profundidade vem da referência CommandLayer. Os temas usam branco,
+          preto e cinzas neutros, com cores apenas nos dados e estados.
         </p>
       </section>
 
@@ -478,8 +478,8 @@ export function CommandLayerDesignSystem() {
           operacionais adaptados ao dashboard.
         </p>
         <p>
-          Ciano, verde, âmbar, azul, rosa e violeta mantêm seus papéis e ajustam
-          o contraste ao tema.
+          Cores ficam nos gráficos, porcentagens, ícones e indicadores. Fundos,
+          botões, menus e seleções permanecem neutros nos dois temas.
         </p>
       </footer>
     </div>

@@ -60,7 +60,7 @@
 .scope pre {
   background: var(--cl-terminal);
   border: 1px solid var(--cl-border);
-  border-radius: 4px;
+  border-radius: 0;
   box-shadow: var(--cl-shadow-inset);
   color: var(--cl-text-body);
 }
@@ -72,7 +72,7 @@
   content: "";
   width: 6px;
   height: 6px;
-  border-radius: 50%;
+  border-radius: 0;
   background: currentColor;
   box-shadow: 0 0 6px color-mix(in srgb, currentColor 40%, transparent);
   flex-shrink: 0;
@@ -94,7 +94,7 @@
   gap: 16px;
   padding: 12px 16px;
   border: 1px solid var(--cl-border);
-  border-radius: 12px;
+  border-radius: 0;
   background: linear-gradient(var(--cl-raised), var(--cl-chassis));
   box-shadow: var(--cl-shadow-card);
 }
@@ -112,7 +112,7 @@
   color: var(--cl-accent);
   background: var(--cl-well);
   border: 1px solid var(--cl-border-strong);
-  border-radius: 4px;
+  border-radius: 0;
   box-shadow: var(--cl-shadow-inset);
 }
 .navigationBrand > div {
@@ -135,7 +135,7 @@
   gap: 4px;
   padding: 4px;
   border: 1px solid var(--cl-border);
-  border-radius: 6px;
+  border-radius: 0;
   background: var(--cl-well);
   box-shadow: var(--cl-shadow-inset);
 }
@@ -147,7 +147,7 @@
   min-height: 40px;
   padding: 8px 12px;
   border: 1px solid transparent;
-  border-radius: 4px;
+  border-radius: 0;
   font: 400 11px/1.5 var(--cl-mono);
   color: var(--cl-text-muted);
   white-space: nowrap;
@@ -184,7 +184,7 @@
   min-width: 0;
   padding: 4px;
   border: 1px solid var(--cl-border);
-  border-radius: 12px;
+  border-radius: 0;
   background: var(--cl-chassis);
   box-shadow: var(--cl-shadow-card);
 }
@@ -195,7 +195,7 @@
   min-width: 0;
   height: 100%;
   border: 1px solid var(--cl-inner-border);
-  border-radius: 8px;
+  border-radius: 0;
   background: linear-gradient(var(--cl-card-top), var(--cl-chassis));
   box-shadow: var(--cl-shadow-highlight);
   overflow: hidden;
@@ -312,9 +312,9 @@
   margin-top: 24px;
   padding: 10px 16px;
   border: 1px solid color-mix(in srgb, var(--cl-accent) 20%, transparent);
-  border-radius: 4px;
+  border-radius: 0;
   background: var(--cl-button-fill);
-  color: #fff;
+  color: var(--primary-foreground);
   box-shadow: var(--cl-shadow-button);
   font: 400 12px/1.5 var(--cl-mono);
   transition:
@@ -344,7 +344,7 @@
   margin: 20px;
   padding: 20px;
   border: 1px solid var(--cl-border);
-  border-radius: 8px;
+  border-radius: 0;
   background: var(--cl-screen);
   box-shadow: var(--cl-shadow-screen);
 }
@@ -365,7 +365,7 @@
   min-width: 0;
   padding: 12px;
   border: 1px solid var(--cl-border);
-  border-radius: 4px;
+  border-radius: 0;
   background: linear-gradient(var(--cl-card-top), var(--cl-chassis));
   box-shadow: var(--cl-shadow-highlight);
 }
@@ -547,7 +547,7 @@
 .configuration {
   min-width: 0;
   border: 1px solid var(--cl-border);
-  border-radius: 8px;
+  border-radius: 0;
   background: var(--cl-screen);
   box-shadow: var(--cl-shadow-inset);
   overflow: hidden;
@@ -591,7 +591,7 @@
 .unavailable {
   padding: 24px;
   border: 1px solid var(--cl-border);
-  border-radius: 12px;
+  border-radius: 0;
   background: var(--cl-chassis);
   box-shadow: var(--cl-shadow-card);
 }

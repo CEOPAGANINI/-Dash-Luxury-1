@@ -369,15 +369,15 @@
   color: var(--cl-text-primary);
 }
 /*
-  A seleção usa a cor da plataforma sem alterar as cores das séries.
+  A seleção é neutra, sem alterar as cores das séries e dos ícones.
   O seletor permanece específico para não herdar o estilo genérico de abas.
 */
 .section .placementRows .placementRow[aria-selected="true"] {
-  background: color-mix(in srgb, var(--neon) 14%, var(--cl-raised)) !important;
+  background: var(--cl-selection) !important;
   color: var(--cl-text-primary) !important;
   box-shadow:
-    inset 3px 0 0 var(--neon),
-    inset 0 0 0 1px color-mix(in srgb, var(--neon) 42%, var(--cl-border)),
+    inset 3px 0 0 var(--cl-accent),
+    inset 0 0 0 1px var(--cl-border-strong),
     var(--cl-shadow-tab);
 }
 .section .placementRows .placementRow:focus-visible {
@@ -406,7 +406,7 @@
   flex: none;
   width: 22px;
   height: 22px;
-  border-radius: 7px;
+  border-radius: var(--cl-radius-control);
   color: #fff;
 }
 /* O selo da linha geral é a barra da distribuição em miniatura: diz de
@@ -417,7 +417,7 @@
   width: 22px;
   height: 22px;
   overflow: hidden;
-  border-radius: 7px;
+  border-radius: var(--cl-radius-control);
   background: var(--cl-raised);
 }
 .overviewIcon > span {

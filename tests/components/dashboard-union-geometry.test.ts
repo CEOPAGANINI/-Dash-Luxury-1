@@ -68,34 +68,31 @@ describe("dashboard active CommandLayer integration and geometry", () => {
     expect(command).toContain('html[data-tema="branco"]');
   });
 
-  it("uses 12px panels, 8px interiors and 4px controls rather than a global square lock", () => {
-    expect(dark.declarations.get("--cl-radius-panel")).toBe("12px");
-    expect(dark.declarations.get("--cl-radius-inner")).toBe("8px");
-    expect(dark.declarations.get("--cl-radius-control")).toBe("4px");
+  it("uses straight corners for panels, interiors and controls while preserving frames", () => {
+    expect(dark.declarations.get("--cl-radius-panel")).toBe("0px");
+    expect(dark.declarations.get("--cl-radius-inner")).toBe("0px");
+    expect(dark.declarations.get("--cl-radius-control")).toBe("0px");
     expect(dark.declarations.get("--cl-frame")).toBe("4px");
     const card = commandRules.find(
       (rule) =>
         rule.selector.includes('[data-slot="card"]') &&
         rule.declarations.has("border-radius"),
     );
-    expect(card?.declarations.get("border-radius")).toBe("12px");
+    expect(card?.declarations.get("border-radius")).toMatch(/^0(?:px)?$/);
     const inner = commandRules.find(
       (rule) =>
         rule.selector.includes('[data-surface="layered"]') &&
         rule.selector.endsWith("::before"),
     );
     expect(inner?.declarations.get("inset")).toBe("4px");
-    expect(inner?.declarations.get("border-radius")).toBe("8px");
+    expect(inner?.declarations.get("border-radius")).toMatch(/^0(?:px)?$/);
     expect(inner?.declarations.get("pointer-events")).toBe("none");
     const button = commandRules.find(
       (rule) =>
         rule.selector.includes(':where([data-slot="button"], .cl-button)') &&
         rule.declarations.has("border-radius"),
     );
-    expect(button?.declarations.get("border-radius")).toBe("4px");
-    expect(command).not.toMatch(
-      /:not\(svg\):not\(svg \*\)[\s\S]*?border-radius:\s*0/,
-    );
+    expect(button?.declarations.get("border-radius")).toMatch(/^0(?:px)?$/);
   });
 
   it("themes body-level portals and their items without depending on a sidebar ancestor", () => {
@@ -106,7 +103,7 @@ describe("dashboard active CommandLayer integration and geometry", () => {
     )!;
     expect(portal.selector).toContain("body:has(.cl)");
     expect(portal.selector).not.toContain(" .dash-skin ");
-    expect(portal.declarations.get("border-radius")).toBe("8px");
+    expect(portal.declarations.get("border-radius")).toMatch(/^0(?:px)?$/);
     expect(portal.declarations.get("background")).toBe("var(--cl-chassis)");
     expect(portal.declarations.get("color")).toBe("var(--cl-text-primary)");
     const item = commandRules.find(
@@ -114,7 +111,7 @@ describe("dashboard active CommandLayer integration and geometry", () => {
         rule.selector.includes('[data-slot="dropdown-menu-item"]') &&
         rule.declarations.has("border-radius"),
     )!;
-    expect(item.declarations.get("border-radius")).toBe("4px");
+    expect(item.declarations.get("border-radius")).toMatch(/^0(?:px)?$/);
   });
 
   it("keeps a theme-aware keyboard focus ring above legacy styles", () => {
@@ -163,9 +160,9 @@ describe("dashboard active CommandLayer integration and geometry", () => {
         expect(tokens.get(alias)).toBe(`var(${target})`);
         expect(resolveToken(alias, tokens)).toBe(resolveToken(target, tokens));
       }
-      expect(resolveToken("--orb-raio-bloco", tokens)).toBe("12px");
-      expect(resolveToken("--orb-raio-controlo", tokens)).toBe("4px");
-      expect(resolveToken("--orb-raio-etiqueta", tokens)).toBe("4px");
+      expect(resolveToken("--orb-raio-bloco", tokens)).toBe("0px");
+      expect(resolveToken("--orb-raio-controlo", tokens)).toBe("0px");
+      expect(resolveToken("--orb-raio-etiqueta", tokens)).toBe("0px");
     },
   );
 

@@ -191,7 +191,7 @@ const COR_ESTADO: Record<TomEstado, string> = {
   destructive: "var(--cl-danger)",
   /* Informação e projeção têm cores próprias, sem assumir sucesso de meta. */
   info: "var(--cl-info)",
-  accent: "var(--cl-accent)",
+  accent: "var(--cl-activity)",
   neutral: "var(--cl-text-muted)",
   vazio: "var(--cl-text-muted)",
 };
@@ -1206,12 +1206,12 @@ export function VisualOverview({
                           >
                             <stop
                               offset="0%"
-                              stopColor="var(--cl-accent)"
+                              stopColor="var(--cl-activity)"
                               stopOpacity={0.3}
                             />
                             <stop
                               offset="100%"
-                              stopColor="var(--cl-accent)"
+                              stopColor="var(--cl-activity)"
                               stopOpacity={0}
                             />
                           </linearGradient>
@@ -1236,7 +1236,7 @@ export function VisualOverview({
                           contentStyle={{
                             background: "var(--cl-chassis)",
                             border: "1px solid var(--cl-border-strong)",
-                            borderRadius: 8,
+                            borderRadius: 0,
                             color: "var(--cl-text-primary)",
                             fontSize: 12,
                           }}
@@ -1248,13 +1248,13 @@ export function VisualOverview({
                         <Area
                           type="monotone"
                           dataKey="netRevenue"
-                          stroke="var(--cl-accent)"
+                          stroke="var(--cl-activity)"
                           strokeWidth={3}
                           fill="url(#overviewRevenueFill)"
                           dot={false}
                           activeDot={{
                             r: 4,
-                            fill: "var(--cl-accent)",
+                            fill: "var(--cl-activity)",
                             stroke: "var(--cl-screen)",
                           }}
                           isAnimationActive={false}

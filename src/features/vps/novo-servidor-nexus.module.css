@@ -19,7 +19,7 @@
   gap: 12px;
   padding: 16px;
   border: 1px solid var(--cl-border);
-  border-radius: 8px;
+  border-radius: 0;
   background: var(--cl-screen);
   box-shadow: var(--cl-shadow-inset);
 }
@@ -35,7 +35,7 @@
   width: 36px;
   height: 36px;
   border: 1px solid var(--cl-border-strong);
-  border-radius: 4px;
+  border-radius: 0;
   background: var(--cl-well);
   box-shadow: var(--cl-shadow-inset);
   color: var(--cl-text-dim);
@@ -51,7 +51,7 @@
 }
 .step[data-state="complete"] .stepNumber {
   color: var(--cl-success);
-  border-color: color-mix(in srgb, var(--cl-success) 35%, var(--cl-border));
+  border-color: var(--cl-border-strong);
 }
 .stepText {
   display: grid;
@@ -102,7 +102,7 @@
   gap: 8px;
   padding: 24px;
   border: 1px solid var(--cl-border);
-  border-radius: 8px;
+  border-radius: 0;
   background: var(--cl-screen);
   box-shadow: var(--cl-shadow-inset);
 }
@@ -172,7 +172,7 @@
 .sidebarNote {
   padding: 16px;
   border: 1px solid var(--cl-border);
-  border-radius: 8px;
+  border-radius: 0;
   background: var(--cl-screen);
   box-shadow: var(--cl-shadow-inset);
 }
@@ -180,7 +180,7 @@
   min-width: 0;
   overflow: hidden;
   border: 1px solid var(--cl-border-strong);
-  border-radius: 4px;
+  border-radius: 0;
   background: var(--cl-terminal);
   box-shadow: var(--cl-shadow-inset);
 }
@@ -222,7 +222,7 @@
   padding: 16px 20px;
   border: 1px solid var(--cl-border);
   border-inline-start: 2px solid var(--cl-accent);
-  border-radius: 4px;
+  border-radius: 0;
   background: var(--cl-screen);
   box-shadow: var(--cl-shadow-inset);
   font: 400 12px/1.625 var(--cl-sans);
