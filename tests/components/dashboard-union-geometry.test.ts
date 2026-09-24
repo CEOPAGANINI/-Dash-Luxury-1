@@ -61,44 +61,98 @@ describe("dashboard union preserves Orbit and the fixed geometry contract", () =
     expect(orbit).toContain("background-image: var(--orb-pontos)");
   });
 
-  it.each(["nebula", "orbit"])(
-    "enforces square HTML geometry including portals in the %s skin",
-    (skin) => {
-      const geometry = sharedRules.find((rule) =>
-        rule.declarations.has("--orb-raio-painel"),
-      )!;
-      expect(geometry.selector).toContain(`data-design-system="${skin}"`);
-      expect(geometry.selector).toContain(":not(svg):not(svg *)");
-      // The target is the authenticated body, not only .dash-skin descendants:
-      // a Radix portal is attached as a sibling of the panel's wrapper.
-      expect(geometry.selector).toMatch(/body:has\([\s\S]+\) :not\(svg\)/);
-      expect(geometry.declarations.get("border-radius")).toBe("0");
-      expect(geometry.declarations.get("corner-shape")).toBe("square");
-      for (const [name, value] of geometry.declarations) {
-        if (/radius|raio/.test(name)) expect(value, name).toBe("0");
-      }
-      expect(nebula).toMatch(
-        /@layer dashboard-geometry\s*\{[\s\S]*?border-radius:\s*0\s*!important/,
-      );
-      for (const suffix of [
-        "::before",
-        "::after",
-        "::file-selector-button",
-        "::-webkit-slider-thumb",
-        "::-moz-range-thumb",
-      ]) {
-        expect(
-          sharedRules.some(
-            (rule) =>
-              rule.selector.includes(suffix) &&
-              rule.selector.includes(`data-design-system="${skin}"`) &&
-              rule.declarations.get("border-radius") === "0",
-          ),
-          suffix,
-        ).toBe(true);
-      }
-    },
-  );
+  it("keeps square geometry only in the Nexus server area, pseudo-elements included", () => {
+    const geometry = sharedRules.find((rule) =>
+      rule.declarations.has("--orb-raio-painel"),
+    )!;
+    expect(geometry.selector).toContain('[data-server-design="nexus"]');
+    expect(geometry.selector).toContain(":not(svg):not(svg *)");
+    expect(geometry.selector).not.toContain("data-design-system");
+    expect(geometry.declarations.get("border-radius")).toBe("0");
+    expect(geometry.declarations.get("corner-shape")).toBe("square");
+    for (const suffix of [
+      "::before",
+      "::after",
+      "::file-selector-button",
+      "::-webkit-slider-thumb",
+      "::-moz-range-thumb",
+    ]) {
+      expect(
+        sharedRules.some(
+          (rule) =>
+            rule.selector.includes(suffix) &&
+            rule.selector.includes('[data-server-design="nexus"]') &&
+            rule.declarations.get("border-radius") === "0",
+        ),
+        suffix,
+      ).toBe(true);
+    }
+  });
+
+  it("rounds the rest of the panel with the CommandLayer radii", () => {
+    expect(read("src/app/layout.tsx")).toMatch(
+      /import "\.\/orbit-dashboard\.css";\s*import "\.\/commandlayer-dashboard\.css";/,
+    );
+    const commandlayer = rulesOf(read("src/app/commandlayer-dashboard.css"));
+    const tokens = commandlayer.find(
+      (rule) =>
+        !rule.selector.includes('data-tema="branco"') &&
+        rule.declarations.has("--orb-raio-bloco"),
+    )!;
+    expect(tokens.declarations.get("--orb-raio-bloco")).toBe("12px");
+    expect(tokens.declarations.get("--orb-raio-controlo")).toBe("8px");
+    expect(tokens.declarations.get("--orb-raio-etiqueta")).toBe("4px");
+    const formas = commandlayer.filter((rule) =>
+      /^var\(--orb-raio-(bloco|controlo|etiqueta)\)$/.test(
+        rule.declarations.get("border-radius") ?? "",
+      ),
+    );
+    // blocos, menus em portal, itens dos menus, controlos e etiquetas
+    expect(formas).toHaveLength(5);
+    for (const forma of formas)
+      expect(
+        forma.selector.replace(/\(\s+/g, "(").replace(/\s+\)/g, ")"),
+        "o Nexus fica de fora",
+      ).toContain(':not([data-server-design="nexus"] *)');
+    // Menus do Radix vão para o <body>, fora do .dash-skin.
+    const portal = formas.find((rule) =>
+      rule.selector.includes('[data-slot="dropdown-menu-content"]'),
+    )!;
+    expect(portal.selector).not.toContain(" .dash-skin ");
+    expect(portal.declarations.get("border-radius")).toBe(
+      "var(--orb-raio-bloco)",
+    );
+    const redondo = commandlayer.find((rule) =>
+      rule.selector.includes(".rounded-full.rounded-full"),
+    )!;
+    expect(redondo.declarations.get("border-radius")).toBe("9999px");
+  });
+
+  it("keeps the keyboard focus ring visible in both themes", () => {
+    // globals.css pinta o foco de #f5f5f5 com !important; a regra do
+    // CommandLayer também precisa de !important para vencer.
+    const source = read("src/app/commandlayer-dashboard.css");
+    expect(source).toMatch(
+      /:focus-visible:not\(\s*\[data-server-design="nexus"\] \*\s*\)\s*\{\s*outline: 2px solid var\(--cl-ciano\) !important;/,
+    );
+    const nexus = read("src/features/vps/servidor-nexus.module.css");
+    expect(nexus).toMatch(
+      /:focus-visible \{\s*outline: 2px solid var\(--nx-ciano\) !important;/,
+    );
+  });
+
+  it("targets Tailwind's global uppercase class from the Nexus module", () => {
+    // Num .module.css, ".uppercase" solto vira classe local renomeada e
+    // nunca encontra o "uppercase" do Tailwind usado nos componentes.
+    const nexus = read("src/features/vps/servidor-nexus.module.css").replace(
+      /\/\*[\s\S]*?\*\//g,
+      "",
+    );
+    expect(nexus).toContain(":global(.uppercase)");
+    expect(nexus.replaceAll(":global(.uppercase)", "")).not.toMatch(
+      /\.uppercase\b/,
+    );
+  });
 
   it.each(["dark", "light"])(
     "supplies the editor and portal depth aliases in Orbit %s",

@@ -101,3 +101,37 @@ A página é útil antes da conexão da VPS. A falta de telemetria não remove a
 | VT323 400             | `043a60145af2ddbc_pxiKyp0ihIEF2isfFJXUdVNF.woff2`       |
 
 Esses arquivos estão presentes no material fornecido. A documentação registra sua origem sem introduzir dependência de Google Fonts, CDN ou scripts externos.
+
+## Atualização: fidelidade à referência (24/09)
+
+O usuário apontou que a primeira adaptação, em preto e grafite, "não está
+parecendo com essa landing page". A camada "Fidelidade ao Nexus Arcade", no
+fim de `src/features/vps/servidor-nexus.module.css`, devolve à área
+`/servidor` o que é da referência:
+
+- Cores: fundo `#02030A`, blocos `#100A24` e `#171032`, e os acentos ciano
+  `#35DDF2`, rosa `#F45BA8`, ouro `#E8B85D`, azul `#5E8CFF` e violeta
+  `#A477FF`.
+- Tipografia: VT323 (`src/features/vps/fonts/vt323.woff2`) nos títulos e
+  números, Space Mono 400/700 nos rótulos e na navegação, e Space Grotesk no
+  texto corrido.
+- Ornamentos: marcas de quina ciano e ouro, rótulos "//" com moldura, aba
+  ativa entre colchetes, atalho do editor em ouro e botões com borda de 2 px e
+  brilho.
+- A área continua escura nos dois temas e com cantos retos. O resto do painel
+  usa o CommandLayer (`docs/COMMANDLAYER-DESIGN-SYSTEM.md`). O texto `#7C748E`
+  da referência só aparece em ornamento, porque não passa 4,5:1.
+
+Detalhes técnicos desta camada:
+
+- Dentro do `.module.css`, a classe `uppercase` do Tailwind é escrita como
+  `:global(.uppercase)`. Solta, ela seria renomeada e nunca acharia o
+  elemento.
+- As marcas de quina ficam em `top/left: 0`, porque o `.panel` tem
+  `overflow: hidden` e cortava marcas em `-1px`.
+- O rótulo "//" e o atalho do editor repetem a classe para vencer o `:is()`
+  antigo que apaga textos. Esse `:is()` vale (1,3,2), por causa de
+  `.configuration > summary > span:last-child`.
+- Até 700 px de largura, a navegação encolhe o tracking e rola de lado, em
+  vez de sobrepor as abas.
+

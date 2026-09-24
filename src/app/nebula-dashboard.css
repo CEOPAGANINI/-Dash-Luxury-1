@@ -777,18 +777,14 @@ body:has(.dash-skin[data-design-system="nebula"])
   }
 }
 
-/* Shared Nebula / Orbit geometry, not a theme preference. Important declarations in
-   this named layer outrank unlayered legacy/module !important declarations.
-   Scope the authenticated body to include Radix portals and future modules;
-   SVG geometry (charts, connector paths and icons) is deliberately untouched. */
+/* Cantos retos só na área Servidor (desenho Nexus). O resto do painel segue
+   a pele CommandLayer, com blocos de 12 px, controlos de 8 e etiquetas de 4
+   (commandlayer-dashboard.css). Declarações !important nesta camada nomeada
+   ganham das !important soltas; por isso a trava fica presa ao escopo do
+   Nexus, e nada fora dele. O SVG (gráficos, conectores, ícones) fica de fora. */
 @layer dashboard-geometry {
-  body:has(
-    .dash-skin:is([data-design-system="nebula"], [data-design-system="orbit"])
-  ),
-  body:has(
-      .dash-skin:is([data-design-system="nebula"], [data-design-system="orbit"])
-    )
-    :not(svg):not(svg *) {
+  [data-server-design="nexus"],
+  [data-server-design="nexus"] :not(svg):not(svg *) {
     --nebula-radius: 0 !important;
     --nebula-radius-lg: 0 !important;
     --nebula-control-radius: 0 !important;
@@ -810,36 +806,12 @@ body:has(.dash-skin[data-design-system="nebula"])
     corner-shape: square !important;
   }
 
-  body:has(
-      .dash-skin:is([data-design-system="nebula"], [data-design-system="orbit"])
-    )
-    :not(svg):not(svg *)::before,
-  body:has(
-      .dash-skin:is([data-design-system="nebula"], [data-design-system="orbit"])
-    )
-    :not(svg):not(svg *)::after,
-  body:has(
-      .dash-skin:is([data-design-system="nebula"], [data-design-system="orbit"])
-    )
-    input::file-selector-button,
-  body:has(
-      .dash-skin:is([data-design-system="nebula"], [data-design-system="orbit"])
-    )
-    video {
-    border-radius: 0 !important;
-  }
-
-  body:has(
-      .dash-skin:is([data-design-system="nebula"], [data-design-system="orbit"])
-    )
-    input::-webkit-slider-thumb {
-    border-radius: 0 !important;
-  }
-
-  body:has(
-      .dash-skin:is([data-design-system="nebula"], [data-design-system="orbit"])
-    )
-    input::-moz-range-thumb {
+  [data-server-design="nexus"] :not(svg):not(svg *)::before,
+  [data-server-design="nexus"] :not(svg):not(svg *)::after,
+  [data-server-design="nexus"] input::file-selector-button,
+  [data-server-design="nexus"] video,
+  [data-server-design="nexus"] input::-webkit-slider-thumb,
+  [data-server-design="nexus"] input::-moz-range-thumb {
     border-radius: 0 !important;
   }
 }

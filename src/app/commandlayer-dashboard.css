@@ -1,0 +1,382 @@
+/*
+  CommandLayer — a pele do dashboard.
+
+  Referência: "CommandLayer · AI Workflow OS Landing Page Template", do
+  pacote command-layer.aura.build.zip que o usuário trouxe (código-fonte
+  em assets/0a081f29ba454934_shared_code.json). Dela vêm:
+
+  - o chassi grafite em degraus: #09090b → #0f0f11 → #131315 → #18181b →
+    #202023, com arestas #27272a e #3f3f46;
+  - o ciano só onde algo está vivo ou é a ação principal (#22d3ee no
+    texto, #06b6d4 no brilho), o verde e o âmbar só no estado;
+  - Inter no texto e JetBrains Mono nos rótulos em maiúsculas, espaçados;
+  - blocos de 12 px, controlos de 8 px, etiquetas de 4 px;
+  - a profundidade em duas direções: blocos que sobem (aresta clara em
+    cima, sombra longa embaixo) e displays que afundam (sombra interna);
+  - a grade fina de 24 px no fundo, no lugar dos pontinhos.
+
+  O tema claro não existe na referência: é a mesma hierarquia e a mesma
+  profundidade sobre superfícies claras, com o ciano escurecido para ler.
+  Todos os pares de texto passam 4,5:1 — medido, não estimado. O cinza de
+  rótulo da referência (#71717a) não passa sobre os blocos e foi trocado
+  por #8e8e98.
+
+  Esta folha entra depois da pele Orbit e troca os valores dos mesmos
+  tokens; a estrutura (quem usa qual token) continua a da Orbit. A área
+  Servidor tem desenho próprio (Nexus) e fica de fora das regras de forma.
+*/
+
+body:has(.dash-skin[data-design-system="orbit"]),
+body:has(.dash-skin[data-design-system="orbit"]) .dash-skin {
+  /* ── O chassi, do fundo ao que flutua ─────────────────────────────── */
+  --orb-canvas: #09090b;
+  --orb-canvas-2: #0f0f11;
+  --orb-surface: #131315;
+  --orb-raised: #18181b;
+  --orb-raised-2: #202023;
+  --orb-input: #09090b;
+  --orb-line: #27272a;
+  --orb-line-forte: #3f3f46;
+
+  /* ── O texto, em três forças ──────────────────────────────────────── */
+  --orb-text: #f4f4f5;
+  --orb-secondary: #a1a1aa;
+  --orb-muted: #8e8e98;
+
+  /* ── Estado e ação ────────────────────────────────────────────────── */
+  --orb-positive: #34d399;
+  --orb-negative: #fb747e;
+  --orb-atencao: #f59e0b;
+  --orb-modelo: #f59e0b;
+  --orb-imagem: #22d3ee;
+  --orb-gerador: #60a5fa;
+  --cl-ciano: #22d3ee;
+  --cl-ciano-brilho: #06b6d4;
+  --orb-acento: #0e7490;
+  --orb-acento-texto: #ffffff;
+
+  /* ── Raios da referência: bloco 12, controlo 8, etiqueta 4 ────────── */
+  --orb-raio-etiqueta: 4px;
+  --orb-raio-controlo: 8px;
+  --orb-raio-bloco: 12px;
+  --orb-raio-painel: 12px;
+  --radius: 8px;
+  --radius-card: 12px;
+  --radius-panel: 12px;
+
+  /* ── Profundidade: o que sobe e o que afunda ──────────────────────── */
+  --orb-sombra: 0 12px 24px -6px rgb(0 0 0 / 60%);
+  --orb-profundidade-bloco:
+    inset 0 1px 0 rgb(255 255 255 / 8%), inset 0 0 0 1px var(--orb-line),
+    0 12px 24px -6px rgb(0 0 0 / 60%);
+  --orb-profundidade-controlo:
+    inset 0 1px 0 rgb(255 255 255 / 5%), inset 0 0 0 1px var(--orb-line),
+    0 2px 8px rgb(0 0 0 / 40%);
+  --orb-profundidade-portal:
+    inset 0 1px 0 rgb(255 255 255 / 10%), inset 0 0 0 1px var(--orb-line-forte),
+    0 4px 12px rgb(0 0 0 / 80%);
+  --cl-display: inset 0 2px 4px rgb(0 0 0 / 60%), 0 1px 0 rgb(255 255 255 / 5%);
+  --cl-brilho-acao:
+    0 2px 10px -2px rgb(6 182 212 / 40%), inset 0 1px 0 rgb(255 255 255 / 20%);
+  --cl-acao: linear-gradient(180deg, #0e7490, #155e75);
+
+  /* ── A grade de 24 px do chassi ───────────────────────────────────── */
+  --orb-pontos:
+    linear-gradient(to right, rgb(128 128 128 / 7%) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(128 128 128 / 7%) 1px, transparent 1px);
+  --orb-pontos-passo: 24px 24px;
+
+  /* O que está escolhido acende em ciano, como a aba ativa da referência. */
+  --selecionado: rgb(34 211 238 / 10%);
+  --selecionado-texto: #22d3ee;
+  --nebula-selected-bg: rgb(34 211 238 / 10%);
+  --ring: #22d3ee;
+
+  /* ── Fontes: Inter no texto, JetBrains Mono nos rótulos ───────────── */
+  --font-outfit: var(--font-inter);
+  --font-display: var(--font-inter), system-ui, sans-serif;
+  --font-montserrat: var(--font-inter);
+  --cl-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+
+  font-family: var(--font-inter), system-ui, sans-serif;
+  letter-spacing: -0.005em;
+}
+
+/*
+  O tema claro. Mesma hierarquia, superfícies claras: o chassi é cinza
+  zinco, os blocos são brancos e sobem com sombra curta, os displays
+  afundam com uma sombra interna leve. O ciano escurece para ler.
+*/
+html[data-tema="branco"] body:has(.dash-skin[data-design-system="orbit"]),
+html[data-tema="branco"]
+  body:has(.dash-skin[data-design-system="orbit"])
+  .dash-skin {
+  --orb-canvas: #f4f4f5;
+  --orb-canvas-2: #ececef;
+  --orb-surface: #ffffff;
+  --orb-raised: #fafafa;
+  --orb-raised-2: #f4f4f5;
+  --orb-input: #f4f4f5;
+  --orb-line: #e4e4e7;
+  --orb-line-forte: #d4d4d8;
+  --orb-text: #09090b;
+  --orb-secondary: #52525b;
+  --orb-muted: #60606a;
+  --orb-positive: #047857;
+  --orb-negative: #be123c;
+  --orb-atencao: #684d00;
+  --orb-modelo: #684d00;
+  --orb-imagem: #0e7490;
+  --orb-gerador: #1d4ed8;
+  --cl-ciano: #0e7490;
+  --orb-acento: #0e7490;
+  --orb-acento-texto: #ffffff;
+  --orb-sombra: 0 12px 24px -12px rgb(0 0 0 / 18%);
+  --orb-profundidade-bloco:
+    inset 0 1px 0 #ffffff, inset 0 0 0 1px var(--orb-line),
+    0 1px 2px rgb(0 0 0 / 5%), 0 12px 24px -12px rgb(0 0 0 / 18%);
+  --orb-profundidade-controlo:
+    inset 0 1px 0 #ffffff, inset 0 0 0 1px var(--orb-line),
+    0 1px 3px rgb(0 0 0 / 8%);
+  --orb-profundidade-portal:
+    inset 0 0 0 1px var(--orb-line-forte), 0 16px 40px rgb(0 0 0 / 16%);
+  --cl-display: inset 0 1px 3px rgb(0 0 0 / 8%), 0 1px 0 #ffffff;
+  --cl-brilho-acao:
+    0 2px 10px -2px rgb(14 116 144 / 35%), inset 0 1px 0 rgb(255 255 255 / 20%);
+  --orb-pontos:
+    linear-gradient(to right, rgb(0 0 0 / 4%) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(0 0 0 / 4%) 1px, transparent 1px);
+  --selecionado: rgb(14 116 144 / 9%);
+  --selecionado-texto: #155e75;
+  --nebula-selected-bg: rgb(14 116 144 / 9%);
+  --ring: #0e7490;
+}
+
+/* ══ A forma: raios da referência, fora da área Servidor ═══════════════ */
+
+/* Blocos: 12 px. Os que já pediam canto arredondado no código
+   (rounded-xl, rounded-2xl, rounded-[1.5rem]) e os blocos com classe
+   própria que a medição do painel encontrou. O quadro de classes fica
+   reto: as colunas são peças encostadas de uma grade só, e o canto
+   arredondado encostando na vizinha virava um dente. */
+body:has(.dash-skin[data-design-system="orbit"])
+  .dash-skin
+  :is(
+    [data-slot="card"],
+    .bg-card,
+    .rounded-xl,
+    .rounded-2xl,
+    [class*="rounded-[1."],
+    .visual-overview-zone,
+    .visual-overview-kpi,
+    .visual-overview-toolbar,
+    .visual-overview-footer,
+    .sessao,
+    .executive-filter-shell,
+    .dash-gateways-aviso,
+    .dash-gateways-taxa,
+    .dash-gateways-medido,
+    .dash-gateways-contas,
+    .dash-gateways-tabela,
+    .dash-gateways-linhas > div,
+    .dash-gateways-contas li,
+    [class*="acquisition-calendar-module"]:is(
+      [class$="__calendar"],
+      [class*="__calendar "]
+    ),
+    [class*="acquisition-calendar-module"]:is(
+      [class$="__efficiency"],
+      [class*="__efficiency "]
+    ),
+    [class*="landing-flow-editor-module"][class*="__canvas"],
+    [class*="landing-flow-editor-module"][class*="__connections"],
+    [class*="landing-flow-editor-module"][class*="__node"]:not(
+        [class*="__nodeHeader"]
+      ):not([class*="__nodeBody"]):not([class*="__nodeFooter"]):not(
+        [class*="__nodeIcon"]
+      ):not([class*="__nodeName"]):not([class*="__nodeHeadline"]):not(
+        [class*="__nodeUrl"]
+      ):not([class*="__nodeConfig"]),
+    [role="dialog"]
+  ):not([data-server-design="nexus"] *):not(.rounded-full):not(
+    [class*="class-board-"]
+  ) {
+  border-radius: var(--orb-raio-bloco) !important;
+}
+
+/* Controlos: 8 px. As peças da faixa do quadro de classes ficam retas —
+   são segmentos de uma barra só, e arredondar cada uma quebraria a barra. */
+body:has(.dash-skin[data-design-system="orbit"])
+  .dash-skin
+  :is(
+    [data-slot="button"],
+    [data-slot="select-trigger"],
+    button,
+    select,
+    textarea,
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+    [role="tab"],
+    .block-picker-toggle,
+    .campaign-control
+  ):not([data-server-design="nexus"] *):not(.rounded-full):not(
+    [class*="class-board-"]
+  ):not([class*="__day"]):not([class*="__nodeBody"]) {
+  border-radius: var(--orb-raio-controlo) !important;
+}
+
+/* Menus e janelas vão para o <body> (portal do Radix), fora do .dash-skin:
+   por isso a regra dos blocos não os alcança e precisam desta. */
+body:has(.dash-skin[data-design-system="orbit"])
+  :is(
+    [data-slot="dropdown-menu-content"],
+    [data-slot="dropdown-menu-sub-content"],
+    [data-slot="popover-content"],
+    [data-slot="select-content"],
+    [data-slot="tooltip-content"],
+    [data-slot="dialog-content"],
+    [data-slot="sheet-content"],
+    [data-sonner-toast]
+  ):not([data-server-design="nexus"] *) {
+  border-radius: var(--orb-raio-bloco) !important;
+}
+body:has(.dash-skin[data-design-system="orbit"])
+  :is(
+    [data-slot="dropdown-menu-item"],
+    [data-slot="dropdown-menu-sub-trigger"],
+    [data-slot="select-item"]
+  ):not([data-server-design="nexus"] *) {
+  border-radius: var(--orb-raio-controlo) !important;
+}
+
+/* O que é redondo continua redondo: bolinhas, avatares, botões de ícone.
+   Sem isto, as trancas antigas de canto reto de globals.css venciam. */
+body:has(.dash-skin[data-design-system="orbit"])
+  .dash-skin
+  .rounded-full.rounded-full:not([data-server-design="nexus"] *) {
+  border-radius: 9999px !important;
+}
+
+/* Etiquetas: 4 px, em JetBrains Mono como as da referência. */
+body:has(.dash-skin[data-design-system="orbit"])
+  .dash-skin
+  :is([data-slot="badge"], .dash-gateways-origem, .dash-gateways-selo):not(
+    [data-server-design="nexus"] *
+  ):not(.rounded-full) {
+  border-radius: var(--orb-raio-etiqueta) !important;
+  font-family: var(--cl-mono) !important;
+  letter-spacing: 0.04em;
+}
+
+/* ══ A tipografia ══════════════════════════════════════════════════════ */
+
+/* Títulos em Inter, justos, como os da referência. */
+body:has(.dash-skin[data-design-system="orbit"])
+  .dash-skin
+  :is(h1, h2, h3):not([data-server-design="nexus"] *) {
+  font-family: var(--font-inter), system-ui, sans-serif;
+  letter-spacing: -0.02em;
+}
+
+/* Rótulos em maiúsculas: JetBrains Mono, espaçados. */
+body:has(.dash-skin[data-design-system="orbit"])
+  .dash-skin
+  .uppercase:not([data-server-design="nexus"] *) {
+  font-family: var(--cl-mono) !important;
+  letter-spacing: 0.12em;
+}
+
+/* ══ A ação principal: ciano com brilho ════════════════════════════════ */
+body:has(.dash-skin[data-design-system="orbit"])
+  .dash-skin
+  :is([data-slot="button"][class*="bg-primary"], .bg-primary):not(
+    [data-server-design="nexus"] *
+  ) {
+  background: var(--cl-acao) !important;
+  color: var(--orb-acento-texto) !important;
+  box-shadow: var(--cl-brilho-acao) !important;
+}
+
+/* ══ Displays: campos que afundam no chassi ════════════════════════════ */
+body:has(.dash-skin[data-design-system="orbit"])
+  .dash-skin
+  :is(
+    select,
+    textarea,
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"])
+  ):not([data-server-design="nexus"] *) {
+  background: var(--orb-input) !important;
+  box-shadow: var(--cl-display) !important;
+}
+
+/* ══ Estado escolhido e foco em ciano ══════════════════════════════════ */
+body:has(.dash-skin[data-design-system="orbit"])
+  .dash-skin
+  :is(
+    [aria-current="page"],
+    [aria-selected="true"],
+    .is-active,
+    .is-current
+  ):not(.class-board-semaforo *):not([role="option"]):not(
+    [data-server-design="nexus"] *
+  ) {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--cl-ciano) 45%, transparent),
+    0 0 14px color-mix(in srgb, var(--cl-ciano) 12%, transparent);
+}
+/* O anel de foco antigo de globals.css (#f5f5f5 !important) some no tema
+   claro; este vence por especificidade e segue o ciano de cada tema. */
+body:has(.dash-skin[data-design-system="orbit"])
+  .dash-skin
+  :is(
+    button,
+    a,
+    input,
+    select,
+    textarea,
+    summary,
+    [tabindex],
+    [role="tab"]
+  ):focus-visible:not([data-server-design="nexus"] *) {
+  outline: 2px solid var(--cl-ciano) !important;
+  outline-offset: 2px;
+}
+
+/* ══ Gráficos da Visão geral nos dois temas ════════════════════════════
+   Trilhos, anéis vazios e cinzas de estado eram branco translúcido,
+   pensados para o fundo escuro; no tema claro sumiam no branco. O escuro
+   fica com os mesmos valores de antes; o claro ganha os seus. */
+body:has(.dash-skin[data-design-system="orbit"]) .dash-skin .visual-overview {
+  --overview-trilho: rgba(255, 255, 255, 0.08);
+  --overview-neutro: rgba(255, 255, 255, 0.45);
+  --overview-sucesso: #e5e5e5;
+  --overview-info: #c2c2c2;
+  --overview-accent: #9e9e9e;
+  --overview-grade: rgba(255, 255, 255, 0.07);
+  --overview-eixo: rgba(255, 255, 255, 0.42);
+  --overview-cursor: rgba(255, 255, 255, 0.18);
+  --overview-serie: #f5f5f5;
+  --overview-serie-contorno: #0a0a0a;
+}
+html[data-tema="branco"]
+  body:has(.dash-skin[data-design-system="orbit"])
+  .dash-skin
+  .visual-overview {
+  --overview-line: rgb(0 0 0 / 10%);
+  --overview-muted: #52525b;
+  --overview-trilho: rgb(0 0 0 / 8%);
+  --overview-neutro: rgb(0 0 0 / 38%);
+  --overview-sucesso: #3f3f46;
+  --overview-info: #71717a;
+  --overview-accent: #a1a1aa;
+  --overview-grade: rgb(0 0 0 / 7%);
+  --overview-eixo: #52525b;
+  --overview-cursor: rgb(0 0 0 / 18%);
+  --overview-serie: #27272a;
+  --overview-serie-contorno: #ffffff;
+}
+html[data-tema="branco"]
+  body:has(.dash-skin[data-design-system="orbit"])
+  .dash-skin
+  .visual-overview-bar-track {
+  background: var(--overview-trilho) !important;
+}

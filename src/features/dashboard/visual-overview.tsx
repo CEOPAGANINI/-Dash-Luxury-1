@@ -186,15 +186,16 @@ type TomEstado = keyof typeof ESTADOS;
   diferentes para o mesmo número, na mesma caixa.
 */
 const COR_ESTADO: Record<TomEstado, string> = {
-  success: "#e5e5e5",
+  success: "var(--overview-sucesso, #e5e5e5)",
   warning: "#f59e0b",
   destructive: "#ef4444",
   /* Informação e projeção não são meta: entram como cinza, para a cor
-     continuar querendo dizer só uma coisa nesta tela. */
-  info: "#c2c2c2",
-  accent: "#9e9e9e",
-  neutral: "rgba(255,255,255,.45)",
-  vazio: "rgba(255,255,255,.45)",
+     continuar querendo dizer só uma coisa nesta tela. Os cinzas vêm de
+     variáveis da pele: no tema claro, branco translúcido some no branco. */
+  info: "var(--overview-info, #c2c2c2)",
+  accent: "var(--overview-accent, #9e9e9e)",
+  neutral: "var(--overview-neutro, rgba(255,255,255,.45))",
+  vazio: "var(--overview-neutro, rgba(255,255,255,.45))",
 };
 
 function Estado({ tom }: { tom: TomEstado }) {
@@ -597,7 +598,7 @@ export function VisualOverview({
     {
       label: "Caixa recebido",
       value: snapshot.caixaRecebido,
-      color: "#f5f5f5",
+      color: "var(--overview-serie, #f5f5f5)",
     },
     {
       label: "Receita líquida",
@@ -624,7 +625,7 @@ export function VisualOverview({
       /* Este é o único gráfico da tela que fica colorido: aprovado,
          pendente e recusado não são três categorias quaisquer, são bom,
          atenção e ruim — a mesma escala das metas. */
-      color: "#e5e5e5",
+      color: "var(--overview-sucesso, #e5e5e5)",
     },
     {
       label: "Pendente",
@@ -652,7 +653,7 @@ export function VisualOverview({
           return `${segment.color} ${start}% ${conicStart}%`;
         })
         .join(", ")
-    : "rgba(255,255,255,.08) 0 100%";
+    : "var(--overview-trilho, rgba(255,255,255,.08)) 0 100%";
   const trend = model.trend.map((point) => ({
     ...point,
     shortLabel: point.label.slice(0, 5),
@@ -1019,7 +1020,7 @@ export function VisualOverview({
                   <div
                     className="visual-overview-donut"
                     style={{
-                      background: `conic-gradient(${COR_ESTADO[veredito(estadoMargem)]} 0 ${marginProgress * 100}%, rgba(255,255,255,.08) ${marginProgress * 100}% 100%)`,
+                      background: `conic-gradient(${COR_ESTADO[veredito(estadoMargem)]} 0 ${marginProgress * 100}%, var(--overview-trilho, rgba(255,255,255,.08)) ${marginProgress * 100}% 100%)`,
                     }}
                     role="img"
                     aria-label={`Margem de contribuição ${percent.format(snapshot.margemContribuicao)}`}
@@ -1208,33 +1209,33 @@ export function VisualOverview({
                           >
                             <stop
                               offset="0%"
-                              stopColor="#f5f5f5"
+                              stopColor="var(--overview-serie, #f5f5f5)"
                               stopOpacity={0.3}
                             />
                             <stop
                               offset="100%"
-                              stopColor="#f5f5f5"
+                              stopColor="var(--overview-serie, #f5f5f5)"
                               stopOpacity={0}
                             />
                           </linearGradient>
                         </defs>
                         <CartesianGrid
                           vertical={false}
-                          stroke="rgba(255,255,255,.07)"
+                          stroke="var(--overview-grade, rgba(255,255,255,.07))"
                         />
                         <XAxis
                           dataKey="shortLabel"
                           axisLine={false}
                           tickLine={false}
                           minTickGap={26}
-                          tick={{ fill: "rgba(255,255,255,.42)", fontSize: 10 }}
+                          tick={{ fill: "var(--overview-eixo, rgba(255,255,255,.42))", fontSize: 10 }}
                         />
                         <YAxis
                           hide
                           domain={["dataMin - 400", "dataMax + 400"]}
                         />
                         <Tooltip
-                          cursor={{ stroke: "rgba(255,255,255,.18)" }}
+                          cursor={{ stroke: "var(--overview-cursor, rgba(255,255,255,.18))" }}
                           contentStyle={{
                             background: "#171717",
                             border: "1px solid rgba(255,255,255,.12)",
@@ -1250,14 +1251,14 @@ export function VisualOverview({
                         <Area
                           type="monotone"
                           dataKey="netRevenue"
-                          stroke="#f5f5f5"
+                          stroke="var(--overview-serie, #f5f5f5)"
                           strokeWidth={3}
                           fill="url(#overviewRevenueFill)"
                           dot={false}
                           activeDot={{
                             r: 4,
-                            fill: "#f5f5f5",
-                            stroke: "#0a0a0a",
+                            fill: "var(--overview-serie, #f5f5f5)",
+                            stroke: "var(--overview-serie-contorno, #0a0a0a)",
                           }}
                           isAnimationActive={false}
                         />
@@ -1336,7 +1337,7 @@ export function VisualOverview({
                       <li key={channel.name}>
                         <i
                           style={{
-                            background: ["#f5f5f5", "#a8a8a8", "#6a6a6a"][
+                            background: ["var(--overview-serie, #f5f5f5)", "#a8a8a8", "#6a6a6a"][
                               index
                             ],
                           }}
@@ -1506,7 +1507,7 @@ export function VisualOverview({
                         style={{
                           background: `conic-gradient(${
                             COR_ESTADO[veredito(estadoMeta(metaReceita))]
-                          } 0 ${metaReceita.preenchimento * 100}%, rgba(255,255,255,.08) ${
+                          } 0 ${metaReceita.preenchimento * 100}%, var(--overview-trilho, rgba(255,255,255,.08)) ${
                             metaReceita.preenchimento * 100
                           }% 100%)`,
                         }}
@@ -1558,7 +1559,7 @@ export function VisualOverview({
                         style={{
                           background: `conic-gradient(${
                             COR_ESTADO[veredito(estadoMeta(metaLucro))]
-                          } 0 ${metaLucro.preenchimento * 100}%, rgba(255,255,255,.08) ${
+                          } 0 ${metaLucro.preenchimento * 100}%, var(--overview-trilho, rgba(255,255,255,.08)) ${
                             metaLucro.preenchimento * 100
                           }% 100%)`,
                         }}
@@ -1831,7 +1832,7 @@ export function VisualOverview({
                     style={{
                       background: `conic-gradient(${COR_ESTADO.info} 0 ${
                         Math.min(1, clientes.taxaRecompra) * 100
-                      }%, rgba(255,255,255,.08) ${
+                      }%, var(--overview-trilho, rgba(255,255,255,.08)) ${
                         Math.min(1, clientes.taxaRecompra) * 100
                       }% 100%)`,
                     }}

@@ -5393,14 +5393,14 @@ html[data-tema="branco"] .dash-skin [data-server-design="nexus"] {
   --glass-fill: var(--camada-1);
   --glass-border: var(--fio);
   --linha-tabela: rgb(255 255 255 / 16%);
-  /* As superfícies da pele Orbit já chegam resolvidas da raiz (brancas no
-     tema claro): aqui voltam aos mesmos valores do tema preto. */
-  --dash-surface-base: #0d0d0d;
-  --dash-surface-structure: #111214;
-  --dash-surface-card: #202123;
-  --dash-surface-control: #292a2d;
-  --dash-surface-hover: #313236;
-  --dash-surface-overlay: #292a2d;
+  /* As superfícies da pele já chegam resolvidas da raiz (brancas no tema
+     claro): aqui voltam às do Nexus, as mesmas do tema preto. */
+  --dash-surface-base: #02030a;
+  --dash-surface-structure: #100a24;
+  --dash-surface-card: #171032;
+  --dash-surface-control: #171032;
+  --dash-surface-hover: #1d1540;
+  --dash-surface-overlay: #171032;
 }
 
 /* Preto fosco também nos portais (tooltips, menus, folhas) que saem do wrapper. */

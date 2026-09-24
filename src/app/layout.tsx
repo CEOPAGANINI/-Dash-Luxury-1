@@ -6,6 +6,7 @@ import { brand } from "@/lib/brand";
 import "./globals.css";
 import "./nebula-dashboard.css";
 import "./orbit-dashboard.css";
+import "./commandlayer-dashboard.css";
 
 /*
   Sistema de fontes em três papéis:

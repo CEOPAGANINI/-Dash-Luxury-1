@@ -150,50 +150,36 @@ describe("dashboard black-and-white palette", () => {
     }
   });
 
-  it("locks square corners for authenticated content, portals and future modules", () => {
+  it("locks square corners only inside the Nexus server area", () => {
+    // Desde a pele CommandLayer o painel tem blocos de 12 px, controlos de
+    // 8 e etiquetas de 4. O canto reto ficou sendo desenho só do Servidor
+    // (Nexus Arcade), e a trava vale só dentro dele.
     const geometry = rules.find(
       (rule) =>
         rule.selector.includes(":not(svg):not(svg *)") &&
         rule.declarations.has("--nebula-radius"),
     );
-    expect(geometry, "central geometry policy").toBeDefined();
-    expect(geometry!.selector).toContain("body:has(");
-    expect(geometry!.selector).toContain('data-design-system="nebula"');
-    expect(geometry!.selector).toContain('data-design-system="orbit"');
+    expect(geometry, "trava de cantos").toBeDefined();
+    expect(geometry!.selector).toContain('[data-server-design="nexus"]');
+    expect(geometry!.selector).not.toContain("body:has(");
+    expect(geometry!.selector).not.toContain("data-design-system");
     expect(geometry!.declarations.get("border-radius")).toBe("0");
     for (const [property, value] of geometry!.declarations) {
       if (property.includes("radius")) expect(value, property).toBe("0");
     }
-    // Layered !important declarations outrank the unlayered !important rules
-    // retained in legacy CSS and CSS Modules, irrespective of import order.
+    // Na camada nomeada, o !important ganha dos !important soltos; por isso
+    // ela não pode alcançar nada fora do Nexus.
     expect(css).toMatch(
       /@layer dashboard-geometry\s*\{[\s\S]*?border-radius:\s*0\s*!important/,
     );
-    for (const suffix of [
-      "::before",
-      "::after",
-      "::file-selector-button",
-      "::-webkit-slider-thumb",
-      "::-moz-range-thumb",
-    ]) {
-      expect(
-        rules.some(
-          (rule) =>
-            rule.selector.includes(suffix) &&
-            rule.selector.includes('data-design-system="nebula"') &&
-            rule.declarations.get("border-radius") === "0",
-        ),
-        `square ${suffix}`,
-      ).toBe(true);
-    }
-    for (const rule of rules) {
-      const radius = rule.declarations.get("border-radius");
-      if (!radius) continue;
-      const reference = /^var\((--[\w-]+)\)$/.exec(radius);
-      expect(
-        reference ? dark!.declarations.get(reference[1]) : radius,
-        `no rounded alternative: ${rule.selector}`,
-      ).toBe("0");
+    const camada = css.slice(css.indexOf("@layer dashboard-geometry"));
+    const fim = camada.indexOf("\n}\n");
+    for (const seletor of camada.slice(0, fim).matchAll(/([^{}]+)\{/g)) {
+      if (seletor[1].includes("@layer")) continue;
+      for (const parte of seletor[1].split(","))
+        expect(parte.trim(), "tudo na camada fica no Nexus").toMatch(
+          /^\[data-server-design="nexus"\]/,
+        );
     }
   });
 
