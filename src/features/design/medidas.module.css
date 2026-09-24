@@ -7,28 +7,22 @@
   cartão no meio; a linha é SVG com a área em degradê até ao transparente
   e pontos nos vértices; as colunas têm um halo da própria cor.
 
-  A casca continua a ser a pele Orbit · PicGen: superfície, borda, raio e
-  texto saem dos tokens dela. O que este ficheiro traz de novo é a paleta
-  de séries — e só ela.
-
-  Por que uma paleta à parte, num painel preto e branco: a cor de uma
-  série é identidade do dado, não enfeite da casca. Duas séries no mesmo
-  gráfico precisam de se distinguir, e é por isso que a regra do
-  monocromático sempre valeu para o cromo e nunca para as séries com
-  legenda.
+  Superfícies e tipografia seguem CommandLayer. As séries mantêm cores
+  distintas por tema: a legenda e os números também identificam cada
+  dado, sem depender somente da cor.
 */
 
 .medidas {
   /* Séries, como no Capital Overview: os 400 do Tailwind sobre escuro. */
-  --serie-1: #818cf8; /* indigo  — a série principal */
-  --serie-2: #34d399; /* emerald — a segunda */
-  --serie-3: #fbbf24; /* amber   — a terceira */
+  --serie-1: var(--cl-info); /* azul — a série principal */
+  --serie-2: var(--cl-success); /* esmeralda — a segunda */
+  --serie-3: var(--cl-warning); /* âmbar — a terceira */
   --serie-4: #f472b6; /* pink    */
   --serie-5: #a78bfa; /* purple  */
-  --serie-6: #fb7185; /* rose    */
-  --serie-7: #9ca3af; /* o resto */
+  --serie-6: var(--cl-danger);
+  --serie-7: var(--cl-text-muted);
 
-  --trilho: rgb(255 255 255 / 10%);
+  --trilho: var(--cl-raised);
   --altura-barra: 8px;
   --fresta: 2px;
   --anel: 12px;
@@ -41,14 +35,8 @@
    se verem contra branco. Todas passam 3:1 — o mínimo de um elemento
    gráfico — contra o cartão branco e contra o canvas. */
 :global(html[data-tema="branco"]) .medidas {
-  --serie-1: #4f46e5;
-  --serie-2: #047857;
-  --serie-3: #b45309;
   --serie-4: #be185d;
   --serie-5: #7e22ce;
-  --serie-6: #be123c;
-  --serie-7: #6b7280;
-  --trilho: rgb(0 0 0 / 10%);
 }
 
 /* ─── Barra repartida ──────────────────────────────────────────────── */
@@ -68,18 +56,19 @@
 }
 .barraNome {
   overflow: hidden;
-  color: var(--muted-foreground);
+  color: var(--cl-text-muted);
   font-size: 0.875rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .barraValor {
   flex: none;
-  color: var(--foreground);
+  color: var(--cl-text-primary);
   font-size: 1.5rem;
   font-variant-numeric: tabular-nums;
   font-weight: 600;
   letter-spacing: -0.02em;
+  font-family: var(--cl-mono);
 }
 /* Sem trilho: quem separa os pedaços é a fresta de 2px. Uma barra vazia
    recebe o trilho de volta, senão não haveria o que olhar. */
@@ -88,7 +77,7 @@
   gap: var(--fresta);
   overflow: hidden;
   height: var(--altura-barra);
-  border-radius: 999px;
+  border-radius: 4px;
   opacity: 0.9;
   transition: opacity var(--rapido) var(--suave);
 }
@@ -135,7 +124,7 @@
   gap: 6px;
   margin-bottom: 4px;
   overflow: hidden;
-  color: var(--muted-foreground);
+  color: var(--cl-text-muted);
   font-size: 0.75rem;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -149,16 +138,18 @@
 }
 .legendaValor {
   margin-bottom: 2px;
-  color: var(--foreground);
+  color: var(--cl-text-primary);
   font-size: 0.875rem;
   font-variant-numeric: tabular-nums;
   font-weight: 500;
+  font-family: var(--cl-mono);
 }
 .legendaPct {
-  color: var(--muted-foreground);
+  color: var(--cl-text-muted);
   font-size: 0.625rem;
   font-variant-numeric: tabular-nums;
   opacity: 0.75;
+  font-family: var(--cl-mono);
 }
 
 /* ─── Rosca ────────────────────────────────────────────────────────── */
@@ -190,8 +181,8 @@
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: var(--card);
-  box-shadow: inset 0 2px 8px rgb(0 0 0 / 25%);
+  background: var(--cl-chassis);
+  box-shadow: var(--cl-shadow-inset);
   text-align: center;
   transition: transform 500ms var(--suave);
 }
@@ -200,15 +191,16 @@
 }
 .anelMiolo strong {
   display: block;
-  color: var(--foreground);
+  color: var(--cl-text-primary);
   font-size: 1.5rem;
   font-variant-numeric: tabular-nums;
   font-weight: 600;
   line-height: 1.1;
+  font-family: var(--cl-mono);
 }
 .anelMiolo small {
   display: block;
-  color: var(--muted-foreground);
+  color: var(--cl-text-muted);
   font-size: 0.625rem;
 }
 .legendaLista {
@@ -229,9 +221,10 @@
 }
 .legendaLista b {
   flex: none;
-  color: var(--foreground);
+  color: var(--cl-text-primary);
   font-variant-numeric: tabular-nums;
   font-weight: 500;
+  font-family: var(--cl-mono);
 }
 
 /* ─── Linha ────────────────────────────────────────────────────────── */
@@ -246,7 +239,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
-  color: var(--muted-foreground);
+  color: var(--cl-text-muted);
   font-size: 0.75rem;
 }
 .linhaLegenda > span {
@@ -301,7 +294,7 @@
 .colunaRotulo {
   margin-top: 6px;
   overflow: hidden;
-  color: var(--muted-foreground);
+  color: var(--cl-text-muted);
   font-size: 0.625rem;
   text-align: center;
   text-overflow: ellipsis;

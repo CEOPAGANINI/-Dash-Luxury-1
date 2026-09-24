@@ -344,7 +344,6 @@ export function NovoServidor({ inicial }: { inicial: EstadoDaTela }) {
             rotulo="Passo 1"
             titulo="Nome do servidor"
             descricao="Só para você reconhecer o servidor no painel."
-            className={styles.namePanel}
           >
             <form
               onSubmit={(evento) => void gerar(evento)}

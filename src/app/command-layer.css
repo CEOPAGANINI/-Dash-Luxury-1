@@ -1,0 +1,853 @@
+/* CommandLayer: source materials + dashboard and light-theme adaptations.
+   The legacy layout layer remains for route-specific geometry. This layer
+   owns visual primitives; feature modules consume the same semantic tokens.
+   Public storefronts and user-authored previews are not design-system hosts. */
+@layer commandlayer {
+  body:has([data-design-system="commandlayer"]),
+  [data-design-system="commandlayer"] {
+    --cl-canvas: #0f0f11;
+    --cl-screen: #131315;
+    --cl-chassis: #18181b;
+    --cl-well: #09090b;
+    --cl-terminal: #0c0c0e;
+    --cl-readout: #111113;
+    --cl-card-top: #202023;
+    --cl-raised: #27272a;
+    --cl-border: #27272a;
+    --cl-border-strong: #3f3f46;
+    --cl-hover: #323238;
+    --cl-inner-border: rgb(255 255 255 / 5%);
+    --cl-highlight: rgb(255 255 255 / 10%);
+    --cl-text-primary: #f1f5f9;
+    --cl-text-secondary: #e2e8f0;
+    --cl-text-body: #cbd5e1;
+    --cl-text-muted: #94a3b8;
+    --cl-text-dim: #7c8aa0; /* #64748b dava 3,7:1 no chassi escuro */
+    --cl-accent: #22d3ee;
+    --cl-activity: #06b6d4;
+    --cl-cta-top: #0891b2;
+    --cl-cta-bottom: #0e7490;
+    --cl-cta-hover-top: #06b6d4;
+    --cl-cta-hover-bottom: #0891b2;
+    --cl-primary-top: var(--cl-cta-top);
+    --cl-primary-bottom: var(--cl-cta-bottom);
+    --cl-primary-hover-top: var(--cl-cta-hover-top);
+    /* Original hue stops, with a neutral scrim for readable 12px white text. */
+    --cl-button-fill:
+      linear-gradient(rgb(0 0 0 / 24%), rgb(0 0 0 / 24%)),
+      linear-gradient(var(--cl-cta-top), var(--cl-cta-bottom));
+    --cl-button-hover-fill:
+      linear-gradient(rgb(0 0 0 / 40%), rgb(0 0 0 / 40%)),
+      linear-gradient(var(--cl-cta-hover-top), var(--cl-cta-hover-bottom));
+    --cl-success: #34d399;
+    --cl-warning: #f59e0b;
+    --cl-info: #60a5fa;
+    --cl-danger: #fb7185;
+    --cl-violet: #a78bfa;
+    --cl-pink: #f472b6;
+    --cl-on-status: #09090b;
+    --cl-selection: color-mix(in srgb, var(--cl-accent) 10%, var(--cl-screen));
+    --cl-sans: var(--font-inter), "Inter", system-ui, sans-serif;
+    --cl-mono: var(--font-jetbrains-mono), "JetBrains Mono", monospace;
+    --cl-radius-control: 4px;
+    --cl-radius-inner: 8px;
+    --cl-radius-panel: 12px;
+    --cl-frame: 4px;
+    --cl-padding: 24px;
+    --cl-gap: 24px;
+    --cl-shadow-chassis:
+      inset 0 1px 0 var(--cl-highlight), 0 1px 2px rgb(0 0 0 / 50%),
+      0 12px 24px rgb(0 0 0 / 80%);
+    --cl-shadow-nav: 0 1px 0 rgb(255 255 255 / 5%), 0 4px 12px rgb(0 0 0 / 50%);
+    --cl-shadow-card:
+      inset 0 1px 0 var(--cl-highlight), 0 1px 2px rgb(0 0 0 / 50%),
+      0 4px 12px rgb(0 0 0 / 50%);
+    --cl-shadow-metric:
+      inset 0 1px 0 var(--cl-highlight), 0 2px 8px rgb(0 0 0 / 40%);
+    --cl-shadow-inset: inset 0 2px 4px rgb(0 0 0 / 60%);
+    --cl-shadow-screen: inset 0 4px 12px rgb(0 0 0 / 80%);
+    --cl-shadow-highlight: inset 0 1px 0 var(--cl-highlight);
+    --cl-shadow-button:
+      0 2px 10px -2px rgb(6 182 212 / 40%), inset 0 1px 0 rgb(255 255 255 / 20%);
+    --cl-shadow-tab:
+      inset 0 1px 0 rgb(255 255 255 / 15%), 0 2px 4px rgb(0 0 0 / 30%);
+    --cl-shadow-led: 0 0 8px rgb(6 182 212 / 80%);
+    --cl-shadow-overlay:
+      var(--cl-shadow-highlight), 0 20px 52px rgb(0 0 0 / 55%);
+
+    /* Compatibility aliases keep existing functional components intact. */
+    --background: var(--cl-canvas);
+    --foreground: var(--cl-text-primary);
+    --card: var(--cl-chassis);
+    --card-foreground: var(--cl-text-primary);
+    --popover: var(--cl-raised);
+    --popover-foreground: var(--cl-text-primary);
+    --primary: var(--cl-cta-bottom);
+    --primary-foreground: #ffffff;
+    --secondary: var(--cl-raised);
+    --secondary-foreground: var(--cl-text-secondary);
+    --muted: var(--cl-screen);
+    --muted-foreground: var(--cl-text-muted);
+    --accent: var(--cl-selection);
+    --accent-foreground: var(--cl-accent);
+    --border: var(--cl-border);
+    --input: var(--cl-border-strong);
+    --ring: var(--cl-accent);
+    --success: var(--cl-success);
+    --success-foreground: var(--cl-on-status);
+    --warning: var(--cl-warning);
+    --warning-foreground: var(--cl-on-status);
+    --destructive: var(--cl-danger);
+    --destructive-foreground: var(--cl-on-status);
+    --info: var(--cl-info);
+    --info-foreground: var(--cl-on-status);
+    --sem-success: var(--cl-success);
+    --sem-warning: var(--cl-warning);
+    --sem-error: var(--cl-danger);
+    --sem-info: var(--cl-info);
+    --sem-accent: var(--cl-violet);
+    --sem-neutral: var(--cl-text-muted);
+    --serie-1: var(--cl-accent);
+    --serie-2: var(--cl-success);
+    --serie-3: var(--cl-warning);
+    --serie-4: var(--cl-pink);
+    --serie-5: var(--cl-violet);
+    --serie-6: var(--cl-info);
+    --serie-7: var(--cl-text-muted);
+    --chart-1: var(--serie-1);
+    --chart-2: var(--serie-2);
+    --chart-3: var(--serie-3);
+    --chart-4: var(--serie-4);
+    --chart-5: var(--serie-5);
+    --traffic-funnel-from: var(--cl-activity);
+    --traffic-funnel-to: var(--cl-info);
+    --radius: 8px;
+    --radius-card: var(--cl-radius-panel);
+    --radius-panel: var(--cl-radius-panel);
+    --font-sans: var(--cl-sans);
+    --font-display: var(--cl-sans);
+    --font-mono: var(--cl-mono);
+    --font-montserrat: var(--font-inter);
+    --font-outfit: var(--font-inter);
+    --text-caption: 0.75rem;
+    --text-body: 0.875rem;
+    --text-card-title: 1rem;
+    --text-section-title: clamp(1.25rem, 1.8vw, 1.5rem);
+    --text-page-title: clamp(1.5rem, 2.1vw, 1.875rem);
+    --text-stat: 1.875rem;
+    --camada-0: var(--cl-canvas);
+    --camada-1: var(--cl-chassis);
+    --camada-2: var(--cl-screen);
+    --camada-3: var(--cl-raised);
+    --camada-4: var(--cl-hover);
+    --botao: var(--cl-raised);
+    --botao-hover: var(--cl-hover);
+    --fio: var(--cl-border);
+    --fio-forte: var(--cl-border-strong);
+    --selecionado: var(--cl-selection);
+    --selecionado-texto: var(--cl-accent);
+    --veu: var(--cl-screen);
+    --material: linear-gradient(var(--cl-card-top), var(--cl-chassis));
+    --material-hover: linear-gradient(var(--cl-raised), var(--cl-chassis));
+    --material-sombra: var(--cl-shadow-card);
+    --vidro-brilho: none;
+    --vidro-pontos: none;
+    --vidro-sombra: var(--cl-shadow-card);
+    --brilho: var(--cl-accent);
+    --brilho-texto: var(--cl-text-primary);
+    --dash-shadow-card: var(--cl-shadow-card);
+    --dash-shadow-control: var(--cl-shadow-highlight);
+    --dash-shadow-overlay: var(--cl-shadow-overlay);
+    --dash-shadow-inset: var(--cl-shadow-inset);
+    --dash-surface-base: var(--cl-canvas);
+    --dash-surface-card: var(--cl-chassis);
+    --dash-surface-control: var(--cl-raised);
+    --dash-surface-hover: var(--cl-hover);
+    --dash-surface-overlay: var(--cl-raised);
+    --dash-surface-structure: var(--cl-screen);
+    --glass-fill: var(--cl-chassis);
+    --glass-border: var(--cl-border);
+    --glass-shadow: var(--cl-shadow-card);
+    /* Old feature modules still consume these names. */
+    --nebula-bg: var(--cl-canvas);
+    --nebula-bg-2: var(--cl-screen);
+    --nebula-panel: var(--cl-chassis);
+    --nebula-panel-2: var(--cl-raised);
+    --nebula-text: var(--cl-text-primary);
+    --nebula-muted: var(--cl-text-muted);
+    --nebula-faint: var(--cl-text-dim);
+    --nebula-line: var(--cl-border);
+    --nebula-line-strong: var(--cl-border-strong);
+    --nebula-accent: var(--cl-accent);
+    --nebula-radius: var(--cl-radius-panel);
+    --nebula-control-radius: var(--cl-radius-control);
+    --orb-canvas: var(--cl-canvas);
+    --orb-canvas-2: var(--cl-screen);
+    --orb-surface: var(--cl-chassis);
+    --orb-raised: var(--cl-raised);
+    --orb-raised-2: var(--cl-hover);
+    --orb-input: var(--cl-screen);
+    --orb-line: var(--cl-border);
+    --orb-line-forte: var(--cl-border-strong);
+    --orb-text: var(--cl-text-primary);
+    --orb-secondary: var(--cl-text-muted);
+    --orb-muted: var(--cl-text-dim);
+    --orb-positive: var(--cl-success);
+    --orb-negative: var(--cl-danger);
+    --orb-modelo: var(--cl-warning);
+    --orb-imagem: var(--cl-info);
+    --orb-gerador: var(--cl-violet);
+    --orb-atencao: var(--cl-warning);
+    --orb-acento: var(--cl-accent);
+    --orb-acento-texto: var(--cl-on-status);
+    --orb-raio-etiqueta: var(--cl-radius-control);
+    --orb-raio-controlo: var(--cl-radius-control);
+    --orb-raio-bloco: var(--cl-radius-panel);
+    --orb-raio-painel: var(--cl-radius-panel);
+    --orb-profundidade-bloco: var(--cl-shadow-card);
+    --orb-profundidade-controlo: var(--cl-shadow-highlight);
+    --orb-profundidade-portal: var(--cl-shadow-overlay);
+    color-scheme: dark;
+    color: var(--cl-text-body);
+    background: var(--cl-canvas);
+    font-family: var(--cl-sans);
+    font-size: 14px;
+    line-height: 1.625;
+  }
+
+  /* Light is an explicit dashboard extension, not an original source palette. */
+  html[data-tema="branco"] body:has([data-design-system="commandlayer"]),
+  html[data-tema="branco"] [data-design-system="commandlayer"] {
+    --cl-canvas: #e8ecef;
+    --cl-screen: #eef1f4;
+    --cl-chassis: #f8fafc;
+    --cl-well: #dde3e9;
+    --cl-terminal: #e3e9ef;
+    --cl-readout: #e9eef3;
+    --cl-card-top: #ffffff;
+    --cl-raised: #e2e8f0;
+    --cl-border: #cbd5e1;
+    --cl-border-strong: #94a3b8;
+    --cl-hover: #d4dde7;
+    --cl-inner-border: rgb(15 23 42 / 7%);
+    --cl-highlight: rgb(255 255 255 / 95%);
+    --cl-text-primary: #0f172a;
+    --cl-text-secondary: #1e293b;
+    --cl-text-body: #334155;
+    --cl-text-muted: #475569;
+    --cl-text-dim: #596b82;
+    --cl-accent: #155e75; /* #0e7490 dava 4,0:1 no botão ativo claro */
+    --cl-activity: #0891b2;
+    --cl-success: #065f46; /* #047857 dava 4,4:1 nas etiquetas claras */
+    --cl-warning: #92400e;
+    --cl-info: #1d4ed8;
+    --cl-danger: #be123c;
+    --cl-violet: #6d28d9;
+    --cl-pink: #be185d;
+    --cl-on-status: #ffffff;
+    --cl-shadow-chassis:
+      inset 0 1px 0 var(--cl-highlight), 0 1px 2px rgb(15 23 42 / 10%),
+      0 12px 24px rgb(15 23 42 / 14%);
+    --cl-shadow-nav:
+      0 1px 0 var(--cl-highlight), 0 4px 12px rgb(15 23 42 / 12%);
+    --cl-shadow-card:
+      inset 0 1px 0 var(--cl-highlight), 0 1px 2px rgb(15 23 42 / 10%),
+      0 4px 12px rgb(15 23 42 / 10%);
+    --cl-shadow-metric:
+      inset 0 1px 0 var(--cl-highlight), 0 2px 8px rgb(15 23 42 / 10%);
+    --cl-shadow-inset: inset 0 2px 4px rgb(15 23 42 / 12%);
+    --cl-shadow-screen: inset 0 4px 12px rgb(15 23 42 / 12%);
+    --cl-shadow-overlay:
+      var(--cl-shadow-highlight), 0 20px 52px rgb(15 23 42 / 22%);
+    --cl-shadow-tab:
+      inset 0 1px 0 var(--cl-highlight), 0 2px 4px rgb(15 23 42 / 14%);
+    color-scheme: light;
+  }
+
+  .cl-workspace {
+    padding: 16px;
+    height: 100svh;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .cl-workspace-column {
+    min-height: 0;
+    gap: 16px;
+    width: 100%;
+    max-width: 1440px;
+    margin-inline: auto;
+  }
+  .cl-workspace-scroll {
+    min-height: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+    padding: clamp(16px, 2vw, 32px);
+    border: 1px solid var(--cl-border);
+    border-radius: 12px;
+    background: var(--cl-chassis);
+    box-shadow: var(--cl-shadow-chassis);
+    scrollbar-gutter: stable;
+  }
+  .cl-workspace-scroll > :first-child {
+    min-width: 0;
+  }
+  .cl-demo-banner {
+    color: var(--cl-warning);
+    background: color-mix(in srgb, var(--cl-warning) 10%, var(--cl-chassis));
+    border: 1px solid
+      color-mix(in srgb, var(--cl-warning) 28%, var(--cl-border));
+    border-radius: 4px;
+  }
+  .cl
+    :where(h1, h2, h3, h4, [data-slot="card-title"]):not(
+      .dash-checkout-pagina *
+    ) {
+    font-family: var(--cl-sans);
+    font-weight: 500;
+    letter-spacing: -0.025em;
+    color: var(--cl-text-primary);
+    text-transform: none;
+  }
+  .cl :where(h1) {
+    font-size: var(--text-page-title);
+    line-height: 1.2;
+  }
+  .cl :where(code, kbd, samp, .font-mono, .tabular-nums) {
+    font-family: var(--cl-mono);
+    font-variant-numeric: tabular-nums;
+  }
+  .cl :where(label, [data-slot="label"], th) {
+    font-family: var(--cl-mono);
+    font-weight: 400;
+  }
+  .cl :where(button, select, [role="tab"]):not(.dash-checkout-pagina *) {
+    font-family: var(--cl-mono);
+    font-weight: 400;
+  }
+  .cl :where(button, a, input, select, textarea, [tabindex]):focus-visible {
+    outline: 2px solid var(--cl-accent);
+    outline-offset: 3px;
+  }
+  .cl :where(button, input, select, textarea):disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  .cl
+    :where(
+      [data-slot="card"],
+      section.bg-card,
+      aside.bg-card,
+      div.bg-card,
+      .dash-glass
+    ) {
+    border: 1px solid var(--cl-border);
+    border-radius: 12px;
+    background: var(--cl-chassis);
+    box-shadow: var(--cl-shadow-card);
+    text-align: start;
+  }
+  .cl
+    :where(
+      [data-slot="card-header"],
+      [data-slot="card-content"],
+      [data-slot="card-footer"]
+    ) {
+    text-align: start;
+  }
+  .cl [data-slot="card-title"] {
+    font-size: var(--text-card-title);
+    line-height: 1.5;
+  }
+  .cl [data-slot="card-description"] {
+    font-family: var(--cl-sans);
+    color: var(--cl-text-muted);
+    line-height: 1.625;
+  }
+  /* A non-interactive inner surface preserves direct children, refs and grids. */
+  .cl
+    :where(
+      [data-surface="layered"],
+      .visual-overview-kpi,
+      .visual-overview-zone
+    ) {
+    position: relative;
+    isolation: isolate;
+    background: var(--cl-chassis);
+  }
+  .cl
+    :where(
+      [data-surface="layered"],
+      .visual-overview-kpi,
+      .visual-overview-zone
+    )::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: 4px;
+    pointer-events: none;
+    border: 1px solid var(--cl-inner-border);
+    border-radius: 8px;
+    background: linear-gradient(var(--cl-card-top), var(--cl-chassis));
+    box-shadow: var(--cl-shadow-highlight);
+  }
+  .cl .visual-overview-kpi > strong {
+    font: 400 clamp(24px, 2.1vw, 30px)/1.2 var(--cl-mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.025em;
+  }
+  .cl .visual-overview-zone-heading p {
+    font: 500 20px/1.4 var(--cl-sans);
+    letter-spacing: -0.025em;
+  }
+  .cl .visual-overview-toolbar-title p {
+    font: 500 16px/1.5 var(--cl-sans);
+  }
+  .cl .visual-overview-donut strong {
+    font-family: var(--cl-mono);
+    font-weight: 400;
+  }
+  .cl
+    :where(
+      .visual-overview-kpi-top p,
+      .visual-overview-kpi-delta,
+      .visual-overview-filters button,
+      .visual-overview-zone-heading > div > span
+    ) {
+    font-size: 11px;
+  }
+  .cl .visual-overview-kpis {
+    gap: 16px;
+  }
+  .cl .visual-overview-grid {
+    gap: 24px;
+  }
+
+  .cl :where([data-slot="button"], .cl-button) {
+    border: 1px solid var(--cl-border-strong);
+    border-radius: 4px;
+    background: var(--cl-raised);
+    color: var(--cl-text-secondary);
+    box-shadow: var(--cl-shadow-highlight);
+    font: 400 12px/1.4 var(--cl-mono);
+    letter-spacing: 0.025em;
+    transition:
+      background 0.15s,
+      transform 0.15s,
+      box-shadow 0.15s;
+  }
+  .cl :where([data-slot="button"], .cl-button):hover:not(:disabled) {
+    background: var(--cl-hover);
+  }
+  .cl :where([data-slot="button"], .cl-button):active:not(:disabled) {
+    transform: translateY(1px);
+  }
+  .cl [data-slot="button"][data-variant="default"],
+  .cl .cl-button--primary {
+    background: var(--cl-button-fill);
+    color: #fff;
+    border-color: rgb(34 211 238 / 20%);
+    box-shadow: var(--cl-shadow-button);
+  }
+  .cl [data-slot="button"][data-variant="default"]:hover:not(:disabled),
+  .cl .cl-button--primary:hover:not(:disabled) {
+    background: var(--cl-button-hover-fill);
+  }
+  .cl [data-slot="button"][data-variant="ghost"],
+  .cl [data-slot="button"][data-variant="link"] {
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+  }
+  .cl [data-slot="button"][data-variant="ghost"]:hover {
+    background: var(--cl-raised);
+  }
+  .cl [data-slot="button"][data-variant="link"] {
+    color: var(--cl-accent);
+  }
+  .cl [data-slot="button"][data-variant="destructive"] {
+    color: var(--cl-on-status);
+    background: var(--cl-danger);
+    border-color: transparent;
+  }
+  .cl [data-slot="button"][data-variant="success"] {
+    color: var(--cl-on-status);
+    background: var(--cl-success);
+    border-color: transparent;
+  }
+  .cl
+    :where(
+      input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not(
+          [type="color"]
+        ),
+      select,
+      textarea,
+      [data-slot="select-trigger"]
+    ) {
+    border: 1px solid var(--cl-border-strong);
+    border-radius: 4px;
+    background: var(--cl-screen);
+    color: var(--cl-text-secondary);
+    box-shadow: var(--cl-shadow-inset);
+    font-family: var(--cl-mono);
+    font-size: 13px;
+  }
+  .cl :where(input, textarea)::placeholder {
+    color: var(--cl-text-muted);
+  }
+  .cl :where(input, select, textarea)[aria-invalid="true"] {
+    border-color: var(--cl-danger);
+  }
+  .cl :where(input[type="checkbox"], input[type="radio"], input[type="range"]) {
+    accent-color: var(--cl-activity);
+  }
+  .cl select option {
+    color: var(--cl-text-primary);
+    background: var(--cl-screen);
+  }
+  .cl [data-slot="badge"] {
+    border-radius: 4px;
+    font: 400 11px/1.5 var(--cl-mono);
+    letter-spacing: 0.03em;
+    box-shadow: var(--cl-shadow-highlight);
+  }
+  .cl [data-slot="badge"][data-variant="warning"] {
+    color: var(--cl-warning);
+    background: color-mix(in srgb, var(--cl-warning) 12%, var(--cl-chassis));
+  }
+  .cl [data-slot="tabs-list"],
+  .cl .block-picker {
+    padding: 4px;
+    gap: 4px;
+    border: 1px solid var(--cl-border);
+    border-radius: 4px;
+    background: var(--cl-well);
+    box-shadow: var(--cl-shadow-inset);
+  }
+  .cl
+    :where(
+      [data-slot="tabs-trigger"],
+      .block-picker > [role="radio"],
+      .block-picker-toggle
+    ) {
+    border: 1px solid transparent;
+    border-radius: 4px;
+    color: var(--cl-text-muted);
+    background: transparent;
+    box-shadow: none;
+    font: 400 12px/1.5 var(--cl-mono);
+  }
+  .cl
+    :where(
+      [data-slot="tabs-trigger"][data-state="active"],
+      .block-picker > [aria-checked="true"],
+      .block-picker-toggle[aria-expanded="true"]
+    ) {
+    border-color: var(--cl-border-strong);
+    background: var(--cl-raised);
+    color: var(--cl-accent);
+    box-shadow: var(--cl-shadow-tab);
+  }
+  .cl [data-slot="skeleton"] {
+    background: var(--cl-raised);
+    border-radius: 4px;
+  }
+  .cl :where(.overflow-x-auto:has(> table), [data-slot="table-container"]) {
+    max-width: 100%;
+    border: 1px solid var(--cl-border);
+    border-radius: 8px;
+    background: var(--cl-screen);
+    box-shadow: var(--cl-shadow-inset);
+  }
+  .cl table {
+    border-collapse: collapse;
+    text-align: start;
+  }
+  .cl table :is(th, td) {
+    border: 0;
+    border-bottom: 1px solid var(--cl-border);
+    box-shadow: none;
+    background: transparent;
+    text-align: start;
+  }
+  .cl table th {
+    background: var(--cl-screen);
+    color: var(--cl-text-muted);
+    font: 400 11px/1.5 var(--cl-mono);
+    letter-spacing: 0.05em;
+  }
+  .cl table td {
+    font-size: 13px;
+  }
+  .cl table tbody tr {
+    background: transparent;
+  }
+  .cl table tbody tr:nth-child(even) {
+    background: color-mix(in srgb, var(--cl-raised) 22%, transparent);
+  }
+  .cl table tbody tr:hover {
+    background: var(--cl-selection);
+  }
+  .cl table tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  /* Existing dashboard surfaces not implemented with the common Card. */
+  .cl
+    :where(
+      .visual-overview-zone,
+      .visual-overview-kpi,
+      .visual-overview-toolbar,
+      .visual-overview-footer,
+      .executive-filter-panel,
+      .acquisition-module,
+      .acquisition-dashboard-panel,
+      .campaign-surface,
+      .campaign-board-column,
+      .campaign-board-card,
+      .dash-checkout-controles > section,
+      .dash-loja-card
+    ) {
+    border: 1px solid var(--cl-border);
+    border-radius: 12px;
+    background: linear-gradient(var(--cl-card-top), var(--cl-chassis));
+    box-shadow: var(--cl-shadow-card);
+  }
+  .cl
+    :where(
+      .visual-overview-kpi-value,
+      .executive-kpi-value,
+      .visual-overview-hero-value,
+      .acquisition-metric > strong
+    ) {
+    font-family: var(--cl-mono);
+    font-weight: 400;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.025em;
+  }
+  .cl
+    :where(
+      .visual-overview-filters,
+      .visual-overview-supporting-metrics > div,
+      .acquisition-metric,
+      .acquisition-panel-area,
+      .acquisition-day-network,
+      .dash-checkout-palco
+    ) {
+    border: 1px solid var(--cl-border);
+    border-radius: 8px;
+    background: var(--cl-screen);
+    box-shadow: var(--cl-shadow-inset);
+  }
+  .cl
+    :where(
+      .acquisition-control,
+      .acquisition-block,
+      .board-pager-mobile-nav select,
+      .dash-checkout-controles button,
+      .dash-checkout-telas button
+    ) {
+    border: 1px solid var(--cl-border-strong);
+    border-radius: 4px;
+    color: var(--cl-text-secondary);
+    background: var(--cl-raised);
+    box-shadow: var(--cl-shadow-highlight);
+  }
+  .cl
+    :where(
+      .acquisition-control,
+      .acquisition-block,
+      .dash-checkout-controles button
+    ):hover:not(:disabled) {
+    background: var(--cl-hover);
+  }
+  .cl
+    :where(
+      [aria-pressed="true"],
+      .is-active,
+      .is-current,
+      .dash-checkout-telas [data-escolhido="true"]
+    ) {
+    color: var(--cl-accent);
+    background: var(--cl-selection);
+    border-color: var(--cl-accent);
+  }
+  .cl :where(.acquisition-panel-heading h2, .acquisition-panel-area-heading) {
+    color: var(--cl-text-secondary);
+  }
+  .cl .board-pager-nav {
+    background: var(--cl-screen);
+    border: 1px solid var(--cl-border);
+    border-radius: 8px;
+    box-shadow: var(--cl-shadow-inset);
+  }
+  .cl .board-pager-nav .board-pager-nav-item {
+    background: transparent;
+    border-radius: 4px;
+    color: var(--cl-text-muted);
+  }
+  .cl .board-pager-nav .board-pager-nav-item[aria-current="page"] {
+    color: var(--cl-accent);
+    background: var(--cl-raised);
+    box-shadow: var(--cl-shadow-tab);
+  }
+  .cl .board-pager-nav-icon {
+    background: transparent;
+    color: inherit;
+    border-radius: 4px;
+    box-shadow: none;
+  }
+  .cl .text-primary {
+    color: var(--cl-accent);
+  }
+  .cl .border-primary {
+    border-color: var(--cl-accent);
+  }
+  .cl .bg-primary {
+    background-color: var(--cl-cta-bottom);
+    color: #fff;
+  }
+
+  /* Portals inherit the same theme; no forced white text in light mode. */
+  body:has(.cl)
+    :where(
+      [data-slot="tooltip-content"],
+      [data-slot="dropdown-menu-content"],
+      [data-slot="dropdown-menu-sub-content"],
+      [data-slot="popover-content"],
+      [data-slot="select-content"],
+      [data-slot="sheet-content"],
+      [data-slot="dialog-content"],
+      [data-sonner-toast],
+      .day-neon,
+      .drawer-enter
+    ) {
+    border: 1px solid var(--cl-border-strong);
+    border-radius: 8px;
+    background: var(--cl-chassis);
+    color: var(--cl-text-primary);
+    box-shadow: var(--cl-shadow-overlay);
+    font-family: var(--cl-sans);
+  }
+  body:has(.cl)
+    :where(
+      [data-slot="dropdown-menu-item"],
+      [data-slot="dropdown-menu-sub-trigger"],
+      [data-slot="select-item"]
+    ) {
+    border-radius: 4px;
+    font-family: var(--cl-mono);
+    font-size: 12px;
+  }
+  body:has(.cl)
+    :where(
+      [data-slot="dropdown-menu-item"],
+      [data-slot="select-item"]
+    )[data-highlighted] {
+    color: var(--cl-accent);
+    background: var(--cl-selection);
+  }
+  body:has(.cl)
+    :where([data-slot="sheet-overlay"], [data-slot="dialog-overlay"]) {
+    background: rgb(0 0 0 / 60%);
+  }
+  body:has(.cl) :where([data-sonner-toast][data-type="success"]) {
+    border-left: 3px solid var(--cl-success);
+  }
+  body:has(.cl) :where([data-sonner-toast][data-type="error"]) {
+    border-left: 3px solid var(--cl-danger);
+  }
+
+  @media (max-width: 639px) {
+    .cl-workspace {
+      padding: 8px;
+    }
+    .cl-workspace-column {
+      gap: 8px;
+    }
+    .cl-workspace-scroll {
+      padding: 16px 12px;
+      scrollbar-gutter: auto;
+    }
+    .cl :where([data-slot="button"], input, select) {
+      min-height: 44px;
+    }
+    .cl :where(.block-picker > [role="radio"], .block-picker-toggle) {
+      min-height: 40px;
+    }
+    .cl :where(.board-pager-mobile-nav) {
+      min-width: 0;
+    }
+    .cl .visual-overview-filters {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      width: 100%;
+      padding: 4px;
+      gap: 4px;
+    }
+    .cl .visual-overview-filter-label {
+      display: none;
+    }
+    .cl .visual-overview-filters button {
+      min-height: 44px;
+      padding-inline: 4px;
+      white-space: nowrap;
+    }
+    /* Dense desktop grids become readable full-width cards on a phone. */
+    .cl .visual-overview-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .cl .visual-overview-grid > .visual-overview-zone {
+      width: 100%;
+      height: auto;
+      min-height: 0;
+      padding: 20px;
+    }
+    .cl .visual-overview-zone-heading p {
+      font-size: 18px;
+      overflow-wrap: normal;
+    }
+    .cl .visual-overview-zone-heading > div > span {
+      font-size: 12px;
+    }
+    .cl .visual-overview-page .visual-overview-donut {
+      width: 112px;
+      margin-block: 16px;
+      padding: 10px;
+    }
+    .cl .visual-overview-page .visual-overview-pie {
+      width: 100px;
+    }
+    .cl .visual-overview-page .visual-overview-health li,
+    .cl .visual-overview-page .visual-overview-health li strong,
+    .cl .visual-overview-page .visual-overview-bar-row > div:first-child,
+    .cl .visual-overview-grid-result .visual-overview-channel-list li {
+      font-size: 12px;
+    }
+    .cl .visual-overview-grid-revenue .visual-overview-revenue {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .cl .visual-overview-grid-revenue .visual-overview-chart {
+      height: 200px;
+      min-height: 200px;
+    }
+    .cl .visual-overview-page .visual-overview-bars {
+      grid-template-columns: 1fr;
+    }
+    .cl .visual-overview-grid-result .visual-overview-channel-list {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    body:has(.cl) *,
+    body:has(.cl) *::before,
+    body:has(.cl) *::after {
+      animation: none !important;
+      transition: none !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}

@@ -7,15 +7,15 @@
   sempre o mesmo com o mesmo — é para isso que o desenho existe.
 */
 .section {
-  --fio: var(--nebula-line, rgb(255 255 255 / 8%));
-  --curva: 14px;
-  --sombra: var(--nebula-shadow, 0 10px 32px rgb(0 0 0 / 12%));
+  --fio: var(--cl-border);
+  --curva: var(--cl-radius-panel);
+  --sombra: var(--cl-shadow-card);
   --vao: 12px;
   min-width: 0;
-  color: var(--nebula-text, #f4f5f7);
+  color: var(--cl-text-primary);
   color-scheme: inherit;
   font-family:
-    var(--font-inter, Inter),
+    var(--cl-sans),
     system-ui,
     -apple-system,
     sans-serif;
@@ -90,7 +90,7 @@
 .section .empty {
   min-width: 0;
   padding: 16px;
-  background: var(--nebula-panel, #0f1217) !important;
+  background: linear-gradient(var(--cl-card-top), var(--cl-chassis)) !important;
   border: 1px solid var(--fio) !important;
   border-radius: var(--curva) !important;
   box-shadow: var(--sombra) !important;
@@ -101,26 +101,26 @@
   margin: 0;
 }
 .section :is(h3, h4) {
-  color: var(--nebula-text, #f4f5f7);
-  font-weight: 750;
+  color: var(--cl-text-primary);
+  font-weight: 500;
   text-transform: none;
   letter-spacing: -0.02em;
   line-height: 1.3;
 }
 .section button {
-  font: inherit;
+  font-family: var(--cl-mono);
 }
 .section button:focus-visible,
 .dialog button:focus-visible {
-  outline: 3px solid var(--nebula-accent, #6b7cff);
+  outline: 3px solid var(--cl-accent);
   outline-offset: 3px;
 }
 /* Os tokens semânticos mantêm ROAS positivo e negativo legíveis nos dois temas. */
 .section [data-tone="positive"] {
-  color: var(--nebula-positive, #6ee7b7) !important;
+  color: var(--cl-success) !important;
 }
 .section [data-tone="negative"] {
-  color: var(--nebula-negative, #fb7185) !important;
+  color: var(--cl-danger) !important;
 }
 
 /* ─── O cartão do criativo ─────────────────────────────────────────── */
@@ -135,8 +135,9 @@
   display: grid;
   place-items: center;
   overflow: hidden;
-  border-radius: 10px;
-  background: var(--nebula-panel-2, #131720);
+  border-radius: var(--cl-radius-inner);
+  background: var(--cl-screen);
+  box-shadow: var(--cl-shadow-inset);
   aspect-ratio: 4 / 5;
   width: 100%;
   max-height: 260px;
@@ -153,7 +154,7 @@
   justify-items: center;
   align-content: center;
   gap: 10px;
-  color: var(--nebula-muted, #9598a3);
+  color: var(--cl-text-muted);
   font-size: 13px;
   min-height: 120px;
 }
@@ -183,7 +184,8 @@
   align-items: center;
   gap: 5px;
   padding: 4px 9px;
-  border-radius: 999px;
+  border-radius: var(--cl-radius-control);
+  font-family: var(--cl-mono);
   font-size: 11px;
   font-weight: 650;
   white-space: nowrap;
@@ -194,20 +196,16 @@
   flex: none;
 }
 .formatBadge {
-  background: var(--nebula-panel-2, #131720);
-  color: var(--nebula-muted, #9598a3);
+  background: var(--cl-raised);
+  color: var(--cl-text-muted);
 }
 .statusBadge {
-  background: var(--nebula-panel-2, #131720);
-  color: var(--nebula-muted, #9598a3);
+  background: var(--cl-raised);
+  color: var(--cl-text-muted);
 }
 .statusBadge[data-status="active"] {
-  background: color-mix(
-    in srgb,
-    var(--nebula-positive, #6ee7b7) 12%,
-    transparent
-  );
-  color: var(--nebula-positive, #6ee7b7);
+  background: color-mix(in srgb, var(--cl-success) 12%, transparent);
+  color: var(--cl-success);
 }
 /* As três respostas que o criativo tem de dar de relance: quantas
    vendas fez, qual foi o ROAS e quanto custou cada venda. */
@@ -222,6 +220,7 @@
   min-width: 0;
 }
 .creativeKpiGrid dd {
+  font-family: var(--cl-mono);
   font-size: clamp(15px, 5.5cqi, 19px);
   font-weight: 750;
   line-height: 1.2;
@@ -230,7 +229,7 @@
 }
 .creativeKpiGrid dt {
   margin-top: 2px;
-  color: var(--nebula-muted, #9598a3);
+  color: var(--cl-text-muted);
   font-size: 10.5px;
   font-weight: 600;
 }
@@ -242,12 +241,13 @@
   padding: 10px;
   min-height: 42px;
   width: 100%;
-  color: var(--primary-foreground, #090a0c) !important;
-  background: var(--primary, #f4f5f7) !important;
-  border: 1px solid var(--primary, #f4f5f7) !important;
-  border-radius: 10px;
-  font-size: 13px;
-  font-weight: 650;
+  color: #fff !important;
+  background: var(--cl-button-fill) !important;
+  border: 1px solid color-mix(in srgb, var(--cl-accent) 25%, transparent) !important;
+  border-radius: var(--cl-radius-control);
+  box-shadow: var(--cl-shadow-button);
+  font-size: 12px;
+  font-weight: 400;
   cursor: pointer;
 }
 .detailsButton svg {
@@ -256,11 +256,10 @@
   width: 15px;
 }
 .section .detailsButton[data-acao="detalhes"]:hover {
-  background: color-mix(
-    in srgb,
-    var(--primary, #f4f5f7) 90%,
-    var(--nebula-panel, #0f1217)
-  ) !important;
+  background: var(--cl-button-hover-fill) !important;
+}
+.section .detailsButton[data-acao="detalhes"]:active {
+  transform: translateY(1px);
 }
 
 /* ─── A distribuição das vendas, dentro do painel ──────────────────── */
@@ -269,8 +268,8 @@
   display: flex;
   height: 16px;
   overflow: hidden;
-  border-radius: 8px;
-  background: var(--nebula-panel-2, #131720);
+  border-radius: var(--cl-radius-control);
+  background: var(--cl-raised);
 }
 .bar > span {
   display: block;
@@ -305,19 +304,19 @@
   font-size: 12px;
   font-weight: 750;
   line-height: 1.25;
-  color: var(--nebula-text, #f4f5f7);
+  color: var(--cl-text-primary);
 }
 .legend span {
   display: block;
   margin-top: 1px;
   font-size: 10.5px;
-  color: var(--nebula-muted, #9598a3);
+  color: var(--cl-text-muted);
   line-height: 1.35;
   overflow-wrap: anywhere;
 }
 .section .emptySales {
   font-size: 12px;
-  color: var(--nebula-muted, #9598a3);
+  color: var(--cl-text-muted);
 }
 
 /* ─── Os cinco posicionamentos, num bloco só ───────────────────────── */
@@ -329,36 +328,20 @@
   gap: 10px;
 }
 /*
-  A fila é um soquete, e cada linha é uma lâmpada.
-
-  A receita é a mesma do semáforo da campanha, que é onde ela já existia
-  neste dashboard: um buraco escuro com sombra por dentro — borda de
-  cima escura, fio de luz em baixo — e, dentro dele, a luz. Apagada, a
-  cor quase preta, sem brilho; acesa, a cor cheia com o miolo mais claro
-  e o brilho a sair do buraco em três camadas.
-
-  É o contraste com o branco em volta que diz "isto aqui é para mexer",
-  sem precisar de o escrever.
+  A fila é um display rebaixado CommandLayer que acompanha o tema.
+  As marcas mantêm suas cores; a linha selecionada usa uma borda lateral
+  e uma superfície tingida, preservando o contraste do texto nos dois temas.
 */
 .placementRows {
-  /* The platform socket stays dark in both themes, including selected labels. */
-  --selecionado-texto: #fff;
+  --selecionado-texto: var(--cl-text-primary);
   display: grid;
   gap: 3px;
   min-width: 0;
   padding: 6px;
-  border-radius: 12px;
-  background: radial-gradient(
-    120% 100% at 50% 0%,
-    #0f1526 0%,
-    #080c18 60%,
-    #05080f 100%
-  );
-  box-shadow:
-    inset 0 2px 4px rgb(0 0 0 / 85%),
-    inset 0 -1px 0 rgb(255 255 255 / 10%),
-    inset 0 0 22px rgb(0 0 0 / 70%),
-    0 1px 0 rgb(255 255 255 / 6%);
+  border: 1px solid var(--cl-border);
+  border-radius: var(--cl-radius-inner);
+  background: var(--cl-well);
+  box-shadow: var(--cl-shadow-screen);
 }
 /* Cada linha: o selo, o nome, quantas vendeu e a fatia. É o suficiente
    para escolher qual olhar; o resto vem no painel de baixo. */
@@ -371,9 +354,9 @@
   width: 100%;
   padding: 7px 8px;
   border: 0;
-  border-radius: 9px;
+  border-radius: var(--cl-radius-control);
   background: transparent;
-  color: rgb(255 255 255 / 76%);
+  color: var(--cl-text-body);
   text-align: left;
   cursor: pointer;
   transition:
@@ -382,36 +365,23 @@
     color 140ms ease;
 }
 .section .placementRows .placementRow:hover {
-  background: rgb(255 255 255 / 8%);
-  color: #fff;
+  background: var(--cl-hover);
+  color: var(--cl-text-primary);
 }
 /*
-  A linha acesa: a cor cheia com o miolo mais claro em cima, a aresta
-  luminosa e o brilho a sair do buraco em três camadas — 4px, 9px e
-  16px —, exatamente como a lâmpada do semáforo. É isso que a faz
-  parecer acesa dentro do soquete, e não pintada por cima dele.
-
-  O selector é longo porque a pele do dashboard pinta qualquer aba
-  escolhida de preto liso, com !important: entre dois !important quem
-  manda é a especificidade.
+  A seleção usa a cor da plataforma sem alterar as cores das séries.
+  O seletor permanece específico para não herdar o estilo genérico de abas.
 */
 .section .placementRows .placementRow[aria-selected="true"] {
-  background: radial-gradient(
-    120% 160% at 40% 0%,
-    color-mix(in srgb, var(--neon) 42%, #ffffff) 0%,
-    color-mix(in srgb, var(--neon) 34%, transparent) 45%,
-    color-mix(in srgb, var(--neon) 16%, transparent) 100%
-  ) !important;
-  color: #fff !important;
+  background: color-mix(in srgb, var(--neon) 14%, var(--cl-raised)) !important;
+  color: var(--cl-text-primary) !important;
   box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--neon) 78%, #ffffff),
-    inset 0 1px 0 color-mix(in srgb, var(--neon) 45%, #ffffff),
-    0 0 4px var(--neon),
-    0 0 9px color-mix(in srgb, var(--neon) 70%, transparent),
-    0 0 16px color-mix(in srgb, var(--neon) 35%, transparent);
+    inset 3px 0 0 var(--neon),
+    inset 0 0 0 1px color-mix(in srgb, var(--neon) 42%, var(--cl-border)),
+    var(--cl-shadow-tab);
 }
 .section .placementRows .placementRow:focus-visible {
-  outline: 2px solid #fff;
+  outline: 2px solid var(--cl-accent);
   outline-offset: -2px;
 }
 .rowName {
@@ -448,7 +418,7 @@
   height: 22px;
   overflow: hidden;
   border-radius: 7px;
-  background: var(--nebula-panel-2, #131720);
+  background: var(--cl-raised);
 }
 .overviewIcon > span {
   display: block;
@@ -487,9 +457,9 @@
 .badge {
   flex: none;
   padding: 3px 7px;
-  border-radius: 999px;
-  background: rgb(255 255 255 / 12%);
-  color: rgb(255 255 255 / 82%);
+  border-radius: var(--cl-radius-control);
+  background: var(--cl-screen);
+  color: var(--cl-text-body);
   font-size: 9.5px;
   font-weight: 650;
   white-space: nowrap;
@@ -506,17 +476,18 @@
   min-width: 0;
   padding: 12px;
   border: 1px solid var(--fio);
-  border-radius: 10px;
-  background: var(--nebula-panel-2, #131720);
+  border-radius: var(--cl-radius-inner);
+  background: var(--cl-screen);
+  box-shadow: var(--cl-shadow-inset);
 }
 .placementDetail:focus-visible {
-  outline: 3px solid var(--nebula-accent, #6b7cff);
+  outline: 3px solid var(--cl-accent);
   outline-offset: 2px;
 }
 .placementDetail h4 {
   font-size: 12px;
   font-weight: 700;
-  color: var(--nebula-muted, #9598a3);
+  color: var(--cl-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -532,6 +503,7 @@
   min-width: 0;
 }
 .placementMainMetrics dd {
+  font-family: var(--cl-mono);
   font-size: clamp(17px, 6.5cqi, 22px);
   font-weight: 750;
   line-height: 1.15;
@@ -541,7 +513,7 @@
 }
 .placementMainMetrics dt {
   margin-top: 1px;
-  color: var(--nebula-muted, #9598a3);
+  color: var(--cl-text-muted);
   font-size: 10.5px;
   font-weight: 600;
 }
@@ -557,6 +529,7 @@
   min-width: 0;
 }
 .placementSecondaryMetrics dd {
+  font-family: var(--cl-mono);
   font-size: 12.5px;
   font-weight: 700;
   line-height: 1.25;
@@ -565,7 +538,7 @@
 }
 .placementSecondaryMetrics dt {
   margin-top: 1px;
-  color: var(--nebula-muted, #9598a3);
+  color: var(--cl-text-muted);
   font-size: 10px;
   font-weight: 600;
 }
@@ -580,7 +553,7 @@
 }
 .empty p {
   margin-top: 6px;
-  color: var(--nebula-muted, #9598a3);
+  color: var(--cl-text-muted);
   font-size: 13px;
   line-height: 1.6;
 }
@@ -602,13 +575,14 @@
   max-height: min(80vh, 680px);
   overflow-y: auto;
   padding: 24px;
-  background: var(--nebula-panel, #0f1217);
-  border: 1px solid var(--nebula-line, rgb(255 255 255 / 8%));
-  border-radius: 14px;
-  color: var(--nebula-text, #f4f5f7);
+  background: var(--cl-chassis);
+  border: 1px solid var(--cl-border);
+  border-radius: var(--cl-radius-panel);
+  box-shadow: var(--cl-shadow-overlay);
+  color: var(--cl-text-primary);
   color-scheme: inherit;
   font-family:
-    var(--font-inter, Inter),
+    var(--cl-sans),
     system-ui,
     -apple-system,
     sans-serif;
@@ -618,11 +592,11 @@
 .dialog h2 {
   margin: 0;
   font-size: 19px;
-  font-weight: 750;
+  font-weight: 500;
 }
 .dialog > p {
   margin: 6px 0 0;
-  color: var(--nebula-muted, #9598a3);
+  color: var(--cl-text-muted);
   font-size: 13px;
   line-height: 1.6;
 }
@@ -636,7 +610,8 @@
   gap: 2px;
 }
 .detailList dt {
-  color: var(--nebula-muted, #9598a3);
+  font-family: var(--cl-mono);
+  color: var(--cl-text-muted);
   font-size: 11px;
   font-weight: 650;
   text-transform: uppercase;
@@ -656,15 +631,27 @@
   place-items: center;
   width: 34px;
   height: 34px;
-  background: var(--nebula-panel-2, #131720);
-  border: 1px solid var(--nebula-line, rgb(255 255 255 / 8%));
-  border-radius: 10px;
-  color: var(--nebula-text, #f4f5f7);
+  background: var(--cl-raised);
+  border: 1px solid var(--cl-border);
+  border-radius: var(--cl-radius-control);
+  color: var(--cl-text-primary);
   cursor: pointer;
 }
 .closeButton svg {
   width: 17px;
   height: 17px;
+}
+.closeButton:hover {
+  background: var(--cl-hover);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .section .placementRows .placementRow {
+    transition: none;
+  }
+  .section .detailsButton[data-acao="detalhes"]:active {
+    transform: none;
+  }
 }
 
 /* ─── Tablet e telemóvel ───────────────────────────────────────────── */

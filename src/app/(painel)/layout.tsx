@@ -32,15 +32,21 @@ export default async function PainelLayout({
     <UnifiedDashboardProvider>
       <ConnectionsProvider initial={conexoes}>
         <div
-          className="dash-skin bg-background text-foreground flex min-h-svh w-full"
-          data-design-system="orbit"
+          className="dash-skin cl cl-workspace bg-background text-foreground flex min-h-svh w-full"
+          data-design-system="commandlayer"
           data-demo-mode={session.demoMode ? "true" : undefined}
         >
           <AppSidebar user={session.user} unreadCount={unreadCount} />
-          <div className="flex min-w-0 flex-1 flex-col">
+          <div className="cl-workspace-column flex min-w-0 flex-1 flex-col">
             <Header user={session.user} unreadCount={unreadCount} />
-            {(session.demoMode || semBanco) && <DemoBanner semBanco={semBanco} />}
-            <main className="dash-main w-full flex-1 px-3 py-3 sm:px-4 sm:py-4 md:px-6 md:py-6 3xl:px-8">
+            {(session.demoMode || semBanco) && (
+              <DemoBanner semBanco={semBanco} />
+            )}
+            <main
+              id="dashboard-content"
+              className="dash-main cl-workspace-scroll w-full flex-1"
+              tabIndex={-1}
+            >
               {children}
             </main>
           </div>

@@ -1,16 +1,16 @@
-/* Orbit's canvas, node geometry and rhythm, using the dashboard's monochrome
-   surfaces. These tokens also cover dialogs rendered outside the app shell. */
+/* Keep the flow geometry; dashboard chrome follows CommandLayer in both
+   themes. Portalled dialogs use the same root theme tokens. */
 .root,
 .dialog {
-  --orbit-canvas: var(--nebula-bg-2, #111111);
-  --orbit-surface: var(--nebula-panel, #202020);
-  --orbit-raised: var(--nebula-panel-2, #292929);
-  --orbit-border: var(--nebula-line-strong, #363636);
-  --orbit-text: var(--nebula-text, #f1f1f1);
-  --orbit-muted: var(--nebula-muted, #a3a3a3);
-  --nebula-control-radius: 10px;
+  --orbit-canvas: var(--cl-screen);
+  --orbit-surface: var(--cl-chassis);
+  --orbit-raised: var(--cl-raised);
+  --orbit-border: var(--cl-border-strong);
+  --orbit-text: var(--cl-text-primary);
+  --orbit-muted: var(--cl-text-muted);
+  --nebula-control-radius: 4px;
   color: var(--orbit-text);
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: var(--cl-sans), system-ui, sans-serif;
   font-size: 14px;
   line-height: 1.5;
   min-width: 0;
@@ -61,11 +61,12 @@
   min-height: 40px;
   padding: 8px 12px;
   border: 1px solid var(--orbit-border);
-  border-radius: 10px;
+  border-radius: 4px;
   background: var(--orbit-surface);
   color: var(--orbit-text);
   cursor: pointer;
   font-size: 12px;
+  font-family: var(--cl-mono);
   font-weight: 500;
   white-space: nowrap;
   transition:
@@ -82,22 +83,22 @@
 }
 .root :is(button, input, textarea, select, a, [tabindex]):focus-visible,
 .dialog :is(button, a):focus-visible {
-  outline: 2px solid var(--orbit-text);
+  outline: 2px solid var(--cl-accent);
   outline-offset: 3px;
 }
 .root .primary,
 .dialog .primary,
 .dialog .previewCta {
-  background: var(--primary, #f5f5f5);
+  background: var(--cl-button-fill);
   /* Keep CTA text legible despite the legacy svg-only-child selector. */
   color: var(--primary-foreground, #111) !important;
   border-color: transparent;
+  box-shadow: var(--cl-shadow-button);
 }
 .root .primary:hover:not(:disabled),
 .dialog .primary:hover:not(:disabled),
 .dialog .previewCta:hover:not(:disabled) {
-  background: var(--primary, #f5f5f5);
-  opacity: 0.85;
+  background: var(--cl-button-hover-fill);
 }
 .root .iconButton,
 .dialog .iconButton {
@@ -108,7 +109,7 @@
 }
 .loading {
   padding: 48px 24px;
-  color: var(--nebula-muted);
+  color: var(--cl-text-muted);
 }
 .breadcrumb {
   display: flex;
@@ -136,6 +137,8 @@
 .titleLine h2 {
   margin: 0;
   font-size: clamp(24px, 2vw, 28px);
+  font-weight: 500;
+  letter-spacing: -0.025em;
   line-height: 1.25;
 }
 .header p {
@@ -146,7 +149,7 @@
 .draftBadge {
   padding: 3px 8px;
   border: 1px solid var(--orbit-border);
-  border-radius: 6px;
+  border-radius: 4px;
   font-size: 11px;
   color: var(--orbit-muted);
 }
@@ -184,6 +187,7 @@
   gap: 8px;
   color: var(--orbit-muted);
   font-size: 11px;
+  font-family: var(--cl-mono);
 }
 .localState i,
 .nodeFooter i {
@@ -199,7 +203,7 @@
 .notice {
   padding: 12px 16px;
   border: 1px solid var(--orbit-border);
-  border-radius: 10px;
+  border-radius: 8px;
   margin-top: 16px;
 }
 .feedback {
@@ -219,8 +223,9 @@
 .canvas,
 .connections {
   border: 1px solid var(--orbit-border);
-  border-radius: 16px;
-  background: var(--orbit-surface);
+  border-radius: 12px;
+  background: linear-gradient(var(--cl-card-top), var(--cl-chassis));
+  box-shadow: var(--cl-shadow-card);
   min-width: 0;
   overflow: hidden;
 }
@@ -261,9 +266,10 @@
   min-height: 40px;
   width: 100%;
   border: 1px solid var(--orbit-border);
-  border-radius: 10px;
+  border-radius: 4px;
   padding: 9px 11px;
   background: var(--orbit-canvas);
+  box-shadow: var(--cl-shadow-inset);
   color: var(--orbit-text);
   font-size: 12px;
 }
@@ -280,7 +286,7 @@
   min-height: 88px;
 }
 .root [aria-invalid="true"] {
-  outline: 1px solid var(--destructive, #fb747e);
+  outline: 1px solid var(--cl-danger);
 }
 .root .addControls select {
   width: 140px;
@@ -323,8 +329,12 @@
   width: 280px;
   height: 246px;
   border: 1px solid var(--orbit-border);
-  border-radius: 16px;
-  background: var(--orbit-surface);
+  border-radius: 12px;
+  background: linear-gradient(var(--cl-card-top), var(--cl-chassis));
+  box-shadow:
+    inset 0 0 0 4px var(--cl-chassis),
+    inset 0 0 0 5px var(--cl-inner-border),
+    var(--cl-shadow-card);
 }
 /* Aberto, o cartão cresce com a configuração da página e fica por cima
    dos vizinhos enquanto é editado. */
@@ -332,7 +342,7 @@
   height: auto;
   min-height: 246px;
   z-index: 3;
-  box-shadow: 0 18px 48px rgb(0 0 0 / 35%);
+  box-shadow: var(--cl-shadow-card);
 }
 /* O painel centraliza o texto de todo article; o formulário lê melhor
    alinhado à esquerda, como era no painel lateral. */
@@ -360,7 +370,7 @@
   font-size: 13px;
 }
 .node[data-selected="true"] {
-  outline: 1px solid var(--orbit-text);
+  outline: 2px solid var(--cl-accent);
   outline-offset: 3px;
 }
 .nodeHeader {
@@ -379,7 +389,7 @@
   width: 30px;
   height: 30px;
   border: 1px solid var(--orbit-border);
-  border-radius: 8px;
+  border-radius: 4px;
   background: var(--orbit-raised);
   flex-shrink: 0;
 }
@@ -432,6 +442,7 @@
   color: var(--orbit-muted);
 }
 .nodeUrl {
+  font-family: var(--cl-mono);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -440,6 +451,7 @@
   font-weight: 400;
 }
 .nodeFooter {
+  font-family: var(--cl-mono);
   height: 45px;
   display: flex;
   justify-content: space-between;
@@ -463,7 +475,7 @@
   border: 3px solid var(--orbit-surface);
   border-radius: 50%;
   outline: 1px solid var(--orbit-border);
-  background: var(--orbit-text);
+  background: var(--cl-accent);
 }
 .portIn {
   left: -6px;
@@ -515,6 +527,7 @@
   gap: 2px;
 }
 .zoomControls output {
+  font-family: var(--cl-mono);
   min-width: 40px;
   font-size: 11px;
   text-align: center;
@@ -527,6 +540,7 @@
 }
 .fields label,
 .linkForm label {
+  font-family: var(--cl-mono);
   display: grid;
   gap: 7px;
   font-size: 12px;
@@ -628,7 +642,7 @@
 .connectionLabel {
   padding: 3px 8px;
   border: 1px solid var(--orbit-border);
-  border-radius: 6px;
+  border-radius: 4px;
   font-size: 10px;
   color: var(--orbit-muted);
   max-width: 180px;
@@ -645,6 +659,7 @@
   padding: 20px;
 }
 .statusBar {
+  font-family: var(--cl-mono);
   display: flex;
   justify-content: space-between;
   flex-wrap: wrap;
@@ -678,9 +693,9 @@
   flex-direction: column;
   overflow: auto;
   border: 1px solid var(--orbit-border);
-  border-radius: 16px;
-  background: var(--orbit-surface);
-  box-shadow: 0 24px 80px rgb(0 0 0 / 30%);
+  border-radius: 12px;
+  background: linear-gradient(var(--cl-card-top), var(--cl-chassis));
+  box-shadow: var(--cl-shadow-card);
 }
 .dialogToolbar {
   display: flex;

@@ -1,436 +1,488 @@
-/* Nexus reference, adapted to the user's monochrome, square dashboard.
-   The route scope prevents this material from changing other modules. */
+/* CommandLayer materials inherit the dashboard's light/dark semantic tokens. */
 .scope {
-  --server-base: #09090b;
-  --server-surface: #111113;
-  --server-raised: #18181b;
-  --server-text: #fafafa;
-  --server-muted: #a1a1aa;
-  --server-line: rgb(255 255 255 / 11%);
-  --server-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 5%), 0 4px 0 #050506, 0 18px 32px -20px #000;
-  --orb-base: var(--server-base);
-  --orb-raised: var(--server-raised);
-  --orb-text: var(--server-text);
-  --orb-muted: var(--server-muted);
-  --orb-line: var(--server-line);
-  --orb-acento: #fafafa;
-  --orb-acento-texto: #09090b;
-  --muted-foreground: var(--server-muted);
-  --foreground: var(--server-text);
-  --border: var(--server-line);
-  --card: var(--server-surface);
-  --primary: #fafafa;
-  --primary-foreground: #09090b;
-  --text-page-title: clamp(1.75rem, 1.4rem + 1vw, 2.4rem);
   min-width: 0;
-  color: var(--server-text);
-  background: var(--server-base);
-  font-family: var(--font-server-display), var(--font-outfit), sans-serif;
-  isolation: isolate;
+  color: var(--cl-text-body);
+  font: 400 14px/1.625 var(--cl-sans);
+  --server-base: var(--cl-screen);
+  --server-surface: var(--cl-chassis);
+  --server-raised: var(--cl-raised);
+  --server-text: var(--cl-text-primary);
+  --server-muted: var(--cl-text-muted);
+  --server-line: var(--cl-border);
 }
 .content {
-  padding: 26px 0 32px;
+  padding-block: 24px;
 }
-.scope h2,
-.scope h3 {
-  font-family: var(--font-server-display), var(--font-outfit), sans-serif;
+.scope :where(h2, h3, h4) {
+  font-family: var(--cl-sans);
+  font-weight: 500;
+  letter-spacing: -0.025em;
+  color: var(--cl-text-primary);
 }
-.scope h2 {
+.scope:global(#server-console) h2 {
   margin-bottom: 8px;
-  font-weight: 600;
+  font-size: clamp(24px, 2.5vw, 30px);
+  line-height: 1.2;
 }
 .scope p {
   text-wrap: pretty;
 }
-/* Keep this dark console legible under the dashboard's legacy light-theme
-   !important rules, without changing colors outside the server routes. */
-.scope:global(#server-console) {
-  color: var(--server-text) !important;
+.scope :where(code, pre, dt) {
+  font-family: var(--cl-mono);
 }
-.scope:global(#server-console)
-  :is(
-    .navigation a,
-    .overview dt,
-    .overview dd span,
-    .eyebrow,
-    .welcomeCopy > p,
-    .securityNote,
-    .mapHeading,
-    .mapNode div span,
-    .nodeIndex,
-    .mapConnector,
-    .requirementRows p,
-    .requirementFooter,
-    .resourceLink span,
-    .monitoringNote > p,
-    .configuration > summary > span:last-child
-  ) {
-  color: var(--server-muted) !important;
+.scope :where(a, button, summary, input, [tabindex]):focus-visible {
+  outline: 2px solid var(--cl-accent);
+  outline-offset: 3px;
 }
-.scope:global(#server-console) .navigation a:hover,
-.scope:global(#server-console) .navigation a[aria-current="page"] {
-  color: var(--server-text) !important;
+.scope :where(input, button):disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
 }
-.scope:global(#server-console) .primaryLink,
-.scope:global(#server-console) .primaryLink * {
-  color: #09090b !important;
+.scope :where(table) {
+  border-collapse: collapse;
 }
-.scope:global(#server-console) [data-slot="button"] > :is(span, svg) {
-  color: inherit !important;
+.scope :where(th) {
+  font: 400 11px/1.5 var(--cl-mono);
+  letter-spacing: 0.05em;
+  background: var(--cl-screen);
+  color: var(--cl-text-muted);
 }
-.scope a:focus-visible,
-.scope button:focus-visible,
-.scope summary:focus-visible,
-.scope input:focus-visible {
-  outline: 2px solid #fafafa;
-  outline-offset: 4px;
+.scope :where(td) {
+  font-size: 13px;
 }
+.scope :where(th, td) {
+  border-color: var(--cl-border);
+}
+.scope :where(tbody tr:hover) {
+  background: var(--cl-card-top);
+}
+.scope pre {
+  background: var(--cl-terminal);
+  border: 1px solid var(--cl-border);
+  border-radius: 4px;
+  box-shadow: var(--cl-shadow-inset);
+  color: var(--cl-text-body);
+}
+.scope [data-slot="badge"] {
+  font-family: var(--cl-mono);
+  font-size: 11px;
+}
+.scope [data-slot="badge"]::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 6px color-mix(in srgb, currentColor 40%, transparent);
+  flex-shrink: 0;
+}
+.scope [data-tone="success"] {
+  color: var(--cl-success);
+}
+.scope [data-tone="warning"] {
+  color: var(--cl-warning);
+}
+.scope [data-tone="destructive"] {
+  color: var(--cl-danger);
+}
+
 .navigation {
   display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: 16px;
-  min-height: 54px;
-  border-block: 1px solid var(--server-line);
+  padding: 12px 16px;
+  border: 1px solid var(--cl-border);
+  border-radius: 12px;
+  background: linear-gradient(var(--cl-raised), var(--cl-chassis));
+  box-shadow: var(--cl-shadow-card);
+}
+.navigationBrand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.brandMark {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  color: var(--cl-accent);
+  background: var(--cl-well);
+  border: 1px solid var(--cl-border-strong);
+  border-radius: 4px;
+  box-shadow: var(--cl-shadow-inset);
+}
+.navigationBrand > div {
+  display: grid;
+  gap: 3px;
+}
+.navigationBrand strong {
+  font: 500 14px/1.2 var(--cl-sans);
+  letter-spacing: -0.025em;
+  color: var(--cl-text-primary);
+}
+.navigationBrand > div > span {
+  color: var(--cl-text-dim);
+  font: 400 10px/1.5 var(--cl-mono);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 .navigationLinks {
   display: flex;
-  gap: 26px;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--cl-border);
+  border-radius: 6px;
+  background: var(--cl-well);
+  box-shadow: var(--cl-shadow-inset);
 }
 .navigation a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 9px;
-  min-height: 52px;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--server-muted);
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font: 400 11px/1.5 var(--cl-mono);
+  color: var(--cl-text-muted);
   white-space: nowrap;
+  transition:
+    background 0.15s,
+    color 0.15s;
 }
 .navigation a:hover {
-  color: var(--server-text);
+  color: var(--cl-text-primary);
+  background: var(--cl-raised);
 }
-.scope:global(#server-console) .navigation a[aria-current="page"] {
-  color: #fff;
-  border: 0;
-  border-bottom: 2px solid #fafafa;
-  background: transparent !important;
-  box-shadow: none !important;
+.navigation a[aria-current="page"] {
+  color: var(--cl-text-primary);
+  border-color: var(--cl-border-strong);
+  background: var(--cl-raised);
+  box-shadow: var(--cl-shadow-highlight);
 }
-.editorLink {
-  padding-inline: 12px;
+.navigation a[aria-current="page"] svg {
+  color: var(--cl-accent);
 }
-.panel {
+.navigation .editorLink {
+  border: 1px solid var(--cl-border-strong);
+  background: var(--cl-raised);
+  color: var(--cl-text-secondary);
+  box-shadow: var(--cl-shadow-highlight);
+}
+
+/* Reusable 4px frame / 8px inner material used by all server and site details. */
+.panel,
+.welcome,
+.requirements,
+.resources,
+.overview > div {
+  min-width: 0;
+  padding: 4px;
+  border: 1px solid var(--cl-border);
+  border-radius: 12px;
+  background: var(--cl-chassis);
+  box-shadow: var(--cl-shadow-card);
+}
+.panelInner,
+.materialInner,
+.metricInner,
+.welcomeInner {
+  min-width: 0;
+  height: 100%;
+  border: 1px solid var(--cl-inner-border);
+  border-radius: 8px;
+  background: linear-gradient(var(--cl-card-top), var(--cl-chassis));
+  box-shadow: var(--cl-shadow-highlight);
+  overflow: hidden;
+}
+.panelHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--cl-border);
+}
+.panelLabel {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--cl-text-dim);
+  font: 400 10px/1.5 var(--cl-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.panelTitle {
+  font-size: 18px;
+  line-height: 1.4;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.panelBody {
+  min-width: 0;
+  padding: 24px;
+}
+.panelFlush {
   min-width: 0;
   overflow: hidden;
-  border: 1px solid var(--server-line);
-  background: var(--server-surface);
-  box-shadow: var(--server-shadow);
 }
-.panel > header {
-  padding: 18px 22px;
-  background: rgb(255 255 255 / 2%);
-}
-.scope .panel > header {
-  border-bottom: 1px solid var(--server-line) !important;
-}
-.panel > div {
-  padding: 22px;
-}
-.scope:global(#server-console) [data-slot="button"],
-.scope:global(#server-console) [data-slot="input"] {
-  border: 1px solid var(--server-line) !important;
-  border-radius: 0 !important;
-  background: var(--server-raised) !important;
-  color: var(--server-text);
-  font-family: var(--font-server-display), sans-serif;
-  min-height: 44px;
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 5%),
-    0 3px 0 #050506 !important;
-}
-.scope:global(#server-console) [data-slot="button"][class*="bg-primary"] {
-  color: #09090b !important;
-  background: #fafafa !important;
-}
-.scope:global(#server-console) [data-slot="button"][class*="bg-destructive"] {
-  background: #922b38 !important;
-  color: white !important;
-}
-.scope:global(#server-console) [data-slot="button"]:not(:disabled):hover {
-  filter: brightness(1.12);
-}
-.scope:global(#server-console) [data-slot="input"] {
-  background: #09090b !important;
-  box-shadow: inset 0 2px 6px rgb(0 0 0 / 40%) !important;
-  text-align: left;
-}
-.scope:global(#server-console) [data-slot="badge"] {
-  background: transparent !important;
-  box-shadow: none !important;
-}
-.scope:global(#server-console) pre {
-  background: #09090b !important;
-  border: 1px solid var(--server-line) !important;
-  box-shadow: inset 0 2px 6px #000 !important;
-}
+
 .overview {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  border: 1px solid var(--server-line);
-  background: var(--server-surface);
-  box-shadow: var(--server-shadow);
+  gap: 24px;
 }
-.overview > div {
-  padding: 21px 24px;
-}
-.overview > div + div {
-  border-left: 1px solid var(--server-line);
+.metricInner {
+  padding: 20px;
 }
 .overview dt {
   display: flex;
   align-items: center;
-  gap: 10px;
-  color: var(--server-muted);
-  font-size: 12px;
+  gap: 8px;
+  min-height: 34px;
+  color: var(--cl-text-muted);
+  font: 400 11px/1.5 var(--cl-mono);
+}
+.overview dt svg {
+  color: var(--cl-text-dim);
+  flex-shrink: 0;
 }
 .overview dd {
-  display: flex;
-  align-items: baseline;
-  gap: 16px;
-  margin-top: 8px;
-  font-size: 30px;
-  font-weight: 500;
+  margin-top: 12px;
+  color: var(--cl-text-primary);
+  font: 400 30px/1.2 var(--cl-mono);
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.025em;
 }
 .overview dd span {
-  font-size: 11px;
-  color: var(--server-muted);
-  font-weight: 400;
+  display: block;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--cl-border);
+  color: var(--cl-text-dim);
+  font: 400 10px/1.5 var(--cl-mono);
+  letter-spacing: 0;
 }
-.welcome {
+
+.welcomeInner {
   display: grid;
-  grid-template-columns: 1.1fr 1fr;
-  border: 1px solid var(--server-line);
-  background: linear-gradient(115deg, #1a1a1e 0%, #111113 60%);
-  box-shadow: var(--server-shadow);
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
 }
 .welcomeCopy {
   display: flex;
   align-items: flex-start;
   flex-direction: column;
-  padding: clamp(24px, 3vw, 44px);
+  justify-content: center;
+  padding: 32px;
 }
 .eyebrow {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--server-muted);
-  font-family: var(--font-server-mono), monospace;
-  font-size: 11px;
-  line-height: 1.8;
-  letter-spacing: 0.045em;
+  color: var(--cl-text-dim);
+  font: 400 10px/1.5 var(--cl-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.eyebrow svg {
+  color: var(--cl-accent);
 }
 .welcomeCopy h3 {
-  margin-top: 18px;
-  font-size: clamp(28px, 2.7vw, 42px);
-  font-weight: 500;
-  line-height: 1.13;
-  letter-spacing: -0.045em;
+  margin-top: 20px;
+  font-size: clamp(26px, 3vw, 36px);
+  line-height: 1.15;
 }
 .welcomeCopy > p {
   margin-top: 16px;
-  max-width: 44ch;
+  max-width: 46ch;
   font-size: 14px;
-  line-height: 1.75;
-  color: var(--server-muted);
+  line-height: 1.625;
+  color: var(--cl-text-muted);
 }
 .primaryLink {
   display: inline-flex;
-  gap: 12px;
   align-items: center;
   justify-content: center;
-  min-height: 46px;
-  margin-top: 26px;
-  padding: 0 18px;
-  color: #09090b;
-  background: #fafafa;
-  border: 1px solid #fff;
-  font-size: 13px;
-  font-weight: 600;
-  box-shadow:
-    0 4px 0 #777,
-    0 12px 22px -12px #000;
+  gap: 10px;
+  min-height: 44px;
+  margin-top: 24px;
+  padding: 10px 16px;
+  border: 1px solid color-mix(in srgb, var(--cl-accent) 20%, transparent);
+  border-radius: 4px;
+  background: var(--cl-button-fill);
+  color: #fff;
+  box-shadow: var(--cl-shadow-button);
+  font: 400 12px/1.5 var(--cl-mono);
   transition:
-    background 150ms,
-    transform 150ms;
+    background 0.15s,
+    transform 0.15s;
 }
 .primaryLink:hover {
-  background: #d4d4d8;
+  background: var(--cl-button-hover-fill);
 }
 .primaryLink:active {
-  transform: translateY(2px);
+  transform: translateY(1px);
 }
 .securityNote {
   display: flex;
-  gap: 8px;
   align-items: center;
-  margin-top: 24px;
-  font-size: 11px;
-  color: var(--server-muted);
+  gap: 8px;
+  margin-top: 20px;
+  font: 400 11px/1.6 var(--cl-sans);
+  color: var(--cl-text-muted);
+}
+.securityNote svg {
+  color: var(--cl-text-dim);
+  flex-shrink: 0;
 }
 .connectionMap {
-  padding: 24px 30px 30px;
+  min-width: 0;
   margin: 20px;
-  border: 1px solid var(--server-line);
-  background-color: #0c0c0e;
-  background-image:
-    linear-gradient(rgb(255 255 255 / 2%) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(255 255 255 / 2%) 1px, transparent 1px);
-  background-size: 22px 22px;
-  box-shadow: inset 0 2px 12px #000;
+  padding: 20px;
+  border: 1px solid var(--cl-border);
+  border-radius: 8px;
+  background: var(--cl-screen);
+  box-shadow: var(--cl-shadow-screen);
 }
 .mapHeading {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 20px;
-  font:
-    11px var(--font-server-mono),
-    monospace;
-  color: var(--server-muted);
+  color: var(--cl-text-dim);
+  font: 400 10px/1.5 var(--cl-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
 }
 .mapNode {
   display: flex;
-  gap: 16px;
   align-items: center;
+  gap: 12px;
   min-width: 0;
-  padding: 14px 16px;
-  border: 1px solid var(--server-line);
-  background: #141416;
-  box-shadow:
-    0 3px 0 #050505,
-    inset 0 1px 0 rgb(255 255 255 / 3%);
+  padding: 12px;
+  border: 1px solid var(--cl-border);
+  border-radius: 4px;
+  background: linear-gradient(var(--cl-card-top), var(--cl-chassis));
+  box-shadow: var(--cl-shadow-highlight);
 }
 .mapNode > svg {
-  width: 23px;
-  height: 23px;
+  width: 20px;
+  height: 20px;
+  color: var(--cl-text-muted);
   flex-shrink: 0;
 }
 .mapNode > div {
   display: grid;
-  gap: 4px;
+  gap: 3px;
   min-width: 0;
 }
 .mapNode strong {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
+  color: var(--cl-text-secondary);
 }
 .mapNode div span {
   font-size: 11px;
-  color: var(--server-muted);
+  color: var(--cl-text-muted);
 }
 .mapNodeEmphasis {
-  border-color: rgb(255 255 255 / 35%);
-  background: #202024;
+  border-color: color-mix(in srgb, var(--cl-accent) 35%, var(--cl-border));
+}
+.mapNodeEmphasis > svg {
+  color: var(--cl-accent);
 }
 .nodeIndex {
   margin-left: auto;
-  color: #85858e;
-  font:
-    11px var(--font-server-mono),
-    monospace;
+  color: var(--cl-text-dim);
+  font: 400 10px/1.5 var(--cl-mono);
 }
 .mapConnector {
   display: flex;
   align-items: center;
   gap: 12px;
   height: 32px;
-  padding-left: 27px;
-  color: #a1a1aa;
-  font:
-    11px var(--font-server-mono),
-    monospace;
+  padding-left: 23px;
+  color: var(--cl-text-dim);
+  font: 400 10px/1.5 var(--cl-mono);
 }
 .mapConnector > span {
   height: 100%;
   width: 1px;
-  background: #51515b;
+  background: var(--cl-border-strong);
+  flex-shrink: 0;
 }
+
 .lowerGrid {
   display: grid;
-  grid-template-columns: 1.35fr 1fr;
-  gap: 20px;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 24px;
   align-items: start;
 }
 .preparation {
-  min-width: 0;
   display: grid;
-  gap: 16px;
-}
-.requirements,
-.resources {
-  border: 1px solid var(--server-line);
-  background: var(--server-surface);
-  box-shadow: var(--server-shadow);
+  gap: 24px;
   min-width: 0;
 }
 .sectionHeading {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
+  gap: 16px;
   padding: 20px 24px;
-  border-bottom: 1px solid var(--server-line);
+  border-bottom: 1px solid var(--cl-border);
 }
 .sectionHeading h3 {
-  margin-top: 3px;
+  margin-top: 4px;
   font-size: 16px;
   font-weight: 500;
 }
 .sectionHeading > svg {
-  color: #a1a1aa;
+  color: var(--cl-text-muted);
   flex-shrink: 0;
 }
 .requirementRows {
-  padding: 6px 24px;
+  padding: 4px 24px;
 }
 .requirementRows > div {
   display: flex;
   align-items: flex-start;
-  gap: 15px;
+  gap: 14px;
   padding: 16px 0;
 }
 .requirementRows > div + div {
-  border-top: 1px solid rgb(255 255 255 / 6%);
+  border-top: 1px solid var(--cl-border);
 }
 .requirementRows svg {
-  color: #a1a1aa;
   flex-shrink: 0;
   margin-top: 3px;
+  color: var(--cl-text-muted);
 }
 .requirementRows strong {
   font-size: 13px;
   font-weight: 500;
+  color: var(--cl-text-secondary);
 }
 .requirementRows p {
   margin-top: 6px;
-  color: var(--server-muted);
+  max-width: 65ch;
+  color: var(--cl-text-muted);
   font-size: 12px;
   line-height: 1.7;
-  max-width: 65ch;
 }
 .requirementFooter {
   display: flex;
   align-items: center;
   gap: 10px;
-  border-top: 1px solid var(--server-line);
   padding: 14px 24px;
-  color: var(--server-muted);
+  border-top: 1px solid var(--cl-border);
+  background: var(--cl-screen);
+  color: var(--cl-text-muted);
   font-size: 11px;
-  line-height: 1.65;
-  background: rgb(255 255 255 / 2%);
+  line-height: 1.625;
 }
 .requirementFooter svg {
   flex-shrink: 0;
@@ -439,34 +491,38 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 18px 24px;
   min-height: 78px;
-  border-bottom: 1px solid rgb(255 255 255 / 6%);
-  transition: background 150ms;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--cl-border);
+  transition: background 0.3s;
 }
 .resourceLink:hover {
-  background: var(--server-raised);
+  background: var(--cl-raised);
 }
 .resourceLink > svg {
   flex-shrink: 0;
   width: 18px;
-  color: #a1a1aa;
+  color: var(--cl-text-muted);
+}
+.resourceLink:hover > svg {
+  color: var(--cl-accent);
 }
 .resourceLink > svg:last-child {
   margin-left: auto;
 }
 .resourceLink div {
   display: grid;
-  gap: 5px;
+  gap: 4px;
 }
 .resourceLink strong {
   font-size: 13px;
   font-weight: 500;
+  color: var(--cl-text-secondary);
 }
 .resourceLink span {
-  color: var(--server-muted);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.6;
+  color: var(--cl-text-muted);
 }
 .monitoringNote {
   padding: 20px 24px;
@@ -474,31 +530,36 @@
 .monitoringNote > div {
   display: flex;
   gap: 16px;
-  color: #a1a1aa;
+  color: var(--cl-text-dim);
   margin-bottom: 14px;
 }
 .monitoringNote > strong {
   font-size: 12px;
   font-weight: 500;
+  color: var(--cl-text-secondary);
 }
 .monitoringNote > p {
-  color: var(--server-muted);
-  font-size: 11px;
-  line-height: 1.7;
-  margin-top: 5px;
+  margin-top: 6px;
+  color: var(--cl-text-muted);
+  font-size: 12px;
+  line-height: 1.625;
 }
 .configuration {
-  border: 1px solid var(--server-line);
-  background: var(--server-surface);
+  min-width: 0;
+  border: 1px solid var(--cl-border);
+  border-radius: 8px;
+  background: var(--cl-screen);
+  box-shadow: var(--cl-shadow-inset);
+  overflow: hidden;
 }
 .configuration > summary {
-  min-height: 52px;
-  padding: 16px 20px;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+  min-height: 52px;
+  padding: 16px 20px;
   cursor: pointer;
   font-size: 12px;
 }
@@ -508,111 +569,128 @@
   gap: 10px;
 }
 .configuration > summary > span:last-child {
-  color: var(--server-muted);
-  font:
-    11px var(--font-server-mono),
-    monospace;
+  color: var(--cl-text-dim);
+  font: 400 10px/1.5 var(--cl-mono);
 }
 .listHeading {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: space-between;
   gap: 16px;
-  align-items: center;
-  flex-wrap: wrap;
 }
 .listHeading h3 {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 500;
 }
 .serverList {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
+  gap: 24px;
 }
 .unavailable {
   padding: 24px;
-  border: 1px solid var(--server-line);
-  background: var(--server-surface);
-  box-shadow: var(--server-shadow);
+  border: 1px solid var(--cl-border);
+  border-radius: 12px;
+  background: var(--cl-chassis);
+  box-shadow: var(--cl-shadow-card);
 }
-@media (min-width: 1500px) {
-  .serverList {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-@media (max-width: 1000px) {
-  .welcome {
-    grid-template-columns: 1fr 1fr;
-  }
-  .connectionMap {
-    padding: 20px;
-    margin: 14px;
+
+@media (max-width: 1100px) {
+  .navigationBrand {
+    display: none;
   }
   .lowerGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
-@media (max-width: 700px) {
-  .navigation {
-    display: block;
-  }
-  .navigationLinks {
-    justify-content: space-between;
-    gap: 8px;
-  }
-  .navigation a {
-    font-size: 11px;
-    gap: 6px;
-  }
-  .navigation .editorLink {
-    display: none;
-  }
-  .content {
-    padding-top: 20px;
-  }
-  .overview > div {
-    padding: 16px 12px;
-  }
-  .overview dt {
-    flex-direction: column;
-    align-items: flex-start;
-    min-height: 58px;
-    font-size: 11px;
-  }
-  .overview dd {
-    font-size: 26px;
-  }
-  .overview dd span {
-    display: none;
-  }
-  .welcome {
-    grid-template-columns: 1fr;
-  }
-  .welcomeCopy {
-    padding: 26px;
-  }
-  .welcomeCopy h3 {
-    font-size: 30px;
+@media (max-width: 800px) {
+  .welcomeInner {
+    grid-template-columns: minmax(0, 1fr);
   }
   .connectionMap {
-    margin: 0 18px 18px;
+    margin-top: 0;
+  }
+  .welcomeCopy {
+    padding: 24px;
+  }
+  .overview {
+    gap: 12px;
+  }
+  .metricInner {
+    padding: 16px;
+  }
+}
+@media (max-width: 620px) {
+  .navigation {
+    display: grid;
+    padding: 8px;
+    gap: 8px;
+  }
+  .navigationLinks {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    min-width: 0;
+  }
+  .navigationLinks a {
+    flex-direction: column;
+    gap: 6px;
+    min-height: 66px;
+    padding: 8px 4px;
+    white-space: normal;
+    text-align: center;
+    font-size: 10px;
+  }
+  .navigation .editorLink {
+    min-height: 44px;
+  }
+  .overview {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .metricInner {
+    padding: 16px 20px;
+  }
+  .overview dt {
+    min-height: 0;
+  }
+  .overview dd {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .overview dd span {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    max-width: 16ch;
+    text-align: right;
   }
   .serverList {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
+  .panelHeader,
+  .panelBody,
   .sectionHeading,
-  .resourceLink {
-    padding-inline: 20px;
+  .resourceLink,
+  .monitoringNote {
+    padding: 20px;
   }
   .requirementRows {
     padding-inline: 20px;
   }
-  .securityNote {
-    font-size: 11px;
+  .requirementFooter {
+    padding-inline: 20px;
   }
-  .panel > header,
-  .panel > div {
-    padding: 18px;
+  .welcomeCopy {
+    padding: 24px 20px;
+  }
+  .welcomeCopy h3 {
+    font-size: 28px;
+  }
+  .connectionMap {
+    padding: 16px;
+    margin-inline: 16px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -621,366 +699,5 @@
   .scope *::after {
     transition: none !important;
     animation: none !important;
-  }
-}
-
-/* ══════════════════════════════════════════════════════════════════════
-   Fidelidade ao Nexus Arcade (nexus-arcade.aura.build).
-
-   A primeira versão desta área adaptou a referência para preto e grafite
-   e perdeu a identidade dela — foi o que o usuário apontou ("não está
-   parecendo com essa landing page"). Esta camada devolve o que é do
-   Nexus, por cima do que já estava aqui:
-
-   - o azul-noite #02030A com o roxo #100A24 / #171032 nos blocos;
-   - os cinco acentos da referência: ciano #35DDF2, rosa #F45BA8,
-     ouro #E8B85D, azul #5E8CFF e violeta #A477FF;
-   - VT323 (pixel) nos títulos e números, Space Mono nos rótulos e na
-     navegação, Space Grotesk no texto corrido;
-   - as marcas de quina (ciano de um lado, ouro do outro), os rótulos
-     "// ASSIM" com moldura, a aba ativa entre colchetes e os botões de
-     borda dupla com brilho.
-
-   Continua escuro nos dois temas, com cantos retos. Todos os textos
-   passam 4,5:1 sobre #100A24 (o cinza #7C748E da referência fica só em
-   ornamento, nunca em texto).
-   ══════════════════════════════════════════════════════════════════════ */
-.scope {
-  --nx-ciano: #35ddf2;
-  --nx-rosa: #f45ba8;
-  --nx-ouro: #e8b85d;
-  --nx-azul: #5e8cff;
-  --nx-violeta: #a477ff;
-  --server-base: #02030a;
-  --server-surface: #100a24;
-  --server-raised: #171032;
-  --server-text: #f8f3ff;
-  --server-muted: #a9a1b8;
-  --server-line: rgb(248 243 255 / 11%);
-  --server-shadow:
-    inset 0 1px 0 rgb(248 243 255 / 5%), 0 0 28px rgb(0 0 0 / 18%),
-    0 18px 40px -24px #000;
-  --orb-canvas: var(--server-base);
-  --orb-surface: var(--server-surface);
-  --orb-raised-2: #1d1540;
-  --orb-secondary: var(--server-muted);
-  --orb-imagem: var(--nx-ciano);
-  --dash-surface-card: var(--server-raised);
-  --dash-surface-base: var(--server-base);
-  --dash-surface-structure: var(--server-surface);
-  --dash-surface-control: var(--server-raised);
-  --dash-surface-hover: #1d1540;
-  --dash-surface-overlay: var(--server-raised);
-  --camada-1: rgb(248 243 255 / 2%);
-  --camada-2: rgb(248 243 255 / 3%);
-  --camada-3: rgb(248 243 255 / 4.5%);
-  --material: linear-gradient(
-    180deg,
-    rgb(248 243 255 / 3.5%),
-    rgb(248 243 255 / 1%)
-  );
-  --muted: var(--server-raised);
-  --card: var(--server-surface);
-  --primary: var(--nx-ciano);
-  --primary-foreground: #02030a;
-  background:
-    radial-gradient(circle at 8% 0%, rgb(53 221 242 / 9%), transparent 38%),
-    radial-gradient(circle at 92% 6%, rgb(244 91 168 / 9%), transparent 36%),
-    radial-gradient(circle at 50% 100%, rgb(164 119 255 / 8%), transparent 48%),
-    linear-gradient(rgb(248 243 255 / 2.2%) 1px, transparent 1px) 0 0 / 32px
-      32px,
-    linear-gradient(90deg, rgb(248 243 255 / 2.2%) 1px, transparent 1px) 0 0 /
-      32px 32px,
-    var(--server-base);
-  font-family: var(--font-server-display), var(--font-outfit), sans-serif;
-  /* Respiro dentro do console: sem ele o título e a navegação encostam na
-     borda do bloco escuro (visível no tema claro, onde a página é clara). */
-  padding: 0 clamp(16px, 2.2vw, 28px) clamp(16px, 2.2vw, 28px);
-}
-
-/* Títulos: o nome da página em pixel, com o brilho do "IDEAS COLLIDE". */
-.scope:global(#server-console) h2 {
-  font-family:
-    var(--font-server-pixel), var(--font-server-mono), monospace !important;
-  font-size: clamp(2.6rem, 4.6vw, 4.1rem) !important;
-  font-weight: 400 !important;
-  line-height: 0.9;
-  letter-spacing: 0.01em;
-  text-transform: uppercase;
-  text-shadow:
-    0 0 18px rgb(53 221 242 / 25%),
-    0 0 2px rgb(248 243 255 / 40%);
-}
-.scope:global(#server-console) h3 {
-  font-family: var(--font-server-display), sans-serif !important;
-  letter-spacing: -0.03em;
-}
-
-/* Navegação: rótulos em Space Mono, a aba ativa "[ ASSIM ]" em ciano. */
-.scope:global(#server-console) .navigation a {
-  font-family: var(--font-server-mono), monospace !important;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-}
-.scope:global(#server-console) .navigation a[aria-current="page"] {
-  min-height: 36px;
-  margin-block: auto;
-  padding: 0 12px;
-  color: var(--nx-ciano) !important;
-  border: 1px solid rgb(53 221 242 / 55%) !important;
-  background: rgb(53 221 242 / 8%) !important;
-  box-shadow: 0 0 16px rgb(53 221 242 / 18%) !important;
-}
-.scope:global(#server-console) .navigation a[aria-current="page"]::before {
-  content: "[";
-  margin-right: 2px;
-}
-.scope:global(#server-console) .navigation a[aria-current="page"]::after {
-  content: "]";
-  margin-left: 2px;
-}
-/* O atalho para o editor é o "INSERT COIN": moldura de ouro. */
-.scope:global(#server-console) .navigation a.editorLink.editorLink {
-  min-height: 36px;
-  margin-block: auto;
-  color: var(--nx-ouro) !important;
-  border: 1px solid rgb(232 184 93 / 60%);
-  background: rgb(232 184 93 / 6%);
-}
-
-/* Blocos com as marcas de quina da referência. */
-.panel,
-.overview,
-.welcome,
-.requirements,
-.resources {
-  position: relative;
-  background:
-    linear-gradient(180deg, rgb(248 243 255 / 3.5%), rgb(248 243 255 / 0.8%)),
-    var(--server-surface) !important;
-  border-color: var(--server-line) !important;
-  box-shadow: var(--server-shadow) !important;
-}
-.panel::before,
-.overview::before,
-.welcome::before,
-.requirements::before,
-.resources::before,
-.panel::after,
-.overview::after,
-.welcome::after,
-.requirements::after,
-.resources::after {
-  content: "";
-  position: absolute;
-  z-index: 1;
-  width: 18px;
-  height: 18px;
-  pointer-events: none;
-}
-.panel::before,
-.overview::before,
-.welcome::before,
-.requirements::before,
-.resources::before {
-  top: 0;
-  left: 0;
-  border-top: 1px solid var(--nx-ciano);
-  border-left: 1px solid var(--nx-ciano);
-}
-.panel::after,
-.overview::after,
-.welcome::after,
-.requirements::after,
-.resources::after {
-  right: 0;
-  bottom: 0;
-  border-right: 1px solid var(--nx-ouro);
-  border-bottom: 1px solid var(--nx-ouro);
-}
-.welcome {
-  background:
-    radial-gradient(circle at 85% 20%, rgb(164 119 255 / 12%), transparent 45%),
-    radial-gradient(circle at 10% 90%, rgb(53 221 242 / 8%), transparent 40%),
-    var(--server-surface) !important;
-}
-
-/* Rótulos "// ASSIM", com moldura ciano, como "// CREATIVE ENGINE ONLINE". */
-/* O :is() antigo que apaga estes textos vale (1,3,2) por causa de
-   ".configuration > summary > span:last-child"; a classe repetida passa dele. */
-.scope:global(#server-console) .eyebrow.eyebrow.eyebrow {
-  align-self: flex-start;
-  padding: 6px 12px;
-  border: 1px solid rgb(53 221 242 / 40%);
-  background: rgb(53 221 242 / 5%);
-  color: var(--nx-ciano) !important;
-  font-family: var(--font-server-mono), monospace;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-}
-.scope:global(#server-console) .eyebrow::before {
-  content: "//";
-  color: var(--nx-ciano);
-  letter-spacing: 0;
-}
-.scope:global(#server-console)
-  :is(
-    .mapHeading,
-    .overview dt,
-    .sectionHeading p,
-    .panel > header :global(.uppercase)
-  ) {
-  font-family: var(--font-server-mono), monospace;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-
-/* Números em pixel, na ordem de cores da referência: ciano, rosa, ouro. */
-.overview dd,
-.nodeIndex {
-  font-family:
-    var(--font-server-pixel), var(--font-server-mono), monospace !important;
-}
-.overview dd {
-  font-size: 40px !important;
-  line-height: 1;
-}
-.scope:global(#server-console) .overview > div:nth-child(3n + 1) dd {
-  color: var(--nx-ciano);
-}
-.scope:global(#server-console) .overview > div:nth-child(3n + 2) dd {
-  color: var(--nx-rosa);
-}
-.scope:global(#server-console) .overview > div:nth-child(3n) dd {
-  color: var(--nx-ouro);
-}
-.nodeIndex {
-  font-size: 20px !important;
-}
-.scope:global(#server-console) .mapNode:nth-of-type(1) .nodeIndex {
-  color: var(--nx-ciano) !important;
-}
-.scope:global(#server-console) .mapNode:nth-of-type(2) .nodeIndex {
-  color: var(--nx-rosa) !important;
-}
-.scope:global(#server-console) .mapNode:nth-of-type(3) .nodeIndex {
-  color: var(--nx-ouro) !important;
-}
-.mapNode {
-  background: var(--server-raised) !important;
-}
-.mapNodeEmphasis {
-  border-color: rgb(53 221 242 / 50%) !important;
-  box-shadow:
-    0 0 18px rgb(53 221 242 / 14%),
-    inset 0 1px 0 rgb(248 243 255 / 4%) !important;
-}
-.connectionMap {
-  background-color: #08051a !important;
-  background-image:
-    linear-gradient(rgb(53 221 242 / 4%) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(53 221 242 / 4%) 1px, transparent 1px) !important;
-}
-.mapConnector > span {
-  background: linear-gradient(var(--nx-ciano), var(--nx-rosa)) !important;
-}
-
-/* Os três passos do "Como funciona", nas cores da referência. */
-.scope:global(#server-console) ol > li:nth-child(3n + 1) :global(.uppercase) {
-  color: var(--nx-ciano) !important;
-}
-.scope:global(#server-console) ol > li:nth-child(3n + 2) :global(.uppercase) {
-  color: var(--nx-rosa) !important;
-}
-.scope:global(#server-console) ol > li:nth-child(3n) :global(.uppercase) {
-  color: var(--nx-ouro) !important;
-}
-.scope:global(#server-console) :global(.uppercase) {
-  font-family: var(--font-server-mono), monospace;
-}
-
-/* Botões: borda dupla, texto em Space Mono, brilho na cor. */
-.primaryLink {
-  color: var(--nx-ciano) !important;
-  background: rgb(53 221 242 / 6%) !important;
-  border: 2px solid var(--nx-ciano) !important;
-  font-family: var(--font-server-mono), monospace;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  box-shadow:
-    0 0 18px rgb(53 221 242 / 25%),
-    inset 0 0 12px rgb(53 221 242 / 8%) !important;
-}
-.scope:global(#server-console) .primaryLink,
-.scope:global(#server-console) .primaryLink * {
-  color: var(--nx-ciano) !important;
-}
-.primaryLink:hover {
-  background: rgb(53 221 242 / 12%) !important;
-}
-.scope:global(#server-console) [data-slot="button"] {
-  font-family: var(--font-server-mono), monospace !important;
-  font-size: 12px !important;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  box-shadow:
-    inset 0 1px 0 rgb(248 243 255 / 5%),
-    0 3px 0 #02030a !important;
-}
-.scope:global(#server-console) [data-slot="button"][class*="bg-primary"] {
-  color: var(--nx-ciano) !important;
-  background: rgb(53 221 242 / 8%) !important;
-  border: 2px solid var(--nx-ciano) !important;
-  box-shadow: 0 0 16px rgb(53 221 242 / 22%) !important;
-}
-.scope:global(#server-console) [data-slot="input"] {
-  background: #08051a !important;
-}
-.scope:global(#server-console) pre {
-  background: #08051a !important;
-  color: var(--nx-ciano);
-}
-
-/* Ícones de requisito e de atalho na cor da referência. */
-.scope:global(#server-console)
-  :is(.requirementRows svg, .sectionHeading > svg, .mapNode > svg) {
-  color: var(--nx-ciano);
-}
-.scope:global(#server-console) .resourceLink:hover {
-  color: var(--nx-rosa);
-}
-.scope a:focus-visible,
-.scope button:focus-visible,
-.scope summary:focus-visible,
-.scope input:focus-visible {
-  outline-color: var(--nx-ciano);
-}
-
-/* Foco do teclado: o anel claro global some no ciano/roxo; aqui é ciano. */
-.scope:global(#server-console)
-  :is(a, button, summary, input, select, textarea, [tabindex]):focus-visible {
-  outline: 2px solid var(--nx-ciano) !important;
-  outline-offset: 2px;
-}
-
-/* No celular a navegação em Space Mono com tracking largo não cabe numa
-   linha: o tracking encolhe e a faixa rola de lado em vez de sobrepor. */
-@media (max-width: 700px) {
-  .scope:global(#server-console) .navigationLinks {
-    justify-content: flex-start;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-  .scope:global(#server-console) .navigation a {
-    flex: none;
-    letter-spacing: 0.06em;
-  }
-  .scope:global(#server-console) .navigation a[aria-current="page"] {
-    padding: 0 8px;
   }
 }

@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge";
+import styles from "@/components/command-layer/shell.module.css";
 
 /**
  * Cabeçalho padrão das páginas do dashboard modular: título, função da
@@ -21,7 +22,9 @@ export function PageHeader({
   hideTitle?: boolean;
 }) {
   return (
-    <div className="flex flex-wrap items-start justify-between gap-2">
+    <div
+      className={`flex flex-wrap items-start justify-between ${styles.pageHeader}`}
+    >
       <div>
         {/* Título da página: usa o token --text-page-title, o mesmo em
             qualquer tela do painel — nenhuma página tem um "grande" próprio. */}

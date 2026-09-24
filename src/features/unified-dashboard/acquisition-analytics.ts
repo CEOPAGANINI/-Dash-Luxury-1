@@ -56,7 +56,7 @@ export const EFFICIENCY_TIERS = [
   {
     id: "abaixo",
     label: "ROAS abaixo de 1",
-    color: "#676767",
+    color: "var(--cl-danger)",
     min: 0,
     max: 1,
     range: "ROAS < 1,00x",
@@ -64,7 +64,7 @@ export const EFFICIENCY_TIERS = [
   {
     id: "perto",
     label: "ROAS de 1 a 1,15",
-    color: "#858585",
+    color: "var(--cl-warning)",
     min: 1,
     max: 1.15,
     range: "1,00x ≤ ROAS < 1,15x",
@@ -72,7 +72,7 @@ export const EFFICIENCY_TIERS = [
   {
     id: "saudavel",
     label: "ROAS de 1,15 a 1,40",
-    color: "#a3a3a3",
+    color: "var(--cl-info)",
     min: 1.15,
     max: 1.4,
     range: "1,15x ≤ ROAS < 1,40x",
@@ -80,7 +80,7 @@ export const EFFICIENCY_TIERS = [
   {
     id: "bom",
     label: "ROAS de 1,40 a 1,80",
-    color: "#c7c7c7",
+    color: "var(--cl-accent)",
     min: 1.4,
     max: 1.8,
     range: "1,40x ≤ ROAS < 1,80x",
@@ -88,7 +88,7 @@ export const EFFICIENCY_TIERS = [
   {
     id: "excelente",
     label: "ROAS de 1,80 ou mais",
-    color: "#f5f5f5",
+    color: "var(--cl-success)",
     min: 1.8,
     max: Infinity,
     range: "ROAS ≥ 1,80x",
@@ -97,7 +97,7 @@ export const EFFICIENCY_TIERS = [
 export const NO_EFFICIENCY_DATA = {
   id: "sem-dados",
   label: "Sem dados de ROAS",
-  color: "#8e8e8e",
+  color: "var(--cl-text-muted)",
   range: "Receita e investimento positivo necessários",
 } as const;
 

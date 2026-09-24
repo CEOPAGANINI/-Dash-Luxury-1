@@ -4,49 +4,64 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Activity,
-  BarChart3,
-  Calculator,
-  Bell,
-  BellRing,
-  CircleDollarSign,
-  Landmark,
-  Columns3,
-  Database,
-  FileText,
-  Folder,
-  FolderOpen,
-  Globe,
-  LayoutDashboard,
-  LayoutGrid,
-  Megaphone,
-  PanelsTopLeft,
-  Plug,
-  Plus,
-  ScrollText,
-  Palette,
-  Settings,
-  ShieldCheck,
-  ShoppingBag,
-  SquarePen,
-  Search,
-  Server,
-  Store,
-  Table2,
-  Users,
-  Video,
-  Wallet,
-  type LucideIcon,
-} from "lucide-react";
+  SolarIcon,
+  type SolarIconName,
+  type SolarIconProps,
+} from "@/components/command-layer/solar-icon";
+import styles from "@/components/command-layer/shell.module.css";
 import { cn } from "@/lib/utils";
 import { NETWORK_MANAGERS } from "@/features/ads/manager-model";
-import { SESSOES_DA_REDE, type SessaoDaRedeId } from "@/features/ads/network-sessions-model";
+import {
+  SESSOES_DA_REDE,
+  type SessaoDaRedeId,
+} from "@/features/ads/network-sessions-model";
 import type { AdNetwork } from "@/features/ads/types";
+
+type NavigationIcon = React.ComponentType<Omit<SolarIconProps, "name">>;
+
+function navigationIcon(name: SolarIconName): NavigationIcon {
+  return function MenuIcon(props) {
+    return <SolarIcon name={name} {...props} />;
+  };
+}
+
+const Activity = navigationIcon("pulse-2");
+const BarChart3 = navigationIcon("chart-2");
+const Calculator = navigationIcon("calculator");
+const Bell = navigationIcon("bell");
+const BellRing = Bell;
+const CircleDollarSign = navigationIcon("card");
+const Landmark = navigationIcon("card");
+const Columns3 = navigationIcon("layers");
+const Database = navigationIcon("server-square");
+const FileText = navigationIcon("document-text");
+const Folder = navigationIcon("folder");
+const FolderOpen = navigationIcon("folder-open");
+const Globe = navigationIcon("globe");
+const LayoutDashboard = navigationIcon("widget-2");
+const LayoutGrid = LayoutDashboard;
+const Megaphone = navigationIcon("routing-2");
+const PanelsTopLeft = navigationIcon("layers");
+const Plug = navigationIcon("plug-circle");
+const Plus = navigationIcon("add-square");
+const ScrollText = navigationIcon("document-text");
+const Palette = navigationIcon("palette");
+const Settings = navigationIcon("settings");
+const ShieldCheck = navigationIcon("shield-check");
+const ShoppingBag = navigationIcon("bag-4");
+const SquarePen = navigationIcon("pen-new-square");
+const Search = navigationIcon("magnifier");
+const Server = navigationIcon("server-square");
+const Store = navigationIcon("shop");
+const Table2 = navigationIcon("layers");
+const Users = navigationIcon("users-group-rounded");
+const Video = navigationIcon("play-circle");
+const Wallet = navigationIcon("wallet");
 
 interface PaginaDoMenu {
   title: string;
   href: string;
-  icon: LucideIcon;
+  icon: NavigationIcon;
   badge?: number;
   external?: boolean;
   /**
@@ -60,7 +75,7 @@ interface PastaDoMenu {
   label: string;
   items: readonly PaginaDoMenu[];
   /** Ícone da categoria; quando omitido, usa a pasta padrão. */
-  icon?: LucideIcon;
+  icon?: NavigationIcon;
   /** Título mostrado no topo da página para qualquer página desta pasta. */
   titulo?: string;
   /** Endereço-raiz da pasta: /campanhas/meta também conta como "dentro". */
@@ -70,15 +85,21 @@ interface PastaDoMenu {
 /* Cada rede de tráfego é uma pasta: abrir a pasta mostra todas as
    páginas que existem para essa rede no painel (por classe, tabela,
    gerenciador, métricas, calculadora). */
-const ICONE_DA_REDE: Record<AdNetwork, LucideIcon> = { meta: Megaphone, google: Search, youtube: Video };
-const ICONE_DA_SESSAO: Record<SessaoDaRedeId, LucideIcon> = {
+const ICONE_DA_REDE: Record<AdNetwork, NavigationIcon> = {
+  meta: Megaphone,
+  google: Search,
+  youtube: Video,
+};
+const ICONE_DA_SESSAO: Record<SessaoDaRedeId, NavigationIcon> = {
   classes: LayoutGrid,
   tabela: Table2,
   gerenciador: Columns3,
   metricas: BarChart3,
   calculadora: Calculator,
 };
-const PASTAS_DAS_REDES: PastaDoMenu[] = (["meta", "google", "youtube"] as const).map((rede) => ({
+const PASTAS_DAS_REDES: PastaDoMenu[] = (
+  ["meta", "google", "youtube"] as const
+).map((rede) => ({
   label: NETWORK_MANAGERS[rede].label,
   icon: ICONE_DA_REDE[rede],
   titulo: NETWORK_MANAGERS[rede].label,
@@ -127,7 +148,11 @@ const groups: PastaDoMenu[] = [
     icon: PanelsTopLeft,
     items: [
       { title: "Landing pages", href: "/landing-pages", icon: FileText },
-      { title: "Editor de páginas", href: "/editor/landing-page", icon: SquarePen },
+      {
+        title: "Editor de páginas",
+        href: "/editor/landing-page",
+        icon: SquarePen,
+      },
     ],
   },
   {
@@ -220,7 +245,8 @@ export function sidebarPageTitle(pathname: string) {
     if (item) return group.titulo ?? item.title;
   }
   for (const group of groups) {
-    if (group.raiz && itemIsActive(pathname, group.raiz)) return group.titulo ?? group.label;
+    if (group.raiz && itemIsActive(pathname, group.raiz))
+      return group.titulo ?? group.label;
   }
   const fora = Object.keys(TITULOS_FORA_DO_MENU)
     .filter((rota) => pathname === rota || pathname.startsWith(`${rota}/`))
@@ -271,7 +297,7 @@ export function SidebarFolderNavigation({
       id={id}
       aria-label="Navegação principal"
       data-folder-open={Boolean(selected)}
-      className="dash-sidebar-tray m-3 flex min-h-0 flex-col gap-1.5 border p-2"
+      className={`dash-sidebar-tray m-3 flex min-h-0 flex-col gap-1.5 border p-2 ${styles.folderTray}`}
       onKeyDown={(event) => {
         if (event.key === "Escape" && selected) {
           event.preventDefault();
@@ -290,17 +316,24 @@ export function SidebarFolderNavigation({
               aria-label="Todas as pastas"
               className="dash-sidebar-block dash-sidebar-voltar focus-visible:ring-ring flex min-h-10 w-full items-center gap-2.5 px-3 py-1 text-left text-xs font-semibold focus-visible:ring-2 focus-visible:outline-none"
             >
-              <span aria-hidden className="text-[13px] opacity-70">‹</span>
-              <span className="min-w-0 flex-1">Sair da pasta · {selected.label}</span>
+              <SolarIcon name="arrow-left" className="size-4 shrink-0" />
+              <span className="min-w-0 flex-1">
+                Sair da pasta · {selected.label}
+              </span>
             </button>
             <h2 className="flex min-h-10 items-center gap-2.5 px-3 text-[13px] font-bold">
-              {selected.icon ? <selected.icon className="size-4 shrink-0" aria-hidden /> : <FolderOpen className="size-4 shrink-0" aria-hidden />}
+              {selected.icon ? (
+                <selected.icon className="size-4 shrink-0" aria-hidden />
+              ) : (
+                <FolderOpen className="size-4 shrink-0" aria-hidden />
+              )}
               {selected.label}
             </h2>
             {selected.items.map((item) => {
               const active = itemAtivo(pathname, item);
               const Icon = item.icon;
-              const count = item.href === "/notificacoes" ? unreadCount : (item.badge ?? 0);
+              const count =
+                item.href === "/notificacoes" ? unreadCount : (item.badge ?? 0);
               return (
                 <Link
                   key={item.href}
@@ -335,7 +368,11 @@ export function SidebarFolderNavigation({
                 (!!group.raiz && itemIsActive(pathname, group.raiz));
               const IconePasta = group.icon ?? Folder;
               const selo = group.items.reduce(
-                (total, item) => total + (item.href === "/notificacoes" ? unreadCount : (item.badge ?? 0)),
+                (total, item) =>
+                  total +
+                  (item.href === "/notificacoes"
+                    ? unreadCount
+                    : (item.badge ?? 0)),
                 0,
               );
               return (
@@ -355,7 +392,10 @@ export function SidebarFolderNavigation({
                     current && "is-current",
                   )}
                 >
-                  <IconePasta className="size-4 shrink-0 opacity-80" aria-hidden />
+                  <IconePasta
+                    className="size-4 shrink-0 opacity-80"
+                    aria-hidden
+                  />
                   <span className="min-w-0 flex-1">
                     <span className="block text-[13px] font-bold">
                       {group.label}

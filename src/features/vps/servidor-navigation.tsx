@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowUpRight, Globe2, Server, Terminal } from "lucide-react";
+import { ArrowUpRight, Globe2, Server, Terminal } from "./vps-icons";
 import styles from "./servidor-nexus.module.css";
 
 export function ServidorNavigation() {
@@ -11,6 +11,15 @@ export function ServidorNavigation() {
   const novo = pathname === "/servidor/novo";
   return (
     <nav aria-label="Navegação do servidor" className={styles.navigation}>
+      <div className={styles.navigationBrand} aria-hidden="true">
+        <span className={styles.brandMark}>
+          <Server aria-hidden size={20} />
+        </span>
+        <div>
+          <strong>Dash Luxury</strong>
+          <span>Controle da VPS</span>
+        </div>
+      </div>
       <div className={styles.navigationLinks}>
         <Link
           href="/servidor"

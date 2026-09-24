@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Search } from "lucide-react";
+import { SolarIcon } from "@/components/command-layer/solar-icon";
+import styles from "@/components/command-layer/shell.module.css";
 import { SidebarFolderNavigation } from "@/components/layout/sidebar-folder-navigation";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 
@@ -36,12 +37,9 @@ function userInitials(name: string) {
 
 export function SidebarSearch() {
   return (
-    <label className="relative mx-3 block">
+    <label className={styles.search}>
       <span className="sr-only">Buscar no painel</span>
-      <Search
-        className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
-        aria-hidden
-      />
+      <SolarIcon name="magnifier" />
       <input
         type="search"
         placeholder="Buscar"
@@ -62,12 +60,19 @@ export function SidebarUtilities({
   const initials = userInitials(user.name);
 
   return (
-    <div className="dash-sidebar-list dash-sidebar-rodape border-t p-3">
-      <div className="dash-sidebar-block text-muted-foreground flex min-h-10 items-center gap-3 px-3 text-sm font-semibold">
-        <span aria-hidden className="bg-success size-2 shrink-0 rounded-full" />
+    <div
+      className={`dash-sidebar-list dash-sidebar-rodape border-t p-3 ${styles.utilities}`}
+    >
+      <div
+        className={`dash-sidebar-block text-muted-foreground flex min-h-10 items-center gap-3 px-3 ${styles.utilityStatus}`}
+      >
+        <span aria-hidden className={styles.led} />
         <span className="truncate">Sistemas saudáveis</span>
         {/* A versão publicada (commit), para conferir o que está no ar. */}
-        <span className="dash-versao ml-auto shrink-0 font-mono text-[0.625rem] font-semibold opacity-60" title={`Versão publicada: ${process.env.NEXT_PUBLIC_VERSAO ?? "local"}`}>
+        <span
+          className="dash-versao ml-auto shrink-0 font-mono text-[0.625rem] font-semibold opacity-60"
+          title={`Versão publicada: ${process.env.NEXT_PUBLIC_VERSAO ?? "local"}`}
+        >
           v{process.env.NEXT_PUBLIC_VERSAO ?? "local"}
         </span>
       </div>
@@ -85,10 +90,8 @@ export function SidebarUtilities({
               <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
             <span className="min-w-0 flex-1">
-              <span className="block text-xs font-semibold">
-                {user.name}
-              </span>
-              <span className="text-muted-foreground block font-mono text-[11px]">
+              <span className={`block ${styles.accountName}`}>{user.name}</span>
+              <span className={`block ${styles.accountEmail}`}>
                 {user.email}
               </span>
             </span>
@@ -164,7 +167,11 @@ export function AppSidebar({ user, unreadCount }: SidebarProps) {
           // redesenha sob o mouse dispara um "saiu" falso com o ponteiro
           // ainda dentro da gaveta.
           const r = event.currentTarget.getBoundingClientRect();
-          const dentro = event.clientX >= r.left && event.clientX <= r.right && event.clientY >= r.top && event.clientY <= r.bottom;
+          const dentro =
+            event.clientX >= r.left &&
+            event.clientX <= r.right &&
+            event.clientY >= r.top &&
+            event.clientY <= r.bottom;
           if (dentro) return;
           if (!contaAbertaRef.current) fechar();
         }}
@@ -178,19 +185,20 @@ export function AppSidebar({ user, unreadCount }: SidebarProps) {
         data-open={String(aberto)}
       >
         {/* Todo o conteúdo acompanha uma única rolagem, sem cabeçalho ou rodapé fixados. */}
-        <div className="dash-sidebar dash-sidebar-scroll h-full w-64 min-w-64 overflow-x-hidden overflow-y-auto overscroll-contain border-r">
+        <div
+          className={`dash-sidebar dash-sidebar-scroll h-full w-64 min-w-64 overflow-x-hidden overflow-y-auto overscroll-contain border-r ${styles.sidebar}`}
+        >
           <Link
             href="/dashboard"
             onClick={fechar}
-            className="dash-sidebar-cabecalho flex h-16 items-center gap-3 border-b px-4"
+            aria-label={brand.name}
+            className={`dash-sidebar-cabecalho ${styles.brand} ${styles.sidebarHeader}`}
           >
-            <span
-              aria-hidden
-              className="bg-primary text-primary-foreground grid size-8 shrink-0 place-items-center font-display text-[15px] font-extrabold"
-            >
-              {brand.name.charAt(0)}
+            <span aria-hidden className={styles.brandMark}>
+              <SolarIcon name="bolt" size={18} />
             </span>
-            <span className="font-display text-[15px] font-extrabold tracking-[-0.01em]">
+            <span className={styles.brandName}>
+              <span className={styles.brandLabel}>Painel de controle</span>
               {brand.name}
             </span>
           </Link>

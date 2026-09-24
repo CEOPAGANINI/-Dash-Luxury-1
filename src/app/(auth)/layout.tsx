@@ -12,7 +12,10 @@ export default function AuthLayout({
   const configured = isSupabaseConfigured();
 
   return (
-    <div className="dash-skin bg-background text-foreground flex min-h-svh flex-col items-center justify-center gap-6 p-6">
+    <div
+      data-design-system="commandlayer"
+      className="dash-skin cl bg-background text-foreground flex min-h-svh flex-col items-center justify-center gap-6 p-6"
+    >
       <Link href="/" className="flex items-center gap-2">
         <div className="bg-primary text-primary-foreground flex size-9 items-center justify-center rounded-lg">
           <Zap className="size-5" />

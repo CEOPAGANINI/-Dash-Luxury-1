@@ -364,11 +364,14 @@ export function ServidoresPainel({ inicial }: { inicial: EstadoDaTela }) {
     <div className="min-w-0 space-y-5">
       <AvisoDeAtualizacao falha={falha} destino="/servidor" />
       {faltaAlgo && <PreRequisitos pendencias={estado.pendencias} />}
-      <ServidorResumo estado={estado} />
       {estado.servidores.length === 0 ? (
-        <ServidorBoasVindas />
+        <>
+          <ServidorBoasVindas />
+          <ServidorResumo estado={estado} />
+        </>
       ) : (
         <>
+          <ServidorResumo estado={estado} />
           <div className={styles.listHeading}>
             <h3>
               {estado.servidores.length === 1

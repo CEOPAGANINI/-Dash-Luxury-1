@@ -9,6 +9,7 @@ import {
 import { ServidorNavigation } from "@/features/vps/servidor-navigation";
 import type { EstadoDaTela } from "@/features/vps/vps-cliente";
 import type { ServidorDTO } from "@/features/vps/modelo";
+import styles from "@/features/vps/servidor-nexus.module.css";
 
 const rota = vi.hoisted(() => ({ atual: "/servidor" }));
 vi.mock("next/navigation", () => ({ usePathname: () => rota.atual }));
@@ -25,7 +26,21 @@ const vazio: EstadoDaTela = {
   pendencias: [],
 };
 
-describe("Nexus: servidor sem tela vazia", () => {
+describe("CommandLayer: servidor sem tela vazia", () => {
+  it("preserva a moldura e o display interno sem impor outro tema", () => {
+    const { container } = render(<ServidorBoasVindas />);
+    const welcome = screen.getByRole("region", {
+      name: "Sua infraestrutura. Sob seu controle.",
+    });
+    expect(
+      welcome.firstElementChild?.classList.contains(styles.welcomeInner),
+    ).toBe(true);
+    expect(container.querySelector(`.${styles.connectionMap}`)).toBeTruthy();
+    expect(container.querySelector("[data-tema]")).toBeNull();
+    expect(
+      container.querySelector('[data-icon="solar:server-square-linear"]'),
+    ).toBeTruthy();
+  });
   it("oferece conexão e explica o fluxo sem inventar servidor ou métricas", () => {
     const { container } = render(<ServidorBoasVindas />);
     expect(

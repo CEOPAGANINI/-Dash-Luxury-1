@@ -1,5 +1,12 @@
 # CommandLayer: a pele do painel
 
+> Referência histórica da implementação alternativa recebida em `21edd95`.
+> Após a união, a implementação ativa é `src/app/command-layer.css`, documentada
+> em [command-layer-design-system.md](command-layer-design-system.md).
+> Ela cobre também o Servidor nos temas claro e escuro. O arquivo
+> `commandlayer-dashboard.css` abaixo foi preservado, mas não é importado
+> pelo layout. As seções seguintes descrevem a alternativa original.
+
 Referência: `command-layer.aura.build.zip`, enviada pelo usuário junto com o
 plano do Codex. Vale para o painel inteiro, nos dois temas. A exceção é a área
 `/servidor`, que segue o Nexus Arcade (veja `nexus-design-system.md`).

@@ -63,7 +63,7 @@ describe("left menu without pinned areas", () => {
     fireEvent.click(screen.getByRole("button", { name: /^Abrir menu$/ }));
     const drawer = screen.getByRole("dialog", { name: "Menu de navegação" });
     expect(drawer.classList.contains("dash-skin")).toBe(true);
-    expect(drawer.getAttribute("data-design-system")).toBe("nebula");
+    expect(drawer.getAttribute("data-design-system")).toBe("commandlayer");
     const scroll = drawer.querySelector(".dash-sidebar-scroll")!;
     expect(scroll).not.toBeNull();
     expect(scroll.contains(within(drawer).getByText("Dash Luxury"))).toBe(true);
@@ -99,7 +99,7 @@ describe("left menu without pinned areas", () => {
     ).toBe(document.activeElement);
   });
 
-  it("keeps an accessible menu trigger in the Nebula header at every viewport", () => {
+  it("keeps an accessible menu trigger in the CommandLayer header at every viewport", () => {
     const { container } = render(<Header user={user} unreadCount={0} />);
     const topbar = container.querySelector(".nebula-topbar")!;
     expect(topbar).not.toBeNull();

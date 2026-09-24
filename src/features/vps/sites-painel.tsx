@@ -2,7 +2,18 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowRight, Plus } from "lucide-react";
+import {
+  ArrowRight,
+  FileArchive,
+  FileCode2,
+  Folder,
+  Globe2,
+  Layers3,
+  Plus,
+  Server,
+  ShieldCheck,
+  Upload,
+} from "./vps-icons";
 
 import { BlockPicker } from "@/components/ui/block-picker";
 import { Button } from "@/components/ui/button";
@@ -26,6 +37,7 @@ import {
 } from "./servidores-painel";
 import { useEstadoVps } from "./use-estado-vps";
 import { useOperacao } from "./use-operacao";
+import styles from "./sites-nexus.module.css";
 import {
   hostsReservadosDaTela,
   rotuloDoDnsDoSite,
@@ -59,7 +71,7 @@ export function TabelaDeSites({
   mostrarServidor?: boolean;
 }) {
   return (
-    <div className="overflow-x-auto">
+    <div className={`overflow-x-auto ${styles.tableViewport}`}>
       <table className="w-full min-w-[720px] text-sm">
         <thead className="bg-muted/45 text-muted-foreground text-left text-[11px] tracking-wide uppercase">
           <tr>
@@ -405,12 +417,204 @@ function NovoSite({
   );
 }
 
+/** An instructional file tree, not a preview of an uploaded or live site. */
+function EstruturaDoZip() {
+  return (
+    <figure className={styles.archiveConsole}>
+      <div className={styles.consoleBar}>
+        <span>
+          <FileArchive size={15} aria-hidden /> Estrutura do ZIP
+        </span>
+        <span className={styles.fileType}>.zip</span>
+      </div>
+      <div className={styles.archiveScene} aria-hidden="true">
+        <div className={styles.archiveGlyph}>
+          <FileArchive strokeWidth={1} />
+        </div>
+        <div className={styles.sceneConnector} />
+        <div className={styles.webGlyph}>
+          <Globe2 strokeWidth={1} />
+        </div>
+      </div>
+      <div className={styles.fileTree}>
+        <div className={styles.rootFile}>
+          <FileCode2 size={16} aria-hidden />
+          <span>index.html</span>
+          <small>na raiz</small>
+        </div>
+        <div>
+          <Folder size={15} aria-hidden />
+          <span>css/</span>
+          <small>estilos</small>
+        </div>
+        <div>
+          <Folder size={15} aria-hidden />
+          <span>js/</span>
+          <small>interações</small>
+        </div>
+        <div>
+          <Folder size={15} aria-hidden />
+          <span>imagens/</span>
+          <small>imagens e ícones</small>
+        </div>
+        <div>
+          <Folder size={15} aria-hidden />
+          <span>fontes/</span>
+          <small>tipografia</small>
+        </div>
+      </div>
+      <figcaption>
+        Exemplo de organização. Nenhum arquivo foi enviado.
+      </figcaption>
+    </figure>
+  );
+}
+
+function PrimeiroSite() {
+  return (
+    <section className={styles.launch} aria-labelledby="primeiro-site-titulo">
+      <div className={styles.launchInner}>
+        <div className={styles.launchCopy}>
+          <div className={styles.stageLabel}>
+            <span aria-hidden="true" /> Aguardando um servidor confirmado
+          </div>
+          <h3 id="primeiro-site-titulo" className={styles.launchHeading}>
+            Suas páginas. <br />
+            Seu espaço na web.
+          </h3>
+          <p className={styles.launchDescription}>
+            Da landing page ao site completo: publique seus arquivos na sua VPS
+            e acompanhe cada versão em um só lugar.
+          </p>
+          <p className={styles.connectionHint}>
+            Conecte e confirme um servidor antes de criar um site.
+          </p>
+          <div className={styles.launchActions}>
+            <Link href="/servidor/novo" className={styles.primaryLink}>
+              <Server size={17} aria-hidden />
+              <span>Conectar minha VPS</span>
+              <ArrowRight size={17} aria-hidden />
+            </Link>
+            <Link href="/servidor" className={styles.secondaryLink}>
+              Ver servidores
+            </Link>
+          </div>
+          <div className={styles.supportedFiles}>
+            <FileArchive size={15} aria-hidden />
+            <span>HTML, CSS e JavaScript · ZIP de até 3 MB</span>
+          </div>
+        </div>
+        <EstruturaDoZip />
+      </div>
+    </section>
+  );
+}
+
+function GuiaDePublicacao() {
+  return (
+    <section aria-labelledby="publicacao-titulo">
+      <div className={styles.guideHeading}>
+        <h3 id="publicacao-titulo">Do arquivo ao domínio</h3>
+        <span>Seu próximo passo, sem adivinhação.</span>
+      </div>
+      <ol className={styles.workflow}>
+        <li>
+          <div className={styles.stepInner}>
+            <div className={styles.stepTop}>
+              <span>01</span>
+              <Server size={20} aria-hidden />
+            </div>
+            <h4>Conecte sua VPS</h4>
+            <p>
+              Instale o agente com o comando do painel e confirme a identidade
+              do servidor.
+            </p>
+          </div>
+        </li>
+        <li>
+          <div className={styles.stepInner}>
+            <div className={styles.stepTop}>
+              <span>02</span>
+              <Globe2 size={20} aria-hidden />
+            </div>
+            <h4>Prepare seu domínio</h4>
+            <p>
+              Crie o site e aponte o DNS. Com o endereço correto, o servidor
+              solicita o HTTPS.
+            </p>
+          </div>
+        </li>
+        <li>
+          <div className={styles.stepInner}>
+            <div className={styles.stepTop}>
+              <span>03</span>
+              <Upload size={20} aria-hidden />
+            </div>
+            <h4>Envie e publique</h4>
+            <p>
+              Suba seu ZIP e ative a versão. O painel confere o endereço antes
+              de mostrar “No ar”.
+            </p>
+          </div>
+        </li>
+      </ol>
+    </section>
+  );
+}
+
+function RequisitosDoSite() {
+  return (
+    <aside
+      className={styles.requirements}
+      aria-labelledby="zip-requisitos-titulo"
+    >
+      <div className={styles.requirementsInner}>
+        <div className={styles.requirementsHeader}>
+          <FileArchive size={22} aria-hidden />
+          <h3 id="zip-requisitos-titulo">Prepare o seu ZIP</h3>
+        </div>
+        <p>Seu site estático, pronto para publicar.</p>
+        <dl className={styles.requirementRows}>
+          <div>
+            <dt>Arquivo principal</dt>
+            <dd>
+              <code>index.html</code> na raiz
+            </dd>
+          </div>
+          <div>
+            <dt>Tamanho máximo</dt>
+            <dd>3 MB por ZIP</dd>
+          </div>
+          <div>
+            <dt>Conteúdo</dt>
+            <dd>HTML, CSS, JS, imagens e fontes</dd>
+          </div>
+          <div>
+            <dt>Não permitido</dt>
+            <dd>PHP e .htaccess</dd>
+          </div>
+        </dl>
+        <div className={styles.versionNote}>
+          <Layers3 size={18} aria-hidden />
+          <p>
+            Cada envio cria uma versão. Você escolhe qual fica ativa no site.
+          </p>
+        </div>
+        <Link href="/editor/landing-page" className={styles.editorLink}>
+          <span>Abrir editor do funil</span>
+          <ArrowRight size={16} aria-hidden />
+        </Link>
+      </div>
+    </aside>
+  );
+}
+
 export function SitesPainel({ inicial }: { inicial: EstadoDaTela }) {
   const { estado, falha, atualizar } = useEstadoVps(inicial);
   const temAtivo = estado.servidores.some((s) => s.estado === "ativo");
 
   return (
-    <div className="min-w-0 space-y-4">
+    <div className={styles.sites}>
       <AvisoDeAtualizacao falha={falha} destino="/servidor/sites" />
       {estado.sites.length > 0 ? (
         <Bloco
@@ -426,21 +630,36 @@ export function SitesPainel({ inicial }: { inicial: EstadoDaTela }) {
           <TabelaDeSites sites={estado.sites} />
         </Bloco>
       ) : temAtivo ? (
-        <Vazio>
-          Nenhum site neste painel ainda. Crie o primeiro no bloco abaixo.
-        </Vazio>
+        <div className={styles.readyNotice}>
+          <ShieldCheck size={20} aria-hidden />
+          <Vazio>
+            Nenhum site neste painel ainda. Crie o primeiro no bloco abaixo.
+          </Vazio>
+        </div>
+      ) : null}
+      {!temAtivo && <PrimeiroSite />}
+      {temAtivo ? (
+        <div className={styles.creationGrid}>
+          <NovoSite estado={estado} aoCriar={atualizar} />
+          <RequisitosDoSite />
+        </div>
       ) : (
-        <Vazio>
-          Conecte e confirme um servidor antes de criar um site.{" "}
-          <Link
-            href="/servidor"
-            className="font-semibold underline underline-offset-4"
-          >
-            Ver servidores
-          </Link>
-        </Vazio>
+        <>
+          <GuiaDePublicacao />
+          <div className={styles.preparationStrip}>
+            <div>
+              <ShieldCheck size={20} aria-hidden />
+              <p>
+                Use <code>index.html</code> na raiz, sem PHP e sem .htaccess.
+              </p>
+            </div>
+            <Link href="/editor/landing-page">
+              <span>Preparar página no editor</span>
+              <ArrowRight size={16} aria-hidden />
+            </Link>
+          </div>
+        </>
       )}
-      {temAtivo && <NovoSite estado={estado} aoCriar={atualizar} />}
     </div>
   );
 }

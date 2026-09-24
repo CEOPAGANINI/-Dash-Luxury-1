@@ -1,24 +1,14 @@
-/*
-  O CSS que faltava.
-
-  O ficheiro que veio trazia o esqueleto da página e os tokens, mas
-  apontava para um style.css que não existia — sem ele a página abria
-  como texto preto sobre branco. Isto é esse ficheiro, escrito a partir
-  dos tokens, sem inventar nenhum valor que não esteja lá.
-
-  Tudo o que é cor, tamanho, raio e tempo sai das variáveis que o
-  componente põe no elemento raiz, geradas por variaveisDoOrbit(). Não
-  há aqui um hexadecimal escrito à mão.
-*/
+/* The reference catalog retains its documented Orbit swatches. Dashboard
+   chrome uses CommandLayer so navigation, reading and focus follow the theme. */
 
 .page {
-  --fio: var(--orbit-border);
+  --fio: var(--cl-border);
   min-width: 0;
   padding: 32px clamp(16px, 4vw, 48px) 64px;
-  border-radius: var(--orbit-raio-node);
-  background: var(--orbit-canvas);
-  color: var(--orbit-text);
-  font-family: var(--orbit-fonte, Inter), system-ui, sans-serif;
+  border-radius: var(--cl-radius-panel);
+  background: var(--cl-canvas);
+  color: var(--cl-text-primary);
+  font-family: var(--cl-sans);
   text-align: left;
 }
 .page :is(h1, h2, h3, p, dl, dd, figure) {
@@ -38,27 +28,26 @@
 }
 .eyebrow {
   display: block;
-  color: var(--orbit-muted);
+  color: var(--cl-text-muted);
   font-size: var(--orbit-texto-metadata);
   font-weight: 600;
   letter-spacing: 0.18em;
 }
 .intro h2 {
   margin-top: 16px;
-  font-size: clamp(32px, 5vw, var(--orbit-texto-display));
+  font-size: clamp(24px, 3vw, 30px);
   font-weight: 500;
   line-height: 1.1;
   letter-spacing: -0.02em;
 }
-/* A segunda linha do título não é uma cor: é o cinza de apoio. A paleta
-   principal é preto e branco, e o hero não abre exceção para si próprio. */
+/* Supporting copy stays neutral; color is reserved for status and actions. */
 .intro h2 > span {
-  color: var(--orbit-secondary);
+  color: var(--cl-text-body);
 }
 .intro p {
   margin-top: 16px;
   max-width: 46ch;
-  color: var(--orbit-secondary);
+  color: var(--cl-text-body);
   font-size: var(--orbit-texto-body);
   line-height: 1.6;
 }
@@ -69,9 +58,9 @@
   flex: none;
   padding: 12px 16px;
   border: 1px solid var(--fio);
-  border-radius: var(--orbit-raio-control);
-  background: var(--orbit-surface);
-  color: var(--orbit-secondary);
+  border-radius: var(--cl-radius-control);
+  background: var(--cl-chassis);
+  color: var(--cl-text-body);
   font-size: var(--orbit-texto-metadata);
   line-height: 1.5;
 }
@@ -80,7 +69,7 @@
   height: 28px;
   flex: none;
   fill: none;
-  stroke: var(--orbit-positive);
+  stroke: var(--cl-success);
   stroke-width: 5;
 }
 
@@ -95,18 +84,19 @@
 .page .nav a {
   padding: 8px 14px;
   border: 1px solid var(--fio);
-  border-radius: var(--orbit-raio-control);
-  background: var(--orbit-surface);
-  color: var(--orbit-secondary);
+  border-radius: var(--cl-radius-control);
+  background: var(--cl-chassis);
+  color: var(--cl-text-body);
   font-size: var(--orbit-texto-label);
   font-weight: 500;
   text-decoration: none;
-  transition: color var(--orbit-rapido) var(--orbit-suavizacao),
+  transition:
+    color var(--orbit-rapido) var(--orbit-suavizacao),
     border-color var(--orbit-rapido) var(--orbit-suavizacao);
 }
 .page .nav a:hover {
-  color: var(--orbit-text);
-  border-color: var(--orbit-secondary);
+  color: var(--cl-text-primary);
+  border-color: var(--cl-text-body);
 }
 
 /* ─── Secções ──────────────────────────────────────────────────────── */
@@ -122,7 +112,7 @@
   margin-bottom: 32px;
 }
 .sectionTitle > span {
-  color: var(--orbit-muted);
+  color: var(--cl-text-muted);
   font-size: var(--orbit-texto-metadata);
   font-weight: 600;
   letter-spacing: 0.18em;
@@ -133,7 +123,7 @@
   letter-spacing: -0.01em;
 }
 .sectionTitle p {
-  color: var(--orbit-secondary);
+  color: var(--cl-text-body);
   font-size: var(--orbit-texto-body);
 }
 
@@ -152,15 +142,15 @@
   padding: 0;
   overflow: hidden;
   border: 1px solid var(--fio);
-  border-radius: var(--orbit-raio-control);
-  background: var(--orbit-surface);
-  color: var(--orbit-text);
+  border-radius: var(--cl-radius-control);
+  background: var(--cl-chassis);
+  color: var(--cl-text-primary);
   text-align: left;
   cursor: pointer;
   transition: border-color var(--orbit-rapido) var(--orbit-suavizacao);
 }
 .page .swatch:hover {
-  border-color: var(--orbit-secondary);
+  border-color: var(--cl-text-body);
 }
 .swatchChip {
   display: block;
@@ -177,13 +167,13 @@
   font-weight: 500;
 }
 .swatchInfo code {
-  color: var(--orbit-secondary);
-  font-family: ui-monospace, monospace;
+  color: var(--cl-text-body);
+  font-family: var(--cl-mono);
   font-size: var(--orbit-texto-metadata);
   text-transform: uppercase;
 }
 .swatchInfo small {
-  color: var(--orbit-muted);
+  color: var(--cl-text-muted);
   font-size: var(--orbit-texto-metadata);
 }
 /* As cinco com significado ficam separadas das neutras: são as únicas
@@ -200,14 +190,14 @@
   gap: 12px;
   padding: 14px;
   border: 1px solid var(--fio);
-  border-radius: var(--orbit-raio-control);
-  background: var(--orbit-surface);
-  color: var(--orbit-text);
+  border-radius: var(--cl-radius-control);
+  background: var(--cl-chassis);
+  color: var(--cl-text-primary);
   text-align: left;
   cursor: pointer;
 }
 .page .semantic > button:hover {
-  border-color: var(--orbit-secondary);
+  border-color: var(--cl-text-body);
 }
 .semanticDot {
   width: 12px;
@@ -225,7 +215,7 @@
   font-weight: 500;
 }
 .semanticInfo small {
-  color: var(--orbit-muted);
+  color: var(--cl-text-muted);
   font-size: var(--orbit-texto-metadata);
 }
 
@@ -242,8 +232,8 @@
   gap: 16px;
   padding: 24px;
   border: 1px solid var(--fio);
-  border-radius: var(--orbit-raio-node);
-  background: var(--orbit-surface);
+  border-radius: var(--cl-radius-panel);
+  background: var(--cl-chassis);
 }
 .bigAa {
   font-size: 96px;
@@ -252,7 +242,7 @@
   letter-spacing: -0.04em;
 }
 .typeFeature p {
-  color: var(--orbit-secondary);
+  color: var(--cl-text-body);
   font-size: var(--orbit-texto-label);
   line-height: 1.8;
   overflow-wrap: anywhere;
@@ -273,7 +263,7 @@
   padding-bottom: 0;
 }
 .typeScale span {
-  color: var(--orbit-muted);
+  color: var(--cl-text-muted);
   font-size: var(--orbit-texto-metadata);
   letter-spacing: 0.08em;
 }
@@ -295,18 +285,18 @@
   gap: 16px;
   padding: 24px;
   border: 1px solid var(--fio);
-  border-radius: var(--orbit-raio-node);
-  background: var(--orbit-surface);
+  border-radius: var(--cl-radius-panel);
+  background: var(--cl-chassis);
 }
 .card h3 {
   font-size: var(--orbit-texto-label);
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--orbit-secondary);
+  color: var(--cl-text-body);
 }
 .card > p {
-  color: var(--orbit-muted);
+  color: var(--cl-text-muted);
   font-size: var(--orbit-texto-metadata);
   line-height: 1.6;
 }
@@ -325,36 +315,38 @@
   min-height: 40px;
   padding: 0 16px;
   border: 1px solid var(--fio);
-  border-radius: var(--orbit-raio-control);
-  background: var(--orbit-raised);
-  color: var(--orbit-text);
-  font-size: var(--orbit-texto-label);
+  border-radius: var(--cl-radius-control);
+  background: var(--cl-raised);
+  color: var(--cl-text-primary);
+  font: 400 12px/1.5 var(--cl-mono);
   font-weight: 500;
   cursor: pointer;
-  transition: filter var(--orbit-rapido) var(--orbit-suavizacao),
+  transition:
+    filter var(--orbit-rapido) var(--orbit-suavizacao),
     border-color var(--orbit-rapido) var(--orbit-suavizacao);
 }
 .page .button.primary {
-  background: var(--orbit-positive);
-  border-color: var(--orbit-positive);
-  color: var(--orbit-canvas);
+  background: var(--cl-button-fill);
+  border-color: var(--cl-accent);
+  color: var(--primary-foreground);
+  box-shadow: var(--cl-shadow-button);
 }
 .page .button:hover:not(:disabled) {
   filter: brightness(1.08);
-  border-color: var(--orbit-secondary);
+  border-color: var(--cl-text-body);
 }
 .page .button:disabled {
   opacity: 0.45;
   cursor: not-allowed;
 }
 .page .button:focus-visible {
-  outline: 2px solid var(--orbit-positive);
+  outline: 2px solid var(--cl-accent);
   outline-offset: 2px;
 }
 
 .fieldLabel {
   display: block;
-  color: var(--orbit-secondary);
+  color: var(--cl-text-body);
   font-size: var(--orbit-texto-label);
   font-weight: 500;
 }
@@ -363,14 +355,14 @@
   min-height: 40px;
   padding: 0 12px;
   border: 1px solid var(--fio);
-  border-radius: var(--orbit-raio-control);
-  background: var(--orbit-input);
-  color: var(--orbit-text);
+  border-radius: var(--cl-radius-control);
+  background: var(--cl-screen);
+  color: var(--cl-text-primary);
   font: inherit;
   font-size: var(--orbit-texto-label);
 }
 .page input.field:focus-visible {
-  outline: 2px solid var(--orbit-positive);
+  outline: 2px solid var(--cl-accent);
   outline-offset: 2px;
 }
 
@@ -383,7 +375,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--orbit-secondary);
+  color: var(--cl-text-body);
   font-size: var(--orbit-texto-label);
 }
 .port {
@@ -400,9 +392,9 @@
   gap: 8px;
   padding: 6px 12px;
   border: 1px solid var(--fio);
-  border-radius: var(--orbit-raio-tag);
-  background: var(--orbit-raised);
-  color: var(--orbit-secondary);
+  border-radius: var(--cl-radius-control);
+  background: var(--cl-raised);
+  color: var(--cl-text-body);
   font-size: var(--orbit-texto-metadata);
 }
 
@@ -420,15 +412,15 @@
   min-width: var(--s);
   height: var(--s);
   border-radius: 3px;
-  background: color-mix(in srgb, var(--orbit-secondary) 45%, transparent);
-  color: var(--orbit-muted);
+  background: color-mix(in srgb, var(--cl-text-body) 45%, transparent);
+  color: var(--cl-text-muted);
   font-size: 9px;
 }
 .spacingRotulo {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  color: var(--orbit-muted);
+  color: var(--cl-text-muted);
   font-size: var(--orbit-texto-metadata);
 }
 .radii {
@@ -444,13 +436,13 @@
   height: 76px;
   border: 1px solid var(--fio);
   border-radius: var(--r);
-  background: var(--orbit-raised);
-  color: var(--orbit-secondary);
+  background: var(--cl-raised);
+  color: var(--cl-text-body);
   font-size: var(--orbit-texto-label);
   text-align: center;
 }
 .radii small {
-  color: var(--orbit-muted);
+  color: var(--cl-text-muted);
   font-size: 10px;
 }
 /* Elevação: as três superfícies, do fundo ao que flutua. */
@@ -465,22 +457,22 @@
   gap: 12px;
   padding: 12px 14px;
   border: 1px solid var(--fio);
-  border-radius: var(--orbit-raio-control);
-  color: var(--orbit-secondary);
+  border-radius: var(--cl-radius-control);
+  color: var(--cl-text-body);
   font-size: var(--orbit-texto-label);
 }
 .elevation > span:nth-child(1) {
-  background: var(--orbit-canvas);
+  background: var(--cl-canvas);
 }
 .elevation > span:nth-child(2) {
-  background: var(--orbit-surface);
+  background: var(--cl-chassis);
 }
 .elevation > span:nth-child(3) {
-  background: var(--orbit-raised);
-  box-shadow: var(--orbit-sombra);
+  background: var(--cl-raised);
+  box-shadow: var(--cl-shadow-card);
 }
 .elevation code {
-  font-family: ui-monospace, monospace;
+  font-family: var(--cl-mono);
   font-size: var(--orbit-texto-metadata);
   text-transform: uppercase;
 }
@@ -496,9 +488,9 @@
   gap: 12px;
   padding: 12px 14px;
   border: 1px solid var(--fio);
-  border-radius: var(--orbit-raio-control);
-  background: var(--orbit-raised);
-  color: var(--orbit-secondary);
+  border-radius: var(--cl-radius-control);
+  background: var(--cl-raised);
+  color: var(--cl-text-body);
   font-size: var(--orbit-texto-label);
   transform: translateX(0);
   transition: transform var(--duracao) var(--orbit-suavizacao);
@@ -525,6 +517,6 @@
   gap: 16px;
   padding-top: 32px;
   border-top: 1px solid var(--fio);
-  color: var(--orbit-muted);
+  color: var(--cl-text-muted);
   font-size: var(--orbit-texto-label);
 }

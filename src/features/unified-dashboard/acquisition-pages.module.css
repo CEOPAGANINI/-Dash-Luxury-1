@@ -1,11 +1,11 @@
 .root {
-  --color-success: var(--nebula-positive, #eee);
-  --color-warning: var(--warning, #aaa);
-  --color-destructive: var(--nebula-negative, #999);
-  --color-primary: var(--nebula-accent, #6b7cff);
+  --color-success: var(--cl-success);
+  --color-warning: var(--cl-warning);
+  --color-destructive: var(--cl-danger);
+  --color-primary: var(--cl-accent);
   min-width: 0;
-  color: var(--nebula-text, #f4f5f7);
-  font-family: var(--font-montserrat), system-ui, sans-serif;
+  color: var(--cl-text-primary);
+  font-family: var(--cl-sans), system-ui, sans-serif;
 }
 .root :global(.board-pager-content) {
   container: acquisition-page / inline-size;
@@ -28,14 +28,14 @@
 .heading h2 {
   font-size: clamp(1.35rem, 2.4vw, 2rem);
   line-height: 1.25;
-  font-weight: 800;
+  font-weight: 500;
 }
 .heading p {
-  color: var(--nebula-muted, #9598a3);
+  color: var(--cl-text-muted);
   font-size: 0.875rem;
 }
 .heading .eyebrow {
-  color: var(--nebula-accent, #6b7cff);
+  color: var(--cl-accent);
   font-size: 0.6875rem;
   font-weight: 750;
   letter-spacing: 0.08em;
@@ -45,10 +45,10 @@
   min-width: 0;
   max-width: 100%;
   min-height: 2.5rem;
-  background: var(--nebula-panel-2, #131720);
-  color: var(--nebula-text, #f4f5f7);
-  border: 1px solid var(--nebula-line, rgb(255 255 255 / 8%));
-  border-radius: 12px;
+  background: var(--cl-raised);
+  color: var(--cl-text-primary);
+  border: 1px solid var(--cl-border);
+  border-radius: 4px;
   padding: 0.6rem 0.75rem;
   font: inherit;
   font-size: 0.75rem;
@@ -58,15 +58,15 @@
   font-weight: 700;
 }
 :is(.header, .panel) button:hover {
-  background: var(--camada-4);
+  background: var(--cl-card-top);
 }
 :is(.header, .panel) button[aria-pressed="true"] {
   background: var(--primary, #f5f5f5);
   color: var(--primary-foreground, #090909);
-  box-shadow: var(--dash-shadow-control) !important;
+  box-shadow: var(--cl-shadow-highlight) !important;
 }
 .root :is(button, a, input, select, summary):focus-visible {
-  outline: 2px solid var(--nebula-accent, #6b7cff) !important;
+  outline: 2px solid var(--cl-accent) !important;
   outline-offset: 3px;
 }
 .filters {
@@ -75,15 +75,18 @@
   align-items: end;
   gap: 0.75rem;
   padding: 0.875rem;
-  background: var(--nebula-panel, #0f1217);
-  box-shadow: var(--dash-shadow-card);
+  background: linear-gradient(var(--cl-card-top), var(--cl-chassis));
+  box-shadow:
+    inset 0 0 0 4px var(--cl-chassis),
+    inset 0 0 0 5px var(--cl-inner-border),
+    var(--cl-shadow-card);
 }
 .filters label,
 .filters .field,
 .comparisonFilters label {
   display: grid;
   gap: 0.35rem;
-  color: var(--nebula-muted, #9598a3);
+  color: var(--cl-text-muted);
   font-size: 0.6875rem;
   font-weight: 700;
 }
@@ -93,11 +96,11 @@
   gap: 0.75rem;
   align-items: end;
   padding: 0.875rem;
-  background: var(--nebula-panel, #0f1217);
+  background: var(--cl-chassis);
 }
 .comparisonFilters p {
   font-size: 0.75rem;
-  color: var(--nebula-muted, #9598a3);
+  color: var(--cl-text-muted);
 }
 .source {
   display: flex;
@@ -105,7 +108,7 @@
   flex-wrap: wrap;
   gap: 0.35rem 1rem;
   font-size: 0.75rem;
-  color: var(--nebula-muted, #9598a3);
+  color: var(--cl-text-muted);
 }
 .source small {
   font-size: 0.6875rem;
@@ -116,9 +119,12 @@
   min-width: 0;
 }
 .panel {
-  background: var(--nebula-panel, #0f1217);
+  background: linear-gradient(var(--cl-card-top), var(--cl-chassis));
   padding: clamp(0.875rem, 1.5vw, 1.25rem);
-  box-shadow: var(--dash-shadow-card);
+  box-shadow:
+    inset 0 0 0 4px var(--cl-chassis),
+    inset 0 0 0 5px var(--cl-inner-border),
+    var(--cl-shadow-card);
   display: grid;
   gap: 1rem;
   min-width: 0;
@@ -129,13 +135,13 @@
 }
 .sectionHead h2 {
   font-size: 1rem;
-  font-weight: 800;
+  font-weight: 500;
 }
 .sectionHead p,
 .note {
   font-size: 0.75rem;
   line-height: 1.6;
-  color: var(--nebula-muted, #9598a3);
+  color: var(--cl-text-muted);
 }
 .channelChoices {
   display: flex;
@@ -150,7 +156,7 @@
   font-weight: 650;
 }
 .channelChoices input {
-  accent-color: var(--nebula-accent, #6b7cff);
+  accent-color: var(--cl-accent);
   min-height: 1rem;
   width: 1rem;
 }
@@ -160,16 +166,16 @@
   gap: 0.75rem;
 }
 .channelCard {
-  background: var(--nebula-panel-2, #131720);
+  background: var(--cl-raised);
   display: grid;
   gap: 1rem;
   padding: 1rem;
   min-width: 0;
-  box-shadow: var(--dash-shadow-control);
+  box-shadow: var(--cl-shadow-highlight);
 }
 .channelCard h3 {
   font-size: 1rem;
-  font-weight: 800;
+  font-weight: 500;
   text-align: center;
 }
 .chartRow {
@@ -185,11 +191,12 @@
 }
 .chartRow b {
   font-variant-numeric: tabular-nums;
+  font-family: var(--cl-mono);
 }
 .track {
   height: 0.5rem;
-  background: var(--camada-0);
-  border-radius: 999px;
+  background: var(--cl-well);
+  border-radius: 4px;
   overflow: hidden;
 }
 .track span {
@@ -208,7 +215,7 @@
 }
 .channelMetrics dt {
   font-size: 0.6875rem;
-  color: var(--nebula-muted, #9598a3);
+  color: var(--cl-text-muted);
 }
 .channelMetrics dd {
   font-size: 0.8125rem;
@@ -221,7 +228,7 @@
   gap: 1rem;
   font-size: 0.8rem;
   font-weight: 700;
-  color: var(--nebula-accent, #6b7cff);
+  color: var(--cl-accent);
 }
 .links a {
   text-decoration: underline;
@@ -238,21 +245,22 @@
   display: grid;
   gap: 0.75rem;
   text-align: center;
-  background: var(--nebula-panel-2, #131720);
+  background: var(--cl-raised);
 }
 .summaryCard h3 {
   font-size: 0.75rem;
-  font-weight: 650;
+  font-weight: 500;
 }
 .summaryCard strong {
   font-size: clamp(1.1rem, 1.6vw, 1.5rem);
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
+  font-family: var(--cl-mono);
 }
 .summaryCard span {
   font-size: 0.6875rem;
-  color: var(--nebula-muted, #9598a3);
+  color: var(--cl-text-muted);
 }
 .comparisonRows {
   display: grid;
@@ -263,20 +271,20 @@
   grid-template-columns: 1.2fr 1fr 1fr 1.2fr;
   gap: 0.75rem;
   align-items: center;
-  background: var(--nebula-panel-2, #131720);
+  background: var(--cl-raised);
   padding: 1rem;
   min-width: 0;
 }
 .comparisonRow h3 {
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 500;
 }
 .comparisonRow small {
   display: block;
   margin-top: 0.3rem;
   font-size: 0.65rem;
   font-weight: 500;
-  color: var(--nebula-muted, #9598a3);
+  color: var(--cl-text-muted);
 }
 .comparisonRow > div {
   display: grid;
@@ -287,7 +295,7 @@
 }
 .comparisonRow span {
   font-size: 0.6875rem;
-  color: var(--nebula-muted, #9598a3);
+  color: var(--cl-text-muted);
 }
 .comparisonRow b {
   overflow-wrap: anywhere;
@@ -298,15 +306,15 @@
 }
 .empty {
   padding: 2rem;
-  color: var(--nebula-muted, #9598a3);
+  color: var(--cl-text-muted);
   text-align: center;
 }
 .root :is(.filters, .comparisonFilters, .panel) {
-  border: 1px solid var(--nebula-line, rgb(255 255 255 / 8%));
-  border-radius: 16px;
+  border: 1px solid var(--cl-border);
+  border-radius: 12px;
 }
 .root :is(.channelCard, .summaryCard, .comparisonRow) {
-  border: 1px solid var(--nebula-line, rgb(255 255 255 / 8%));
+  border: 1px solid var(--cl-border);
   border-radius: 12px;
 }
 @container acquisition-page (min-width: 1050px) {

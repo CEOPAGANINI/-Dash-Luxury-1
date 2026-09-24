@@ -1,6 +1,6 @@
 {
   "name": "Nexus — Servidor",
-  "version": 1,
+  "version": 2,
   "source": {
     "archive": "nexus-arcade.aura.build.zip",
     "title": "Nexus Idea Arcade Landing Page Template",
@@ -57,39 +57,45 @@
     "breakpoints": { "sm": "640px", "md": "768px", "lg": "1024px" }
   },
   "dashboardAdaptation": {
-    "scope": "Rotas /servidor: console escuro isolado, sem alterar a tipografia ou o tema das demais páginas.",
+    "scope": "Rotas /servidor, incluindo cadastro e Sites: identidade Nexus arcade localizada, sem alterar a tipografia ou o tema das demais páginas.",
     "color": {
-      "background": "#09090b",
-      "surface": "#111113",
-      "surfaceRaised": "#18181b",
-      "text": "#fafafa",
-      "muted": "#a1a1aa",
-      "border": "rgba(255, 255, 255, 0.11)",
-      "borderStrong": "rgba(255, 255, 255, 0.35)",
-      "primary": "#fafafa",
-      "onPrimary": "#09090b",
-      "focus": "#fafafa",
-      "semanticPolicy": "Usar os tokens semânticos existentes exclusivamente para estados reais; acompanhar com texto ou ícone."
+      "background": "#02030a",
+      "backgroundSecondary": "#08051a",
+      "surface": "#100a24",
+      "surfaceRaised": "#171032",
+      "text": "#f8f3ff",
+      "muted": "#b4adc3",
+      "border": "rgba(248, 243, 255, 0.14)",
+      "cyan": "#35ddf2",
+      "pink": "#f45ba8",
+      "gold": "#e8b85d",
+      "primary": "#35ddf2",
+      "onPrimary": "#02030a",
+      "focus": "#35ddf2",
+      "readabilityAdjustment": "Texto secundário clareado e borda principal a 14%; valores originais preservados na seção original.",
+      "semanticPolicy": "Ciano, rosa e ouro compõem a identidade visual. Estados operacionais exigem dados reais e texto ou ícone; cor decorativa não confirma conexão."
     },
     "geometry": {
       "radius": "0px",
       "borderWidth": "1px",
-      "minimumTouchTarget": "44px",
+      "minimumPrimaryControlHeight": "44px",
       "focusWidth": "2px",
-      "focusOffset": "4px"
+      "focusOffset": "4px",
+      "sitesLinkFocusOffset": "5px"
     },
     "spacing": ["4px", "8px", "12px", "16px", "20px", "24px", "32px", "48px"],
     "shadow": {
-      "card": "inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 4px 0 #050506, 0 18px 32px -20px #000",
-      "insetControl": "inset 0 2px 6px rgba(0, 0, 0, 0.40)"
+      "card": "inset 0 1px 0 rgba(248, 243, 255, 0.06), 0 16px 42px rgba(0, 0, 0, 0.40)",
+      "insetControl": "inset 0 2px 6px rgba(0, 0, 0, 0.40)",
+      "sitesArchive": "7px 7px 0 #030309, 0 0 38px rgba(53, 221, 242, 0.04)",
+      "sitesPrimaryAction": "inset 0 0 20px rgba(53, 221, 242, 0.05), 0 0 20px rgba(53, 221, 242, 0.10)"
     },
     "typography": {
-      "display": "Space Grotesk (local, 400–700)",
-      "technical": "Space Mono (local, 400)",
-      "titleRange": "28–42px (título de boas-vindas)",
-      "bodyRange": "11–14px (conteúdo auxiliar e explicações)",
-      "labelMinimum": "11px",
-      "arcadeRequired": false
+      "arcade": "VT323 (local, 400): títulos arcade, números e marca",
+      "display": "Space Grotesk (local, 400–700): títulos de interface e subtítulos",
+      "body": "Space Mono (local, 400): corpo, rótulos e controles",
+      "scope": "Carregadas no layout de /servidor",
+      "arcadeRequired": true
     },
     "breakpoints": {
       "overview": {
@@ -97,7 +103,12 @@
         "tabletMax": "1000px",
         "wideMin": "1500px"
       },
-      "onboarding": { "mobileMax": "639.984px", "twoColumnsMin": "1088px" }
+      "onboarding": { "mobileMax": "639.984px", "twoColumnsMin": "1088px" },
+      "sites": {
+        "compactMax": "420px",
+        "mobileMax": "760px",
+        "creationStackMax": "1100px"
+      }
     },
     "statePolicy": {
       "unconfigured": "Exibir configuração, requisitos e próximos passos; telemetria indisponível.",
@@ -107,8 +118,17 @@
       "connected": "Depender de resposta real e separar conexão, serviços e telemetria.",
       "stale": "Identificar idade ou horário da última leitura.",
       "missingMetric": "Não substituir ausência por zero, barra, gráfico ou valor demonstrativo.",
+      "sitesFirstRun": "Exibir orientação completa antes da conexão; criação depende de servidor confirmado.",
+      "zipExample": "Árvore ilustrativa identificada como exemplo, sem upload realizado; index.html na raiz e arquivos estáticos, até 3 MB por ZIP, sem PHP ou .htaccess.",
       "reducedMotion": "Respeitar prefers-reduced-motion; sem animação contínua de marketing."
-    }
+    },
+    "excludedRuntime": [
+      "Aura",
+      "motor de física",
+      "partículas",
+      "analytics da landing"
+    ],
+    "backendPolicy": "Adaptação visual sem alterações de segredos, protocolo do agente ou regras do backend."
   },
   "localFonts": [
     {

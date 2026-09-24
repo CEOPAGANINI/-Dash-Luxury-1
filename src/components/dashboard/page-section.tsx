@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import styles from "@/components/command-layer/shell.module.css";
 
 export type PageSectionTone =
   "neutral" | "success" | "warning" | "info" | "destructive";
@@ -65,52 +66,53 @@ export function PageSection({
   return (
     <section
       id={id}
-      className={cn(
-        "scroll-mt-24 overflow-hidden rounded-[1.75rem] border shadow-[0_18px_50px_-30px_rgba(0,0,0,.6)]",
-        sectionTone[tone],
-      )}
+      className={cn(`scroll-mt-24 ${styles.section}`, sectionTone[tone])}
       aria-labelledby={`${id}-title`}
     >
-      <header className="border-b bg-background/72 px-4 py-4 backdrop-blur-sm sm:px-5 sm:py-5">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="flex min-w-0 items-start gap-3 sm:gap-4">
-            <span
-              className={cn(
-                "grid size-11 shrink-0 place-items-center rounded-2xl border",
-                sectionIconTone[tone],
-              )}
-            >
-              <Icon className="size-5" aria-hidden="true" />
-            </span>
-            <div className="min-w-0">
-              {/* Sem caixa alta: texto todo em maiúsculas é mais difícil de
-                  ler para quem tem dislexia, porque some o contorno da palavra. */}
-              {(number || eyebrow) && (
-                <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-[length:var(--text-caption)] font-bold">
-                  {number && (
-                    <span className="text-foreground">Parte {number}</span>
-                  )}
-                  {number && eyebrow && <span aria-hidden>·</span>}
-                  {eyebrow && <span>{eyebrow}</span>}
-                </div>
-              )}
-              <h2
-                id={`${id}-title`}
-                className="mt-1.5 text-[length:var(--text-section-title)] leading-tight font-extrabold tracking-[-0.025em]"
+      <div className={styles.sectionInner}>
+        <header className={`border-b ${styles.sectionHeading}`}>
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div className="flex min-w-0 items-start gap-3 sm:gap-4">
+              <span
+                className={cn(
+                  `grid size-11 shrink-0 place-items-center ${styles.sectionIcon}`,
+                  sectionIconTone[tone],
+                )}
               >
-                {title}
-              </h2>
-              {description && (
-                <p className="text-muted-foreground mt-1.5 max-w-3xl text-[length:var(--text-body)] leading-6">
-                  {description}
-                </p>
-              )}
+                <Icon className="size-5" aria-hidden="true" />
+              </span>
+              <div className="min-w-0">
+                {/* Sem caixa alta: texto todo em maiúsculas é mais difícil de
+                  ler para quem tem dislexia, porque some o contorno da palavra. */}
+                {(number || eyebrow) && (
+                  <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-[length:var(--text-caption)] font-bold">
+                    {number && (
+                      <span className="text-foreground">Parte {number}</span>
+                    )}
+                    {number && eyebrow && <span aria-hidden>·</span>}
+                    {eyebrow && <span>{eyebrow}</span>}
+                  </div>
+                )}
+                <h2
+                  id={`${id}-title`}
+                  className="mt-1.5 text-[length:var(--text-section-title)] leading-tight font-extrabold tracking-[-0.025em]"
+                >
+                  {title}
+                </h2>
+                {description && (
+                  <p className="text-muted-foreground mt-1.5 max-w-3xl text-[length:var(--text-body)] leading-6">
+                    {description}
+                  </p>
+                )}
+              </div>
             </div>
+            {aside ? <div className="shrink-0">{aside}</div> : null}
           </div>
-          {aside ? <div className="shrink-0">{aside}</div> : null}
+        </header>
+        <div className={`space-y-4 sm:space-y-5 ${styles.sectionContent}`}>
+          {children}
         </div>
-      </header>
-      <div className="space-y-4 p-3 sm:space-y-5 sm:p-5">{children}</div>
+      </div>
     </section>
   );
 }

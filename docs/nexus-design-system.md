@@ -1,6 +1,24 @@
-# Nexus · sistema visual para Servidor
+# Nexus · referência visual preservada de Servidor
 
-Referência fornecida pelo usuário: `nexus-arcade.aura.build.zip`, landing **NEXUS — The Idea Arcade**, identificada no pacote como **Nexus Idea Arcade Landing Page Template**. A aplicação é uma adaptação para a página de configuração de servidor do Dash Luxury, preservando a preferência explícita por preto e branco, cantos retos e blocos com profundidade.
+Referência fornecida pelo usuário: `nexus-arcade.aura.build.zip`, landing **NEXUS — The Idea Arcade**, identificada no pacote como **Nexus Idea Arcade Landing Page Template**. Este documento preserva a extração e as implementações anteriores dessa identidade arcade; não descreve o tema ativo atual.
+
+O pedido posterior adotou **CommandLayer no dashboard inteiro, incluindo Servidor, com temas claro e escuro**. A implementação ativa usa os tokens de `src/app/command-layer.css`, Inter e JetBrains Mono, molduras em duas camadas e controles operacionais. Consulte [o design system ativo](command-layer-design-system.md).
+
+## Integração do trabalho paralelo
+
+O commit upstream `21edd95` acrescentou uma camada de fidelidade Nexus à página de Servidor. Seu CSS completo está preservado em [references/nexus-arcade-servidor.module.css](references/nexus-arcade-servidor.module.css), sem importação na aplicação. O arquivo conserva o conteúdo do commit, com apenas um cabeçalho de proveniência acrescentado. A história Git permanece a referência para o layout e as fontes correspondentes.
+
+Essa camada não pode ser sobreposta ao CommandLayer ativo: redefine superfícies e fontes locais, usa regras `!important` e mantém Servidor escuro independentemente do tema. Seu retorno à aplicação exige uma escolha explícita de design, além do markup e das variáveis `--font-server-*` do layout original; não basta importá-la sobre os componentes atuais.
+
+| Aspecto   | CommandLayer ativo                                           | Nexus preservado de `21edd95`                           |
+| --------- | ------------------------------------------------------------ | ------------------------------------------------------- |
+| Tema      | Superfícies e texto acompanham claro/escuro                  | Console escuro nos dois temas                           |
+| Materiais | Grafite ou superfícies claras, moldura 4 px, raios 12/8/4 px | Marinho/violeta, malhas, quinas e bordas ornamentais    |
+| Fontes    | Inter para leitura; JetBrains Mono para controles e métricas | VT323, Space Mono 400/700 e Space Grotesk               |
+| Cor       | Ciano em ações; cores semânticas de estado adaptadas ao tema | Ciano, rosa, ouro, azul e violeta na identidade arcade  |
+| Navegação | Trilho rebaixado e aba elevada                               | Aba entre colchetes, tracking largo e contorno luminoso |
+
+Foi removido do CSS ativo somente o acréscimo Nexus de 361 linhas aplicado automaticamente durante o merge. Os componentes CommandLayer e o comportamento do servidor, ações, permissões e protocolo não foram substituídos por essa referência.
 
 ## Origem e evidência
 
@@ -36,26 +54,27 @@ Os valores originais e a adaptação são registrados separadamente em `nexus-de
 
 **Profundidade original:** o cabeçalho combina `0 22px 70px rgba(0,0,0,.38)` com `inset 0 1px 0 rgba(255,255,255,.055)`; a moldura principal combina `0 0 90px rgba(0,0,0,.52)` com `inset 0 1px 0 rgba(248,243,255,.06)`; os cartões menores combinam `0 0 28px rgba(0,0,0,.18)` com `inset 0 1px 0 rgba(248,243,255,.045)`. Superfícies recebem um gradiente branco discreto e luz colorida localizada.
 
-## Adaptação monocromática do dashboard
+## Aplicação histórica Nexus no dashboard
 
-| Função                                       | Token adaptado                |
-| -------------------------------------------- | ----------------------------- |
-| Fundo                                        | `#09090b`                     |
-| Superfície                                   | `#111113`                     |
-| Superfície elevada                           | `#18181b`                     |
-| Texto                                        | `#fafafa`                     |
-| Texto secundário                             | `#a1a1aa`                     |
-| Borda                                        | `rgba(255,255,255,.11)`       |
-| Destaque / CTA                               | branco, com texto quase preto |
-| Raio de cartões, controles, menus e diálogos | `0`                           |
+| Função                                       | Token adaptado                                  |
+| -------------------------------------------- | ----------------------------------------------- |
+| Fundo                                        | `#02030a`                                       |
+| Fundo secundário                             | `#08051a`                                       |
+| Superfície                                   | `#100a24`                                       |
+| Superfície elevada                           | `#171032`                                       |
+| Texto                                        | `#f8f3ff`                                       |
+| Texto secundário                             | `#b4adc3`                                       |
+| Borda                                        | `rgba(248,243,255,.14)`                         |
+| Acentos                                      | ciano `#35ddf2`, rosa `#f45ba8`, ouro `#e8b85d` |
+| Raio de cartões, controles, menus e diálogos | `0`                                             |
 
-Aplicar a gramática de console técnico: rótulos curtos, índices de seção, divisórias finas, controles retangulares, superfícies sobrepostas e contraste entre área principal e área de configuração. Usar branco e cinza para marca, seleção e foco; cores adicionais são exclusivamente semânticas e sempre acompanhadas de texto ou ícone. A estrutura deve continuar legível sem cor.
+O texto secundário foi clareado de `#a9a1b8` para `#b4adc3`, e a borda principal passou de 11% para 14% para melhorar a leitura da interface. Os demais tons centrais vêm da referência. Ciano orienta navegação, foco e ações contornadas; rosa destaca títulos e etapas; ouro marca ações e elementos auxiliares. Essas cores também compõem a identidade visual, sem representar por si só um estado de conexão. Estados operacionais continuam acompanhados de texto e ícone.
 
-Para blocos, a adaptação reduz o brilho e mantém a aresta iluminada: `inset 0 1px 0 rgba(255,255,255,.05), 0 4px 0 #050506, 0 18px 32px -20px #000`. Campos rebaixados usam `inset 0 2px 6px rgba(0,0,0,.40)`. Aplicar sombra ao bloco, nunca indiscriminadamente aos textos e células. A malha de 22 px fica no diagrama de conexão, com opacidade de 2%; não atravessa campos nem textos longos.
+Painéis usam `inset 0 1px 0 rgba(248,243,255,.06), 0 16px 42px rgba(0,0,0,.40)`, gradientes discretos e iluminação localizada. Campos ficam rebaixados. Molduras, cantos ornamentais e malhas nos diagramas preservam a linguagem da landing; o console de ZIP acrescenta sombra deslocada, e as ações de Sites usam contornos ciano e dourado. O brilho dos títulos arcade é localizado, sem aplicar sombra indiscriminadamente ao corpo do texto.
 
-A implementação carrega Space Grotesk 400–700 e Space Mono 400 localmente, apenas no layout de `/servidor`. O console permanece escuro mesmo quando o dashboard externo usa tema claro, com contraste protegido contra as regras globais antigas. Não muda a fonte nem o tema das demais páginas. VT323 é referência histórica e não é usado na interface. O título de boas-vindas usa 28–42 px; explicações e conteúdo auxiliar usam 11–14 px; rótulos técnicos usam no mínimo 11 px.
+A implementação carrega as três famílias localmente no layout de `/servidor`: VT323 400 nos títulos arcade, números e marca; Space Grotesk 400–700 nos títulos de interface e subtítulos; Space Mono 400 no corpo, rótulos e controles. O console permanece escuro quando o dashboard externo usa tema claro. A aplicação é localizada às rotas de Servidor, incluindo cadastro e Sites, sem substituir a tipografia ou o tema das outras áreas.
 
-Não transportar para o dashboard o motor de física, partículas, animações de marketing, números demonstrativos, integração de analytics ou runtime Aura da landing.
+As fontes e o CSS implementado são locais. Não foram incorporados o runtime Aura, o motor de física, as partículas ou o analytics da landing. A mudança visual não exige alteração de segredos, protocolo do agente ou regras do backend.
 
 ## Componentes e estados de Servidor
 
@@ -80,13 +99,16 @@ A página é útil antes da conexão da VPS. A falta de telemetria não remove a
 
 **Histórico e diagnóstico:** mostrar eventos reais quando existem. Na ausência, oferecer contexto sobre quais eventos aparecerão e como iniciar a primeira verificação. Não gerar logs fictícios para preencher a área.
 
+**Sites antes da primeira publicação:** a tela apresenta a conexão da VPS, o roteiro de domínio e publicação, os requisitos e uma árvore ilustrativa de ZIP. A legenda informa “Exemplo de organização. Nenhum arquivo foi enviado.”; a árvore não representa um upload real. O exemplo usa `index.html` na raiz e pastas de CSS, JavaScript, imagens e fontes. O limite permanece 3 MB por ZIP, com conteúdo estático, sem PHP ou `.htaccess`. Criar um site depende de servidor confirmado; a apresentação orienta o próximo passo sem simular arquivos, domínio, versão ou publicação concluída.
+
 ## Responsividade e acessibilidade
 
 - Na visão geral, até 700 px o conteúdo principal fica em uma coluna; os três contadores compactos continuam lado a lado. Até 1000 px os painéis inferiores ficam empilhados; a partir de 1500 px a lista pode exibir três servidores por linha.
 - No cadastro, abaixo de 640 px os rótulos das etapas ficam abaixo dos números. Os três indicadores continuam lado a lado; formulário e requisitos ficam empilhados. A partir de 1088 px, formulário e requisitos usam duas colunas.
-- Campos cabem na viewport e identificadores longos quebram sem expandir o layout. Manter áreas de toque de pelo menos 44 px, `minmax(0, ...)` e encolhimento dos painéis. Não herdar a altura de hero de 100vh da landing.
+- Em Sites, a composição de criação empilha até 1100 px; hero e roteiro empilham até 760 px, com ajustes adicionais em 420 px.
+- Campos e identificadores devem caber na viewport. Controles principais têm altura mínima de 44 px; usar `minmax(0, ...)` e permitir encolhimento dos painéis. Não herdar a altura de hero de 100vh da landing.
 - Espaçamento de trabalho: escala de 4, 8, 12, 16, 20, 24, 32 e 48 px; padding dos cartões de 16–24 px; gaps de 12–24 px. A escala é uma adaptação da densidade do dashboard, não uma transcrição literal do hero.
-- Foco de teclado visível com contorno de 2 px e offset de 4 px; não depender só de sombra. Manter ordem de tabulação, rótulos associados e nomes acessíveis para botões com ícone.
+- Foco ciano de teclado com contorno de 2 px e offset de 4 px; os links de Sites usam offset de 5 px. Manter ordem de tabulação, rótulos associados e nomes acessíveis para botões com ícone.
 - Estados devem comunicar texto além da cor. Mudanças de verificação/salvamento podem usar região de status; erros bloqueantes devem ser anunciados sem apagar o formulário.
 - Respeitar `prefers-reduced-motion`; sem animação contínua necessária para entender a página. O contraste do texto deve permanecer legível nos temas existentes.
 - Validar desktop e celular, conteúdo longo, erro, carregamento e estado sem VPS. Não preencher lacunas com métricas de demonstração.
@@ -102,12 +124,13 @@ A página é útil antes da conexão da VPS. A falta de telemetria não remove a
 
 Esses arquivos estão presentes no material fornecido. A documentação registra sua origem sem introduzir dependência de Google Fonts, CDN ou scripts externos.
 
-## Atualização: fidelidade à referência (24/09)
+## Registro upstream: fidelidade à referência Nexus (24/09, `21edd95`)
 
-O usuário apontou que a primeira adaptação, em preto e grafite, "não está
-parecendo com essa landing page". A camada "Fidelidade ao Nexus Arcade", no
-fim de `src/features/vps/servidor-nexus.module.css`, devolve à área
-`/servidor` o que é da referência:
+Antes da solicitação CommandLayer, o usuário apontou que a primeira adaptação,
+em preto e grafite, "não está parecendo com essa landing page". A camada
+"Fidelidade ao Nexus Arcade" recebida no commit `21edd95` atendia a essa
+solicitação anterior. Ela foi preservada no fim do CSS arquivado em
+`docs/references/nexus-arcade-servidor.module.css`, com estas características:
 
 - Cores: fundo `#02030A`, blocos `#100A24` e `#171032`, e os acentos ciano
   `#35DDF2`, rosa `#F45BA8`, ouro `#E8B85D`, azul `#5E8CFF` e violeta
@@ -118,9 +141,10 @@ fim de `src/features/vps/servidor-nexus.module.css`, devolve à área
 - Ornamentos: marcas de quina ciano e ouro, rótulos "//" com moldura, aba
   ativa entre colchetes, atalho do editor em ouro e botões com borda de 2 px e
   brilho.
-- A área continua escura nos dois temas e com cantos retos. O resto do painel
-  usa o CommandLayer (`docs/COMMANDLAYER-DESIGN-SYSTEM.md`). O texto `#7C748E`
-  da referência só aparece em ornamento, porque não passa 4,5:1.
+- Nessa implementação histórica, a área continuava escura nos dois temas e
+  com cantos retos, enquanto o restante do painel recebia outra adaptação
+  CommandLayer. Essa exceção não está ativa: hoje Servidor acompanha o tema
+  do dashboard. O texto `#7C748E` da referência ficava reservado a ornamentos.
 
 Detalhes técnicos desta camada:
 
@@ -134,4 +158,3 @@ Detalhes técnicos desta camada:
   `.configuration > summary > span:last-child`.
 - Até 700 px de largura, a navegação encolhe o tracking e rola de lado, em
   vez de sobrepor as abas.
-

@@ -186,16 +186,14 @@ type TomEstado = keyof typeof ESTADOS;
   diferentes para o mesmo número, na mesma caixa.
 */
 const COR_ESTADO: Record<TomEstado, string> = {
-  success: "var(--overview-sucesso, #e5e5e5)",
-  warning: "#f59e0b",
-  destructive: "#ef4444",
-  /* Informação e projeção não são meta: entram como cinza, para a cor
-     continuar querendo dizer só uma coisa nesta tela. Os cinzas vêm de
-     variáveis da pele: no tema claro, branco translúcido some no branco. */
-  info: "var(--overview-info, #c2c2c2)",
-  accent: "var(--overview-accent, #9e9e9e)",
-  neutral: "var(--overview-neutro, rgba(255,255,255,.45))",
-  vazio: "var(--overview-neutro, rgba(255,255,255,.45))",
+  success: "var(--cl-success)",
+  warning: "var(--cl-warning)",
+  destructive: "var(--cl-danger)",
+  /* Informação e projeção têm cores próprias, sem assumir sucesso de meta. */
+  info: "var(--cl-info)",
+  accent: "var(--cl-accent)",
+  neutral: "var(--cl-text-muted)",
+  vazio: "var(--cl-text-muted)",
 };
 
 function Estado({ tom }: { tom: TomEstado }) {
@@ -598,22 +596,22 @@ export function VisualOverview({
     {
       label: "Caixa recebido",
       value: snapshot.caixaRecebido,
-      color: "var(--overview-serie, #f5f5f5)",
+      color: "var(--serie-1)",
     },
     {
       label: "Receita líquida",
       value: snapshot.receitaLiquida,
-      color: "#c2c2c2",
+      color: "var(--serie-6)",
     },
     {
       label: "Lucro final",
       value: Math.max(snapshot.lucroContribuicao, 0),
-      color: "#909090",
+      color: "var(--serie-2)",
     },
     {
       label: "Investimento em mídia",
       value: snapshot.gastoMidia,
-      color: "#6a6a6a",
+      color: "var(--serie-3)",
     },
   ];
   const compositionMax = Math.max(...composition.map((item) => item.value), 1);
@@ -622,22 +620,21 @@ export function VisualOverview({
     {
       label: "Aprovado",
       value: snapshot.taxaAprovacao,
-      /* Este é o único gráfico da tela que fica colorido: aprovado,
-         pendente e recusado não são três categorias quaisquer, são bom,
-         atenção e ruim — a mesma escala das metas. */
-      color: "var(--overview-sucesso, #e5e5e5)",
+      /* Aprovado, pendente e recusado usam cores semânticas de resultado,
+         distintas das séries categóricas dos demais gráficos. */
+      color: "var(--cl-success)",
     },
     {
       label: "Pendente",
       value: snapshot.taxaPendente,
-      color: "#f59e0b",
+      color: "var(--cl-warning)",
     },
     {
       label: "Recusado",
       value: hasPaymentData
         ? Math.max(0, 1 - snapshot.taxaAprovacao - snapshot.taxaPendente)
         : 0,
-      color: "#ef4444",
+      color: "var(--cl-danger)",
     },
   ];
   const healthTotal = Math.max(
@@ -653,7 +650,7 @@ export function VisualOverview({
           return `${segment.color} ${start}% ${conicStart}%`;
         })
         .join(", ")
-    : "var(--overview-trilho, rgba(255,255,255,.08)) 0 100%";
+    : "var(--cl-border) 0 100%";
   const trend = model.trend.map((point) => ({
     ...point,
     shortLabel: point.label.slice(0, 5),
@@ -1020,7 +1017,7 @@ export function VisualOverview({
                   <div
                     className="visual-overview-donut"
                     style={{
-                      background: `conic-gradient(${COR_ESTADO[veredito(estadoMargem)]} 0 ${marginProgress * 100}%, var(--overview-trilho, rgba(255,255,255,.08)) ${marginProgress * 100}% 100%)`,
+                      background: `conic-gradient(${COR_ESTADO[veredito(estadoMargem)]} 0 ${marginProgress * 100}%, var(--cl-border) ${marginProgress * 100}% 100%)`,
                     }}
                     role="img"
                     aria-label={`Margem de contribuição ${percent.format(snapshot.margemContribuicao)}`}
@@ -1209,38 +1206,38 @@ export function VisualOverview({
                           >
                             <stop
                               offset="0%"
-                              stopColor="var(--overview-serie, #f5f5f5)"
+                              stopColor="var(--cl-accent)"
                               stopOpacity={0.3}
                             />
                             <stop
                               offset="100%"
-                              stopColor="var(--overview-serie, #f5f5f5)"
+                              stopColor="var(--cl-accent)"
                               stopOpacity={0}
                             />
                           </linearGradient>
                         </defs>
                         <CartesianGrid
                           vertical={false}
-                          stroke="var(--overview-grade, rgba(255,255,255,.07))"
+                          stroke="var(--cl-border)"
                         />
                         <XAxis
                           dataKey="shortLabel"
                           axisLine={false}
                           tickLine={false}
                           minTickGap={26}
-                          tick={{ fill: "var(--overview-eixo, rgba(255,255,255,.42))", fontSize: 10 }}
+                          tick={{ fill: "var(--cl-text-muted)", fontSize: 10 }}
                         />
                         <YAxis
                           hide
                           domain={["dataMin - 400", "dataMax + 400"]}
                         />
                         <Tooltip
-                          cursor={{ stroke: "var(--overview-cursor, rgba(255,255,255,.18))" }}
+                          cursor={{ stroke: "var(--cl-border-strong)" }}
                           contentStyle={{
-                            background: "#171717",
-                            border: "1px solid rgba(255,255,255,.12)",
-                            borderRadius: 12,
-                            color: "#fff",
+                            background: "var(--cl-chassis)",
+                            border: "1px solid var(--cl-border-strong)",
+                            borderRadius: 8,
+                            color: "var(--cl-text-primary)",
                             fontSize: 12,
                           }}
                           formatter={(value) => [
@@ -1251,14 +1248,14 @@ export function VisualOverview({
                         <Area
                           type="monotone"
                           dataKey="netRevenue"
-                          stroke="var(--overview-serie, #f5f5f5)"
+                          stroke="var(--cl-accent)"
                           strokeWidth={3}
                           fill="url(#overviewRevenueFill)"
                           dot={false}
                           activeDot={{
                             r: 4,
-                            fill: "var(--overview-serie, #f5f5f5)",
-                            stroke: "var(--overview-serie-contorno, #0a0a0a)",
+                            fill: "var(--cl-accent)",
+                            stroke: "var(--cl-screen)",
                           }}
                           isAnimationActive={false}
                         />
@@ -1322,9 +1319,11 @@ export function VisualOverview({
                           style={{
                             width: size,
                             height: size,
-                            background: ["#f5f5f5", "#a8a8a8", "#6a6a6a"][
-                              index
-                            ],
+                            background: [
+                              "var(--serie-1)",
+                              "var(--serie-2)",
+                              "var(--serie-3)",
+                            ][index],
                           }}
                         >
                           {Math.round((channel.revenue / bubbleMax) * 100)}
@@ -1337,9 +1336,11 @@ export function VisualOverview({
                       <li key={channel.name}>
                         <i
                           style={{
-                            background: ["var(--overview-serie, #f5f5f5)", "#a8a8a8", "#6a6a6a"][
-                              index
-                            ],
+                            background: [
+                              "var(--serie-1)",
+                              "var(--serie-2)",
+                              "var(--serie-3)",
+                            ][index],
                           }}
                           aria-hidden="true"
                         />
@@ -1507,7 +1508,7 @@ export function VisualOverview({
                         style={{
                           background: `conic-gradient(${
                             COR_ESTADO[veredito(estadoMeta(metaReceita))]
-                          } 0 ${metaReceita.preenchimento * 100}%, var(--overview-trilho, rgba(255,255,255,.08)) ${
+                          } 0 ${metaReceita.preenchimento * 100}%, var(--cl-border) ${
                             metaReceita.preenchimento * 100
                           }% 100%)`,
                         }}
@@ -1559,7 +1560,7 @@ export function VisualOverview({
                         style={{
                           background: `conic-gradient(${
                             COR_ESTADO[veredito(estadoMeta(metaLucro))]
-                          } 0 ${metaLucro.preenchimento * 100}%, var(--overview-trilho, rgba(255,255,255,.08)) ${
+                          } 0 ${metaLucro.preenchimento * 100}%, var(--cl-border) ${
                             metaLucro.preenchimento * 100
                           }% 100%)`,
                         }}
@@ -1771,7 +1772,9 @@ export function VisualOverview({
                       <p>Payback</p>
                       <span>Compras até o cliente se pagar</span>
                     </div>
-                    <Estado tom={veredito(estadoPayback(clientes.paybackCompras))} />
+                    <Estado
+                      tom={veredito(estadoPayback(clientes.paybackCompras))}
+                    />
                   </div>
 
                   {Number.isFinite(clientes.paybackCompras) ? (
@@ -1832,7 +1835,7 @@ export function VisualOverview({
                     style={{
                       background: `conic-gradient(${COR_ESTADO.info} 0 ${
                         Math.min(1, clientes.taxaRecompra) * 100
-                      }%, var(--overview-trilho, rgba(255,255,255,.08)) ${
+                      }%, var(--cl-border) ${
                         Math.min(1, clientes.taxaRecompra) * 100
                       }% 100%)`,
                     }}

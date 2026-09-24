@@ -3,7 +3,9 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, Zap } from "lucide-react";
+import { SolarIcon } from "@/components/command-layer/solar-icon";
+import styles from "@/components/command-layer/shell.module.css";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 
 import { brand } from "@/lib/brand";
 import type { SessionUser } from "@/lib/auth/session";
@@ -33,18 +35,23 @@ export function Header({ user, unreadCount }: HeaderProps) {
   const [drawerOpen, setDrawerOpen] = React.useState(false);
 
   return (
-    <div className="nebula-topbar sticky top-0 z-40">
-      <header className="dash-band bg-background/80 flex h-16 shrink-0 items-center gap-3 border-b px-3 backdrop-blur-sm md:px-6">
+    <div className={`nebula-topbar ${styles.topbar}`}>
+      <header className={styles.navigation}>
         <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" aria-label="Abrir menu">
-              <Menu className="size-5" />
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Abrir menu"
+              className={styles.iconButton}
+            >
+              <SolarIcon name="hamburger-menu" />
             </Button>
           </SheetTrigger>
           <SheetContent
             side="left"
-            data-design-system="nebula"
-            className="dash-skin flex w-72 flex-col border-0 p-0 sm:max-w-72"
+            data-design-system="commandlayer"
+            className={`dash-skin cl flex w-72 flex-col border-0 p-0 sm:max-w-72 ${styles.sidebar}`}
             showClose={false}
             onEscapeKeyDown={(event) => {
               if (
@@ -56,12 +63,17 @@ export function Header({ user, unreadCount }: HeaderProps) {
             }}
           >
             <SheetTitle className="sr-only">Menu de navegação</SheetTitle>
-            <div className="dash-sidebar dash-sidebar-scroll min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain">
-              <div className="dash-sidebar-cabecalho flex h-16 items-center gap-2 px-4">
-                <div className="nebula-brand-mark flex size-8 shrink-0 items-center justify-center">
-                  <Zap className="size-4.5" aria-hidden="true" />
+            <div
+              className={`dash-sidebar dash-sidebar-scroll min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain ${styles.sidebar}`}
+            >
+              <div
+                className={`dash-sidebar-cabecalho flex items-center gap-3 ${styles.sidebarHeader}`}
+              >
+                <div className={`nebula-brand-mark ${styles.brandMark}`}>
+                  <SolarIcon name="bolt" size={18} />
                 </div>
-                <span className="text-base font-bold tracking-tight">
+                <span className={styles.brandName}>
+                  <span className={styles.brandLabel}>Painel de controle</span>
                   {brand.name}
                 </span>
               </div>
@@ -77,18 +89,40 @@ export function Header({ user, unreadCount }: HeaderProps) {
             </div>
           </SheetContent>
         </Sheet>
-        <Link href="/dashboard" aria-label={brand.name} className="nebula-brand flex shrink-0 items-center gap-2.5">
-          <div className="nebula-brand-mark flex size-8 shrink-0 items-center justify-center">
-            <Zap className="size-4" aria-hidden="true" />
+        <Link
+          href="/dashboard"
+          aria-label={brand.name}
+          className={`nebula-brand ${styles.brand}`}
+        >
+          <div className={`nebula-brand-mark ${styles.brandMark}`}>
+            <SolarIcon name="bolt" size={18} />
           </div>
-          <span className="hidden text-[length:var(--text-card-title)] font-bold tracking-tight sm:block">
+          <span className={`${styles.brandCopy} ${styles.brandName}`}>
+            <span className={styles.brandLabel}>Painel de controle</span>
             {brand.name}
           </span>
         </Link>
-        <span aria-hidden className="nebula-header-divider" />
-        <h1 className="nebula-header-title truncate text-[length:var(--text-card-title)] font-semibold">
-          {sidebarPageTitle(pathname)}
-        </h1>
+        <span aria-hidden className={styles.divider} />
+        <h1 className={styles.pageTitle}>{sidebarPageTitle(pathname)}</h1>
+        <div className={styles.actions}>
+          <ThemeToggle compact />
+          <Link
+            href="/notificacoes"
+            aria-label={
+              unreadCount > 0
+                ? `Notificações: ${unreadCount} não lidas`
+                : "Notificações"
+            }
+            className={styles.iconButton}
+          >
+            <SolarIcon name="bell" />
+            {unreadCount > 0 && (
+              <span aria-hidden className={styles.notificationCount}>
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
+          </Link>
+        </div>
       </header>
     </div>
   );

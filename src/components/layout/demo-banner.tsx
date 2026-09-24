@@ -1,4 +1,4 @@
-import { TriangleAlert } from "lucide-react";
+import { SolarIcon } from "@/components/command-layer/solar-icon";
 
 /**
  * Banner permanente do modo demonstração. É o único aviso do painel: as
@@ -8,8 +8,8 @@ import { TriangleAlert } from "lucide-react";
  */
 export function DemoBanner({ semBanco }: { semBanco: boolean }) {
   return (
-    <div className="bg-warning/15 text-warning-foreground dark:text-warning flex items-center gap-2 border-b px-4 py-2 text-xs md:px-6">
-      <TriangleAlert className="size-3.5 shrink-0" />
+    <div className="cl-demo-banner flex shrink-0 items-center gap-2 px-4 py-2 text-xs md:px-6">
+      <SolarIcon name="danger-triangle" className="size-3.5 shrink-0" />
       {semBanco ? (
         <span>
           <strong>Modo demonstração:</strong> os números são de exemplo e não

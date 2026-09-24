@@ -9,8 +9,8 @@ import styles from "./servidor-nexus.module.css";
   modo demonstração. Sem "use client": a página (Server Component) desenha
   o demo sem mandar JavaScript nenhum, e as ilhas reusam a mesma moldura.
 
-  O bloco usa o material Nexus, exclusivo da área Servidor: cantos retos,
-  aresta fina e profundidade. O header continua filho direto e o título h3.
+  O bloco usa a moldura CommandLayer em duas camadas. A camada interna
+  mantém o cabeçalho, o conteúdo e os estados reais do servidor.
 */
 
 export function Bloco({
@@ -35,34 +35,30 @@ export function Bloco({
 }) {
   return (
     <section className={cn(styles.panel, className)}>
-      <header className="flex flex-wrap items-start gap-3 border-b px-4 py-3">
-        <div className="min-w-0 flex-1">
-          {rotulo && (
-            <span className="text-muted-foreground block text-[0.6875rem] leading-4 font-extrabold tracking-[0.1em] uppercase">
-              {rotulo}
-            </span>
-          )}
-          <h3 className="text-[clamp(1rem,0.92rem+0.2vw,1.125rem)] leading-tight font-extrabold tracking-tight break-words">
-            {titulo}
-          </h3>
-          {descricao && (
-            <p className="text-muted-foreground mt-0.5 text-xs leading-5">
-              {descricao}
-            </p>
-          )}
-        </div>
-        {acoes && (
-          <div className="flex min-w-0 flex-wrap items-center gap-2">
-            {acoes}
+      <div className={styles.panelInner}>
+        <header className={styles.panelHeader}>
+          <div className="min-w-0 flex-1">
+            {rotulo && <span className={styles.panelLabel}>{rotulo}</span>}
+            <h3 className={styles.panelTitle}>{titulo}</h3>
+            {descricao && (
+              <p className="text-muted-foreground mt-0.5 text-xs leading-5">
+                {descricao}
+              </p>
+            )}
           </div>
-        )}
-      </header>
-      {children !== undefined &&
-        (semRespiro ? (
-          <div className="min-w-0">{children}</div>
-        ) : (
-          <div className="min-w-0 space-y-3 px-4 py-4">{children}</div>
-        ))}
+          {acoes && (
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              {acoes}
+            </div>
+          )}
+        </header>
+        {children !== undefined &&
+          (semRespiro ? (
+            <div className={styles.panelFlush}>{children}</div>
+          ) : (
+            <div className={cn(styles.panelBody, "space-y-4")}>{children}</div>
+          ))}
+      </div>
     </section>
   );
 }
