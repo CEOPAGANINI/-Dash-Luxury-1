@@ -1923,6 +1923,7 @@ function FeedDeCriativos({
   const irPara = React.useCallback((indice: number) => aoAbrir(Math.min(Math.max(indice, 0), total - 1)), [aoAbrir, total]);
   const andar = (lado: 1 | -1) => irPara(pagina + lado);
   function teclado(e: React.KeyboardEvent<HTMLDivElement>) {
+    if (e.defaultPrevented) return;
     if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
     e.preventDefault();
     andar(e.key === "ArrowRight" ? 1 : -1);
@@ -1932,6 +1933,7 @@ function FeedDeCriativos({
       className="class-board-dados-criativos"
       aria-label={`Criativos de ${c.name}`}
       data-cabem={cabem}
+      data-network={c.network}
     >
       {/* Sem o rótulo "Criativos" nem a conta de anúncios: ficam só as
           setas. Que página está aberta continua a ver-se nos pontinhos,

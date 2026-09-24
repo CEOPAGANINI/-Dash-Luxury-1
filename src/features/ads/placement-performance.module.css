@@ -10,7 +10,7 @@
   --fio: var(--cl-border);
   --curva: var(--cl-radius-panel);
   --sombra: var(--cl-shadow-card);
-  --vao: 12px;
+  container: creative-comparison / inline-size;
   min-width: 0;
   color: var(--cl-text-primary);
   color-scheme: inherit;
@@ -22,74 +22,77 @@
   text-align: left;
 }
 
-/*
-  No desktop a grade corre na horizontal, e cada coluna vai de 320px a
-  440px.
-
-  Os dois limites vêm de erros medidos. Sem o mínimo, muitos criativos
-  espremiam-se todos até não se lerem — é ele que manda a grade rolar de
-  lado. Sem o máximo, um criativo sozinho esticava-se pela largura toda
-  do painel (novecentos e tal pixels para uma coluna) e ficava um cartaz,
-  não uma coluna de comparação.
-
-  Entre os dois, as colunas repartem a largura: com três num painel de
-  1.400px ficam nos 440px e enchem-no. Quando são poucas para a encher,
-  a grade centra-as — o que sobra fica repartido pelos dois lados, como
-  margem, em vez de cair todo numa faixa à direita.
-
-  O padding em baixo é o espaço da barra de rolagem, para ela não tapar
-  o último cartão.
-*/
+/* Um, dois ou três cards inteiros por área visível, conforme a largura
+   disponível. A rolagem e as setas alcançam os demais sem diminuir o zoom.
+   O espaço inferior reserva a barra sem cobrir o último botão. */
 .comparisonGrid {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: minmax(320px, 440px);
+  grid-auto-columns: calc((100% - 12px) / 2);
   align-items: start;
-  justify-content: center;
-  gap: 16px;
+  /* Nunca centralizar conteúdo que transborda: isso torna o primeiro
+     criativo inacessível no início da rolagem. */
+  justify-content: safe center;
+  gap: 12px;
   min-width: 0;
   overflow-x: auto;
   padding-bottom: 12px;
   scrollbar-width: thin;
+  scroll-snap-type: x proximity;
 }
 .creativeColumn {
   display: flex;
   flex-direction: column;
-  gap: var(--vao);
+  gap: 0;
   min-width: 0;
+  scroll-snap-align: start;
 }
-
-/*
-  Um criativo sozinho não tem com quem ser comparado, e uma coluna de
-  440px no meio de um painel largo deixava quase setecentos pixels de
-  branco de cada lado. Sozinho, os dois blocos põem-se lado a lado e
-  enchem a largura — o criativo à esquerda, os posicionamentos à
-  direita.
-
-  Só a partir dos 1.100px de janela: abaixo disso não há largura para
-  dois, e voltam a empilhar-se.
-*/
-@media (min-width: 1100px) {
-  .comparisonGrid:has(> .creativeColumn:only-child) {
-    grid-auto-columns: minmax(320px, 960px);
-  }
-  .creativeColumn:only-child {
-    flex-direction: row;
-    align-items: start;
-  }
-  .creativeColumn:only-child > * {
-    flex: 1 1 0;
-    min-width: 0;
+.comparisonGrid:has(> .creativeColumn:only-child) {
+  grid-auto-columns: minmax(0, 520px);
+}
+.comparisonNavigation {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-bottom: 6px;
+  font-size: 11px;
+  color: var(--cl-text-muted);
+}
+.comparisonNavigation span {
+  margin-right: auto;
+}
+.section .comparisonNavigation button {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 4px;
+  background: var(--cl-screen);
+  color: var(--cl-text-primary);
+  border: 1px solid var(--cl-border);
+  cursor: pointer;
+}
+.comparisonNavigation svg {
+  width: 16px;
+  height: 16px;
+}
+.comparisonNavigation button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+@container creative-comparison (min-width: 1120px) {
+  .comparisonGrid {
+    grid-auto-columns: calc((100% - 24px) / 3);
   }
 }
 
 /* Tudo o que é caixa nesta secção partilha a mesma moldura: é o que faz
    a coluna parecer uma peça só, e não sete pedaços avulsos. */
 .section .creativeSummaryCard,
-.section .placementsCard,
 .section .empty {
   min-width: 0;
-  padding: 16px;
+  padding: 10px;
   background: linear-gradient(var(--cl-card-top), var(--cl-chassis)) !important;
   border: 1px solid var(--fio) !important;
   border-radius: var(--curva) !important;
@@ -129,6 +132,12 @@
   container: creative-card / inline-size;
   display: flex;
   flex-direction: column;
+  gap: 6px;
+}
+.creativeHeader {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  align-items: center;
   gap: 12px;
 }
 .creativePreview {
@@ -140,7 +149,7 @@
   box-shadow: var(--cl-shadow-inset);
   aspect-ratio: 4 / 5;
   width: 100%;
-  max-height: 260px;
+  height: 80px;
 }
 .media {
   display: block;
@@ -153,14 +162,17 @@
   display: grid;
   justify-items: center;
   align-content: center;
-  gap: 10px;
+  gap: 4px;
   color: var(--cl-text-muted);
-  font-size: 13px;
-  min-height: 120px;
+  font-size: 10px;
+  line-height: 1.3;
+  padding: 4px;
+  text-align: center;
+  min-height: 0;
 }
 .placeholder svg {
-  width: 28px;
-  height: 28px;
+  width: 20px;
+  height: 20px;
   stroke-width: 1.3;
 }
 .creativeInfo {
@@ -171,7 +183,7 @@
 /* Só o nome do criativo. Sem subtítulo e sem descrição: é o botão de
    detalhes que abre o resto. */
 .creativeInfo h3 {
-  font-size: 17px;
+  font-size: 15px;
   overflow-wrap: anywhere;
 }
 .creativeBadges {
@@ -183,12 +195,12 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 4px 9px;
+  padding: 3px 5px;
   border-radius: var(--cl-radius-control);
   font-family: var(--cl-mono);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 650;
-  white-space: nowrap;
+  white-space: normal;
 }
 .creativeBadges svg {
   width: 13px;
@@ -213,7 +225,7 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
-  padding-top: 12px;
+  padding-top: 8px;
   border-top: 1px solid var(--fio);
 }
 .creativeKpiGrid > div {
@@ -221,7 +233,7 @@
 }
 .creativeKpiGrid dd {
   font-family: var(--cl-mono);
-  font-size: clamp(15px, 5.5cqi, 19px);
+  font-size: clamp(15px, 4.8cqi, 18px);
   font-weight: 750;
   line-height: 1.2;
   font-variant-numeric: tabular-nums;
@@ -231,6 +243,7 @@
   margin-top: 2px;
   color: var(--cl-text-muted);
   font-size: 10.5px;
+  line-height: 1.25;
   font-weight: 600;
 }
 .section .detailsButton[data-acao="detalhes"] {
@@ -238,8 +251,8 @@
   justify-content: center;
   align-items: center;
   gap: 8px;
-  padding: 10px;
-  min-height: 42px;
+  padding: 6px 8px;
+  min-height: 32px;
   width: 100%;
   color: #fff !important;
   background: var(--cl-button-fill) !important;
@@ -247,6 +260,7 @@
   border-radius: var(--cl-radius-control);
   box-shadow: var(--cl-shadow-button);
   font-size: 12px;
+  line-height: 1.25;
   font-weight: 400;
   cursor: pointer;
 }
@@ -266,7 +280,8 @@
 
 .bar {
   display: flex;
-  height: 16px;
+  height: 10px;
+  flex: none;
   overflow: hidden;
   border-radius: var(--cl-radius-control);
   background: var(--cl-raised);
@@ -276,12 +291,11 @@
   height: 100%;
   flex: none;
 }
-/* Duas colunas de legenda: cinco posicionamentos numa coluna só faziam
-   o cartão crescer sem necessidade. */
+/* Legenda compacta no painel ao lado da lista de posicionamentos. */
 .legend {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px 10px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
   padding: 0;
   margin: 0;
   list-style: none;
@@ -289,27 +303,33 @@
 .legend li {
   display: flex;
   align-items: flex-start;
-  gap: 7px;
+  gap: 5px;
   min-width: 0;
 }
+.legend li > div {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 1px 5px;
+}
 .legend i {
-  width: 10px;
-  height: 10px;
+  width: 6px;
+  height: 6px;
   margin-top: 3px;
-  border-radius: 3px;
+  border-radius: 0;
   flex: none;
 }
 .legend b {
   display: block;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 750;
   line-height: 1.25;
   color: var(--cl-text-primary);
 }
 .legend span {
   display: block;
-  margin-top: 1px;
-  font-size: 10.5px;
+  margin-top: 0;
+  font-size: 10px;
   color: var(--cl-text-muted);
   line-height: 1.35;
   overflow-wrap: anywhere;
@@ -322,10 +342,13 @@
 /* ─── Os cinco posicionamentos, num bloco só ───────────────────────── */
 
 .placementsCard {
-  container: placement-card / inline-size;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: stretch;
+  gap: 8px;
+  min-width: 0;
+  padding-top: 8px;
+  border-top: 1px solid var(--fio);
 }
 /*
   A fila é um display rebaixado CommandLayer que acompanha o tema.
@@ -335,9 +358,10 @@
 .placementRows {
   --selecionado-texto: var(--cl-text-primary);
   display: grid;
-  gap: 3px;
+  gap: 2px;
+  align-content: start;
   min-width: 0;
-  padding: 6px;
+  padding: 3px;
   border: 1px solid var(--cl-border);
   border-radius: var(--cl-radius-inner);
   background: var(--cl-well);
@@ -349,10 +373,10 @@
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto auto;
   align-items: center;
-  gap: 8px;
+  gap: 5px;
   min-width: 0;
   width: 100%;
-  padding: 7px 8px;
+  padding: 5px 6px;
   border: 0;
   border-radius: var(--cl-radius-control);
   background: transparent;
@@ -386,16 +410,17 @@
 }
 .rowName {
   min-width: 0;
-  font-size: 12.5px;
+  font-family: var(--cl-sans);
+  font-size: 11px;
   font-weight: 650;
   color: inherit;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  line-height: 1.2;
 }
 .rowSales {
   flex: none;
-  font-size: 13px;
+  font-size: 11px;
+  line-height: 1.15;
   font-weight: 750;
   color: inherit;
   font-variant-numeric: tabular-nums;
@@ -404,8 +429,8 @@
   display: grid;
   place-items: center;
   flex: none;
-  width: 22px;
-  height: 22px;
+  width: 18px;
+  height: 18px;
   border-radius: var(--cl-radius-control);
   color: #fff;
 }
@@ -414,8 +439,8 @@
 .overviewIcon {
   display: flex;
   flex: none;
-  width: 22px;
-  height: 22px;
+  width: 18px;
+  height: 18px;
   overflow: hidden;
   border-radius: var(--cl-radius-control);
   background: var(--cl-raised);
@@ -449,18 +474,44 @@
 /* Coluna apertada: o emblema fica só com a percentagem, para o nome do
    posicionamento caber inteiro. O nome é o que identifica a linha; a
    palavra "das vendas" repete-se nas cinco e não acrescenta nada. */
-@container placement-card (max-width: 340px) {
+@container creative-card (min-width: 310px) {
+  .placementsCard {
+    grid-template-columns: minmax(132px, 0.9fr) minmax(0, 1.1fr);
+  }
+  .section .placementRows .placementRow {
+    grid-template-columns: 18px auto minmax(0, 1fr);
+    grid-template-areas: "icon name name" "icon sales share";
+    column-gap: 5px;
+    row-gap: 2px;
+    padding: 3px 5px;
+    min-height: 34px;
+  }
+  .platformIcon,
+  .overviewIcon {
+    grid-area: icon;
+  }
+  .rowName {
+    grid-area: name;
+  }
+  .rowSales {
+    grid-area: sales;
+  }
+  .badge {
+    grid-area: share;
+    justify-self: end;
+  }
   .badge > small {
     display: none;
   }
 }
 .badge {
   flex: none;
-  padding: 3px 7px;
+  padding: 1px 3px;
   border-radius: var(--cl-radius-control);
   background: var(--cl-screen);
   color: var(--cl-text-body);
   font-size: 9.5px;
+  line-height: 1.15;
   font-weight: 650;
   white-space: nowrap;
 }
@@ -472,9 +523,9 @@
 .placementDetail {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   min-width: 0;
-  padding: 12px;
+  padding: 8px;
   border: 1px solid var(--fio);
   border-radius: var(--cl-radius-inner);
   background: var(--cl-screen);
@@ -485,18 +536,18 @@
   outline-offset: 2px;
 }
 .placementDetail h4 {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   color: var(--cl-text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0;
 }
 /* As três que mandam — vendas, ROAS e checkouts iniciados — em número
    grande; as outras seis por baixo, mais pequenas. */
 .placementMainMetrics {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 6px;
+  gap: 4px;
   min-width: 0;
 }
 .placementMainMetrics > div {
@@ -504,7 +555,7 @@
 }
 .placementMainMetrics dd {
   font-family: var(--cl-mono);
-  font-size: clamp(17px, 6.5cqi, 22px);
+  font-size: clamp(14px, 4.3cqi, 17px);
   font-weight: 750;
   line-height: 1.15;
   letter-spacing: -0.02em;
@@ -514,14 +565,14 @@
 .placementMainMetrics dt {
   margin-top: 1px;
   color: var(--cl-text-muted);
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 600;
 }
 .placementSecondaryMetrics {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px 6px;
-  padding-top: 10px;
+  padding-top: 8px;
   border-top: 1px solid var(--fio);
   min-width: 0;
 }
@@ -530,7 +581,7 @@
 }
 .placementSecondaryMetrics dd {
   font-family: var(--cl-mono);
-  font-size: 12.5px;
+  font-size: 11.5px;
   font-weight: 700;
   line-height: 1.25;
   font-variant-numeric: tabular-nums;
@@ -656,32 +707,38 @@
 
 /* ─── Tablet e telemóvel ───────────────────────────────────────────── */
 
-/*
-  Abaixo dos 1.024px a grade deixa de correr na horizontal: duas colunas
-  por linha em tablet, uma no telemóvel. Rolar de lado num ecrã de toque
-  onde já se rola para baixo é a receita para nunca se encontrar o que
-  se procura.
-*/
-@media (max-width: 1024px) {
+/* O espaço disponível no painel, não a largura da janela, determina
+   quantos cards cabem. Os demais continuam acessíveis pela rolagem. */
+@container creative-comparison (max-width: 735px) {
   .comparisonGrid {
-    grid-auto-flow: initial;
-    grid-auto-columns: initial;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    overflow-x: visible;
-    padding-bottom: 0;
+    grid-auto-columns: 100%;
+    justify-content: start;
+    scroll-snap-type: x proximity;
   }
-  /* Um número ímpar de criativos deixava o último sozinho na fila, com
-     metade da linha em branco ao lado. Sozinho, ocupa a linha toda. */
-  .comparisonGrid > .creativeColumn:last-child:nth-child(odd) {
-    grid-column: 1 / -1;
+  .creativeColumn {
+    scroll-snap-align: start;
   }
 }
 @media (max-width: 640px) {
   .comparisonGrid {
+    grid-auto-flow: row;
+    grid-auto-columns: auto;
     grid-template-columns: minmax(0, 1fr);
+    overflow-x: visible;
+    padding-bottom: 0;
   }
-  .section .creativeSummaryCard,
-  .section .placementsCard {
-    padding: 14px;
+}
+@media (pointer: coarse), (max-width: 640px) {
+  .section .placementRows .placementRow,
+  .section .detailsButton[data-acao="detalhes"],
+  .section .comparisonNavigation button,
+  .closeButton {
+    min-height: 44px;
+  }
+  .closeButton {
+    width: 44px;
+  }
+  .section .comparisonNavigation button {
+    width: 44px;
   }
 }

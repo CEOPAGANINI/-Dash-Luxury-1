@@ -7882,6 +7882,47 @@ html[data-tema="branco"] .dash-skin .class-board-dados-criativos-topo i {
   min-width: 0;
   min-height: 0;
 }
+/* O Meta já compara todos os criativos dentro de uma só página. Não
+   reservar uma fila para duas setas inativas nem esticar o artigo compacto
+   até a altura restante do painel. Outros canais mantêm a paginação medida. */
+.dash-skin
+  .class-board-dados
+  > .class-board-dados-secao[data-secao="criativos"]:has(
+    > .class-board-dados-criativos[data-network="meta"]
+  ) {
+  min-height: 0;
+  align-self: start;
+}
+.dash-skin
+  .class-board-dados
+  .class-board-dados-criativos[data-network="meta"] {
+  flex: none;
+  min-height: 0;
+  align-self: start;
+}
+.dash-skin
+  .class-board-dados-criativos[data-network="meta"]
+  > .class-board-dados-criativos-topo:not(:has(> button:enabled)) {
+  display: none;
+}
+.dash-skin
+  .class-board-dados-criativos[data-network="meta"]
+  .class-board-dados-criativos-fila {
+  flex: none;
+  align-content: start;
+}
+.dash-skin
+  .class-board-dados-criativos[data-network="meta"]
+  .class-board-criativos-pagina {
+  grid-auto-rows: min-content;
+  align-content: start;
+}
+.dash-skin .class-board-dados:has(.class-board-dados-criativos[data-network="meta"]) {
+  scroll-padding-block-start: 48px;
+}
+.dash-skin .class-board-dados-criativos[data-network="meta"] article {
+  scroll-margin-block-start: 8px;
+}
 /* Um bloco por criativo: o criativo à esquerda e o desempenho dele por
    posicionamento à direita — tudo na mesma secção. */
 .dash-skin .class-board-criativo-bloco {

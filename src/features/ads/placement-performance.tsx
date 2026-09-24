@@ -3,7 +3,14 @@
 import * as React from "react";
 import Image from "next/image";
 import * as Dialog from "@radix-ui/react-dialog";
-import { ArrowRight, ImageIcon, Video, X } from "lucide-react";
+import {
+  ArrowRight,
+  ChevronLeft,
+  ChevronRight,
+  ImageIcon,
+  Video,
+  X,
+} from "lucide-react";
 import {
   formatCurrency,
   formatInteger,
@@ -352,10 +359,8 @@ function PlacementsBlock({
 }
 
 /*
-  A coluna de um criativo: o cartão dele no topo e, por baixo, o bloco
-  que junta a distribuição das vendas e os cinco posicionamentos. Cada
-  coluna é um criativo inteiro e nada dela se mistura com a do lado — é
-  o que permite compará-los lendo na horizontal.
+  Um cartão por criativo: prévia, resumo geral e posicionamentos juntos.
+  Os dados de cada criativo permanecem independentes dos cartões ao lado.
 */
 function CreativeColumn({ creative }: { creative: Creative }) {
   const [detailsOpen, setDetailsOpen] = React.useState(false);
@@ -389,29 +394,32 @@ function CreativeColumn({ creative }: { creative: Creative }) {
         className={styles.creativeSummaryCard}
         aria-label={`Criativo ${creative.name}`}
       >
-        <div className={styles.creativePreview}>
-          <Preview
-            key={`${media.videoUrl ?? ""}|${media.imageUrl ?? media.thumbnailUrl ?? ""}`}
-            creative={creative}
-          />
-        </div>
-        {/* Só o nome do criativo: sem subtítulo e sem descrição. Quem
-            quiser o resto abre os detalhes no botão em baixo. */}
-        <div className={styles.creativeInfo}>
-          <h3>{creative.name}</h3>
-          <div className={styles.creativeBadges}>
-            <span className={styles.formatBadge}>
-              {isVideo ? (
-                <Video aria-hidden="true" />
-              ) : (
-                <ImageIcon aria-hidden="true" />
-              )}
-              {kind}
-              {duration && ` · ${duration}`}
-            </span>
-            <span className={styles.statusBadge} data-status={creative.status}>
-              {status}
-            </span>
+        <div className={styles.creativeHeader}>
+          <div className={styles.creativePreview}>
+            <Preview
+              key={`${media.videoUrl ?? ""}|${media.imageUrl ?? media.thumbnailUrl ?? ""}`}
+              creative={creative}
+            />
+          </div>
+          <div className={styles.creativeInfo}>
+            <h3>{creative.name}</h3>
+            <div className={styles.creativeBadges}>
+              <span className={styles.formatBadge}>
+                {isVideo ? (
+                  <Video aria-hidden="true" />
+                ) : (
+                  <ImageIcon aria-hidden="true" />
+                )}
+                {kind}
+                {duration && ` · ${duration}`}
+              </span>
+              <span
+                className={styles.statusBadge}
+                data-status={creative.status}
+              >
+                {status}
+              </span>
+            </div>
           </div>
         </div>
         <dl className={styles.creativeKpiGrid}>
@@ -430,6 +438,10 @@ function CreativeColumn({ creative }: { creative: Creative }) {
             <dt>CPA geral</dt>
           </div>
         </dl>
+        <PlacementsBlock
+          performance={performance}
+          creativeName={creative.name}
+        />
         <button
           type="button"
           className={styles.detailsButton}
@@ -446,8 +458,6 @@ function CreativeColumn({ creative }: { creative: Creative }) {
           <ArrowRight aria-hidden="true" />
         </button>
       </article>
-
-      <PlacementsBlock performance={performance} creativeName={creative.name} />
 
       <Dialog.Root open={detailsOpen} onOpenChange={setDetailsOpen}>
         <Dialog.Portal>
@@ -514,9 +524,8 @@ function CreativeColumn({ creative }: { creative: Creative }) {
 
 /*
   A comparação de criativos: uma coluna por criativo, lado a lado. No
-  desktop a grade corre na horizontal e rola quando há mais criativos do
-  que largura; em tablet passa a duas colunas por linha e no telemóvel a
-  uma. Todas as colunas começam no topo e levam os mesmos blocos pela
+  desktop a grade mostra cards inteiros e permite navegar para os demais;
+  no telemóvel empilha-os. Todas as colunas começam no topo e levam os mesmos blocos pela
   mesma ordem — é isso que faz a leitura na horizontal comparar sempre o
   mesmo com o mesmo.
 */
@@ -525,13 +534,78 @@ export function PlacementPerformance({
 }: {
   creatives: readonly Creative[];
 }) {
+  const grid = React.useRef<HTMLDivElement>(null);
+  const gridId = React.useId();
+  const [navigation, setNavigation] = React.useState({
+    previous: false,
+    next: false,
+  });
+  React.useEffect(() => {
+    const element = grid.current;
+    if (!element) return;
+    const measure = () => {
+      const previous = element.scrollLeft > 1;
+      const next =
+        element.scrollLeft + element.clientWidth < element.scrollWidth - 1;
+      setNavigation((current) =>
+        current.previous === previous && current.next === next
+          ? current
+          : { previous, next },
+      );
+    };
+    measure();
+    element.addEventListener("scroll", measure, { passive: true });
+    const observer =
+      typeof ResizeObserver === "undefined"
+        ? null
+        : new ResizeObserver(measure);
+    observer?.observe(element);
+    return () => {
+      element.removeEventListener("scroll", measure);
+      observer?.disconnect();
+    };
+  }, [creatives.length]);
+  function move(direction: number) {
+    const element = grid.current;
+    if (!element) return;
+    element.scrollBy({
+      left: direction * (element.clientWidth + 12),
+      behavior: "instant",
+    });
+  }
   return (
     <section
       className={styles.section}
       aria-label="Desempenho por posicionamento"
     >
+      {(navigation.previous || navigation.next) && (
+        <nav
+          className={styles.comparisonNavigation}
+          aria-label="Comparar criativos"
+        >
+          <span>{creatives.length} criativos</span>
+          <button
+            type="button"
+            aria-label="Criativos anteriores"
+            aria-controls={gridId}
+            disabled={!navigation.previous}
+            onClick={() => move(-1)}
+          >
+            <ChevronLeft aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            aria-label="Próximos criativos"
+            aria-controls={gridId}
+            disabled={!navigation.next}
+            onClick={() => move(1)}
+          >
+            <ChevronRight aria-hidden="true" />
+          </button>
+        </nav>
+      )}
       {creatives.length ? (
-        <div className={styles.comparisonGrid}>
+        <div className={styles.comparisonGrid} ref={grid} id={gridId}>
           {creatives.map((creative) => (
             <CreativeColumn key={creative.id} creative={creative} />
           ))}
