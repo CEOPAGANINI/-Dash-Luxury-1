@@ -1,0 +1,204 @@
+#!/usr/bin/env python3
+"""nginx FALSO: confere a sintaxe do que o ajudante e o instalador geram, sem servir nada.
+
+Lê $RAIZ/etc/nginx/nginx.conf (ou um nginx.conf mínimo do Debian, se não houver) e segue os
+include com glob sob $RAIZ. Tokeniza como o nginx: '{', '}' e ';' fora de aspas encerram o
+token, então uma regex com "{8,}" sem aspas quebra aqui como quebraria lá.
+
+  -v              versão ($RAIZ/nginx-versao ou 1.24.0) no stderr
+  -t              confere; sai 1 com "[emerg] ..." se algo estiver errado
+  -T              confere e despeja a configuração com "# configuration file X:"
+Falhas forçadas: $RAIZ/falhas/nginx-t (sempre falha) e $RAIZ/falhas/nginx-t-se-contem
+(falha quando algum arquivo carregado contém aquele texto).
+"""
+import glob
+import os
+import sys
+
+sys.dont_write_bytecode = True  # os falsos rodam com ambiente fixo: nada de __pycache__ no repositório
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _comum import falha, raiz, real, registrar  # noqa: E402
+
+BLOCOS = {"events", "http", "server", "location", "limit_except", "types", "map", "upstream", "if"}
+SIMPLES = {
+    "user", "worker_processes", "pid", "error_log", "access_log", "include", "listen", "server_name", "server_tokens",
+    "root", "index", "default_type", "disable_symlinks", "try_files", "return", "ssl_certificate", "ssl_certificate_key",
+    "client_max_body_size", "expires", "add_header", "deny", "allow", "error_page", "http2", "ssl_reject_handshake",
+    "ssl_protocols", "ssl_prefer_server_ciphers", "ssl_session_cache", "ssl_session_timeout", "ssl_session_tickets",
+    "server_names_hash_bucket_size", "sendfile", "tcp_nopush", "keepalive_timeout", "worker_connections", "gzip",
+    "types_hash_max_size", "ssl_ciphers", "alias", "charset", "log_not_found",
+}
+PADRAO = "events { worker_connections 768; }\nhttp {\n  include /etc/nginx/conf.d/*.conf;\n  include /etc/nginx/sites-enabled/*;\n}\n"
+
+
+class Erro(Exception):
+    pass
+
+
+def versao():
+    try:
+        with open(os.path.join(raiz(), "nginx-versao"), encoding="utf-8") as f:
+            return f.read().strip()
+    except FileNotFoundError:
+        return "1.24.0"
+
+
+def versao_ge(minima):
+    return tuple(int(x) for x in versao().split(".")) >= minima
+
+
+def tokens(texto, arquivo):
+    i, n, linha, saida = 0, len(texto), 1, []
+    while i < n:
+        c = texto[i]
+        if c == "\n":
+            linha += 1
+            i += 1
+        elif c.isspace():
+            i += 1
+        elif c == "#":
+            while i < n and texto[i] != "\n":
+                i += 1
+        elif c in "{};":
+            saida.append((c, linha, False))
+            i += 1
+        elif c in "\"'":
+            fim, j, buf = c, i + 1, []
+            while j < n and texto[j] != fim:
+                if texto[j] == "\\" and j + 1 < n:
+                    buf.append(texto[j : j + 2])
+                    j += 2
+                    continue
+                if texto[j] == "\n":
+                    linha += 1
+                buf.append(texto[j])
+                j += 1
+            if j >= n:
+                raise Erro(f'unexpected end of file, expecting "{fim}" in {arquivo}:{linha}')
+            saida.append(("".join(buf), linha, True))
+            i = j + 1
+        else:
+            j = i
+            while j < n and not texto[j].isspace() and texto[j] not in "{};":
+                if texto[j] in "\"'":
+                    raise Erro(f'unexpected quote in {arquivo}:{linha}')
+                j += 1
+            saida.append((texto[i:j], linha, False))
+            i = j
+    return saida
+
+
+def analisar(toks, arquivo, contexto, carregados, servidores):
+    """Consome toks (lista, in-place) até o '}' do bloco atual. Devolve quando o bloco fecha."""
+    while toks:
+        nome, linha, citado = toks.pop(0)
+        if nome == "}" and not citado:
+            if contexto == "raiz":
+                raise Erro(f'unexpected "}}" in {arquivo}:{linha}')
+            return
+        if nome in ("{", ";") and not citado:
+            raise Erro(f'unexpected "{nome}" in {arquivo}:{linha}')
+        if nome not in BLOCOS and nome not in SIMPLES:
+            raise Erro(f'unknown directive "{nome}" in {arquivo}:{linha}')
+        if nome == "http2" and not versao_ge((1, 25, 1)):
+            raise Erro(f'unknown directive "http2" in {arquivo}:{linha}')
+        if nome == "ssl_reject_handshake" and not versao_ge((1, 19, 4)):
+            raise Erro(f'unknown directive "ssl_reject_handshake" in {arquivo}:{linha}')
+        args = []
+        while True:
+            if not toks:
+                raise Erro(f'unexpected end of file, expecting ";" or "}}" in {arquivo}')
+            t, lt, cit = toks.pop(0)
+            if not cit and t in (";", "{"):
+                fim = t
+                break
+            if not cit and t == "}":
+                raise Erro(f'unexpected "}}" in {arquivo}:{lt}')
+            args.append(t)
+        if nome in BLOCOS:
+            if fim != "{":
+                raise Erro(f'directive "{nome}" has no opening "{{" in {arquivo}:{linha}')
+            if nome == "server":
+                servidores.append({"arquivo": arquivo, "listen": [], "nomes": []})
+            analisar(toks, arquivo, nome, carregados, servidores)
+            continue
+        if fim != ";":
+            raise Erro(f'directive "{nome}" is not terminated by ";" in {arquivo}:{linha}')
+        if not args:
+            raise Erro(f'invalid number of arguments in "{nome}" directive in {arquivo}:{linha}')
+        if nome == "listen" and servidores:
+            servidores[-1]["listen"].append(args)
+        if nome == "server_name" and servidores:
+            servidores[-1]["nomes"] += args
+        if nome in ("ssl_certificate", "ssl_certificate_key") and not os.path.isfile(real(args[0])):
+            raise Erro(f'cannot load certificate "{args[0]}": BIO_new_file() failed in {arquivo}:{linha}')
+        if nome == "include":
+            carregar(args[0], carregados, servidores, obrigatorio="*" not in args[0])
+    if contexto != "raiz":
+        raise Erro(f'unexpected end of file, expecting "}}" in {arquivo}')
+
+
+def carregar(caminho, carregados, servidores, obrigatorio=True, texto=None):
+    if texto is None:
+        achados = sorted(glob.glob(real(caminho)))
+        if not achados:
+            if obrigatorio:
+                raise Erro(f'open() "{caminho}" failed (2: No such file or directory)')
+            return
+        for a in achados:
+            rel = "/" + os.path.relpath(a, raiz())
+            with open(a, encoding="utf-8") as f:
+                carregar(rel, carregados, servidores, texto=f.read())
+        return
+    carregados.append((caminho, texto))
+    analisar(tokens(texto, caminho), caminho, "raiz", carregados, servidores)
+
+
+def conferir():
+    carregados, servidores = [], []
+    base = real("/etc/nginx/nginx.conf")
+    if os.path.isfile(base):
+        carregar("/etc/nginx/nginx.conf", carregados, servidores)
+    else:
+        carregar("/etc/nginx/nginx.conf", carregados, servidores, texto=PADRAO)
+    padroes = {}
+    for s in servidores:
+        for listen in s["listen"]:
+            if "default_server" in listen:
+                porta = listen[0]
+                if porta in padroes:
+                    raise Erro(f"a duplicate default server for {porta} in {s['arquivo']}")
+                padroes[porta] = s["arquivo"]
+    contem = falha("nginx-t-se-contem")
+    if contem and any(contem.strip() in texto for _, texto in carregados):
+        raise Erro(f'forced failure: "{contem.strip()}" found')
+    forcada = falha("nginx-t")
+    if forcada is not None:
+        raise Erro(forcada.strip() or "forced failure")
+    return carregados
+
+
+def main():
+    registrar("nginx")
+    args = sys.argv[1:]
+    if args == ["-v"]:
+        print(f"nginx version: nginx/{versao()} (Ubuntu)", file=sys.stderr)
+        return 0
+    if args and args[0] in ("-t", "-T"):
+        try:
+            carregados = conferir()
+        except Erro as e:
+            print(f"nginx: [emerg] {e}", file=sys.stderr)
+            print("nginx: configuration file /etc/nginx/nginx.conf test failed", file=sys.stderr)
+            return 1
+        print("nginx: the configuration file /etc/nginx/nginx.conf syntax is ok", file=sys.stderr)
+        print("nginx: configuration file /etc/nginx/nginx.conf test is successful", file=sys.stderr)
+        if args[0] == "-T":
+            for caminho, texto in carregados:
+                sys.stdout.write(f"# configuration file {caminho}:\n{texto}\n")
+        return 0
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

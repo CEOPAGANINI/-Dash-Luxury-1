@@ -1,0 +1,390 @@
+.root {
+  --files-text: var(--nebula-text, #f1f1f1);
+  --files-muted: var(--nebula-muted, #a3a3a3);
+  --files-surface: var(--nebula-panel, #202020);
+  --files-raised: var(--nebula-panel-2, #292929);
+  --files-border: var(--nebula-line-strong, #363636);
+  color: var(--files-text);
+  font:
+    14px/1.5 var(--font-inter),
+    system-ui,
+    sans-serif;
+  min-width: 0;
+}
+
+.root :is(h2, h3, h4, p, dl, dd) {
+  margin: 0;
+}
+.root h2 {
+  font-size: 22px;
+  line-height: 1.3;
+}
+.root h3 {
+  font-size: 16px;
+  line-height: 1.4;
+}
+.root h4 {
+  font-size: 14px;
+}
+.root p {
+  color: var(--files-muted);
+}
+.root :is(button, input, select) {
+  font: inherit;
+}
+.root :is(button, input, select, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--files-text);
+  outline-offset: 3px;
+}
+.root button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid var(--files-border);
+  border-radius: 0;
+  background: var(--files-surface);
+  color: var(--files-text);
+  box-shadow: var(--nebula-control-depth, 0 2px 3px rgb(0 0 0 / 15%));
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.root button:hover:not(:disabled) {
+  background: var(--files-raised);
+}
+.root button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.root .primary {
+  background: var(--primary, #f5f5f5);
+  color: var(--primary-foreground, #111);
+  border-color: transparent;
+}
+.root .primary:hover:not(:disabled) {
+  background: var(--primary, #f5f5f5);
+  opacity: 0.85;
+}
+.header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.header p {
+  margin-top: 6px;
+}
+.localBadge {
+  border: 1px solid var(--files-border);
+  padding: 5px 9px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.localNotice {
+  padding: 16px 18px;
+  border-left: 3px solid var(--files-text);
+  background: var(--files-raised);
+  margin-bottom: 24px;
+}
+.localNotice strong {
+  font-weight: 500;
+}
+.localNotice p {
+  margin-top: 4px;
+  max-width: 80ch;
+  font-size: 13px;
+}
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.6fr);
+  gap: 24px;
+  align-items: start;
+}
+.importPanel,
+.inventory {
+  min-width: 0;
+  background: var(--files-surface);
+  border: 1px solid var(--files-border);
+  border-radius: 0;
+  box-shadow: var(
+    --nebula-card-depth,
+    0 3px 0 -1px rgb(0 0 0 / 20%),
+    0 10px 24px -8px rgb(0 0 0 / 25%)
+  );
+}
+.importPanel {
+  padding: 24px;
+}
+.importPanel > svg {
+  margin-bottom: 16px;
+}
+.importPanel > p {
+  margin-top: 10px;
+}
+.importPanel .hint {
+  font-size: 12px;
+}
+.field {
+  display: block;
+  color: var(--files-text);
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+.importPanel > .field {
+  margin-top: 24px;
+}
+.root .fileInput {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0;
+  border: 1px solid var(--files-border);
+  border-radius: 0;
+  background: var(--files-raised);
+  color: var(--files-text);
+  font-size: 12px;
+}
+.fileInput::file-selector-button {
+  min-height: 44px;
+  border: 0;
+  border-right: 1px solid var(--files-border);
+  border-radius: 0;
+  padding: 10px;
+  margin-right: 10px;
+  background: var(--files-surface);
+  color: var(--files-text);
+  font: inherit;
+  cursor: pointer;
+}
+.fileInput:disabled::file-selector-button {
+  cursor: not-allowed;
+}
+.importPanel .limits {
+  font-size: 12px;
+  margin-bottom: 20px;
+}
+.selection {
+  padding: 12px 0 20px;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.selection strong {
+  font-weight: 500;
+}
+.selection ul {
+  margin: 6px 0;
+  padding-left: 18px;
+  color: var(--files-muted);
+}
+.confirmation {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--files-border);
+}
+.confirmation p {
+  font-size: 12px;
+  margin-top: 8px;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+.feedback {
+  font-size: 12px;
+}
+.feedback p:not(:empty) {
+  margin-top: 16px;
+}
+.feedback [role="alert"] {
+  border-left: 2px solid var(--files-text);
+  padding-left: 10px;
+  color: var(--files-text);
+}
+.empty {
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  gap: 14px;
+  text-align: center;
+}
+.empty p {
+  max-width: 44ch;
+  font-size: 13px;
+}
+.packageHeader {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 24px;
+  border-bottom: 1px solid var(--files-border);
+}
+.packageHeader h3 {
+  overflow-wrap: anywhere;
+}
+.packageHeader p {
+  margin-top: 4px;
+  font-size: 12px;
+}
+.metrics {
+  display: flex;
+  gap: 24px;
+  flex-shrink: 0;
+}
+.metrics dt {
+  color: var(--files-muted);
+  font-size: 11px;
+}
+.metrics dd {
+  margin-top: 4px;
+  font-size: 16px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.entryPicker {
+  padding: 24px;
+}
+.root .entryPicker select {
+  width: 100%;
+  max-width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--files-border);
+  border-radius: 0;
+  background: var(--files-raised);
+  color: var(--files-text);
+}
+.entryPicker p {
+  margin-top: 8px;
+  font-size: 12px;
+}
+.fileList {
+  max-height: 380px;
+  overflow: auto;
+  border-block: 1px solid var(--files-border);
+}
+.fileList table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 12px;
+}
+.fileList caption {
+  padding: 12px 24px;
+  text-align: left;
+  font-weight: 500;
+}
+.fileList thead {
+  background: var(--files-raised);
+}
+.fileList :is(th, td) {
+  padding: 10px 24px;
+  border-bottom: 1px solid var(--files-border);
+  vertical-align: top;
+}
+.fileList th {
+  font-weight: 400;
+}
+.fileList thead th {
+  font-weight: 500;
+  color: var(--files-muted);
+}
+.fileList th:first-child {
+  width: 100%;
+  overflow-wrap: anywhere;
+}
+.fileList td {
+  white-space: nowrap;
+  color: var(--files-muted);
+  font-variant-numeric: tabular-nums;
+}
+.fileList tbody tr:last-child :is(th, td) {
+  border-bottom: 0;
+}
+.fileList small {
+  display: block;
+  color: var(--files-muted);
+  margin-top: 3px;
+  font-size: 11px;
+}
+.source {
+  padding: 16px 24px;
+}
+.source summary {
+  cursor: pointer;
+  min-height: 44px;
+  align-content: center;
+  font-size: 13px;
+}
+.source summary svg {
+  display: inline-block;
+  vertical-align: middle;
+  margin-inline: 8px;
+}
+.source p {
+  margin-top: 8px;
+  font-size: 12px;
+}
+.source pre {
+  max-height: 420px;
+  overflow: auto;
+  padding: 16px;
+  margin: 12px 0 0;
+  border: 1px solid var(--files-border);
+  background: var(--nebula-bg, #111);
+  color: var(--files-text);
+  text-align: left;
+  font-size: 12px;
+  white-space: pre;
+}
+.source code {
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+
+@media (max-width: 1050px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .empty {
+    min-height: 240px;
+  }
+}
+@media (max-width: 560px) {
+  .header,
+  .packageHeader {
+    flex-direction: column;
+  }
+  .workspace {
+    gap: 16px;
+  }
+  .importPanel,
+  .packageHeader,
+  .entryPicker {
+    padding: 20px 16px;
+  }
+  .source {
+    padding: 12px 16px;
+  }
+  .fileList :is(th, td),
+  .fileList caption {
+    padding: 10px 16px;
+  }
+  .localNotice {
+    padding: 12px;
+  }
+  .metrics {
+    width: 100%;
+    justify-content: space-between;
+  }
+}

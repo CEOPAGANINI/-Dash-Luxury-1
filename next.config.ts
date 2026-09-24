@@ -3,7 +3,11 @@ import type { NextConfig } from "next";
 /* A versão publicada: os sete primeiros caracteres do commit que a Vercel
    construiu (VERCEL_GIT_COMMIT_SHA). Aparece no rodapé do menu da
    esquerda, para conferir que versão está no ar. */
-const versao = (process.env.VERCEL_GIT_COMMIT_SHA ?? process.env.COMMIT_SHA ?? "").slice(0, 7);
+const versao = (
+  process.env.VERCEL_GIT_COMMIT_SHA ??
+  process.env.COMMIT_SHA ??
+  ""
+).slice(0, 7);
 
 const nextConfig: NextConfig = {
   env: { NEXT_PUBLIC_VERSAO: versao || "local" },

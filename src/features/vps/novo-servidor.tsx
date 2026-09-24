@@ -1,0 +1,443 @@
+"use client";
+
+import * as React from "react";
+import Link from "next/link";
+import { ArrowRight, RefreshCw, Terminal } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+
+import {
+  confirmarServidorAction,
+  criarServidorAction,
+  novaInstalacaoAction,
+} from "./actions";
+import { Bloco, Vazio } from "./como-funciona";
+import {
+  controlCharacters,
+  formatarDataHora,
+  formatarHora,
+  VPS_INPUT_LIMITS,
+  type ServidorDTO,
+} from "./modelo";
+import type { Instalacao } from "./servico";
+import {
+  AvisoDeAtualizacao,
+  BotaoCopiar,
+  Dado,
+  RetornoDaOperacao,
+} from "./servidores-painel";
+import { useEstadoVps } from "./use-estado-vps";
+import { useOperacao } from "./use-operacao";
+import type { EstadoDaTela } from "./vps-cliente";
+
+/*
+  /servidor/novo: do nome ao "é o meu servidor".
+
+  O código de instalação só existe na resposta da action: fica no estado
+  desta tela e some quando ela desmonta (o banco guarda só o sha256). Por
+  isso "aparece só agora" é literal: sair da tela e voltar pede um comando
+  novo.
+
+  Depois de colado o comando, a tela pergunta a cada 5 s até o agente se
+  registrar, e aí mostra o que ele relatou (hostname, sistema, IP) para o
+  dono conferir com o painel do provedor antes de dizer "é o meu".
+*/
+
+/** Por que não dá para gerar comando (null = dá). */
+export function motivoParaNaoGerarComando(estado: EstadoDaTela): string | null {
+  if (!estado.podeAlterar)
+    return "Falta VPS_CHAVE_MESTRA na Vercel: sem ela o painel não assina nenhuma tarefa.";
+  for (const chave of ["https", "origem_checkout"] as const) {
+    const pendencia = estado.pendencias.find((p) => p.chave === chave);
+    if (pendencia && !pendencia.ok) return pendencia.texto;
+  }
+  return null;
+}
+
+export function ComandoDeInstalacao({
+  instalacao,
+  agora,
+}: {
+  instalacao: Instalacao;
+  agora: string;
+}) {
+  const pre = React.useRef<HTMLPreElement>(null);
+  const vencido = Date.parse(instalacao.expiraEm) <= Date.parse(agora);
+  return (
+    <Bloco
+      rotulo="Passo 2"
+      titulo="Instale o agente"
+      descricao="Cole no console da VPS e aperte Enter. Não precisa digitar senha aqui."
+    >
+      <pre
+        ref={pre}
+        className="bg-muted/30 max-w-full border p-3 font-mono text-xs leading-5 break-all whitespace-pre-wrap"
+      >
+        <code>{instalacao.comando}</code>
+      </pre>
+      <div className="flex flex-wrap items-center gap-3">
+        <BotaoCopiar texto={instalacao.comando} alvo={pre} />
+        <span
+          className={
+            vencido ? "text-warning text-xs" : "text-muted-foreground text-xs"
+          }
+        >
+          {vencido
+            ? `Venceu às ${formatarHora(instalacao.expiraEm)}: gere outro.`
+            : `Vale até ${formatarHora(instalacao.expiraEm)} · aparece só agora`}
+        </span>
+      </div>
+      <p className="text-muted-foreground text-xs leading-5">
+        O comando baixa o instalador, confere o código sha256 dele e só então
+        roda. O código de conferência só garante que o arquivo chegou inteiro;
+        ele não protege contra um painel comprometido.
+      </p>
+    </Bloco>
+  );
+}
+
+/** Pede um código de instalação novo (o anterior deixa de valer). */
+export function GerarNovoComando({
+  servidorId,
+  motivo,
+  destino,
+  aoGerar,
+}: {
+  servidorId: string;
+  /** Por que não dá (null = dá). */
+  motivo: string | null;
+  destino: string;
+  aoGerar: (instalacao: Instalacao) => void;
+}) {
+  const operacao = useOperacao();
+  return (
+    <div className="min-w-0 space-y-2">
+      <Button
+        type="button"
+        variant="outline"
+        loading={Boolean(operacao.ocupado)}
+        disabled={motivo !== null}
+        onClick={() => {
+          const dados = new FormData();
+          dados.set("servidorId", servidorId);
+          void operacao
+            .executar("Gerando o comando…", () =>
+              novaInstalacaoAction(null, dados),
+            )
+            .then((resultado) => {
+              if (resultado?.ok && resultado.dados)
+                aoGerar(resultado.dados.instalacao);
+            });
+        }}
+      >
+        {!operacao.ocupado && <RefreshCw aria-hidden />}
+        <span>Gerar novo comando</span>
+      </Button>
+      {motivo && (
+        <p className="text-muted-foreground text-xs leading-5">{motivo}</p>
+      )}
+      <RetornoDaOperacao operacao={operacao} destino={destino} />
+    </div>
+  );
+}
+
+/**
+ * "É o seu servidor?": o que o agente relatou ao se registrar, para o dono
+ * conferir. Só depois do sim o painel manda tarefas. O não corta o acesso
+ * deste agente na hora.
+ */
+export function ConfirmarServidor({
+  servidor,
+  destino,
+  aoResponder,
+}: {
+  servidor: ServidorDTO;
+  destino: string;
+  aoResponder: (resposta: "sim" | "nao", mensagem: string) => void;
+}) {
+  const operacao = useOperacao();
+  const registro = servidor.registro;
+
+  function responder(resposta: "sim" | "nao") {
+    const dados = new FormData();
+    dados.set("servidorId", servidor.id);
+    dados.set("resposta", resposta);
+    void operacao
+      .executar(
+        resposta === "sim" ? "Confirmando o servidor…" : "Cortando o acesso…",
+        () => confirmarServidorAction(null, dados),
+      )
+      .then((resultado) => {
+        if (resultado?.ok) aoResponder(resposta, resultado.mensagem);
+      });
+  }
+
+  return (
+    <Bloco
+      rotulo="Passo 3"
+      titulo="É o seu servidor?"
+      descricao="Confira com o que o painel do provedor mostra. Até o sim, o painel não manda nenhuma tarefa para este servidor."
+    >
+      <dl className="grid min-w-0 gap-x-6 gap-y-2 sm:grid-cols-2 xl:grid-cols-4">
+        <Dado nome="Hostname">{registro?.hostname ?? "—"}</Dado>
+        <Dado nome="Sistema">{registro?.so ?? "—"}</Dado>
+        <Dado nome="IP visto pelo painel">{registro?.ipVisto ?? "—"}</Dado>
+        <Dado nome="Registrado em">
+          {formatarDataHora(registro?.registradoEm ?? null)}
+        </Dado>
+      </dl>
+      {registro && registro.ipsPublicos.length > 0 && (
+        <p className="text-muted-foreground text-xs leading-5 break-words">
+          IPs públicos que o agente informou: {registro.ipsPublicos.join(", ")}
+        </p>
+      )}
+      <div className="flex flex-wrap gap-2">
+        <Button
+          type="button"
+          loading={operacao.ocupado === "Confirmando o servidor…"}
+          disabled={Boolean(operacao.ocupado)}
+          onClick={() => responder("sim")}
+        >
+          <span>Sim, é o meu</span>
+        </Button>
+        <Button
+          type="button"
+          variant="destructive"
+          loading={operacao.ocupado === "Cortando o acesso…"}
+          disabled={Boolean(operacao.ocupado)}
+          onClick={() => responder("nao")}
+        >
+          <span>Não é o meu</span>
+        </Button>
+      </div>
+      <p className="text-muted-foreground text-xs leading-5">
+        &ldquo;Não é o meu&rdquo; corta o acesso deste agente na hora. Depois,
+        gere um comando novo e cole no servidor certo.
+      </p>
+      <RetornoDaOperacao operacao={operacao} destino={destino} />
+    </Bloco>
+  );
+}
+
+export function NovoServidor({ inicial }: { inicial: EstadoDaTela }) {
+  const { estado, falha, atualizar } = useEstadoVps(inicial);
+  const operacao = useOperacao();
+  const [criado, setCriado] = React.useState<{
+    servidorId: string;
+    instalacao: Instalacao | null;
+    /** `agora` do estado no clique: um estado mais novo já traz o servidor. */
+    agoraNaCriacao: string;
+  } | null>(null);
+  const [resposta, setResposta] = React.useState<{
+    tipo: "sim" | "nao";
+    mensagem: string;
+  } | null>(null);
+  const campoNome = React.useId();
+
+  const motivo = motivoParaNaoGerarComando(estado);
+  const servidor = criado
+    ? (estado.servidores.find((s) => s.id === criado.servidorId) ?? null)
+    : null;
+  // Logo depois de criar, o polling ainda não trouxe o servidor: isso é
+  // "esperando", e não "sumiu".
+  const situacao = !criado
+    ? null
+    : servidor
+      ? servidor.estado
+      : estado.agora === criado.agoraNaCriacao
+        ? "aguardando_agente"
+        : "sumiu";
+  const instalacaoValida =
+    criado?.instalacao != null &&
+    Date.parse(criado.instalacao.expiraEm) > Date.parse(estado.agora);
+  const destino = "/servidor/novo";
+
+  async function gerar(evento: React.FormEvent<HTMLFormElement>) {
+    evento.preventDefault();
+    const dados = new FormData(evento.currentTarget);
+    const nome = String(dados.get("nome") ?? "").trim();
+    if (!nome)
+      return operacao.recusar("Dê um nome ao servidor.", {
+        nome: "Dê um nome.",
+      });
+    if (nome.length > VPS_INPUT_LIMITS.name || controlCharacters.test(nome))
+      return operacao.recusar(
+        `O nome vai até ${VPS_INPUT_LIMITS.name} caracteres, sem caracteres de controle.`,
+        { nome: "Nome inválido." },
+      );
+    const agoraNaCriacao = estado.agora;
+    const resultado = await operacao.executar("Gerando o comando…", () =>
+      criarServidorAction(null, dados),
+    );
+    if (resultado?.ok && resultado.dados) {
+      setResposta(null);
+      setCriado({
+        servidorId: resultado.dados.servidorId,
+        instalacao: resultado.dados.instalacao,
+        agoraNaCriacao,
+      });
+      atualizar();
+    }
+  }
+
+  return (
+    <div className="min-w-0 space-y-4">
+      <AvisoDeAtualizacao falha={falha} destino={destino} />
+
+      <Bloco
+        rotulo="Antes de começar"
+        titulo="O que a VPS precisa ter"
+        descricao="O instalador confere o sistema e para com uma mensagem em português se algo não servir, antes de mexer em qualquer coisa."
+      >
+        <ul className="list-disc space-y-1.5 pl-5 text-sm leading-6">
+          <li>
+            VPS limpa com Ubuntu 22.04 ou 24.04, ou Debian 12 ou 13, sem
+            aaPanel, cPanel ou Apache.
+          </li>
+          <li>
+            Portas 80 e 443 liberadas no firewall do provedor (o instalador só
+            abre as duas no ufw da própria VPS).
+          </li>
+          <li>Acesso ao console da VPS como root (ou com sudo).</li>
+          <li>Relógio certo (NTP ligado): as tarefas vencem em 10 min.</li>
+        </ul>
+      </Bloco>
+
+      <Bloco
+        rotulo="Passo 1"
+        titulo="Nome do servidor"
+        descricao="Só para você reconhecer o servidor no painel."
+      >
+        <form onSubmit={(evento) => void gerar(evento)} className="space-y-3">
+          <div className="min-w-0 space-y-1.5">
+            <label htmlFor={campoNome} className="block text-sm font-medium">
+              Nome do servidor
+            </label>
+            <Input
+              id={campoNome}
+              name="nome"
+              maxLength={VPS_INPUT_LIMITS.name}
+              autoComplete="off"
+              placeholder="VPS da loja"
+              aria-invalid={Boolean(operacao.erros.nome) || undefined}
+              disabled={motivo !== null}
+              className="max-w-md"
+            />
+            {operacao.erros.nome && (
+              <p className="text-destructive text-xs">{operacao.erros.nome}</p>
+            )}
+          </div>
+          <Button
+            type="submit"
+            loading={Boolean(operacao.ocupado)}
+            disabled={motivo !== null}
+          >
+            {!operacao.ocupado && <Terminal aria-hidden />}
+            <span>Gerar comando</span>
+          </Button>
+          {motivo && (
+            <p className="text-muted-foreground text-xs leading-5">{motivo}</p>
+          )}
+          <RetornoDaOperacao operacao={operacao} destino={destino} />
+        </form>
+      </Bloco>
+
+      {situacao === "aguardando_agente" && criado?.instalacao && (
+        <ComandoDeInstalacao
+          instalacao={criado.instalacao}
+          agora={estado.agora}
+        />
+      )}
+
+      {situacao === "aguardando_agente" && criado && (
+        <div className="min-w-0 space-y-2">
+          {instalacaoValida ? (
+            <p
+              role="status"
+              aria-live="polite"
+              className="text-muted-foreground text-sm leading-6"
+            >
+              Esperando o servidor… A tela confere sozinha a cada 5 s.
+            </p>
+          ) : (
+            <>
+              <p className="text-warning text-sm leading-6">
+                {resposta?.tipo === "nao"
+                  ? resposta.mensagem
+                  : "O comando venceu antes de o servidor se registrar. Gere outro."}
+              </p>
+              <GerarNovoComando
+                servidorId={criado.servidorId}
+                motivo={motivo}
+                destino={destino}
+                aoGerar={(instalacao) => {
+                  setResposta(null);
+                  setCriado({
+                    servidorId: criado.servidorId,
+                    instalacao,
+                    agoraNaCriacao: estado.agora,
+                  });
+                  atualizar();
+                }}
+              />
+            </>
+          )}
+        </div>
+      )}
+
+      {servidor?.estado === "aguardando_confirmacao" && (
+        <ConfirmarServidor
+          servidor={servidor}
+          destino={destino}
+          aoResponder={(tipo, mensagem) => {
+            setResposta({ tipo, mensagem });
+            if (tipo === "nao")
+              setCriado({
+                servidorId: servidor.id,
+                instalacao: null,
+                agoraNaCriacao: estado.agora,
+              });
+            atualizar();
+          }}
+        />
+      )}
+
+      {servidor?.estado === "ativo" && (
+        <Bloco rotulo="Pronto" titulo={`${servidor.nome} está conectado`}>
+          <p role="status" className="text-success text-sm leading-6">
+            {resposta?.tipo === "sim"
+              ? resposta.mensagem
+              : "Servidor confirmado."}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Button asChild variant="outline" size="sm">
+              <Link href={`/servidor/${servidor.id}`}>
+                <span>Abrir o servidor</span>
+                <ArrowRight aria-hidden />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="sm">
+              <Link href="/servidor/sites">
+                <span>Criar um site</span>
+                <ArrowRight aria-hidden />
+              </Link>
+            </Button>
+          </div>
+        </Bloco>
+      )}
+
+      {situacao === "sumiu" && (
+        <Vazio>
+          Este servidor não aparece mais no painel (foi removido?).{" "}
+          <Link
+            href="/servidor"
+            className="font-semibold underline underline-offset-4"
+          >
+            Ver servidores
+          </Link>
+        </Vazio>
+      )}
+    </div>
+  );
+}

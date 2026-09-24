@@ -1,0 +1,13 @@
+#!/usr/bin/env python3
+"""ufw FALSO: registra o argv; "status" diz que o firewall está ativo (para o instalador abrir 80/443)."""
+import os
+import sys
+
+sys.dont_write_bytecode = True  # os falsos rodam com ambiente fixo: nada de __pycache__ no repositório
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _comum import registrar  # noqa: E402
+
+registrar("ufw")
+if sys.argv[1:2] == ["status"]:
+    print("Status: active")
+sys.exit(0)

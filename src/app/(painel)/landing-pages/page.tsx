@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { ExternalLink, Info } from "lucide-react";
+import { ArrowRight, ExternalLink, Info, PanelsTopLeft } from "lucide-react";
 
 import {
   alphaGamerNebula,
@@ -30,22 +30,44 @@ export default function LandingPagesPage() {
         <div>
           <h2 className="text-xl font-bold tracking-tight">Landing pages</h2>
           <p className="text-muted-foreground text-sm">
-            Páginas publicadas em /p/[slug]
+            Páginas publicadas e configuração da jornada da sua loja.
           </p>
         </div>
+        <Button asChild>
+          <Link href="/editor/landing-page">
+            <PanelsTopLeft /> Abrir editor de páginas
+          </Link>
+        </Button>
       </div>
 
       <Alert variant="info">
         <Info />
         <AlertDescription>
-          Esta landing page está publicada como página estática (definida em
-          código, editável em src/features/landing/technebula-data.ts). O editor
-          visual por blocos, com criação de novas páginas pelo painel, chega na
-          Fase 8.
+          Use o editor visual para configurar conteúdos, destinos e ligações. Os
+          rascunhos ficam neste navegador e podem ser exportados em JSON. Salvar
+          no editor não altera as páginas publicadas abaixo.
         </AlertDescription>
       </Alert>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <Card className="justify-between">
+          <CardHeader>
+            <PanelsTopLeft className="mb-5 size-8" strokeWidth={1.5} />
+            <CardTitle>Seu espaço de páginas</CardTitle>
+            <CardDescription>
+              Organize landing pages, checkout e páginas de obrigado em um fluxo
+              visual. Configure cada etapa e teste as ligações na prévia.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            <Badge variant="muted">Rascunho local · Orbit</Badge>
+            <Button variant="outline" className="w-full" asChild>
+              <Link href="/editor/landing-page">
+                Configurar meu fluxo <ArrowRight />
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
         <Card className="gap-3 overflow-hidden py-0 pb-5">
           <div className="bg-muted relative aspect-[16/9] w-full overflow-hidden border-b">
             <Image

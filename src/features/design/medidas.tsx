@@ -221,6 +221,7 @@ export function Rosca({
     >
       <div
         className={styles.anel}
+        data-dashboard-chart="donut"
         role="img"
         aria-label={
           paradas.length <= 1
@@ -233,10 +234,15 @@ export function Rosca({
       >
         <span
           className={styles.anelFatias}
+          data-dashboard-chart-part="ring"
           style={{ "--fatias": paradas.join(", ") } as React.CSSProperties}
           aria-hidden="true"
         />
-        <span className={styles.anelMiolo} aria-hidden="true">
+        <span
+          className={styles.anelMiolo}
+          data-dashboard-chart-part="hole"
+          aria-hidden="true"
+        >
           <strong>{centro}</strong>
           {nota && <small>{nota}</small>}
         </span>

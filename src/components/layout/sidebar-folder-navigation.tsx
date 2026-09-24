@@ -13,18 +13,24 @@ import {
   Landmark,
   Columns3,
   Database,
+  FileText,
   Folder,
   FolderOpen,
+  Globe,
   LayoutDashboard,
   LayoutGrid,
   Megaphone,
+  PanelsTopLeft,
   Plug,
+  Plus,
   ScrollText,
   Palette,
   Settings,
   ShieldCheck,
   ShoppingBag,
+  SquarePen,
   Search,
+  Server,
   Store,
   Table2,
   Users,
@@ -43,11 +49,17 @@ interface PaginaDoMenu {
   icon: LucideIcon;
   badge?: number;
   external?: boolean;
+  /**
+   * Quando acende. Sem isto, vale o prefixo do href — que faria
+   * "Servidores" (/servidor) acender também em /servidor/sites e
+   * /servidor/novo, que têm item próprio na mesma pasta.
+   */
+  corresponde?: RegExp;
 }
 interface PastaDoMenu {
   label: string;
   items: readonly PaginaDoMenu[];
-  /** Ícone da pasta (as redes de tráfego têm o seu; o resto usa a pasta). */
+  /** Ícone da categoria; quando omitido, usa a pasta padrão. */
   icon?: LucideIcon;
   /** Título mostrado no topo da página para qualquer página desta pasta. */
   titulo?: string;
@@ -110,6 +122,31 @@ const groups: PastaDoMenu[] = [
       { title: "Notificações", href: "/notificacoes", icon: BellRing },
     ],
   },
+  {
+    label: "Páginas",
+    icon: PanelsTopLeft,
+    items: [
+      { title: "Landing pages", href: "/landing-pages", icon: FileText },
+      { title: "Editor de páginas", href: "/editor/landing-page", icon: SquarePen },
+    ],
+  },
+  {
+    label: "Servidor",
+    icon: Server,
+    titulo: "Servidor",
+    raiz: "/servidor",
+    items: [
+      {
+        title: "Servidores",
+        href: "/servidor",
+        icon: Server,
+        // A lista e a página de um servidor (/servidor/<uuid>).
+        corresponde: /^\/servidor(?:\/[0-9a-f-]{36})?$/,
+      },
+      { title: "Sites", href: "/servidor/sites", icon: Globe },
+      { title: "Adicionar servidor", href: "/servidor/novo", icon: Plus },
+    ],
+  },
   ...PASTAS_DAS_REDES,
   {
     label: "Campanhas",
@@ -147,9 +184,18 @@ function itemIsActive(pathname: string, href: string) {
     : pathname === href || pathname.startsWith(`${href}/`);
 }
 
+/* Um item acende pela regra própria, se tiver; senão, pelo prefixo.
+   itemIsActive continua a servir a raiz das pastas (group.raiz), que não
+   é item e não tem regra própria. */
+function itemAtivo(pathname: string, item: PaginaDoMenu) {
+  return item.corresponde
+    ? item.corresponde.test(pathname)
+    : itemIsActive(pathname, item.href);
+}
+
 export function sidebarPageTitle(pathname: string) {
   for (const group of groups) {
-    const item = group.items.find((item) => itemIsActive(pathname, item.href));
+    const item = group.items.find((item) => itemAtivo(pathname, item));
     if (item) return group.titulo ?? item.title;
   }
   for (const group of groups) {
@@ -228,7 +274,7 @@ export function SidebarFolderNavigation({
               {selected.label}
             </h2>
             {selected.items.map((item) => {
-              const active = itemIsActive(pathname, item.href);
+              const active = itemAtivo(pathname, item);
               const Icon = item.icon;
               const count = item.href === "/notificacoes" ? unreadCount : (item.badge ?? 0);
               return (
@@ -261,7 +307,7 @@ export function SidebarFolderNavigation({
             </p>
             {groups.map((group) => {
               const current =
-                group.items.some((item) => itemIsActive(pathname, item.href)) ||
+                group.items.some((item) => itemAtivo(pathname, item)) ||
                 (!!group.raiz && itemIsActive(pathname, group.raiz));
               const IconePasta = group.icon ?? Folder;
               const selo = group.items.reduce(

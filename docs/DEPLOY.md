@@ -35,7 +35,7 @@ npm run db:generate
 npm run db:migrate
 ```
 
-As migrations escritas à mão (`src/database/migrations/0004_executive_analytics_mart.sql` e `0005_ads_manager.sql` — o gerenciador de anúncios) não entram no `db:migrate`: cole o conteúdo de cada uma no SQL Editor do Supabase e execute uma vez. São idempotentes (`IF NOT EXISTS`).
+As migrations escritas à mão (`src/database/migrations/0004_executive_analytics_mart.sql`, `0005_ads_manager.sql` — o gerenciador de anúncios — e `0006_vps.sql` — o Servidor do Funil) não entram no `db:migrate`: cole o conteúdo de cada uma no SQL Editor do Supabase e execute uma vez, nessa ordem. São idempotentes (`IF NOT EXISTS`). A `0006_vps.sql` cria as 7 tabelas `vps_*` com RLS ligado; se ela não rodar, o painel tenta criar as tabelas sozinho na primeira leitura (`ensureVpsSchema`) e, se não conseguir, a tela Servidor pede para rodar a `0006_vps.sql`. Não rode `npm run db:generate` para a VPS: o snapshot antigo recriaria as tabelas de anúncios. Variáveis e roteiro do piloto: [docs/VPS.md](VPS.md).
 
 ## 4. Configurar autenticação (Supabase)
 

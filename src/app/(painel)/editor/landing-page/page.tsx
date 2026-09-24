@@ -1,15 +1,13 @@
 import type { Metadata } from "next";
 
-import { ModulePlaceholder } from "@/components/module-placeholder";
+import { redirect } from "next/navigation";
+import { getSession } from "@/lib/auth/session";
+import { LandingFlowEditor } from "@/features/landing-editor/landing-flow-editor";
 
-export const metadata: Metadata = { title: "Editor · Landing page" };
+export const metadata: Metadata = { title: "Editor de páginas · Orbit" };
 
-export default function EditorLandingPage() {
-  return (
-    <ModulePlaceholder
-      title="Editor de landing page"
-      description="Editor por blocos com templates (produto físico, digital, captura, oferta), preview responsivo, SEO e publicação em /p/[slug]."
-      phase={8}
-    />
-  );
+export default async function EditorLandingPage() {
+  const session = await getSession();
+  if (!session) redirect("/login");
+  return <LandingFlowEditor storageId={session.user.id} />;
 }

@@ -1,0 +1,82 @@
+{
+  "descricao": "Entradas de cada golden de gerar_vhost (public/agente/v1/dash_agent_root.py): slug e args de nginx.aplicar, mais tls, ipv6 (a VPS tem IPv6 global) e http2On (nginx >= 1.25.1: 'listen 443 ssl;' + 'http2 on;'; antes, 'listen 443 ssl http2;'). Na etapa HTTP o bloco da porta 80 leva o corpo comum; na etapa HTTPS ele só atende o ACME e redireciona. Indentação de 2 espaços, uma diretiva por linha, arquivo terminado em uma quebra de linha. A regex dos arquivos com hash vai entre aspas (location ~* \"\\.[0-9a-f]{8,}\\.(?:js|css)$\"): sem aspas o '{' encerra a palavra no tokenizador do nginx e o nginx -t recusa o arquivo.",
+  "casos": [
+    {
+      "arquivo": "http.conf",
+      "slug": "loja-e2e",
+      "dominios": ["loja-e2e.com.br"],
+      "principal": "loja-e2e.com.br",
+      "origemCheckout": "https://checkout-e2e.com.br",
+      "checkout": null,
+      "tls": false,
+      "ipv6": false,
+      "http2On": false
+    },
+    {
+      "arquivo": "http-www.conf",
+      "slug": "loja-e2e",
+      "dominios": ["loja-e2e.com.br", "www.loja-e2e.com.br"],
+      "principal": "loja-e2e.com.br",
+      "origemCheckout": "https://checkout-e2e.com.br",
+      "checkout": null,
+      "tls": false,
+      "ipv6": false,
+      "http2On": false
+    },
+    {
+      "arquivo": "https.conf",
+      "slug": "loja-e2e",
+      "dominios": ["loja-e2e.com.br", "www.loja-e2e.com.br"],
+      "principal": "loja-e2e.com.br",
+      "origemCheckout": "https://checkout-e2e.com.br",
+      "checkout": null,
+      "tls": true,
+      "ipv6": false,
+      "http2On": false
+    },
+    {
+      "arquivo": "https-ipv6.conf",
+      "slug": "loja-e2e",
+      "dominios": ["loja-e2e.com.br", "www.loja-e2e.com.br"],
+      "principal": "loja-e2e.com.br",
+      "origemCheckout": "https://checkout-e2e.com.br",
+      "checkout": null,
+      "tls": true,
+      "ipv6": true,
+      "http2On": false
+    },
+    {
+      "arquivo": "https-http2-on.conf",
+      "slug": "loja-e2e",
+      "dominios": ["loja-e2e.com.br", "www.loja-e2e.com.br"],
+      "principal": "loja-e2e.com.br",
+      "origemCheckout": "https://checkout-e2e.com.br",
+      "checkout": null,
+      "tls": true,
+      "ipv6": true,
+      "http2On": true
+    },
+    {
+      "arquivo": "checkout.conf",
+      "slug": "loja-e2e",
+      "dominios": ["loja-e2e.com.br", "www.loja-e2e.com.br"],
+      "principal": "loja-e2e.com.br",
+      "origemCheckout": "https://checkout-e2e.com.br",
+      "checkout": "https://checkout-e2e.com.br/checkout/cadeira-x",
+      "tls": true,
+      "ipv6": false,
+      "http2On": false
+    },
+    {
+      "arquivo": "checkout-vercel-app.conf",
+      "slug": "loja-com-br",
+      "dominios": ["loja.com.br", "www.loja.com.br"],
+      "principal": "loja.com.br",
+      "origemCheckout": "https://dash-board-psi-one.vercel.app",
+      "checkout": "https://dash-board-psi-one.vercel.app/checkout/cadeira-x",
+      "tls": true,
+      "ipv6": false,
+      "http2On": false
+    }
+  ]
+}

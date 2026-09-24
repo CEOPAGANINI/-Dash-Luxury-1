@@ -45,3 +45,8 @@ next-env.d.ts
 
 # exemplo seguro de variáveis de ambiente
 !.env.example
+
+# python (o agente da VPS e os testes dele)
+# Bytecode dentro de public/ seria servido publicamente pela Vercel.
+__pycache__/
+*.pyc

@@ -356,6 +356,8 @@ export function OperationFunnel({ days, fallbackWeek }: OperationFunnelProps) {
             <div className="mt-3 flex flex-wrap items-center gap-5">
               <div
                 aria-hidden
+                data-dashboard-chart="donut"
+                data-dashboard-chart-part="ring"
                 className="relative size-36 shrink-0 rounded-full"
                 style={{
                   background: `conic-gradient(${funnel.demographics
@@ -368,7 +370,10 @@ export function OperationFunnel({ days, fallbackWeek }: OperationFunnelProps) {
                     .join(", ")})`,
                 }}
               >
-                <div className="bg-card absolute inset-7 rounded-full" />
+                <div
+                  className="bg-card absolute inset-7 rounded-full"
+                  data-dashboard-chart-part="hole"
+                />
               </div>
               <ul className="min-w-0 flex-1 space-y-1.5">
                 {funnel.demographics.map((slice, index) => (

@@ -20,15 +20,23 @@ body:has(.dash-skin[data-design-system="nebula"]) .dash-skin {
   --nebula-negative: #fb7185;
   --nebula-selected: #ffffff;
   --nebula-selected-bg: rgb(255 255 255 / 12%);
-  --nebula-shadow: 0 10px 32px rgb(0 0 0 / 12%);
-  --nebula-radius: 16px;
-  --nebula-radius-lg: 24px;
-  --nebula-control-radius: 11px;
+  --nebula-shadow: 0 2px 4px rgb(0 0 0 / 24%), 0 12px 28px rgb(0 0 0 / 24%);
+  --nebula-card-depth:
+    inset 0 1px 0 rgb(255 255 255 / 6%), inset 0 0 0 1px var(--nebula-line),
+    0 3px 0 -1px rgb(0 0 0 / 28%), 0 10px 24px -8px rgb(0 0 0 / 48%);
+  --nebula-control-depth:
+    inset 0 1px 0 rgb(255 255 255 / 5%), inset 0 0 0 1px var(--nebula-line),
+    0 2px 3px rgb(0 0 0 / 24%);
+  --nebula-overlay-depth:
+    inset 0 0 0 1px var(--nebula-line-strong), 0 20px 52px rgb(0 0 0 / 45%);
+  --nebula-radius: 0;
+  --nebula-radius-lg: 0;
+  --nebula-control-radius: 0;
   --font-display: var(--font-inter), system-ui, sans-serif;
   --font-montserrat: var(--font-inter);
-  --radius: 0.6875rem;
-  --radius-card: 1rem;
-  --radius-panel: 1.5rem;
+  --radius: 0;
+  --radius-card: 0;
+  --radius-panel: 0;
   --text-caption: 0.75rem;
   --text-body: 0.875rem;
   --text-card-title: 1rem;
@@ -49,14 +57,15 @@ body:has(.dash-skin[data-design-system="nebula"]) .dash-skin {
   --veu: var(--nebula-bg-2);
   --material: none;
   --material-hover: none;
-  --material-sombra: inset 0 0 0 1px var(--nebula-line);
+  --material-sombra: var(--nebula-card-depth);
   --vidro-brilho: none;
   --vidro-pontos: none;
   --vidro-sombra: inset 0 0 0 1px var(--nebula-line), var(--nebula-shadow);
   --brilho: var(--nebula-accent);
   --brilho-texto: var(--nebula-selected);
-  --dash-shadow-card: inset 0 0 0 1px var(--nebula-line);
-  --dash-shadow-control: inset 0 0 0 1px var(--nebula-line);
+  --dash-shadow-card: var(--nebula-card-depth);
+  --dash-shadow-control: var(--nebula-control-depth);
+  --dash-shadow-overlay: var(--nebula-overlay-depth);
   --dash-shadow-inset: inset 0 0 0 1px var(--nebula-line);
   --dash-surface-base: var(--nebula-bg);
   --dash-surface-card: var(--nebula-panel);
@@ -125,15 +134,19 @@ html[data-tema="branco"]
   --nebula-accent-2: #737373;
   --nebula-selected: #090909;
   --nebula-selected-bg: rgb(0 0 0 / 8%);
-  /* Escurecidas o mínimo para passarem 4,5:1 em TODAS as superfícies onde
-     de facto assentam no tema claro — o painel #f0f0f0, o cartão branco e
-     a faixa âmbar do aviso. Nos valores antigos ficavam entre 3,5 e 4,3
-     contra a faixa, e entre 4,27 e 4,32 contra o painel: falhavam por
-     pouco, mas falhavam. Medido, não estimado. */
+  /* Preserve the audited light-theme contrast while adding surface depth. */
   --nebula-positive: #076d47;
   --nebula-negative: #b42545;
   --nebula-cyan: #076975;
-  --nebula-shadow: 0 8px 28px rgb(0 0 0 / 4%);
+  --nebula-shadow: 0 1px 3px rgb(0 0 0 / 5%), 0 10px 24px rgb(0 0 0 / 7%);
+  --nebula-card-depth:
+    inset 0 1px 0 rgb(255 255 255 / 90%), inset 0 0 0 1px var(--nebula-line),
+    0 3px 0 -1px rgb(0 0 0 / 5%), 0 10px 24px -10px rgb(0 0 0 / 20%);
+  --nebula-control-depth:
+    inset 0 1px 0 rgb(255 255 255 / 90%), inset 0 0 0 1px var(--nebula-line),
+    0 2px 3px rgb(0 0 0 / 7%);
+  --nebula-overlay-depth:
+    inset 0 0 0 1px var(--nebula-line-strong), 0 20px 52px rgb(0 0 0 / 16%);
   --camada-3: #e8e8e8;
   --camada-4: #dedede;
   --primary: #171717;
@@ -277,7 +290,7 @@ body:has(.dash-skin[data-design-system="nebula"])
   .dash-skin
   :is(.nebula-brand, .dash-sidebar-cabecalho)
   :is(.bg-primary, .nebula-brand-mark) {
-  border-radius: 9px !important;
+  border-radius: 0 !important;
   background: var(--primary) !important;
   color: var(--primary-foreground) !important;
   box-shadow: inset 0 0 0 1px rgb(255 255 255 / 12%) !important;
@@ -293,7 +306,7 @@ body:has(.dash-skin[data-design-system="nebula"])
   .dash-skin
   :is(.dash-sidebar-block, .board-pager-nav-item) {
   border: 1px solid transparent !important;
-  border-radius: 11px !important;
+  border-radius: 0 !important;
   background: transparent !important;
   box-shadow: none !important;
   color: var(--nebula-muted) !important;
@@ -313,7 +326,7 @@ body:has(.dash-skin[data-design-system="nebula"])
   border-color: var(--nebula-line);
 }
 
-/* Controls use Nebula's 11px radius; selection is separate from primary CTA. */
+/* Controls keep the fixed square-corner policy; selection is separate from CTA. */
 body:has(.dash-skin[data-design-system="nebula"])
   .dash-skin
   :is(
@@ -323,24 +336,27 @@ body:has(.dash-skin[data-design-system="nebula"])
     [role="tab"],
     select,
     textarea,
-    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+    :where(
+      input:not([type="checkbox"]):not([type="radio"]):not([type="range"])
+    ),
     .block-picker-toggle,
     [data-slot="select-trigger"]
   ):not(.rounded-full):not(.class-board-semaforo *) {
   border-radius: var(--nebula-control-radius) !important;
   font-family: var(--font-inter), system-ui, sans-serif;
 }
-/* O campo de texto sai do :is() de propósito. :is() vale o mais forte dos
-   seus argumentos, e input:not():not():not() valia mais do que as regras
-   de variante logo abaixo — que ficavam sem efeito no fundo enquanto
-   continuavam a mandar na cor do texto. Fundo e texto deixavam de
-   combinar, e o selo de alerta desaparecia. */
+/* :where() neutraliza a especificidade das exclusões do input dentro de
+   :is(). Assim, as variantes abaixo continuam a mandar no fundo E na cor
+   do botão, preservando a correção de contraste da pele mais recente. */
 body:has(.dash-skin[data-design-system="nebula"])
   .dash-skin
-  :is([data-slot="button"], [data-slot="select-trigger"], select, textarea),
-body:has(.dash-skin[data-design-system="nebula"])
-  .dash-skin
-  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]) {
+  :is(
+    [data-slot="button"],
+    [data-slot="select-trigger"],
+    select,
+    textarea,
+    :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]))
+  ) {
   background: var(--nebula-panel-2) !important;
   border-color: var(--nebula-line-strong) !important;
   box-shadow: inset 0 0 0 1px var(--nebula-line) !important;
@@ -385,7 +401,7 @@ body:has(.dash-skin[data-design-system="nebula"])
     .board-pager-mobile-nav,
     .campaign-view-switch
   ) {
-  border-radius: 12px !important;
+  border-radius: 0 !important;
   background: var(--nebula-panel-2) !important;
   box-shadow: inset 0 0 0 1px var(--nebula-line) !important;
 }
@@ -443,7 +459,7 @@ body:has(.dash-skin[data-design-system="nebula"])
   .visual-overview-toolbar {
   min-height: 80px;
   padding: 16px 20px;
-  border-radius: 16px !important;
+  border-radius: 0 !important;
   background: var(--nebula-panel) !important;
   box-shadow: inset 0 0 0 1px var(--nebula-line) !important;
 }
@@ -499,7 +515,7 @@ body:has(.dash-skin[data-design-system="nebula"])
   > span {
   background: var(--nebula-selected-bg) !important;
   color: var(--nebula-selected);
-  border-radius: 11px !important;
+  border-radius: 0 !important;
 }
 body:has(.dash-skin[data-design-system="nebula"])
   .dash-skin
@@ -507,7 +523,7 @@ body:has(.dash-skin[data-design-system="nebula"])
   > svg {
   color: var(--nebula-selected);
   background: var(--nebula-selected-bg) !important;
-  border-radius: 10px !important;
+  border-radius: 0 !important;
   box-shadow: none !important;
 }
 body:has(.dash-skin[data-design-system="nebula"])
@@ -522,7 +538,7 @@ body:has(.dash-skin[data-design-system="nebula"])
     .visual-overview-supporting-metrics > div,
     .visual-overview-kpi-grid > div
   ) {
-  border-radius: 10px !important;
+  border-radius: 0 !important;
 }
 body:has(.dash-skin[data-design-system="nebula"])
   .dash-skin
@@ -587,13 +603,13 @@ body:has(.dash-skin[data-design-system="nebula"])
   ) !important;
   box-shadow: inset 0 0 0 1px
     color-mix(in srgb, var(--nebula-state) 20%, transparent) !important;
-  border-radius: 8px !important;
+  border-radius: 0 !important;
 }
 body:has(.dash-skin[data-design-system="nebula"])
   .dash-skin
   .class-board-quadro
   > .class-board-dados {
-  border-radius: 20px;
+  border-radius: 0;
   background: var(--nebula-panel);
   box-shadow: inset 0 0 0 1px var(--nebula-line);
 }
@@ -601,7 +617,7 @@ body:has(.dash-skin[data-design-system="nebula"])
   .dash-skin
   :is(.class-board-dados-topo, .class-board-pilar-cabecalho) {
   background: var(--nebula-panel-2) !important;
-  border-radius: 12px;
+  border-radius: 0;
   box-shadow: none !important;
 }
 body:has(.dash-skin[data-design-system="nebula"])
@@ -612,7 +628,7 @@ body:has(.dash-skin[data-design-system="nebula"])
     .campanha-numero,
     .class-board-dados-fichas > div
   ) {
-  border-radius: 12px;
+  border-radius: 0;
 }
 body:has(.dash-skin[data-design-system="nebula"])
   .dash-skin
@@ -640,7 +656,7 @@ body:has(.dash-skin[data-design-system="nebula"])
   --menu-cheio-texto: var(--primary-foreground);
   background: var(--nebula-panel);
   color: var(--nebula-text);
-  border-radius: 16px;
+  border-radius: 0;
 }
 
 /* Portal surfaces must be opaque and readable in both saved themes. */
@@ -663,7 +679,7 @@ body:has(.dash-skin[data-design-system="nebula"])
   color: var(--nebula-text) !important;
   background: var(--nebula-panel-2) !important;
   border: 1px solid var(--nebula-line-strong) !important;
-  border-radius: 16px !important;
+  border-radius: 0 !important;
   box-shadow: 0 20px 60px rgb(0 0 0 / 28%) !important;
   font-family: var(--font-inter), system-ui, sans-serif;
 }
@@ -673,7 +689,7 @@ body:has(.dash-skin[data-design-system="nebula"]) [data-slot="sheet-content"] {
 body:has(.dash-skin[data-design-system="nebula"])
   .dash-skin
   [data-slot="badge"] {
-  border-radius: 999px !important;
+  border-radius: 0 !important;
 }
 
 @media (max-width: 639px) {
@@ -759,4 +775,138 @@ body:has(.dash-skin[data-design-system="nebula"])
     transition: none !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* Shared Nebula / Orbit geometry, not a theme preference. Important declarations in
+   this named layer outrank unlayered legacy/module !important declarations.
+   Scope the authenticated body to include Radix portals and future modules;
+   SVG geometry (charts, connector paths and icons) is deliberately untouched. */
+@layer dashboard-geometry {
+  body:has(
+    .dash-skin:is([data-design-system="nebula"], [data-design-system="orbit"])
+  ),
+  body:has(
+      .dash-skin:is([data-design-system="nebula"], [data-design-system="orbit"])
+    )
+    :not(svg):not(svg *) {
+    --nebula-radius: 0 !important;
+    --nebula-radius-lg: 0 !important;
+    --nebula-control-radius: 0 !important;
+    --orb-raio-etiqueta: 0 !important;
+    --orb-raio-controlo: 0 !important;
+    --orb-raio-bloco: 0 !important;
+    --orb-raio-painel: 0 !important;
+    --radius: 0 !important;
+    --radius-card: 0 !important;
+    --radius-panel: 0 !important;
+    --radius-sm: 0 !important;
+    --radius-md: 0 !important;
+    --radius-lg: 0 !important;
+    --radius-xl: 0 !important;
+    --radius-2xl: 0 !important;
+    --radius-3xl: 0 !important;
+    --radius-4xl: 0 !important;
+    border-radius: 0 !important;
+    corner-shape: square !important;
+  }
+
+  body:has(
+      .dash-skin:is([data-design-system="nebula"], [data-design-system="orbit"])
+    )
+    :not(svg):not(svg *)::before,
+  body:has(
+      .dash-skin:is([data-design-system="nebula"], [data-design-system="orbit"])
+    )
+    :not(svg):not(svg *)::after,
+  body:has(
+      .dash-skin:is([data-design-system="nebula"], [data-design-system="orbit"])
+    )
+    input::file-selector-button,
+  body:has(
+      .dash-skin:is([data-design-system="nebula"], [data-design-system="orbit"])
+    )
+    video {
+    border-radius: 0 !important;
+  }
+
+  body:has(
+      .dash-skin:is([data-design-system="nebula"], [data-design-system="orbit"])
+    )
+    input::-webkit-slider-thumb {
+    border-radius: 0 !important;
+  }
+
+  body:has(
+      .dash-skin:is([data-design-system="nebula"], [data-design-system="orbit"])
+    )
+    input::-moz-range-thumb {
+    border-radius: 0 !important;
+  }
+}
+
+/* CSS donut/pie marks encode data, not rounded UI surfaces. Clip only the
+   painted chart and its hole; the card, legend and controls stay square.
+   Keeping border-radius at zero preserves the fixed geometry policy. */
+body:has(
+    .dash-skin:is([data-design-system="nebula"], [data-design-system="orbit"])
+  )
+  .dash-skin
+  :is(
+    .visual-overview-donut[role="img"],
+    .visual-overview-donut[role="img"] > div,
+    .visual-overview-pie[role="img"],
+    .visual-overview-pie[role="img"] > span,
+    [data-dashboard-chart="donut"] > [data-dashboard-chart-part="ring"],
+    [data-dashboard-chart="donut"] > [data-dashboard-chart-part="hole"],
+    [data-dashboard-chart="donut"][data-dashboard-chart-part="ring"]
+  ) {
+  clip-path: circle(50%);
+}
+
+/* Depth belongs to panels, not text, chart marks or every nested element.
+   No transform/filter: fixed-position descendants keep their viewport anchor. */
+body:has(
+    .dash-skin:is([data-design-system="nebula"], [data-design-system="orbit"])
+  )
+  .dash-skin
+  :is(
+    [data-slot="card"],
+    [data-dashboard-surface],
+    section.bg-card,
+    aside.bg-card,
+    article,
+    .dash-glass,
+    .sessao,
+    .acquisition-module,
+    .visual-overview-zone,
+    .visual-overview-kpi,
+    .visual-overview-toolbar,
+    .campaign-surface,
+    .campaign-board-column,
+    .campaign-board-card,
+    .class-board-pilar,
+    .class-board-cartao,
+    .class-board-dados,
+    .executive-filter-panel,
+    [data-orbit-workspace] section,
+    [data-orbit-workspace] aside
+  ) {
+  box-shadow: var(--nebula-card-depth) !important;
+}
+
+body:has(
+    .dash-skin:is([data-design-system="nebula"], [data-design-system="orbit"])
+  )
+  :is(
+    [data-slot="dialog-content"],
+    [data-slot="dropdown-menu-content"],
+    [data-slot="dropdown-menu-sub-content"],
+    [data-slot="popover-content"],
+    [data-slot="select-content"],
+    [data-slot="tooltip-content"],
+    [data-slot="sheet-content"],
+    [role="dialog"],
+    [data-sonner-toast]
+  ) {
+  box-shadow: var(--nebula-overlay-depth) !important;
 }

@@ -1,0 +1,253 @@
+{
+  "descricao": "Vetores do protocolo v1, calculados pela implementação TS (src/features/vps/chaves.ts e protocolo.ts). O agente Python confere os mesmos valores. Regenerar só se o protocolo mudar de versão.",
+  "mestra": "chave-mestra-de-teste-com-48-caracteres-0123456",
+  "servidorId": "7d3f2b1a-5c4e-4f6a-9b8c-0d1e2f3a4b5c",
+  "geracao": 1,
+  "chaves": {
+    "pedidos": "USiCQVmgOHrQsO98dfJco1m52oIAh-X4Va28I-XILS4",
+    "tarefas": "YuOqRZcoZ__fr0oZfX3F1XM4_Q_NXY-hsWkcCdbfu2A"
+  },
+  "derivacao": [
+    {
+      "geracao": 1,
+      "pedidos": "USiCQVmgOHrQsO98dfJco1m52oIAh-X4Va28I-XILS4",
+      "tarefas": "YuOqRZcoZ__fr0oZfX3F1XM4_Q_NXY-hsWkcCdbfu2A"
+    },
+    {
+      "geracao": 2,
+      "pedidos": "jKJPZygKvXiLNMr_uzGjjzNeBoH3pP2SdqObLXc0gF4",
+      "tarefas": "I5UQdQpI1OJ5gqMW9ZkPNJJHjZ1kkORDWuGwPSt0QB0"
+    },
+    {
+      "geracao": 7,
+      "pedidos": "ps0SXQpyTH0qrwYuA079dzMSCT0laM-3SSR8zMkv1bw",
+      "tarefas": "xju6gmgCIOLJnmrATQpIwXLO90FxhkBG8pRgwyA51X0"
+    }
+  ],
+  "token": {
+    "valor": "IP0LqfZBKAoi9yoRRaCJKyJfsLL911pTuk-D9Flscq4",
+    "sha256": "652acae1da0dc112156edb50867522648c22e214225c37de7e55c6616d520882"
+  },
+  "pedidos": [
+    {
+      "nome": "pulso",
+      "metodo": "POST",
+      "caminho": "/api/agente/v1/pulso",
+      "seq": "1727000000123",
+      "corpo": "{\"versao\":\"1.0.0\",\"travas\":{\"pausado\":false,\"somenteLeitura\":false},\"executando\":null,\"desvioMs\":0,\"ipv4\":[\"203.0.113.10\"],\"ipv6\":[],\"visaoGeral\":null,\"nginx\":null,\"certificados\":null,\"sites\":[]}",
+      "corpoBase64": "eyJ2ZXJzYW8iOiIxLjAuMCIsInRyYXZhcyI6eyJwYXVzYWRvIjpmYWxzZSwic29tZW50ZUxlaXR1cmEiOmZhbHNlfSwiZXhlY3V0YW5kbyI6bnVsbCwiZGVzdmlvTXMiOjAsImlwdjQiOlsiMjAzLjAuMTEzLjEwIl0sImlwdjYiOltdLCJ2aXNhb0dlcmFsIjpudWxsLCJuZ2lueCI6bnVsbCwiY2VydGlmaWNhZG9zIjpudWxsLCJzaXRlcyI6W119",
+      "corpoSha256": "467c69e584627edced8520fb71613b3494b35f699bc66092aeda3a06952d73a1",
+      "canonico": "dash-vps-pedido-v1\nPOST\n/api/agente/v1/pulso\n7d3f2b1a-5c4e-4f6a-9b8c-0d1e2f3a4b5c\n1727000000123\n467c69e584627edced8520fb71613b3494b35f699bc66092aeda3a06952d73a1",
+      "assinatura": "95a73adeb91df339f07a158333743dae5549d48ed7677202726dfc40bb80d71e"
+    },
+    {
+      "nome": "artefato (GET com corpo vazio)",
+      "metodo": "GET",
+      "caminho": "/api/agente/v1/artefatos/99999999-8888-4777-8666-555555555555",
+      "seq": "1727000000124",
+      "corpo": "",
+      "corpoBase64": "",
+      "corpoSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "canonico": "dash-vps-pedido-v1\nGET\n/api/agente/v1/artefatos/99999999-8888-4777-8666-555555555555\n7d3f2b1a-5c4e-4f6a-9b8c-0d1e2f3a4b5c\n1727000000124\ne3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "assinatura": "2b52d6e379e6886e2a5eac7de2addf5e7e937aae39bc29b26365d8b6f626607f"
+    },
+    {
+      "nome": "resultado com acento no erro",
+      "metodo": "POST",
+      "caminho": "/api/agente/v1/tarefas/10000000-0000-4000-8000-000000000001/resultado",
+      "seq": "1727000000125",
+      "corpo": "{\"seq\":42,\"estado\":\"falhou\",\"resultado\":null,\"erro\":\"nginx_recusou: configuração inválida\",\"duracaoMs\":1234}",
+      "corpoBase64": "eyJzZXEiOjQyLCJlc3RhZG8iOiJmYWxob3UiLCJyZXN1bHRhZG8iOm51bGwsImVycm8iOiJuZ2lueF9yZWN1c291OiBjb25maWd1cmHDp8OjbyBpbnbDoWxpZGEiLCJkdXJhY2FvTXMiOjEyMzR9",
+      "corpoSha256": "a1a0360d19dddfc19ab5f1092afd26dec9549568009dd0ba81ab589709fcc6d6",
+      "canonico": "dash-vps-pedido-v1\nPOST\n/api/agente/v1/tarefas/10000000-0000-4000-8000-000000000001/resultado\n7d3f2b1a-5c4e-4f6a-9b8c-0d1e2f3a4b5c\n1727000000125\na1a0360d19dddfc19ab5f1092afd26dec9549568009dd0ba81ab589709fcc6d6",
+      "assinatura": "6ab1679162f8baff59da64a18446ba6e193b9e160b254c299dff4ab18e5047e9"
+    },
+    {
+      "nome": "seq no teto (2^53 - 1)",
+      "metodo": "POST",
+      "caminho": "/api/agente/v1/pulso",
+      "seq": "9007199254740991",
+      "corpo": "{\"versao\":\"1.0.0\",\"travas\":{\"pausado\":false,\"somenteLeitura\":false},\"executando\":null,\"desvioMs\":0,\"ipv4\":[\"203.0.113.10\"],\"ipv6\":[],\"visaoGeral\":null,\"nginx\":null,\"certificados\":null,\"sites\":[]}",
+      "corpoBase64": "eyJ2ZXJzYW8iOiIxLjAuMCIsInRyYXZhcyI6eyJwYXVzYWRvIjpmYWxzZSwic29tZW50ZUxlaXR1cmEiOmZhbHNlfSwiZXhlY3V0YW5kbyI6bnVsbCwiZGVzdmlvTXMiOjAsImlwdjQiOlsiMjAzLjAuMTEzLjEwIl0sImlwdjYiOltdLCJ2aXNhb0dlcmFsIjpudWxsLCJuZ2lueCI6bnVsbCwiY2VydGlmaWNhZG9zIjpudWxsLCJzaXRlcyI6W119",
+      "corpoSha256": "467c69e584627edced8520fb71613b3494b35f699bc66092aeda3a06952d73a1",
+      "canonico": "dash-vps-pedido-v1\nPOST\n/api/agente/v1/pulso\n7d3f2b1a-5c4e-4f6a-9b8c-0d1e2f3a4b5c\n9007199254740991\n467c69e584627edced8520fb71613b3494b35f699bc66092aeda3a06952d73a1",
+      "assinatura": "316f8886fdd3faf633a26ee610fb5459226b437b0ffd44c9159706f72ba8234f"
+    }
+  ],
+  "tarefas": [
+    {
+      "nome": "servidor.coletar",
+      "valida": true,
+      "tarefa": {
+        "id": "0f0e0d0c-0b0a-4908-8706-050403020100",
+        "seq": 41,
+        "tipo": "servidor.coletar",
+        "params": "{}",
+        "expiraEm": 1790000000
+      },
+      "mensagem": "dash-vps-tarefa-v1\n7d3f2b1a-5c4e-4f6a-9b8c-0d1e2f3a4b5c\n0f0e0d0c-0b0a-4908-8706-050403020100\n41\nservidor.coletar\n1790000000\n{}",
+      "assinatura": "48747a136805dfd5ba688ac2f37fc2348268ff32f2e671fa586d75ce6bd01b7e"
+    },
+    {
+      "nome": "site.configurar",
+      "valida": true,
+      "tarefa": {
+        "id": "10000000-0000-4000-8000-000000000001",
+        "seq": 42,
+        "tipo": "site.configurar",
+        "params": "{\"siteId\":\"11111111-2222-4333-8444-555555555555\",\"slug\":\"loja-com-br\",\"dominios\":[\"loja.com.br\",\"www.loja.com.br\"],\"principal\":\"loja.com.br\",\"origemCheckout\":\"https://dash-board-psi-one.vercel.app\",\"checkout\":\"https://dash-board-psi-one.vercel.app/checkout/cadeira-x\",\"tls\":false}",
+        "expiraEm": 1790000000
+      },
+      "mensagem": "dash-vps-tarefa-v1\n7d3f2b1a-5c4e-4f6a-9b8c-0d1e2f3a4b5c\n10000000-0000-4000-8000-000000000001\n42\nsite.configurar\n1790000000\n{\"siteId\":\"11111111-2222-4333-8444-555555555555\",\"slug\":\"loja-com-br\",\"dominios\":[\"loja.com.br\",\"www.loja.com.br\"],\"principal\":\"loja.com.br\",\"origemCheckout\":\"https://dash-board-psi-one.vercel.app\",\"checkout\":\"https://dash-board-psi-one.vercel.app/checkout/cadeira-x\",\"tls\":false}",
+      "assinatura": "1ccad6f1b2e327a9ec577d523e4576c261d1db19cc406390bdd9d8751b6dd176"
+    },
+    {
+      "nome": "site.publicar",
+      "valida": true,
+      "tarefa": {
+        "id": "10000000-0000-4000-8000-000000000002",
+        "seq": 43,
+        "tipo": "site.publicar",
+        "params": "{\"siteId\":\"11111111-2222-4333-8444-555555555555\",\"slug\":\"loja-com-br\",\"versaoId\":\"aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee\",\"artefatoId\":\"99999999-8888-4777-8666-555555555555\",\"sha256\":\"4689bcf00d1457b85eb95baaced8b0d56aeb25dde837ca5a8d2fb96676095c7c\",\"bytes\":123456}",
+        "expiraEm": 1790000000
+      },
+      "mensagem": "dash-vps-tarefa-v1\n7d3f2b1a-5c4e-4f6a-9b8c-0d1e2f3a4b5c\n10000000-0000-4000-8000-000000000002\n43\nsite.publicar\n1790000000\n{\"siteId\":\"11111111-2222-4333-8444-555555555555\",\"slug\":\"loja-com-br\",\"versaoId\":\"aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee\",\"artefatoId\":\"99999999-8888-4777-8666-555555555555\",\"sha256\":\"4689bcf00d1457b85eb95baaced8b0d56aeb25dde837ca5a8d2fb96676095c7c\",\"bytes\":123456}",
+      "assinatura": "a06ebfcebda4ade213c606409a4af1ad2c00cbf93c83eef597a13633e0f70bd9"
+    },
+    {
+      "nome": "site.ativar_versao",
+      "valida": true,
+      "tarefa": {
+        "id": "10000000-0000-4000-8000-000000000003",
+        "seq": 44,
+        "tipo": "site.ativar_versao",
+        "params": "{\"siteId\":\"11111111-2222-4333-8444-555555555555\",\"slug\":\"loja-com-br\",\"versaoId\":\"aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee\"}",
+        "expiraEm": 1790000000
+      },
+      "mensagem": "dash-vps-tarefa-v1\n7d3f2b1a-5c4e-4f6a-9b8c-0d1e2f3a4b5c\n10000000-0000-4000-8000-000000000003\n44\nsite.ativar_versao\n1790000000\n{\"siteId\":\"11111111-2222-4333-8444-555555555555\",\"slug\":\"loja-com-br\",\"versaoId\":\"aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee\"}",
+      "assinatura": "ccd55794031f7493dfd0d9a3c600ca17bd035287c27e0b18a7717f81dcf1b281"
+    },
+    {
+      "nome": "site.ssl_emitir",
+      "valida": true,
+      "tarefa": {
+        "id": "10000000-0000-4000-8000-000000000004",
+        "seq": 45,
+        "tipo": "site.ssl_emitir",
+        "params": "{\"siteId\":\"11111111-2222-4333-8444-555555555555\",\"slug\":\"loja-com-br\",\"dominios\":[\"loja.com.br\",\"www.loja.com.br\"],\"email\":\"dono@loja.com.br\"}",
+        "expiraEm": 1790000000
+      },
+      "mensagem": "dash-vps-tarefa-v1\n7d3f2b1a-5c4e-4f6a-9b8c-0d1e2f3a4b5c\n10000000-0000-4000-8000-000000000004\n45\nsite.ssl_emitir\n1790000000\n{\"siteId\":\"11111111-2222-4333-8444-555555555555\",\"slug\":\"loja-com-br\",\"dominios\":[\"loja.com.br\",\"www.loja.com.br\"],\"email\":\"dono@loja.com.br\"}",
+      "assinatura": "7131d7948b9dc9ddc024fdde1ced2495a49141ee7b233ea23fb7e6c2c9731a35"
+    },
+    {
+      "nome": "site.ssl_emitir (sem e-mail)",
+      "valida": true,
+      "tarefa": {
+        "id": "10000000-0000-4000-8000-000000000005",
+        "seq": 46,
+        "tipo": "site.ssl_emitir",
+        "params": "{\"siteId\":\"11111111-2222-4333-8444-555555555555\",\"slug\":\"loja-com-br\",\"dominios\":[\"loja.com.br\"],\"email\":null}",
+        "expiraEm": 1790000000
+      },
+      "mensagem": "dash-vps-tarefa-v1\n7d3f2b1a-5c4e-4f6a-9b8c-0d1e2f3a4b5c\n10000000-0000-4000-8000-000000000005\n46\nsite.ssl_emitir\n1790000000\n{\"siteId\":\"11111111-2222-4333-8444-555555555555\",\"slug\":\"loja-com-br\",\"dominios\":[\"loja.com.br\"],\"email\":null}",
+      "assinatura": "4d360c4033f2956d38d4dee11b4144799b4df5c4d1f6928dd8ec08da61cbe6e1"
+    },
+    {
+      "nome": "site.remover",
+      "valida": true,
+      "tarefa": {
+        "id": "10000000-0000-4000-8000-000000000006",
+        "seq": 47,
+        "tipo": "site.remover",
+        "params": "{\"siteId\":\"11111111-2222-4333-8444-555555555555\",\"slug\":\"loja-com-br\"}",
+        "expiraEm": 1790000000
+      },
+      "mensagem": "dash-vps-tarefa-v1\n7d3f2b1a-5c4e-4f6a-9b8c-0d1e2f3a4b5c\n10000000-0000-4000-8000-000000000006\n47\nsite.remover\n1790000000\n{\"siteId\":\"11111111-2222-4333-8444-555555555555\",\"slug\":\"loja-com-br\"}",
+      "assinatura": "36e96c129ffd4345c67d8a8190dbe7dcfaa8e2fbf23f4c138eb57d10f2769be6"
+    },
+    {
+      "nome": "seq no teto (2^53 - 1)",
+      "valida": true,
+      "tarefa": {
+        "id": "10000000-0000-4000-8000-000000000007",
+        "seq": 9007199254740991,
+        "tipo": "site.remover",
+        "params": "{\"siteId\":\"11111111-2222-4333-8444-555555555555\",\"slug\":\"loja-com-br\"}",
+        "expiraEm": 1790000000
+      },
+      "mensagem": "dash-vps-tarefa-v1\n7d3f2b1a-5c4e-4f6a-9b8c-0d1e2f3a4b5c\n10000000-0000-4000-8000-000000000007\n9007199254740991\nsite.remover\n1790000000\n{\"siteId\":\"11111111-2222-4333-8444-555555555555\",\"slug\":\"loja-com-br\"}",
+      "assinatura": "de6cf917097814f5733e9736e0ec37c332289cc27c1bfcbc81cff51cec72b8c5"
+    },
+    {
+      "nome": "params com 1 byte trocado",
+      "valida": false,
+      "servidorId": "7d3f2b1a-5c4e-4f6a-9b8c-0d1e2f3a4b5c",
+      "tarefa": {
+        "id": "10000000-0000-4000-8000-000000000001",
+        "seq": 42,
+        "tipo": "site.configurar",
+        "params": "{\"siteId\":\"11111111-2222-4333-8444-555555555555\",\"slug\":\"loja-com-br\",\"dominios\":[\"loja.com.br\",\"www.loja.com.br\"],\"principal\":\"loja.com.br\",\"origemCheckout\":\"https://dash-board-psi-one.vercel.app\",\"checkout\":\"https://dash-board-psi-one.vercel.app/checkout/cadeira-x\",\"tls\":true}",
+        "expiraEm": 1790000000
+      },
+      "mensagem": "dash-vps-tarefa-v1\n7d3f2b1a-5c4e-4f6a-9b8c-0d1e2f3a4b5c\n10000000-0000-4000-8000-000000000001\n42\nsite.configurar\n1790000000\n{\"siteId\":\"11111111-2222-4333-8444-555555555555\",\"slug\":\"loja-com-br\",\"dominios\":[\"loja.com.br\",\"www.loja.com.br\"],\"principal\":\"loja.com.br\",\"origemCheckout\":\"https://dash-board-psi-one.vercel.app\",\"checkout\":\"https://dash-board-psi-one.vercel.app/checkout/cadeira-x\",\"tls\":true}",
+      "assinatura": "1ccad6f1b2e327a9ec577d523e4576c261d1db19cc406390bdd9d8751b6dd176"
+    },
+    {
+      "nome": "seq trocada",
+      "valida": false,
+      "servidorId": "7d3f2b1a-5c4e-4f6a-9b8c-0d1e2f3a4b5c",
+      "tarefa": {
+        "id": "10000000-0000-4000-8000-000000000001",
+        "seq": 43,
+        "tipo": "site.configurar",
+        "params": "{\"siteId\":\"11111111-2222-4333-8444-555555555555\",\"slug\":\"loja-com-br\",\"dominios\":[\"loja.com.br\",\"www.loja.com.br\"],\"principal\":\"loja.com.br\",\"origemCheckout\":\"https://dash-board-psi-one.vercel.app\",\"checkout\":\"https://dash-board-psi-one.vercel.app/checkout/cadeira-x\",\"tls\":false}",
+        "expiraEm": 1790000000
+      },
+      "mensagem": "dash-vps-tarefa-v1\n7d3f2b1a-5c4e-4f6a-9b8c-0d1e2f3a4b5c\n10000000-0000-4000-8000-000000000001\n43\nsite.configurar\n1790000000\n{\"siteId\":\"11111111-2222-4333-8444-555555555555\",\"slug\":\"loja-com-br\",\"dominios\":[\"loja.com.br\",\"www.loja.com.br\"],\"principal\":\"loja.com.br\",\"origemCheckout\":\"https://dash-board-psi-one.vercel.app\",\"checkout\":\"https://dash-board-psi-one.vercel.app/checkout/cadeira-x\",\"tls\":false}",
+      "assinatura": "1ccad6f1b2e327a9ec577d523e4576c261d1db19cc406390bdd9d8751b6dd176"
+    },
+    {
+      "nome": "tipo trocado",
+      "valida": false,
+      "servidorId": "7d3f2b1a-5c4e-4f6a-9b8c-0d1e2f3a4b5c",
+      "tarefa": {
+        "id": "10000000-0000-4000-8000-000000000001",
+        "seq": 42,
+        "tipo": "site.remover",
+        "params": "{\"siteId\":\"11111111-2222-4333-8444-555555555555\",\"slug\":\"loja-com-br\",\"dominios\":[\"loja.com.br\",\"www.loja.com.br\"],\"principal\":\"loja.com.br\",\"origemCheckout\":\"https://dash-board-psi-one.vercel.app\",\"checkout\":\"https://dash-board-psi-one.vercel.app/checkout/cadeira-x\",\"tls\":false}",
+        "expiraEm": 1790000000
+      },
+      "mensagem": "dash-vps-tarefa-v1\n7d3f2b1a-5c4e-4f6a-9b8c-0d1e2f3a4b5c\n10000000-0000-4000-8000-000000000001\n42\nsite.remover\n1790000000\n{\"siteId\":\"11111111-2222-4333-8444-555555555555\",\"slug\":\"loja-com-br\",\"dominios\":[\"loja.com.br\",\"www.loja.com.br\"],\"principal\":\"loja.com.br\",\"origemCheckout\":\"https://dash-board-psi-one.vercel.app\",\"checkout\":\"https://dash-board-psi-one.vercel.app/checkout/cadeira-x\",\"tls\":false}",
+      "assinatura": "1ccad6f1b2e327a9ec577d523e4576c261d1db19cc406390bdd9d8751b6dd176"
+    },
+    {
+      "nome": "expiraEm trocado",
+      "valida": false,
+      "servidorId": "7d3f2b1a-5c4e-4f6a-9b8c-0d1e2f3a4b5c",
+      "tarefa": {
+        "id": "10000000-0000-4000-8000-000000000001",
+        "seq": 42,
+        "tipo": "site.configurar",
+        "params": "{\"siteId\":\"11111111-2222-4333-8444-555555555555\",\"slug\":\"loja-com-br\",\"dominios\":[\"loja.com.br\",\"www.loja.com.br\"],\"principal\":\"loja.com.br\",\"origemCheckout\":\"https://dash-board-psi-one.vercel.app\",\"checkout\":\"https://dash-board-psi-one.vercel.app/checkout/cadeira-x\",\"tls\":false}",
+        "expiraEm": 1790000001
+      },
+      "mensagem": "dash-vps-tarefa-v1\n7d3f2b1a-5c4e-4f6a-9b8c-0d1e2f3a4b5c\n10000000-0000-4000-8000-000000000001\n42\nsite.configurar\n1790000001\n{\"siteId\":\"11111111-2222-4333-8444-555555555555\",\"slug\":\"loja-com-br\",\"dominios\":[\"loja.com.br\",\"www.loja.com.br\"],\"principal\":\"loja.com.br\",\"origemCheckout\":\"https://dash-board-psi-one.vercel.app\",\"checkout\":\"https://dash-board-psi-one.vercel.app/checkout/cadeira-x\",\"tls\":false}",
+      "assinatura": "1ccad6f1b2e327a9ec577d523e4576c261d1db19cc406390bdd9d8751b6dd176"
+    },
+    {
+      "nome": "outro servidorId",
+      "valida": false,
+      "servidorId": "7d3f2b1a-5c4e-4f6a-9b8c-0d1e2f3a4b5d",
+      "tarefa": {
+        "id": "10000000-0000-4000-8000-000000000001",
+        "seq": 42,
+        "tipo": "site.configurar",
+        "params": "{\"siteId\":\"11111111-2222-4333-8444-555555555555\",\"slug\":\"loja-com-br\",\"dominios\":[\"loja.com.br\",\"www.loja.com.br\"],\"principal\":\"loja.com.br\",\"origemCheckout\":\"https://dash-board-psi-one.vercel.app\",\"checkout\":\"https://dash-board-psi-one.vercel.app/checkout/cadeira-x\",\"tls\":false}",
+        "expiraEm": 1790000000
+      },
+      "mensagem": "dash-vps-tarefa-v1\n7d3f2b1a-5c4e-4f6a-9b8c-0d1e2f3a4b5d\n10000000-0000-4000-8000-000000000001\n42\nsite.configurar\n1790000000\n{\"siteId\":\"11111111-2222-4333-8444-555555555555\",\"slug\":\"loja-com-br\",\"dominios\":[\"loja.com.br\",\"www.loja.com.br\"],\"principal\":\"loja.com.br\",\"origemCheckout\":\"https://dash-board-psi-one.vercel.app\",\"checkout\":\"https://dash-board-psi-one.vercel.app/checkout/cadeira-x\",\"tls\":false}",
+      "assinatura": "1ccad6f1b2e327a9ec577d523e4576c261d1db19cc406390bdd9d8751b6dd176"
+    }
+  ]
+}

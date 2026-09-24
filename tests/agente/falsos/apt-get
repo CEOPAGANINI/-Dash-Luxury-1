@@ -1,0 +1,11 @@
+#!/usr/bin/env python3
+"""apt-get FALSO: só registra o argv (o instalador nunca instala nada de verdade nos testes)."""
+import os
+import sys
+
+sys.dont_write_bytecode = True  # os falsos rodam com ambiente fixo: nada de __pycache__ no repositório
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _comum import registrar  # noqa: E402
+
+registrar("apt-get")
+sys.exit(0)

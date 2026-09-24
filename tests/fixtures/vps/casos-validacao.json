@@ -1,0 +1,1488 @@
+{
+  "descricao": "Casos obrigatórios das regras compartilhadas (§8.1). Conferidos por src/features/vps/modelo.ts (vitest), public/agente/v1/dash_agent.py e dash_agent_root.py (unittest). 'normalizacao' é só do painel: o agente recebe o valor já normalizado. Os casos com '\\n' no fim existem porque o '$' do Python casa antes de uma quebra de linha final: use re.fullmatch (ou \\Z). 'segmento' é o nome marcado como UTF-8 no ZIP (o que o editor do funil grava): segmentoDoZipOk(v, true) no painel, segmento_ok(v, True) no agente.",
+  "normalizacao": [
+    {
+      "entrada": "Promoção.com.BR",
+      "saida": "xn--promoo-7ta5a.com.br"
+    },
+    {
+      "entrada": "0x7f.1",
+      "saida": "127.0.0.1"
+    },
+    {
+      "entrada": "LOJA.com.br.",
+      "saida": "loja.com.br"
+    },
+    {
+      "entrada": " loja.com.br ",
+      "saida": "loja.com.br"
+    },
+    {
+      "entrada": "Münchën.de",
+      "saida": "xn--mnchn-qsa9i.de"
+    },
+    {
+      "entrada": "loja.com.br/x",
+      "saida": null
+    },
+    {
+      "entrada": "dono@loja.com.br",
+      "saida": null
+    },
+    {
+      "entrada": "loja.com.br:8080",
+      "saida": null
+    },
+    {
+      "entrada": "[::1]",
+      "saida": null
+    },
+    {
+      "entrada": "loja .com.br",
+      "saida": null
+    },
+    {
+      "entrada": "loja.com.br?x",
+      "saida": null
+    },
+    {
+      "entrada": "loja.com.br#x",
+      "saida": null
+    },
+    {
+      "entrada": "loja\\com.br",
+      "saida": null
+    },
+    {
+      "entrada": "",
+      "saida": null
+    },
+    {
+      "entrada": "loja .com.br",
+      "saida": null
+    }
+  ],
+  "host": [
+    {
+      "valor": "loja.com.br",
+      "ok": true
+    },
+    {
+      "valor": "www.loja.com.br",
+      "ok": true
+    },
+    {
+      "valor": "a.co",
+      "ok": true
+    },
+    {
+      "valor": "xn--promoo-7ta5a.com.br",
+      "ok": true
+    },
+    {
+      "valor": "dash-board-psi-one.vercel.app",
+      "ok": true
+    },
+    {
+      "valor": "loja.xn--p1ai",
+      "ok": true
+    },
+    {
+      "valor": "a-b.com",
+      "ok": true
+    },
+    {
+      "valor": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.com",
+      "ok": true
+    },
+    {
+      "valor": "localhost",
+      "ok": false
+    },
+    {
+      "valor": "loja.local",
+      "ok": false
+    },
+    {
+      "valor": "x.internal",
+      "ok": false
+    },
+    {
+      "valor": "x.invalid",
+      "ok": false
+    },
+    {
+      "valor": "loja.test",
+      "ok": false
+    },
+    {
+      "valor": "example",
+      "ok": false
+    },
+    {
+      "valor": "x.example",
+      "ok": false
+    },
+    {
+      "valor": "1.0.0.127.in-addr.arpa",
+      "ok": false
+    },
+    {
+      "valor": "127.0.0.1",
+      "ok": false
+    },
+    {
+      "valor": "8.8.8.8",
+      "ok": false
+    },
+    {
+      "valor": "loja",
+      "ok": false
+    },
+    {
+      "valor": "-loja.com",
+      "ok": false
+    },
+    {
+      "valor": "loja-.com",
+      "ok": false
+    },
+    {
+      "valor": "loja..com",
+      "ok": false
+    },
+    {
+      "valor": ".loja.com",
+      "ok": false
+    },
+    {
+      "valor": "loja.com.",
+      "ok": false
+    },
+    {
+      "valor": "Loja.com",
+      "ok": false
+    },
+    {
+      "valor": "loja.c",
+      "ok": false
+    },
+    {
+      "valor": "loja.123",
+      "ok": false
+    },
+    {
+      "valor": "*.loja.com",
+      "ok": false
+    },
+    {
+      "valor": "loja_com.br",
+      "ok": false
+    },
+    {
+      "valor": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.com",
+      "ok": false
+    },
+    {
+      "valor": "abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.abc.com",
+      "ok": false
+    },
+    {
+      "valor": "loja.com\n",
+      "ok": false
+    },
+    {
+      "valor": "loja.com ",
+      "ok": false
+    },
+    {
+      "valor": "",
+      "ok": false
+    },
+    {
+      "valor": "xn--.com",
+      "ok": false
+    },
+    {
+      "valor": "loja.xn--",
+      "ok": false
+    },
+    {
+      "valor": "sub.dominio.loja.xn--p1ai",
+      "ok": true
+    },
+    {
+      "valor": "1loja.com",
+      "ok": true
+    },
+    {
+      "valor": "loja-1.com.br",
+      "ok": true
+    },
+    {
+      "valor": "loja.localhost",
+      "ok": false
+    },
+    {
+      "valor": "painel.internal",
+      "ok": false
+    },
+    {
+      "valor": "loja.example",
+      "ok": false
+    },
+    {
+      "valor": "203.0.113.10",
+      "ok": false
+    },
+    {
+      "valor": "Loja.com.br",
+      "ok": false
+    },
+    {
+      "valor": "promoção.com.br",
+      "ok": false
+    },
+    {
+      "valor": "-loja.com.br",
+      "ok": false
+    },
+    {
+      "valor": "loja-.com.br",
+      "ok": false
+    },
+    {
+      "valor": "loja..com.br",
+      "ok": false
+    },
+    {
+      "valor": ".loja.com.br",
+      "ok": false
+    },
+    {
+      "valor": "loja.com.br.",
+      "ok": false
+    },
+    {
+      "valor": "*.loja.com.br",
+      "ok": false
+    },
+    {
+      "valor": "loja.com.b",
+      "ok": false
+    },
+    {
+      "valor": "loja_1.com.br",
+      "ok": false
+    },
+    {
+      "valor": "loja.com.br/x",
+      "ok": false
+    },
+    {
+      "valor": "loja.com.br:443",
+      "ok": false
+    },
+    {
+      "valor": "[::1]",
+      "ok": false
+    },
+    {
+      "valor": "loja.com.br\n",
+      "ok": false
+    },
+    {
+      "valor": "loja.com.br\r",
+      "ok": false
+    },
+    {
+      "valor": " loja.com.br",
+      "ok": false
+    },
+    {
+      "valor": "loja\n.com.br",
+      "ok": false
+    }
+  ],
+  "dominioSite": [
+    {
+      "valor": "loja.com.br",
+      "ok": true
+    },
+    {
+      "valor": "www.loja.com.br",
+      "ok": true
+    },
+    {
+      "valor": "loja-e2e.com.br",
+      "ok": true
+    },
+    {
+      "valor": "loja.vercel.app",
+      "ok": false
+    },
+    {
+      "valor": "vercel.app",
+      "ok": false
+    },
+    {
+      "valor": "x.y.vercel.app",
+      "ok": false
+    },
+    {
+      "valor": "dash-board-psi-one.vercel.app",
+      "ok": false
+    },
+    {
+      "valor": "localhost",
+      "ok": false
+    },
+    {
+      "valor": "loja.test",
+      "ok": false
+    },
+    {
+      "valor": "127.0.0.1",
+      "ok": false
+    },
+    {
+      "valor": "loja.com.br\n",
+      "ok": false
+    },
+    {
+      "valor": "xn--promoo-7ta5a.com.br",
+      "ok": true
+    },
+    {
+      "valor": "loja.local",
+      "ok": false
+    },
+    {
+      "valor": "loja",
+      "ok": false
+    },
+    {
+      "valor": "www.loja.com.br\n",
+      "ok": false
+    }
+  ],
+  "origem": [
+    {
+      "valor": "https://dash-board-psi-one.vercel.app",
+      "ok": true
+    },
+    {
+      "valor": "https://checkout.loja.com.br",
+      "ok": true
+    },
+    {
+      "valor": "https://checkout-e2e.com.br",
+      "ok": true
+    },
+    {
+      "valor": "http://loja.com.br",
+      "ok": false
+    },
+    {
+      "valor": "https://loja.com.br/",
+      "ok": false
+    },
+    {
+      "valor": "https://loja.com.br:443",
+      "ok": false
+    },
+    {
+      "valor": "https://loja.com.br/checkout",
+      "ok": false
+    },
+    {
+      "valor": "https://Loja.com.br",
+      "ok": false
+    },
+    {
+      "valor": "https://127.0.0.1",
+      "ok": false
+    },
+    {
+      "valor": "https://localhost",
+      "ok": false
+    },
+    {
+      "valor": "https://loja.test",
+      "ok": false
+    },
+    {
+      "valor": "https://loja.com.br\n",
+      "ok": false
+    },
+    {
+      "valor": "ftp://loja.com.br",
+      "ok": false
+    },
+    {
+      "valor": "https://",
+      "ok": false
+    },
+    {
+      "valor": "https://dono@loja.com.br",
+      "ok": false
+    },
+    {
+      "valor": "http://dash-board-psi-one.vercel.app",
+      "ok": false
+    },
+    {
+      "valor": "https://dash-board-psi-one.vercel.app/",
+      "ok": false
+    },
+    {
+      "valor": "https://dash-board-psi-one.vercel.app:443",
+      "ok": false
+    },
+    {
+      "valor": "https://loja.local",
+      "ok": false
+    }
+  ],
+  "checkout": [
+    {
+      "url": null,
+      "origem": "https://dash-board-psi-one.vercel.app",
+      "ok": true
+    },
+    {
+      "url": "https://dash-board-psi-one.vercel.app/checkout/cadeira-x",
+      "origem": "https://dash-board-psi-one.vercel.app",
+      "ok": true
+    },
+    {
+      "url": "https://dash-board-psi-one.vercel.app/checkout/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "origem": "https://dash-board-psi-one.vercel.app",
+      "ok": true
+    },
+    {
+      "url": "https://checkout.loja.com.br/checkout/cadeira-x",
+      "origem": "https://dash-board-psi-one.vercel.app",
+      "ok": false
+    },
+    {
+      "url": "https://dash-board-psi-one.vercel.app/checkout/Cadeira-X",
+      "origem": "https://dash-board-psi-one.vercel.app",
+      "ok": false
+    },
+    {
+      "url": "https://dash-board-psi-one.vercel.app/checkout/cadeira/x",
+      "origem": "https://dash-board-psi-one.vercel.app",
+      "ok": false
+    },
+    {
+      "url": "https://dash-board-psi-one.vercel.app/checkout/cadeira-",
+      "origem": "https://dash-board-psi-one.vercel.app",
+      "ok": false
+    },
+    {
+      "url": "https://dash-board-psi-one.vercel.app/checkout/",
+      "origem": "https://dash-board-psi-one.vercel.app",
+      "ok": false
+    },
+    {
+      "url": "https://dash-board-psi-one.vercel.app/checkout/cadeira-x?qty=1",
+      "origem": "https://dash-board-psi-one.vercel.app",
+      "ok": false
+    },
+    {
+      "url": "https://dash-board-psi-one.vercel.app/checkout/cadeira-x\n",
+      "origem": "https://dash-board-psi-one.vercel.app",
+      "ok": false
+    },
+    {
+      "url": "https://dash-board-psi-one.vercel.app/checkout/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "origem": "https://dash-board-psi-one.vercel.app",
+      "ok": false
+    },
+    {
+      "url": "https://dash-board-psi-one.vercel.app/produto/cadeira-x",
+      "origem": "https://dash-board-psi-one.vercel.app",
+      "ok": false
+    },
+    {
+      "url": "https://checkout.loja.com.br/checkout/a",
+      "origem": "https://checkout.loja.com.br",
+      "ok": true
+    },
+    {
+      "url": "https://outro.com.br/checkout/cadeira-x",
+      "origem": "https://dash-board-psi-one.vercel.app",
+      "ok": false
+    },
+    {
+      "url": "https://dash-board-psi-one.vercel.app/checkout/Cadeira",
+      "origem": "https://dash-board-psi-one.vercel.app",
+      "ok": false
+    },
+    {
+      "url": "https://dash-board-psi-one.vercel.app/checkout/cadeira-x/",
+      "origem": "https://dash-board-psi-one.vercel.app",
+      "ok": false
+    },
+    {
+      "url": "https://dash-board-psi-one.vercel.app/checkout/-x",
+      "origem": "https://dash-board-psi-one.vercel.app",
+      "ok": false
+    },
+    {
+      "url": "https://dash-board-psi-one.vercel.app/p/cadeira-x",
+      "origem": "https://dash-board-psi-one.vercel.app",
+      "ok": false
+    },
+    {
+      "url": "http://dash-board-psi-one.vercel.app/checkout/cadeira-x",
+      "origem": "http://dash-board-psi-one.vercel.app",
+      "ok": false
+    }
+  ],
+  "email": [
+    {
+      "valor": null,
+      "ok": true
+    },
+    {
+      "valor": "dono@loja.com.br",
+      "ok": true
+    },
+    {
+      "valor": "Dono.Silva+funil@loja.com.br",
+      "ok": true
+    },
+    {
+      "valor": "a@b.co",
+      "ok": true
+    },
+    {
+      "valor": "dono@LOJA.com.br",
+      "ok": true
+    },
+    {
+      "valor": "dono_1%x@loja.com.br",
+      "ok": true
+    },
+    {
+      "valor": "-dono@loja.com.br",
+      "ok": false
+    },
+    {
+      "valor": ".dono@loja.com.br",
+      "ok": false
+    },
+    {
+      "valor": "dono@localhost",
+      "ok": false
+    },
+    {
+      "valor": "dono@loja",
+      "ok": false
+    },
+    {
+      "valor": "dono",
+      "ok": false
+    },
+    {
+      "valor": "dono@@loja.com.br",
+      "ok": false
+    },
+    {
+      "valor": "a@b@loja.com.br",
+      "ok": false
+    },
+    {
+      "valor": "dono loja@loja.com.br",
+      "ok": false
+    },
+    {
+      "valor": "dono@loja.com.br\n",
+      "ok": false
+    },
+    {
+      "valor": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@loja.com.br",
+      "ok": false
+    },
+    {
+      "valor": "dono@127.0.0.1",
+      "ok": false
+    },
+    {
+      "valor": "",
+      "ok": false
+    },
+    {
+      "valor": "dono@loja.test",
+      "ok": false
+    },
+    {
+      "valor": "dono;rm@loja.com.br",
+      "ok": false
+    },
+    {
+      "valor": "dono@e2e-teste.com.br",
+      "ok": true
+    },
+    {
+      "valor": "Dono.Loja+funil@Loja.COM.br",
+      "ok": true
+    },
+    {
+      "valor": "x_y%z@dominio.com",
+      "ok": true
+    },
+    {
+      "valor": "dono@loja.com.br --register",
+      "ok": false
+    },
+    {
+      "valor": "ção@loja.com.br",
+      "ok": false
+    },
+    {
+      "valor": "dono@loja.local",
+      "ok": false
+    }
+  ],
+  "slug": [
+    {
+      "valor": "loja-com-br",
+      "ok": true
+    },
+    {
+      "valor": "a",
+      "ok": true
+    },
+    {
+      "valor": "a1",
+      "ok": true
+    },
+    {
+      "valor": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "ok": true
+    },
+    {
+      "valor": "a--b",
+      "ok": true
+    },
+    {
+      "valor": "-a",
+      "ok": false
+    },
+    {
+      "valor": "a-",
+      "ok": false
+    },
+    {
+      "valor": "A",
+      "ok": false
+    },
+    {
+      "valor": "a_b",
+      "ok": false
+    },
+    {
+      "valor": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "ok": false
+    },
+    {
+      "valor": "",
+      "ok": false
+    },
+    {
+      "valor": "a\n",
+      "ok": false
+    },
+    {
+      "valor": "loja.com",
+      "ok": false
+    },
+    {
+      "valor": "0",
+      "ok": true
+    },
+    {
+      "valor": "loja-e2e-com-br",
+      "ok": true
+    },
+    {
+      "valor": "-loja",
+      "ok": false
+    },
+    {
+      "valor": "loja-",
+      "ok": false
+    },
+    {
+      "valor": "Loja",
+      "ok": false
+    },
+    {
+      "valor": "loja_com",
+      "ok": false
+    },
+    {
+      "valor": "../x",
+      "ok": false
+    },
+    {
+      "valor": "lixeira ",
+      "ok": false
+    },
+    {
+      "valor": ".lixeira",
+      "ok": false
+    },
+    {
+      "valor": "loja-com-br\n",
+      "ok": false
+    },
+    {
+      "valor": "000-padrao",
+      "ok": false
+    }
+  ],
+  "uuid": [
+    {
+      "valor": "11111111-2222-4333-8444-555555555555",
+      "ok": true
+    },
+    {
+      "valor": "AAAAAAAA-BBBB-4CCC-8DDD-EEEEEEEEEEEE",
+      "ok": false
+    },
+    {
+      "valor": "11111111222243338444555555555555",
+      "ok": false
+    },
+    {
+      "valor": "11111111-2222-4333-8444-555555555555\n",
+      "ok": false
+    },
+    {
+      "valor": "{11111111-2222-4333-8444-555555555555}",
+      "ok": false
+    },
+    {
+      "valor": "4f1c2b9e-8a7d-4c3b-9e2f-1a0b3c4d5e6f",
+      "ok": true
+    },
+    {
+      "valor": "00000000-0000-0000-0000-000000000000",
+      "ok": true
+    },
+    {
+      "valor": "4F1C2B9E-8A7D-4C3B-9E2F-1A0B3C4D5E6F",
+      "ok": false
+    },
+    {
+      "valor": "4f1c2b9e8a7d4c3b9e2f1a0b3c4d5e6f",
+      "ok": false
+    },
+    {
+      "valor": "4f1c2b9e-8a7d-4c3b-9e2f-1a0b3c4d5e6",
+      "ok": false
+    },
+    {
+      "valor": "../../etc/passwd",
+      "ok": false
+    },
+    {
+      "valor": "",
+      "ok": false
+    },
+    {
+      "valor": "4f1c2b9e-8a7d-4c3b-9e2f-1a0b3c4d5e6f\n",
+      "ok": false
+    }
+  ],
+  "sha256": [
+    {
+      "valor": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "ok": true
+    },
+    {
+      "valor": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "ok": true
+    },
+    {
+      "valor": "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE",
+      "ok": false
+    },
+    {
+      "valor": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "ok": false
+    },
+    {
+      "valor": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee0",
+      "ok": false
+    },
+    {
+      "valor": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\n",
+      "ok": false
+    },
+    {
+      "valor": "abababababababababababababababababababababababababababababababab",
+      "ok": true
+    },
+    {
+      "valor": "ABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABAB",
+      "ok": false
+    },
+    {
+      "valor": "ababababababababababababababababababababababababababababababab",
+      "ok": false
+    },
+    {
+      "valor": "abababababababababababababababababababababababababababababababab\n",
+      "ok": false
+    },
+    {
+      "valor": "",
+      "ok": false
+    }
+  ],
+  "segmento": [
+    {
+      "valor": "index.html",
+      "ok": true
+    },
+    {
+      "valor": "img",
+      "ok": true
+    },
+    {
+      "valor": "foto 1.png",
+      "ok": true
+    },
+    {
+      "valor": "a(1).png",
+      "ok": true
+    },
+    {
+      "valor": "a+b,c-d_e.css",
+      "ok": true
+    },
+    {
+      "valor": "_next",
+      "ok": true
+    },
+    {
+      "valor": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "ok": true
+    },
+    {
+      "valor": ".htaccess",
+      "ok": false
+    },
+    {
+      "valor": ".dash-release.json",
+      "ok": false
+    },
+    {
+      "valor": "promoção.png",
+      "ok": true
+    },
+    {
+      "valor": "Captura de Tela 2024-01-01 às 10.00.00.png",
+      "ok": true
+    },
+    {
+      "valor": "a\u202fb.png",
+      "ok": true
+    },
+    {
+      "valor": "",
+      "ok": false
+    },
+    {
+      "valor": "a/b",
+      "ok": false
+    },
+    {
+      "valor": "a\\b",
+      "ok": false
+    },
+    {
+      "valor": "a\nb",
+      "ok": false
+    },
+    {
+      "valor": "img\n",
+      "ok": false
+    },
+    {
+      "valor": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "ok": true
+    },
+    {
+      "valor": "a*.png",
+      "ok": false
+    },
+    {
+      "valor": "a?.png",
+      "ok": false
+    },
+    {
+      "valor": "..",
+      "ok": false
+    },
+    {
+      "valor": "-a.png",
+      "ok": true
+    },
+    {
+      "valor": "css",
+      "ok": true
+    },
+    {
+      "valor": "a b.png",
+      "ok": true
+    },
+    {
+      "valor": "foto(1).jpg",
+      "ok": true
+    },
+    {
+      "valor": "_x.js",
+      "ok": true
+    },
+    {
+      "valor": ".env",
+      "ok": false
+    },
+    {
+      "valor": ".",
+      "ok": false
+    },
+    {
+      "valor": "index.html\n",
+      "ok": false
+    },
+    {
+      "valor": "promoc\u0327a\u0303o.png",
+      "ok": false
+    },
+    {
+      "valor": "logo@2x.png",
+      "ok": true
+    },
+    {
+      "valor": "a&b'c[1]~#%.css",
+      "ok": true
+    },
+    {
+      "valor": " a.css",
+      "ok": true
+    },
+    {
+      "valor": "😀.png",
+      "ok": true
+    },
+    {
+      "valor": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "ok": true
+    },
+    {
+      "valor": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "ok": false
+    },
+    {
+      "valor": "ãããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããa",
+      "ok": true
+    },
+    {
+      "valor": "ãããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããããã",
+      "ok": false
+    },
+    {
+      "valor": "a\u0085b",
+      "ok": false
+    },
+    {
+      "valor": "a\u007fb",
+      "ok": false
+    },
+    {
+      "valor": "a<b",
+      "ok": false
+    },
+    {
+      "valor": "a>b",
+      "ok": false
+    },
+    {
+      "valor": "a:b",
+      "ok": false
+    },
+    {
+      "valor": "a\"b",
+      "ok": false
+    },
+    {
+      "valor": "a|b",
+      "ok": false
+    },
+    {
+      "valor": ".well-known",
+      "ok": false
+    }
+  ],
+  "bytes": [
+    {
+      "valor": 1,
+      "ok": true
+    },
+    {
+      "valor": 3000000,
+      "ok": true
+    },
+    {
+      "valor": 0,
+      "ok": false
+    },
+    {
+      "valor": 3000001,
+      "ok": false
+    },
+    {
+      "valor": 1.5,
+      "ok": false
+    },
+    {
+      "valor": "10",
+      "ok": false
+    },
+    {
+      "valor": true,
+      "ok": false
+    },
+    {
+      "valor": null,
+      "ok": false
+    }
+  ],
+  "params": [
+    {
+      "tipo": "servidor.coletar",
+      "params": {},
+      "ok": true
+    },
+    {
+      "tipo": "servidor.coletar",
+      "params": {
+        "x": 1
+      },
+      "ok": false,
+      "motivo": "chave extra"
+    },
+    {
+      "tipo": "site.configurar",
+      "params": {
+        "siteId": "11111111-2222-4333-8444-555555555555",
+        "slug": "loja-com-br",
+        "dominios": ["loja.com.br", "www.loja.com.br"],
+        "principal": "loja.com.br",
+        "origemCheckout": "https://dash-board-psi-one.vercel.app",
+        "checkout": "https://dash-board-psi-one.vercel.app/checkout/cadeira-x",
+        "tls": false
+      },
+      "ok": true
+    },
+    {
+      "tipo": "site.configurar",
+      "params": {
+        "siteId": "11111111-2222-4333-8444-555555555555",
+        "slug": "loja-com-br",
+        "dominios": ["loja.com.br", "www.loja.com.br"],
+        "principal": "loja.com.br",
+        "origemCheckout": "https://dash-board-psi-one.vercel.app",
+        "checkout": null,
+        "tls": true
+      },
+      "ok": true
+    },
+    {
+      "tipo": "site.configurar",
+      "params": {
+        "siteId": "11111111-2222-4333-8444-555555555555",
+        "slug": "loja-com-br",
+        "dominios": ["loja-e2e.com.br", "www.loja-e2e.com.br"],
+        "principal": "loja-e2e.com.br",
+        "origemCheckout": "https://checkout-e2e.com.br",
+        "checkout": "https://checkout-e2e.com.br/checkout/cadeira-x",
+        "tls": false
+      },
+      "ok": true
+    },
+    {
+      "tipo": "site.configurar",
+      "params": {
+        "siteId": "11111111-2222-4333-8444-555555555555",
+        "slug": "loja-com-br",
+        "dominios": ["loja.com.br", "www.loja.com.br"],
+        "principal": "loja.com.br",
+        "origemCheckout": "https://dash-board-psi-one.vercel.app",
+        "checkout": "https://dash-board-psi-one.vercel.app/checkout/cadeira-x",
+        "tls": false,
+        "extra": 1
+      },
+      "ok": false,
+      "motivo": "chave extra"
+    },
+    {
+      "tipo": "site.configurar",
+      "params": {
+        "siteId": "11111111-2222-4333-8444-555555555555",
+        "slug": "loja-com-br",
+        "dominios": ["loja.com.br", "www.loja.com.br"],
+        "principal": "loja.com.br",
+        "origemCheckout": "https://dash-board-psi-one.vercel.app",
+        "checkout": "https://dash-board-psi-one.vercel.app/checkout/cadeira-x"
+      },
+      "ok": false,
+      "motivo": "chave faltando"
+    },
+    {
+      "tipo": "site.configurar",
+      "params": {
+        "siteId": "11111111-2222-4333-8444-555555555555",
+        "slug": "loja-com-br",
+        "dominios": ["loja.com.br", "www.loja.com.br"],
+        "principal": "outra.com.br",
+        "origemCheckout": "https://dash-board-psi-one.vercel.app",
+        "checkout": "https://dash-board-psi-one.vercel.app/checkout/cadeira-x",
+        "tls": false
+      },
+      "ok": false,
+      "motivo": "principal fora dos domínios"
+    },
+    {
+      "tipo": "site.configurar",
+      "params": {
+        "siteId": "11111111-2222-4333-8444-555555555555",
+        "slug": "loja-com-br",
+        "dominios": ["loja.com.br", "www.loja.com.br"],
+        "principal": "loja.com.br",
+        "origemCheckout": "https://dash-board-psi-one.vercel.app",
+        "checkout": "https://checkout.loja.com.br/checkout/cadeira-x",
+        "tls": false
+      },
+      "ok": false,
+      "motivo": "checkout de outra origem"
+    },
+    {
+      "tipo": "site.configurar",
+      "params": {
+        "siteId": "11111111-2222-4333-8444-555555555555",
+        "slug": "loja-com-br",
+        "dominios": [
+          "a.com.br",
+          "b.com.br",
+          "c.com.br",
+          "d.com.br",
+          "e.com.br"
+        ],
+        "principal": "a.com.br",
+        "origemCheckout": "https://dash-board-psi-one.vercel.app",
+        "checkout": "https://dash-board-psi-one.vercel.app/checkout/cadeira-x",
+        "tls": false
+      },
+      "ok": false,
+      "motivo": "mais de 4 domínios"
+    },
+    {
+      "tipo": "site.configurar",
+      "params": {
+        "siteId": "11111111-2222-4333-8444-555555555555",
+        "slug": "loja-com-br",
+        "dominios": ["loja.com.br", "loja.com.br"],
+        "principal": "loja.com.br",
+        "origemCheckout": "https://dash-board-psi-one.vercel.app",
+        "checkout": "https://dash-board-psi-one.vercel.app/checkout/cadeira-x",
+        "tls": false
+      },
+      "ok": false,
+      "motivo": "domínio repetido"
+    },
+    {
+      "tipo": "site.configurar",
+      "params": {
+        "siteId": "11111111-2222-4333-8444-555555555555",
+        "slug": "loja-com-br",
+        "dominios": [],
+        "principal": "loja.com.br",
+        "origemCheckout": "https://dash-board-psi-one.vercel.app",
+        "checkout": "https://dash-board-psi-one.vercel.app/checkout/cadeira-x",
+        "tls": false
+      },
+      "ok": false,
+      "motivo": "nenhum domínio"
+    },
+    {
+      "tipo": "site.configurar",
+      "params": {
+        "siteId": "11111111-2222-4333-8444-555555555555",
+        "slug": "loja-com-br",
+        "dominios": ["loja.vercel.app"],
+        "principal": "loja.vercel.app",
+        "origemCheckout": "https://dash-board-psi-one.vercel.app",
+        "checkout": "https://dash-board-psi-one.vercel.app/checkout/cadeira-x",
+        "tls": false
+      },
+      "ok": false,
+      "motivo": "site em vercel.app"
+    },
+    {
+      "tipo": "site.configurar",
+      "params": {
+        "siteId": "11111111-2222-4333-8444-555555555555",
+        "slug": "loja-com-br",
+        "dominios": ["loja.com.br", "www.loja.com.br"],
+        "principal": "loja.com.br",
+        "origemCheckout": "http://loja.com.br",
+        "checkout": null,
+        "tls": false
+      },
+      "ok": false,
+      "motivo": "origem http"
+    },
+    {
+      "tipo": "site.configurar",
+      "params": {
+        "siteId": "11111111-2222-4333-8444-555555555555",
+        "slug": "loja-com-br",
+        "dominios": ["loja.com.br", "www.loja.com.br"],
+        "principal": "loja.com.br",
+        "origemCheckout": "https://dash-board-psi-one.vercel.app",
+        "checkout": "https://dash-board-psi-one.vercel.app/checkout/cadeira-x",
+        "tls": "false"
+      },
+      "ok": false,
+      "motivo": "tls não é booleano"
+    },
+    {
+      "tipo": "site.configurar",
+      "params": {
+        "siteId": "11111111-2222-4333-8444-555555555555",
+        "slug": "Loja",
+        "dominios": ["loja.com.br", "www.loja.com.br"],
+        "principal": "loja.com.br",
+        "origemCheckout": "https://dash-board-psi-one.vercel.app",
+        "checkout": "https://dash-board-psi-one.vercel.app/checkout/cadeira-x",
+        "tls": false
+      },
+      "ok": false,
+      "motivo": "slug inválido"
+    },
+    {
+      "tipo": "site.configurar",
+      "params": {
+        "siteId": "11111111-2222-4333-8444-555555555555",
+        "slug": "000-padrao",
+        "dominios": ["loja.com.br", "www.loja.com.br"],
+        "principal": "loja.com.br",
+        "origemCheckout": "https://dash-board-psi-one.vercel.app",
+        "checkout": "https://dash-board-psi-one.vercel.app/checkout/cadeira-x",
+        "tls": false
+      },
+      "ok": false,
+      "motivo": "slug reservado (era o servidor padrão do instalador)"
+    },
+    {
+      "tipo": "site.configurar",
+      "params": {
+        "siteId": "AAAAAAAA-BBBB-4CCC-8DDD-EEEEEEEEEEEE",
+        "slug": "loja-com-br",
+        "dominios": ["loja.com.br", "www.loja.com.br"],
+        "principal": "loja.com.br",
+        "origemCheckout": "https://dash-board-psi-one.vercel.app",
+        "checkout": "https://dash-board-psi-one.vercel.app/checkout/cadeira-x",
+        "tls": false
+      },
+      "ok": false,
+      "motivo": "uuid maiúsculo"
+    },
+    {
+      "tipo": "site.publicar",
+      "params": {
+        "siteId": "11111111-2222-4333-8444-555555555555",
+        "slug": "loja-com-br",
+        "versaoId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+        "artefatoId": "99999999-8888-4777-8666-555555555555",
+        "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "bytes": 123456
+      },
+      "ok": true
+    },
+    {
+      "tipo": "site.publicar",
+      "params": {
+        "siteId": "11111111-2222-4333-8444-555555555555",
+        "slug": "loja-com-br",
+        "versaoId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+        "artefatoId": "99999999-8888-4777-8666-555555555555",
+        "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "bytes": 0
+      },
+      "ok": false,
+      "motivo": "bytes zero"
+    },
+    {
+      "tipo": "site.publicar",
+      "params": {
+        "siteId": "11111111-2222-4333-8444-555555555555",
+        "slug": "loja-com-br",
+        "versaoId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+        "artefatoId": "99999999-8888-4777-8666-555555555555",
+        "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "bytes": 3000001
+      },
+      "ok": false,
+      "motivo": "bytes acima de 3 MB"
+    },
+    {
+      "tipo": "site.publicar",
+      "params": {
+        "siteId": "11111111-2222-4333-8444-555555555555",
+        "slug": "loja-com-br",
+        "versaoId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+        "artefatoId": "99999999-8888-4777-8666-555555555555",
+        "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "bytes": true
+      },
+      "ok": false,
+      "motivo": "bytes booleano"
+    },
+    {
+      "tipo": "site.publicar",
+      "params": {
+        "siteId": "11111111-2222-4333-8444-555555555555",
+        "slug": "loja-com-br",
+        "versaoId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+        "artefatoId": "99999999-8888-4777-8666-555555555555",
+        "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "bytes": 12.5
+      },
+      "ok": false,
+      "motivo": "bytes fracionário"
+    },
+    {
+      "tipo": "site.publicar",
+      "params": {
+        "siteId": "11111111-2222-4333-8444-555555555555",
+        "slug": "loja-com-br",
+        "versaoId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+        "artefatoId": "99999999-8888-4777-8666-555555555555",
+        "sha256": "EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE",
+        "bytes": 123456
+      },
+      "ok": false,
+      "motivo": "sha maiúsculo"
+    },
+    {
+      "tipo": "site.publicar",
+      "params": {
+        "siteId": "11111111-2222-4333-8444-555555555555",
+        "slug": "loja-com-br",
+        "versaoId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+        "artefatoId": "x",
+        "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "bytes": 123456
+      },
+      "ok": false,
+      "motivo": "artefatoId inválido"
+    },
+    {
+      "tipo": "site.ativar_versao",
+      "params": {
+        "siteId": "11111111-2222-4333-8444-555555555555",
+        "slug": "loja-com-br",
+        "versaoId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"
+      },
+      "ok": true
+    },
+    {
+      "tipo": "site.ativar_versao",
+      "params": {
+        "siteId": "11111111-2222-4333-8444-555555555555",
+        "slug": "loja-com-br"
+      },
+      "ok": false,
+      "motivo": "chave faltando"
+    },
+    {
+      "tipo": "site.ssl_emitir",
+      "params": {
+        "siteId": "11111111-2222-4333-8444-555555555555",
+        "slug": "loja-com-br",
+        "dominios": ["loja.com.br"],
+        "email": "dono@loja.com.br"
+      },
+      "ok": true
+    },
+    {
+      "tipo": "site.ssl_emitir",
+      "params": {
+        "siteId": "11111111-2222-4333-8444-555555555555",
+        "slug": "loja-com-br",
+        "dominios": ["loja.com.br"],
+        "email": null
+      },
+      "ok": true
+    },
+    {
+      "tipo": "site.ssl_emitir",
+      "params": {
+        "siteId": "11111111-2222-4333-8444-555555555555",
+        "slug": "loja-com-br",
+        "dominios": ["loja.com.br"],
+        "email": "-dono@loja.com.br"
+      },
+      "ok": false,
+      "motivo": "e-mail começando com '-'"
+    },
+    {
+      "tipo": "site.ssl_emitir",
+      "params": {
+        "siteId": "11111111-2222-4333-8444-555555555555",
+        "slug": "loja-com-br",
+        "dominios": ["loja.com.br"],
+        "email": "dono@loja.com.br --staging"
+      },
+      "ok": false,
+      "motivo": "e-mail com espaço"
+    },
+    {
+      "tipo": "site.ssl_emitir",
+      "params": {
+        "siteId": "11111111-2222-4333-8444-555555555555",
+        "slug": "loja-com-br",
+        "dominios": ["loja.com.br\n"],
+        "email": "dono@loja.com.br"
+      },
+      "ok": false,
+      "motivo": "domínio com quebra de linha"
+    },
+    {
+      "tipo": "site.remover",
+      "params": {
+        "siteId": "11111111-2222-4333-8444-555555555555",
+        "slug": "loja-com-br"
+      },
+      "ok": true
+    },
+    {
+      "tipo": "site.remover",
+      "params": {
+        "siteId": "11111111-2222-4333-8444-555555555555",
+        "slug": "loja-com-br\n"
+      },
+      "ok": false,
+      "motivo": "slug com quebra de linha"
+    }
+  ]
+}

@@ -14,7 +14,7 @@ vem do PicGen.**
 | Superfícies | quatro degraus de grafite | preto `#0D0D0D` contra branco `#FFFFFF` |
 | Tipografia | escala 48 · 28 · 16 · 14 · 12 | a fonte: **Outfit** |
 | Respiro | base 4: 4, 8, 12, 16, 24, 32, 48, 64 | — |
-| Raios | etiqueta 6 · controlo 10 · bloco 16 | blocos com painel interno |
+| Raios | os nomes do Orbit (etiqueta, controlo, bloco, painel) — **valendo 0**: cantos retos são decisão fixa do produto, reaplicada na união de 24/09 | blocos com painel interno e profundidade em camadas |
 | Movimento | 150 ms e 250 ms, `ease-out` | brilho no que está escolhido |
 | Fundo | — | canvas de pontinhos |
 

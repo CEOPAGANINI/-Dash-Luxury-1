@@ -15,6 +15,12 @@ const PUBLIC_PREFIXES = [
   // externos (Broski, Resend...). A autenticidade é garantida pela
   // verificação de assinatura HMAC dentro de cada rota.
   "/api/webhooks/",
+  // Servidor do Funil: a API do agente da VPS (HMAC por pedido dentro da
+  // rota) e os arquivos que a VPS baixa (instalador, agente, rastreio.js).
+  "/api/agente/",
+  "/agente/",
+  // Páginas legais: as páginas do funil hospedadas na VPS apontam para elas.
+  "/legal/",
 ];
 
 export function isPublicPath(pathname: string): boolean {
@@ -32,6 +38,14 @@ export function isPublicPath(pathname: string): boolean {
  */
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Agente da VPS: quem autentica é o HMAC dentro da rota (ou nada, nos
+  // arquivos estáticos). Sai antes de criar o cliente Supabase para não
+  // chamar o Supabase Auth a cada pulso (cerca de 2.880 por dia por
+  // servidor parado) e para o agente não depender do Auth estar no ar.
+  if (pathname.startsWith("/api/agente/") || pathname.startsWith("/agente/")) {
+    return NextResponse.next();
+  }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;

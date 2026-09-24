@@ -1,0 +1,62 @@
+[
+  {
+    "title": "Frontend Design for Distinctive Interfaces",
+    "directory": "frontend-design",
+    "source": "https://github.com/anthropics/skills/tree/main/skills/frontend-design",
+    "sha256": "d91970639e9f5c37682ac7ab60094d35f1c7c1f38d731bd56396563aee10c1d3"
+  },
+  {
+    "title": "UI Design System",
+    "directory": "ui-design-system",
+    "source": "https://github.com/davila7/claude-code-templates/tree/main/cli-tool/components/skills/creative-design/ui-design-system",
+    "sha256": "d2754b142e18ab5c51031fe6f1a4f807019b2e5346431a0c014baef22efd6aee"
+  },
+  {
+    "title": "High-Agency Frontend Skill",
+    "directory": "taste-skill",
+    "source": "https://github.com/Leonxlnx/taste-skill/tree/main/skills/taste-skill",
+    "sha256": "aa194351b246b8b4799099d4ed7b033d29eab6e6e3d58d8d2172978be7b3ec89"
+  },
+  {
+    "title": "Awwwards-Level Image Art Direction",
+    "directory": "imagegen-frontend-web",
+    "source": "https://github.com/Leonxlnx/taste-skill/tree/main/skills/imagegen-frontend-web",
+    "sha256": "6b5c2256522fdba1e3313eafa3d743b960a7b13ec029d3e6586e04b23327c1f8"
+  },
+  {
+    "title": "Responsive Design",
+    "directory": "responsive-design",
+    "source": "https://github.com/wshobson/agents/tree/main/plugins/ui-design/skills/responsive-design",
+    "sha256": "c8bd56f8fc0f122c4ff392b02617f0e6bb4a353b2d0189235c6ee77cdcfe8690"
+  },
+  {
+    "title": "Interaction Design",
+    "directory": "interaction-design",
+    "source": "https://github.com/wshobson/agents/tree/main/plugins/ui-design/skills/interaction-design",
+    "sha256": "87f2765ed1deeef3f1c06f9e4338ff103c391c6c4adcdffc885f3516b7c34ff2"
+  },
+  {
+    "title": "Landing Page High-Conversion Web Design",
+    "directory": "landing-page",
+    "source": "https://github.com/MengTo/Skills/tree/main/agent-skills/web-design/landing-page",
+    "sha256": "6ad9965bc6b8f682340998ddd17c7700f5529ae40603d47c3b4610892c459cad"
+  },
+  {
+    "title": "Animation Systems for Product-Grade Web Motion",
+    "directory": "animation-systems",
+    "source": "https://github.com/MengTo/Skills/tree/main/agent-skills/web-design/animation-systems",
+    "sha256": "ae1e51b8eede6f4d05fda5388f61bbc1d29ea88b7a5d7a488c3ecfed5f18e262"
+  },
+  {
+    "title": "Web Interface Guidelines",
+    "directory": "web-interface-guidelines",
+    "source": "https://github.com/vercel-labs/web-interface-guidelines/tree/main/command.md",
+    "sha256": "3a47b2e4649d78816be9c0af095f84618fa801771b060eceead34aacf7106d75"
+  },
+  {
+    "title": "Web Design Reviewer",
+    "directory": "web-design-reviewer",
+    "source": "https://github.com/github/awesome-copilot/tree/main/skills/web-design-reviewer",
+    "sha256": "a08a147cfe555dabe30f2c8f2e267f287e992f74f2b802e68989884338e23b17"
+  }
+]

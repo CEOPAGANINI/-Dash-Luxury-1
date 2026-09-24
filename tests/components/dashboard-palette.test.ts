@@ -126,4 +126,150 @@ describe("dashboard black-and-white palette", () => {
       );
     }
   });
+
+  it("keeps base input exclusions weaker than primary and semantic button variants", () => {
+    const baseControls = rules.filter(
+      (rule) =>
+        rule.selector.includes('[data-slot="button"]') &&
+        rule.selector.includes("input:not("),
+    );
+    expect(baseControls.length).toBeGreaterThan(0);
+    for (const rule of baseControls) {
+      expect(rule.selector).toMatch(/:where\(\s*input:not\(/);
+    }
+    for (const variant of ["primary", "destructive", "success"]) {
+      const rule = rules.find((candidate) =>
+        candidate.selector.includes(
+          `[data-slot="button"][class*="bg-${variant}"]`,
+        ),
+      );
+      expect(rule?.declarations.get("background")).toBe(`var(--${variant})`);
+      expect(rule?.declarations.get("color")).toBe(
+        `var(--${variant}-foreground)`,
+      );
+    }
+  });
+
+  it("locks square corners for authenticated content, portals and future modules", () => {
+    const geometry = rules.find(
+      (rule) =>
+        rule.selector.includes(":not(svg):not(svg *)") &&
+        rule.declarations.has("--nebula-radius"),
+    );
+    expect(geometry, "central geometry policy").toBeDefined();
+    expect(geometry!.selector).toContain("body:has(");
+    expect(geometry!.selector).toContain('data-design-system="nebula"');
+    expect(geometry!.selector).toContain('data-design-system="orbit"');
+    expect(geometry!.declarations.get("border-radius")).toBe("0");
+    for (const [property, value] of geometry!.declarations) {
+      if (property.includes("radius")) expect(value, property).toBe("0");
+    }
+    // Layered !important declarations outrank the unlayered !important rules
+    // retained in legacy CSS and CSS Modules, irrespective of import order.
+    expect(css).toMatch(
+      /@layer dashboard-geometry\s*\{[\s\S]*?border-radius:\s*0\s*!important/,
+    );
+    for (const suffix of [
+      "::before",
+      "::after",
+      "::file-selector-button",
+      "::-webkit-slider-thumb",
+      "::-moz-range-thumb",
+    ]) {
+      expect(
+        rules.some(
+          (rule) =>
+            rule.selector.includes(suffix) &&
+            rule.selector.includes('data-design-system="nebula"') &&
+            rule.declarations.get("border-radius") === "0",
+        ),
+        `square ${suffix}`,
+      ).toBe(true);
+    }
+    for (const rule of rules) {
+      const radius = rule.declarations.get("border-radius");
+      if (!radius) continue;
+      const reference = /^var\((--[\w-]+)\)$/.exec(radius);
+      expect(
+        reference ? dark!.declarations.get(reference[1]) : radius,
+        `no rounded alternative: ${rule.selector}`,
+      ).toBe("0");
+    }
+  });
+
+  it("preserves CSS donut and pie geometry without rounding UI surfaces", () => {
+    const chartRules = rules.filter((rule) =>
+      rule.declarations.has("clip-path"),
+    );
+    expect(chartRules).toHaveLength(1);
+    const chart = chartRules[0];
+    expect(chart.declarations.get("clip-path")).toBe("circle(50%)");
+    for (const selector of [
+      '.visual-overview-donut[role="img"]',
+      '.visual-overview-donut[role="img"] > div',
+      '.visual-overview-pie[role="img"]',
+      '.visual-overview-pie[role="img"] > span',
+    ]) {
+      expect(chart.selector).toContain(selector);
+    }
+    expect(chart.selector).toContain('data-design-system="nebula"');
+    expect(chart.selector).not.toMatch(/button|input|avatar|card|:not\(svg\)/);
+    expect(chart.declarations.has("border-radius")).toBe(false);
+  });
+
+  it.each(["preto", "branco"])(
+    "gives the %s surfaces neutral, visible depth",
+    (theme) => {
+      const tokens = new Map(dark!.declarations);
+      if (theme === "branco") {
+        for (const [name, value] of light!.declarations)
+          tokens.set(name, value);
+      }
+      for (const token of [
+        "--nebula-card-depth",
+        "--nebula-control-depth",
+        "--nebula-overlay-depth",
+      ]) {
+        const depth = tokens.get(token)!;
+        expect(depth, token).toContain("inset");
+        expect(depth, `${token} must have an outer shadow`).toMatch(
+          /,\s*0\s+\d+px/,
+        );
+        const colors = Array.from(
+          depth.matchAll(/rgb\([^)]*\)/g),
+          (match) => match[0],
+        );
+        expect(colors.length).toBeGreaterThan(0);
+        for (const color of colors) {
+          const [red, green, blue] = channels(color);
+          expect(red, `${token}: ${color}`).toBe(green);
+          expect(green, `${token}: ${color}`).toBe(blue);
+        }
+      }
+      expect(tokens.get("--dash-shadow-card")).toBe("var(--nebula-card-depth)");
+      expect(tokens.get("--dash-shadow-overlay")).toBe(
+        "var(--nebula-overlay-depth)",
+      );
+    },
+  );
+
+  it("applies elevation only to explicit surfaces without moving fixed descendants", () => {
+    const surfaces = rules.find((rule) =>
+      rule.selector.includes("[data-dashboard-surface]"),
+    );
+    expect(surfaces?.selector).toContain("[data-orbit-workspace] section");
+    expect(surfaces?.selector).toContain("[data-orbit-workspace] aside");
+    expect(surfaces?.declarations.get("box-shadow")).toBe(
+      "var(--nebula-card-depth)",
+    );
+    expect(surfaces?.declarations.has("transform")).toBe(false);
+    expect(surfaces?.declarations.has("filter")).toBe(false);
+    expect(
+      rules.some(
+        (rule) =>
+          rule.selector.includes('[role="dialog"]') &&
+          rule.declarations.get("box-shadow") === "var(--nebula-overlay-depth)",
+      ),
+    ).toBe(true);
+  });
 });

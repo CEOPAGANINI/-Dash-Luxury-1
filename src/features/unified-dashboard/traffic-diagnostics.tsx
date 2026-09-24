@@ -694,6 +694,8 @@ function LegacyTrafficDiagnostics({
         <div className="acquisition-block acquisition-audience-chart grid w-full place-items-center p-5">
           <div
             role="img"
+            data-dashboard-chart="donut"
+            data-dashboard-chart-part="ring"
             aria-label={`Idade de quem compra: ${dayFunnel.demographics
               .map((value, index) => `${AGE_BANDS[index]} ${value}%`)
               .join(", ")}`}
@@ -712,7 +714,10 @@ function LegacyTrafficDiagnostics({
             {/* O furo do meio acompanha o tamanho da rosca: em porcentagem,
                 e não em pixels fixos, senão numa rosca de 256px ele viraria um
                 aro fininho. */}
-            <div className="bg-card absolute inset-[22%] grid place-items-center rounded-full text-center">
+            <div
+              className="bg-card absolute inset-[22%] grid place-items-center rounded-full text-center"
+              data-dashboard-chart-part="hole"
+            >
               <div>
                 <b className="block text-2xl leading-none font-black tabular-nums">
                   {dayFunnel.demographics[1] ?? 0}%

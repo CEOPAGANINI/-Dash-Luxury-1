@@ -1,0 +1,1031 @@
+/* Orbit's canvas, node geometry and rhythm, using the dashboard's monochrome
+   surfaces. These tokens also cover dialogs rendered outside the app shell. */
+.root,
+.dialog {
+  --orbit-canvas: var(--nebula-bg-2, #111111);
+  --orbit-surface: var(--nebula-panel, #202020);
+  --orbit-raised: var(--nebula-panel-2, #292929);
+  --orbit-border: var(--nebula-line-strong, #363636);
+  --orbit-text: var(--nebula-text, #f1f1f1);
+  --orbit-muted: var(--nebula-muted, #a3a3a3);
+  --nebula-control-radius: 10px;
+  color: var(--orbit-text);
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  min-width: 0;
+}
+
+.root {
+  max-width: 1800px;
+  margin-inline: auto;
+}
+.workspaceNav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--orbit-border);
+  margin-bottom: 20px;
+}
+.templateBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.templateBar label {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  flex: 1;
+  min-width: 200px;
+  max-width: 320px;
+}
+.templateBar p {
+  color: var(--orbit-muted);
+  font-size: 11px;
+  flex-basis: 100%;
+}
+.root :is(button, input, select, textarea),
+.dialog :is(button, a) {
+  font: inherit;
+}
+.root button,
+.dialog button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--orbit-border);
+  border-radius: 10px;
+  background: var(--orbit-surface);
+  color: var(--orbit-text);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition:
+    background 150ms,
+    border-color 150ms;
+}
+.root button:hover:not(:disabled),
+.dialog button:hover:not(:disabled) {
+  background: var(--orbit-raised);
+}
+.root button:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+.root :is(button, input, textarea, select, a, [tabindex]):focus-visible,
+.dialog :is(button, a):focus-visible {
+  outline: 2px solid var(--orbit-text);
+  outline-offset: 3px;
+}
+.root .primary,
+.dialog .primary,
+.dialog .previewCta {
+  background: var(--primary, #f5f5f5);
+  /* Keep CTA text legible despite the legacy svg-only-child selector. */
+  color: var(--primary-foreground, #111) !important;
+  border-color: transparent;
+}
+.root .primary:hover:not(:disabled),
+.dialog .primary:hover:not(:disabled),
+.dialog .previewCta:hover:not(:disabled) {
+  background: var(--primary, #f5f5f5);
+  opacity: 0.85;
+}
+.root .iconButton,
+.dialog .iconButton {
+  width: 40px;
+  padding: 8px;
+  flex-shrink: 0;
+  background: transparent;
+}
+.loading {
+  padding: 48px 24px;
+  color: var(--nebula-muted);
+}
+.breadcrumb {
+  display: flex;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--orbit-muted);
+  margin-bottom: 20px;
+}
+.breadcrumb a:hover {
+  text-decoration: underline;
+}
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 28px;
+}
+.titleLine {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.titleLine h2 {
+  margin: 0;
+  font-size: clamp(24px, 2vw, 28px);
+  line-height: 1.25;
+}
+.header p {
+  margin: 8px 0 0;
+  color: var(--orbit-muted);
+  font-size: 13px;
+}
+.draftBadge {
+  padding: 3px 8px;
+  border: 1px solid var(--orbit-border);
+  border-radius: 6px;
+  font-size: 11px;
+  color: var(--orbit-muted);
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.projectBar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-block: 16px;
+  border-block: 1px solid var(--orbit-border);
+}
+.flowName {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--orbit-muted);
+  font-size: 12px;
+  flex: 1;
+  min-width: 0;
+}
+.root .flowName input {
+  width: min(300px, 100%);
+  background: transparent;
+  font-weight: 500;
+  color: var(--orbit-text);
+}
+.localState {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--orbit-muted);
+  font-size: 11px;
+}
+.localState i,
+.nodeFooter i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+.localState i[data-dirty="true"] {
+  box-shadow: 0 0 0 3px var(--orbit-raised);
+}
+.notice {
+  padding: 12px 16px;
+  border: 1px solid var(--orbit-border);
+  border-radius: 10px;
+  margin-top: 16px;
+}
+.feedback {
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  padding: 12px 0;
+  font-size: 12px;
+  color: var(--orbit-muted);
+}
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 20px;
+  align-items: start;
+}
+.canvas,
+.inspector,
+.connections {
+  border: 1px solid var(--orbit-border);
+  border-radius: 16px;
+  background: var(--orbit-surface);
+  min-width: 0;
+  overflow: hidden;
+}
+.canvasToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--orbit-border);
+  flex-wrap: wrap;
+}
+.canvasHeading {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-size: 13px;
+}
+.canvasHeading strong {
+  font-weight: 500;
+}
+.canvasHeading > span:last-child {
+  font-size: 11px;
+  color: var(--orbit-muted);
+}
+.orbitMark {
+  font-size: 24px;
+  line-height: 1;
+}
+.addControls {
+  display: flex;
+  gap: 8px;
+}
+.root select,
+.root input,
+.root textarea {
+  min-width: 0;
+  min-height: 40px;
+  width: 100%;
+  border: 1px solid var(--orbit-border);
+  border-radius: 10px;
+  padding: 9px 11px;
+  background: var(--orbit-canvas);
+  color: var(--orbit-text);
+  font-size: 12px;
+}
+.root[data-orbit-workspace] :is(input, textarea, select) {
+  text-align: left !important;
+  text-align-last: auto;
+}
+.root input::placeholder {
+  color: var(--orbit-muted);
+  opacity: 0.8;
+}
+.root textarea {
+  resize: vertical;
+  min-height: 88px;
+}
+.root [aria-invalid="true"] {
+  outline: 1px solid var(--destructive, #fb747e);
+}
+.root .addControls select {
+  width: 140px;
+}
+.viewport {
+  height: 660px;
+  max-height: 70vh;
+  min-height: 400px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  background-color: var(--orbit-canvas);
+  background-image: radial-gradient(
+    var(--orbit-border) 0.8px,
+    transparent 0.8px
+  );
+  background-size: 20px 20px;
+  scrollbar-width: thin;
+}
+.boardSize {
+  position: relative;
+}
+.board {
+  position: relative;
+  transform-origin: top left;
+}
+.wires {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+.wires path {
+  fill: none;
+  stroke: var(--orbit-muted);
+  stroke-width: 1.5;
+  opacity: 0.65;
+}
+.node {
+  position: absolute;
+  width: 280px;
+  height: 246px;
+  border: 1px solid var(--orbit-border);
+  border-radius: 16px;
+  background: var(--orbit-surface);
+}
+.node[data-selected="true"] {
+  outline: 1px solid var(--orbit-text);
+  outline-offset: 3px;
+}
+.nodeHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 58px;
+  padding: 10px 12px 10px 16px;
+  border-bottom: 1px solid var(--orbit-border);
+  font-size: 12px;
+}
+.nodeIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--orbit-border);
+  border-radius: 8px;
+  background: var(--orbit-raised);
+  flex-shrink: 0;
+}
+.root .dragHandle {
+  margin-left: auto;
+  min-height: 32px;
+  width: 32px;
+  padding: 6px;
+  background: transparent;
+  border-color: transparent;
+  color: var(--orbit-muted);
+  cursor: grab;
+  touch-action: none;
+}
+.root .dragHandle:active {
+  cursor: grabbing;
+}
+.root .nodeBody {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 10px;
+  width: 100%;
+  height: 141px;
+  padding: 18px 18px 14px;
+  text-align: left;
+  white-space: normal;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.nodeName {
+  display: block;
+  font-size: 16px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.nodeHeadline {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 36px;
+  line-height: 18px;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--orbit-muted);
+}
+.nodeUrl {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--orbit-muted);
+  font-size: 10px;
+  font-weight: 400;
+}
+.nodeFooter {
+  height: 45px;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 16px;
+  border-top: 1px solid var(--orbit-border);
+  font-size: 10px;
+  color: var(--orbit-muted);
+}
+.nodeFooter > span:first-child {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.port {
+  position: absolute;
+  top: 126px;
+  width: 12px;
+  height: 12px;
+  border: 3px solid var(--orbit-surface);
+  border-radius: 50%;
+  outline: 1px solid var(--orbit-border);
+  background: var(--orbit-text);
+}
+.portIn {
+  left: -6px;
+}
+.portOut {
+  right: -6px;
+}
+.mobileStep {
+  display: none;
+}
+.empty {
+  width: 380px;
+  max-width: 100%;
+  padding: 48px 32px;
+  text-align: center;
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+  color: var(--orbit-muted);
+}
+.empty h2 {
+  font-size: 20px;
+  color: var(--orbit-text);
+}
+.canvasFooter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 10px 14px;
+  border-top: 1px solid var(--orbit-border);
+}
+.dragHint {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: var(--orbit-muted);
+  margin-right: auto;
+}
+.canvasFooter button {
+  min-height: 32px;
+  font-size: 11px;
+  padding: 5px 8px;
+}
+.zoomControls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.zoomControls output {
+  min-width: 40px;
+  font-size: 11px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.inspectorHeader {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 18px 16px;
+  border-bottom: 1px solid var(--orbit-border);
+}
+.inspectorHeader h2 {
+  font-size: 14px;
+  margin: 0;
+}
+.inspectorHeader p {
+  font-size: 11px;
+  color: var(--orbit-muted);
+  margin: 2px 0 0;
+}
+.inspectorHeader > button {
+  margin-left: auto;
+}
+.fields {
+  padding: 20px 16px;
+  display: grid;
+  gap: 16px;
+}
+.fields label,
+.linkForm label {
+  display: grid;
+  gap: 7px;
+  font-size: 12px;
+}
+.fields small {
+  color: var(--orbit-muted);
+  font-size: 10px;
+  font-weight: 400;
+}
+.optional {
+  color: var(--orbit-muted);
+  font-size: 10px;
+}
+.fields label:has(.optional) {
+  grid-template-columns: auto 1fr;
+  column-gap: 4px;
+}
+.fields label:has(.optional) > input {
+  grid-column: 1 / -1;
+}
+.root .previewButton {
+  margin-top: 4px;
+  width: 100%;
+  background: var(--orbit-raised);
+}
+.linkForm {
+  display: grid;
+  gap: 14px;
+  padding: 20px 16px;
+  border-top: 1px solid var(--orbit-border);
+}
+.linkForm h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+.linkForm p {
+  font-size: 11px;
+  color: var(--orbit-muted);
+  overflow-wrap: anywhere;
+}
+.emptyInspector {
+  padding: 32px 24px;
+  display: grid;
+  gap: 14px;
+  color: var(--orbit-muted);
+}
+.connections {
+  margin-top: 24px;
+}
+.connections > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px;
+  border-bottom: 1px solid var(--orbit-border);
+}
+.connections h2 {
+  font-size: 16px;
+}
+.connections p {
+  margin-top: 4px;
+  color: var(--orbit-muted);
+  font-size: 12px;
+}
+.connections header > span {
+  color: var(--orbit-muted);
+  font-size: 11px;
+  white-space: nowrap;
+}
+.connections ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.connections li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--orbit-border);
+}
+.connections li:last-child {
+  border: 0;
+}
+.connections li > svg {
+  flex-shrink: 0;
+  color: var(--orbit-muted);
+}
+.connections li > button:not(.iconButton) {
+  background: transparent;
+  border: 0;
+  padding: 5px 0;
+  min-height: 32px;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+.connections li > button:hover {
+  text-decoration: underline;
+}
+.connectionLabel {
+  padding: 3px 8px;
+  border: 1px solid var(--orbit-border);
+  border-radius: 6px;
+  font-size: 10px;
+  color: var(--orbit-muted);
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.connectionState {
+  font-size: 10px;
+  color: var(--orbit-muted);
+  margin-left: auto;
+}
+.noConnections {
+  padding: 20px;
+}
+.statusBar {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: var(--orbit-muted);
+  font-size: 10px;
+  padding: 16px 0;
+}
+.statusBar > span:first-child {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Dialogs are portals, so they carry their own type and surfaces. */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgb(0 0 0 / 65%);
+}
+.dialog {
+  position: fixed;
+  z-index: 81;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(1000px, calc(100vw - 40px));
+  max-height: 90dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  border: 1px solid var(--orbit-border);
+  border-radius: 16px;
+  background: var(--orbit-surface);
+  box-shadow: 0 24px 80px rgb(0 0 0 / 30%);
+}
+.dialogToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--orbit-border);
+}
+.dialog h2 {
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 1.3;
+}
+.dialogToolbar p {
+  color: var(--orbit-muted);
+  font-size: 11px;
+  margin-top: 5px;
+}
+.previewDevices {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.previewDevices button {
+  width: 38px;
+  padding: 8px;
+}
+.previewDevices [aria-pressed="true"] {
+  border-color: var(--orbit-text);
+  background: var(--orbit-raised);
+}
+.previewWrap {
+  padding: 24px;
+  background: var(--orbit-canvas);
+  overflow-y: auto;
+}
+.pagePreview {
+  max-width: 100%;
+  margin: 0 auto;
+  border: 1px solid var(--orbit-border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--orbit-surface);
+}
+.pagePreview[data-mobile="true"] {
+  max-width: 375px;
+}
+.previewAddress {
+  padding: 10px 16px;
+  font-size: 11px;
+  color: var(--orbit-muted);
+  border-bottom: 1px solid var(--orbit-border);
+  overflow-wrap: anywhere;
+}
+.previewContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding: 32px clamp(20px, 5vw, 64px) 48px;
+  text-align: center;
+}
+.previewBrand {
+  font-size: 12px;
+  font-weight: 500;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.previewImage {
+  max-height: 240px;
+  width: 100%;
+  object-fit: cover;
+  border-radius: 10px;
+}
+.previewIllustration {
+  display: grid;
+  place-items: center;
+  height: 150px;
+  width: 100%;
+  border: 1px solid var(--orbit-border);
+  background: var(--orbit-canvas);
+  border-radius: 10px;
+  color: var(--orbit-muted);
+}
+.previewContent h2 {
+  font-size: clamp(24px, 3vw, 40px);
+  letter-spacing: -0.04em;
+  max-width: 640px;
+  overflow-wrap: anywhere;
+}
+.previewContent p {
+  color: var(--orbit-muted);
+  font-size: 14px;
+  max-width: 550px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.dialog .previewCta {
+  padding: 14px 20px;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.previewCta svg {
+  flex-shrink: 0;
+}
+.previewEnd {
+  font-size: 12px;
+  color: var(--orbit-muted);
+}
+.openUrl {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  text-decoration: underline;
+}
+.smallDialog {
+  width: min(520px, calc(100vw - 32px));
+  padding: 28px;
+  gap: 16px;
+}
+.smallDialog p {
+  color: var(--orbit-muted);
+  font-size: 13px;
+}
+.helpSteps {
+  padding-left: 20px;
+  list-style: decimal;
+  display: grid;
+  gap: 12px;
+  font-size: 13px;
+}
+.dialog .helpClose {
+  align-self: flex-start;
+  padding-inline: 24px;
+}
+
+@media (min-width: 1600px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr) 340px;
+  }
+}
+@media (max-width: 1200px) {
+  .header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .workspace {
+    grid-template-columns: minmax(0, 1fr) 292px;
+    gap: 16px;
+  }
+  .canvasToolbar {
+    gap: 16px;
+  }
+  .dragHint {
+    display: none;
+  }
+  .canvasFooter {
+    justify-content: space-between;
+  }
+  .connectionLabel {
+    display: none;
+  }
+}
+@media (max-width: 1000px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .fields .previewButton {
+    grid-column: 1 / -1;
+  }
+  .linkForm {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .linkForm h3,
+  .linkForm p,
+  .linkForm > button {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 800px) {
+  .viewport {
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    overflow: visible;
+  }
+  .boardSize,
+  .board {
+    width: 100% !important;
+    height: auto !important;
+    transform: none !important;
+  }
+  .board {
+    display: grid;
+    gap: 24px;
+    padding: 24px 20px;
+  }
+  .node {
+    position: relative;
+    left: auto !important;
+    top: auto !important;
+    width: 100%;
+  }
+  .wires,
+  .port,
+  .root .dragHandle,
+  .zoomControls {
+    display: none;
+  }
+  .mobileStep {
+    display: flex;
+    justify-content: center;
+    color: var(--orbit-muted);
+    margin-block: -14px;
+  }
+  .canvasFooter {
+    justify-content: flex-end;
+  }
+  .root button {
+    min-height: 44px;
+  }
+  .root .nodeBody {
+    min-height: 141px;
+  }
+  .connections li {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 16px;
+  }
+  .connectionState {
+    flex-basis: calc(100% - 52px);
+    margin-left: 0;
+  }
+  .connections li > .iconButton {
+    margin-left: auto;
+  }
+  .connections li > button:not(.iconButton) {
+    max-width: 32%;
+  }
+}
+@media (max-width: 540px) {
+  .breadcrumb {
+    margin-bottom: 16px;
+  }
+  .header {
+    margin-bottom: 20px;
+    gap: 18px;
+  }
+  .titleLine {
+    gap: 8px;
+  }
+  .titleLine h2 {
+    font-size: 23px;
+  }
+  .draftBadge {
+    font-size: 10px;
+  }
+  .actions {
+    width: 100%;
+  }
+  .header .actions > button {
+    flex: 1;
+    padding-inline: 8px;
+    font-size: 11px;
+  }
+  .header .actions > button.primary {
+    flex-basis: 100%;
+  }
+  .projectBar {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .flowName {
+    flex-basis: 100%;
+    gap: 10px;
+  }
+  .root .flowName input {
+    flex: 1;
+    width: 100%;
+  }
+  .localState {
+    margin-right: auto;
+  }
+  .feedback {
+    font-size: 11px;
+  }
+  .canvasHeading {
+    width: 100%;
+  }
+  .addControls {
+    width: 100%;
+  }
+  .root .addControls select {
+    flex: 1;
+  }
+  .fields,
+  .linkForm {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .fields label {
+    font-size: 13px;
+  }
+  .root input,
+  .root textarea,
+  .root select {
+    font-size: 16px;
+  }
+  .connections > header {
+    padding: 16px;
+    align-items: flex-start;
+  }
+  .connections h2 {
+    font-size: 14px;
+  }
+  .connections header > span {
+    font-size: 10px;
+  }
+  .dialog {
+    width: calc(100vw - 20px);
+  }
+  .dialogToolbar {
+    padding: 16px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .dialogToolbar p {
+    max-width: 260px;
+  }
+  .previewDevices {
+    margin-left: auto;
+  }
+  .previewWrap {
+    padding: 12px;
+  }
+  .previewContent {
+    gap: 20px;
+    padding: 24px 16px 32px;
+  }
+  .smallDialog {
+    padding: 24px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .root *,
+  .dialog * {
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

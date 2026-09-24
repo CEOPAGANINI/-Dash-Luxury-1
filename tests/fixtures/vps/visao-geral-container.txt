@@ -1,0 +1,37 @@
+ORBIT_VPS_V1
+platform	linux
+hostname	vm
+os	Ubuntu 24.04.4 LTS
+uptime	15853.52
+cpu_before	6342234	5809249
+cores	4
+cpu_after	6342637	5809646
+memory	16481980	832556
+disk	264212084	10486696
+user	root	0	/root	/bin/bash
+user	daemon	1	/usr/sbin	/usr/sbin/nologin
+user	bin	2	/bin	/usr/sbin/nologin
+user	sys	3	/dev	/usr/sbin/nologin
+user	sync	4	/bin	/bin/sync
+user	games	5	/usr/games	/usr/sbin/nologin
+user	man	6	/var/cache/man	/usr/sbin/nologin
+user	lp	7	/var/spool/lpd	/usr/sbin/nologin
+user	mail	8	/var/mail	/usr/sbin/nologin
+user	news	9	/var/spool/news	/usr/sbin/nologin
+user	uucp	10	/var/spool/uucp	/usr/sbin/nologin
+user	proxy	13	/bin	/usr/sbin/nologin
+user	www-data	33	/var/www	/usr/sbin/nologin
+user	backup	34	/var/backups	/usr/sbin/nologin
+user	list	38	/var/list	/usr/sbin/nologin
+user	irc	39	/run/ircd	/usr/sbin/nologin
+user	_apt	42	/nonexistent	/usr/sbin/nologin
+user	nobody	65534	/nonexistent	/usr/sbin/nologin
+user	ubuntu	1000	/home/ubuntu	/bin/bash
+user	systemd-network	998	/	/usr/sbin/nologin
+user	messagebus	100	/nonexistent	/usr/sbin/nologin
+user	redis	101	/var/lib/redis	/usr/sbin/nologin
+user	postgres	102	/var/lib/postgresql	/bin/bash
+user	polkitd	997	/	/usr/sbin/nologin
+user	dev	999	/home/dev	/bin/bash
+services_unavailable	1
+END_ORBIT_VPS_V1

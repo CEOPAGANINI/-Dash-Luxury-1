@@ -1,0 +1,26 @@
+#!/usr/bin/env python3
+"""systemctl FALSO: registra o argv. is-active responde "active" (ou "inactive" com
+$RAIZ/falhas/nginx-inativo); reload falha com $RAIZ/falhas/systemctl-reload."""
+import os
+import sys
+
+sys.dont_write_bytecode = True  # os falsos rodam com ambiente fixo: nada de __pycache__ no repositório
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _comum import falha, registrar  # noqa: E402
+
+
+def main():
+    registrar("systemctl")
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    if args[:1] == ["is-active"]:
+        inativo = falha("nginx-inativo") is not None and any(a.startswith("nginx") for a in args[1:])
+        print("inactive" if inativo else "active")
+        return 3 if inativo else 0
+    if args[:1] == ["reload"] and falha("systemctl-reload") is not None:
+        print("Job for nginx.service failed.", file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

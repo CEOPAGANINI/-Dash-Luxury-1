@@ -5,8 +5,8 @@
 
   - do **Orbit** (tokens.json + design-system.md) vem a ESTRUTURA: as
     superfícies grafite em quatro degraus, a escala de tipos
-    48/28/16/14/12, o respiro de base 4, os raios com nome (etiqueta 6,
-    controlo 10, bloco 16) e o movimento de 150/250 ms com ease-out;
+    48/28/16/14/12, o respiro de base 4, os papéis de superfície e o
+    movimento de 150/250 ms com ease-out;
   - do **PicGen** (a gravação do produto) vem a PELE: o preto #0D0D0D
     contra o branco #FFFFFF, o canvas de pontinhos, os blocos com painel
     interno mais escuro, o brilho colorido no que está escolhido, e as
@@ -55,11 +55,12 @@ body:has(.dash-skin[data-design-system="orbit"]) .dash-skin {
   --orb-acento: #ffffff;
   --orb-acento-texto: #0d0d0d;
 
-  /* ── Raios, com os nomes do Orbit ─────────────────────────────────── */
-  --orb-raio-etiqueta: 6px;
-  --orb-raio-controlo: 10px;
-  --orb-raio-bloco: 16px;
-  --orb-raio-painel: 24px;
+  /* Cantos retos são uma decisão fixa do produto nas duas peles.
+     Os nomes do Orbit permanecem para compatibilidade dos componentes. */
+  --orb-raio-etiqueta: 0;
+  --orb-raio-controlo: 0;
+  --orb-raio-bloco: 0;
+  --orb-raio-painel: 0;
 
   /* ── Movimento ────────────────────────────────────────────────────── */
   --orb-rapido: 150ms;
@@ -74,6 +75,14 @@ body:has(.dash-skin[data-design-system="orbit"]) .dash-skin {
   );
   --orb-pontos-passo: 24px 24px;
   --orb-sombra: 0 18px 48px rgb(0 0 0 / 55%);
+  --orb-profundidade-bloco:
+    inset 0 1px 0 rgb(255 255 255 / 6%), inset 0 0 0 1px var(--orb-line),
+    0 3px 0 -1px rgb(0 0 0 / 28%), 0 10px 24px -8px rgb(0 0 0 / 48%);
+  --orb-profundidade-controlo:
+    inset 0 1px 0 rgb(255 255 255 / 5%), inset 0 0 0 1px var(--orb-line),
+    0 2px 3px rgb(0 0 0 / 24%);
+  --orb-profundidade-portal:
+    inset 0 0 0 1px var(--orb-line-forte), 0 20px 52px rgb(0 0 0 / 45%);
 
   /*
     Ponte para a pele anterior.
@@ -100,6 +109,9 @@ body:has(.dash-skin[data-design-system="orbit"]) .dash-skin {
   --nebula-selected: var(--orb-acento);
   --nebula-selected-bg: rgb(255 255 255 / 10%);
   --nebula-shadow: var(--orb-sombra);
+  --nebula-card-depth: var(--orb-profundidade-bloco);
+  --nebula-control-depth: var(--orb-profundidade-controlo);
+  --nebula-overlay-depth: var(--orb-profundidade-portal);
   --nebula-radius: var(--orb-raio-bloco);
   --nebula-radius-lg: var(--orb-raio-painel);
   --nebula-control-radius: var(--orb-raio-controlo);
@@ -107,9 +119,9 @@ body:has(.dash-skin[data-design-system="orbit"]) .dash-skin {
   /* ══ Daqui para baixo: os tokens que o app já consome ══════════════ */
   --font-display: var(--font-outfit), var(--font-inter), system-ui, sans-serif;
   --font-montserrat: var(--font-outfit);
-  --radius: 0.625rem; /* controlo: 10px */
-  --radius-card: 1rem; /* bloco: 16px */
-  --radius-panel: 1.5rem; /* painel: 24px */
+  --radius: 0;
+  --radius-card: 0;
+  --radius-panel: 0;
 
   /* Escala de tipos do Orbit: 12 · 14 · 16 · 28 · 48 */
   --text-caption: 0.75rem;
@@ -133,14 +145,15 @@ body:has(.dash-skin[data-design-system="orbit"]) .dash-skin {
   --veu: var(--orb-canvas-2);
   --material: none;
   --material-hover: none;
-  --material-sombra: inset 0 0 0 1px var(--orb-line);
+  --material-sombra: var(--orb-profundidade-bloco);
   --vidro-brilho: none;
   --vidro-pontos: none;
   --vidro-sombra: inset 0 0 0 1px var(--orb-line), var(--orb-sombra);
   --brilho: var(--orb-acento);
   --brilho-texto: #ffffff;
-  --dash-shadow-card: inset 0 0 0 1px var(--orb-line);
-  --dash-shadow-control: inset 0 0 0 1px var(--orb-line);
+  --dash-shadow-card: var(--orb-profundidade-bloco);
+  --dash-shadow-control: var(--orb-profundidade-controlo);
+  --dash-shadow-overlay: var(--orb-profundidade-portal);
   --dash-shadow-inset: inset 0 0 0 1px var(--orb-line);
   --dash-surface-base: var(--orb-canvas);
   --dash-surface-card: var(--orb-surface);
@@ -243,7 +256,7 @@ html[data-tema="branco"]
   --orb-modelo: #7a5a00;
   --orb-imagem: #0b5aa8;
   --orb-gerador: #a31490;
-  --orb-atencao: #7a5a00;
+  --orb-atencao: #684d00;
   --orb-acento: #131416;
   --orb-acento-texto: #ffffff;
   --orb-pontos: radial-gradient(
@@ -252,6 +265,14 @@ html[data-tema="branco"]
     transparent 0
   );
   --orb-sombra: 0 14px 36px rgb(0 0 0 / 8%);
+  --orb-profundidade-bloco:
+    inset 0 1px 0 rgb(255 255 255 / 90%), inset 0 0 0 1px var(--orb-line),
+    0 3px 0 -1px rgb(0 0 0 / 5%), 0 10px 24px -10px rgb(0 0 0 / 20%);
+  --orb-profundidade-controlo:
+    inset 0 1px 0 rgb(255 255 255 / 90%), inset 0 0 0 1px var(--orb-line),
+    0 2px 3px rgb(0 0 0 / 7%);
+  --orb-profundidade-portal:
+    inset 0 0 0 1px var(--orb-line-forte), 0 20px 52px rgb(0 0 0 / 16%);
   --camada-4: #d8d8dd;
   --nebula-selected-bg: rgb(0 0 0 / 7%);
   --selecionado: rgb(0 0 0 / 7%);
@@ -287,21 +308,25 @@ body:has(.dash-skin[data-design-system="orbit"]) .dash-skin {
 }
 body:has(.dash-skin[data-design-system="orbit"])
   .dash-skin
-  :is([data-slot="card"], .dash-sidebar, .dash-band, [data-slot="popover-content"], [data-slot="dropdown-menu-content"]) {
+  :is(
+    [data-slot="card"],
+    .dash-sidebar,
+    .dash-band,
+    [data-slot="popover-content"],
+    [data-slot="dropdown-menu-content"]
+  ) {
   background-image: none;
 }
 
-/* Os blocos são nós: raio de 16, uma linha fina em vez de sombra pesada,
-   e o painel interno um degrau mais claro do que a casca. */
-body:has(.dash-skin[data-design-system="orbit"])
-  .dash-skin
-  [data-slot="card"] {
+/* Os blocos conservam o painel interno um degrau mais claro, agora com
+   cantos retos e profundidade compartilhada com o editor do funil. */
+body:has(.dash-skin[data-design-system="orbit"]) .dash-skin [data-slot="card"] {
   border-radius: var(--orb-raio-bloco);
   border-color: var(--orb-line);
-  box-shadow: var(--orb-sombra);
+  box-shadow: var(--orb-profundidade-bloco);
 }
 
-/* Os controlos são pílulas, como a barra de cima do PicGen. */
+/* Controlos com cantos retos, sem perder tipografia e contraste do PicGen. */
 body:has(.dash-skin[data-design-system="orbit"])
   .dash-skin
   :is([data-slot="button"], [data-slot="select-trigger"], select, textarea),
@@ -311,7 +336,7 @@ body:has(.dash-skin[data-design-system="orbit"])
   border-radius: var(--orb-raio-controlo) !important;
   background: var(--orb-raised) !important;
   border-color: var(--orb-line) !important;
-  box-shadow: inset 0 0 0 1px var(--orb-line) !important;
+  box-shadow: var(--orb-profundidade-controlo) !important;
   color: var(--orb-text);
   font-family: var(--font-outfit), var(--font-inter), system-ui, sans-serif;
   font-size: 0.875rem;
@@ -365,7 +390,7 @@ body:has(.dash-skin[data-design-system="orbit"]) .dash-skin .bg-primary {
   color: var(--orb-acento-texto) !important;
 }
 
-/* As etiquetas são tags de 6px, o raio mais pequeno do Orbit. */
+/* Etiquetas compartilham a política de cantos retos. */
 body:has(.dash-skin[data-design-system="orbit"])
   .dash-skin
   [data-slot="badge"] {

@@ -21,6 +21,43 @@ const NOT_CONFIGURED_ERROR =
   "O Supabase ainda não está configurado (NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY). " +
   "Enquanto isso, o painel está disponível em modo demonstração.";
 
+/*
+  Destino depois do login: só caminho DESTE site. `startsWith("/")` deixava
+  passar `//outro.com` e `/\outro.com`, que o navegador lê como "outro
+  site" (open redirect: o link de login levaria a vítima para uma cópia
+  falsa do painel). A barra inicial não pode vir seguida de outra barra nem
+  de contrabarra. Espaço e caractere de controle também saem: o navegador
+  apaga tab e quebra de linha da URL, e `/<tab>/outro.com` viraria
+  `//outro.com` depois da validação.
+*/
+const DESTINO_INTERNO = /^\/(?![/\\])[^\s\u0000-\u001f\u007f]*$/;
+
+/*
+  A regex sozinha olha a string CRUA, mas o redirect() do Next resolve o
+  destino com `new URL(destino, origem)` antes de mandar: "/.//outro.com",
+  "/..//outro.com" e "/%2e//outro.com" passam na regex e viram o caminho
+  "//outro.com", que a navegação dura do cliente lê como outro site. Por
+  isso o destino é normalizado aqui (com uma base qualquer, que nunca sai
+  daqui), a forma normalizada passa de novo pela regex e é ELA que vai
+  para o redirect(): o que foi conferido é exatamente o que o Next usa.
+*/
+const BASE_DO_DESTINO = "https://painel.invalid";
+
+function destinoDepoisDoLogin(bruto: FormDataEntryValue | null): string {
+  if (typeof bruto !== "string" || !DESTINO_INTERNO.test(bruto))
+    return "/dashboard";
+  let url: URL;
+  try {
+    url = new URL(bruto, BASE_DO_DESTINO);
+  } catch {
+    return "/dashboard";
+  }
+  const caminho = url.pathname + url.search + url.hash;
+  return url.origin === BASE_DO_DESTINO && DESTINO_INTERNO.test(caminho)
+    ? caminho
+    : "/dashboard";
+}
+
 export async function loginAction(
   _prev: AuthActionResult | null,
   formData: FormData,
@@ -51,12 +88,7 @@ export async function loginAction(
     };
   }
 
-  const redirectTo = formData.get("redirect");
-  redirect(
-    typeof redirectTo === "string" && redirectTo.startsWith("/")
-      ? redirectTo
-      : "/dashboard",
-  );
+  redirect(destinoDepoisDoLogin(formData.get("redirect")));
 }
 
 export async function registerAction(
