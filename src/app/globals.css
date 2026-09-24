@@ -5354,6 +5354,55 @@ body:has(.dash-skin) .day-neon::before {
   box-shadow: var(--material-sombra, none);
 }
 
+/* Área Servidor (desenho Nexus, do Codex): escura nos dois temas, de
+   propósito. O escopo dele já troca texto, borda e cartão; faltavam as
+   camadas de superfície do painel, que no tema claro continuavam brancas
+   e deixavam letra branca em cartão branco (o "Como funciona"). Aqui só
+   se devolve a essas camadas o valor do tema preto, dentro da área dele. */
+html[data-tema="branco"] .dash-skin [data-server-design="nexus"] {
+  --camada-0: #09090b;
+  --camada-1: rgb(255 255 255 / 1.6%);
+  --camada-2: rgb(255 255 255 / 2.4%);
+  --camada-3: rgb(255 255 255 / 3.2%);
+  --camada-4: rgb(255 255 255 / 4.2%);
+  --botao: rgb(255 255 255 / 3.5%);
+  --botao-hover: rgb(255 255 255 / 6%);
+  --fio: rgb(255 255 255 / 6%);
+  --fio-forte: rgb(255 255 255 / 9%);
+  --selecionado: #f5f5f5;
+  --selecionado-texto: #0a0a0a;
+  --veu: rgb(8 8 9 / 55%);
+  --material: linear-gradient(180deg, rgb(255 255 255 / 2.2%), rgb(255 255 255 / 0.6%));
+  --material-hover: linear-gradient(180deg, rgb(255 255 255 / 4%), rgb(255 255 255 / 1.2%));
+  --material-sombra: inset 0 1px 0 rgb(255 255 255 / 5%), inset 0 -1px 0 rgb(0 0 0 / 55%), 0 2px 6px rgb(0 0 0 / 45%);
+  --brilho: #e5e5e5;
+  --brilho-texto: #f5f5f5;
+  --dash-shadow-card: var(--material-sombra);
+  --dash-shadow-control: var(--material-sombra);
+  --dash-shadow-inset: inset 0 1px 0 rgb(255 255 255 / 6%);
+  --card-foreground: #fafafa;
+  --popover: #18181b;
+  --popover-foreground: #fafafa;
+  --muted: var(--camada-2);
+  --secondary: var(--camada-2);
+  --secondary-foreground: #fafafa;
+  --accent: var(--camada-3);
+  --accent-foreground: #fafafa;
+  --input: var(--fio-forte);
+  --ring: #fafafa;
+  --glass-fill: var(--camada-1);
+  --glass-border: var(--fio);
+  --linha-tabela: rgb(255 255 255 / 16%);
+  /* As superfícies da pele Orbit já chegam resolvidas da raiz (brancas no
+     tema claro): aqui voltam aos mesmos valores do tema preto. */
+  --dash-surface-base: #0d0d0d;
+  --dash-surface-structure: #111214;
+  --dash-surface-card: #202123;
+  --dash-surface-control: #292a2d;
+  --dash-surface-hover: #313236;
+  --dash-surface-overlay: #292a2d;
+}
+
 /* Preto fosco também nos portais (tooltips, menus, folhas) que saem do wrapper. */
 body:has(.dash-skin) {
   --camada-0: #09090b;
