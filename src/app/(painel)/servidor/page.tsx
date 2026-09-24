@@ -5,6 +5,11 @@ import { PainelIndisponivel } from "@/features/vps/pre-requisitos";
 import { lerPainelVps } from "@/features/vps/queries";
 import { ServidoresPainel } from "@/features/vps/servidores-painel";
 import { estadoDaTela } from "@/features/vps/vps-cliente";
+import {
+  ServidorPreparacao,
+  ServidorRecursos,
+} from "@/features/vps/servidor-boas-vindas";
+import styles from "@/features/vps/servidor-nexus.module.css";
 
 export const metadata: Metadata = { title: "Servidor" };
 export const dynamic = "force-dynamic";
@@ -19,15 +24,23 @@ export const maxDuration = 30;
 export default async function Page() {
   const painel = await lerPainelVps();
   return (
-    <div className="min-w-0 space-y-4">
+    <div className="min-w-0 space-y-6">
       <PageHeader
         title="Servidores"
-        description="As VPS onde ficam as páginas do seu funil. O painel não abre conexão com elas: o agente instalado em cada uma busca as tarefas assinadas."
+        description="Conecte sua VPS, acompanhe os recursos e publique seus sites em um só lugar."
       />
       {painel.estado === "ok" ? (
         <ServidoresPainel inicial={estadoDaTela(painel)} />
       ) : (
-        <PainelIndisponivel painel={painel} />
+        <>
+          <div className={styles.unavailable}>
+            <PainelIndisponivel painel={painel} />
+          </div>
+          <div className={styles.lowerGrid}>
+            <ServidorPreparacao />
+            <ServidorRecursos />
+          </div>
+        </>
       )}
     </div>
   );

@@ -2,7 +2,17 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowRight, RefreshCw, Terminal } from "lucide-react";
+import {
+  ArrowRight,
+  Check,
+  Clock3,
+  Globe,
+  KeyRound,
+  RefreshCw,
+  Server,
+  ShieldCheck,
+  Terminal,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +40,7 @@ import {
 import { useEstadoVps } from "./use-estado-vps";
 import { useOperacao } from "./use-operacao";
 import type { EstadoDaTela } from "./vps-cliente";
+import styles from "./novo-servidor-nexus.module.css";
 
 /*
   /servidor/novo: do nome ao "é o meu servidor".
@@ -70,12 +81,15 @@ export function ComandoDeInstalacao({
       titulo="Instale o agente"
       descricao="Cole no console da VPS e aperte Enter. Não precisa digitar senha aqui."
     >
-      <pre
-        ref={pre}
-        className="bg-muted/30 max-w-full border p-3 font-mono text-xs leading-5 break-all whitespace-pre-wrap"
-      >
-        <code>{instalacao.comando}</code>
-      </pre>
+      <div className={styles.terminal}>
+        <div className={styles.terminalHeader}>
+          <Terminal aria-hidden />
+          <span>Console de instalação</span>
+        </div>
+        <pre ref={pre} className={styles.command}>
+          <code>{instalacao.comando}</code>
+        </pre>
+      </div>
       <div className="flex flex-wrap items-center gap-3">
         <BotaoCopiar texto={instalacao.comando} alvo={pre} />
         <span
@@ -179,7 +193,7 @@ export function ConfirmarServidor({
       titulo="É o seu servidor?"
       descricao="Confira com o que o painel do provedor mostra. Até o sim, o painel não manda nenhuma tarefa para este servidor."
     >
-      <dl className="grid min-w-0 gap-x-6 gap-y-2 sm:grid-cols-2 xl:grid-cols-4">
+      <dl className="grid min-w-0 gap-x-6 gap-y-3 sm:grid-cols-2">
         <Dado nome="Hostname">{registro?.hostname ?? "—"}</Dado>
         <Dado nome="Sistema">{registro?.so ?? "—"}</Dado>
         <Dado nome="IP visto pelo painel">{registro?.ipVisto ?? "—"}</Dado>
@@ -252,6 +266,15 @@ export function NovoServidor({ inicial }: { inicial: EstadoDaTela }) {
     criado?.instalacao != null &&
     Date.parse(criado.instalacao.expiraEm) > Date.parse(estado.agora);
   const destino = "/servidor/novo";
+  const conexaoConcluida = servidor?.estado === "ativo";
+  const etapaAtual =
+    situacao === "sumiu"
+      ? 0
+      : !criado
+        ? 1
+        : servidor?.estado === "aguardando_confirmacao" || conexaoConcluida
+          ? 3
+          : 2;
 
   async function gerar(evento: React.FormEvent<HTMLFormElement>) {
     evento.preventDefault();
@@ -282,162 +305,268 @@ export function NovoServidor({ inicial }: { inicial: EstadoDaTela }) {
   }
 
   return (
-    <div className="min-w-0 space-y-4">
+    <div className={styles.onboarding}>
       <AvisoDeAtualizacao falha={falha} destino={destino} />
 
-      <Bloco
-        rotulo="Antes de começar"
-        titulo="O que a VPS precisa ter"
-        descricao="O instalador confere o sistema e para com uma mensagem em português se algo não servir, antes de mexer em qualquer coisa."
-      >
-        <ul className="list-disc space-y-1.5 pl-5 text-sm leading-6">
-          <li>
-            VPS limpa com Ubuntu 22.04 ou 24.04, ou Debian 12 ou 13, sem
-            aaPanel, cPanel ou Apache.
-          </li>
-          <li>
-            Portas 80 e 443 liberadas no firewall do provedor (o instalador só
-            abre as duas no ufw da própria VPS).
-          </li>
-          <li>Acesso ao console da VPS como root (ou com sudo).</li>
-          <li>Relógio certo (NTP ligado): as tarefas vencem em 10 min.</li>
-        </ul>
-      </Bloco>
-
-      <Bloco
-        rotulo="Passo 1"
-        titulo="Nome do servidor"
-        descricao="Só para você reconhecer o servidor no painel."
-      >
-        <form onSubmit={(evento) => void gerar(evento)} className="space-y-3">
-          <div className="min-w-0 space-y-1.5">
-            <label htmlFor={campoNome} className="block text-sm font-medium">
-              Nome do servidor
-            </label>
-            <Input
-              id={campoNome}
-              name="nome"
-              maxLength={VPS_INPUT_LIMITS.name}
-              autoComplete="off"
-              placeholder="VPS da loja"
-              aria-invalid={Boolean(operacao.erros.nome) || undefined}
-              disabled={motivo !== null}
-              className="max-w-md"
-            />
-            {operacao.erros.nome && (
-              <p className="text-destructive text-xs">{operacao.erros.nome}</p>
-            )}
-          </div>
-          <Button
-            type="submit"
-            loading={Boolean(operacao.ocupado)}
-            disabled={motivo !== null}
-          >
-            {!operacao.ocupado && <Terminal aria-hidden />}
-            <span>Gerar comando</span>
-          </Button>
-          {motivo && (
-            <p className="text-muted-foreground text-xs leading-5">{motivo}</p>
-          )}
-          <RetornoDaOperacao operacao={operacao} destino={destino} />
-        </form>
-      </Bloco>
-
-      {situacao === "aguardando_agente" && criado?.instalacao && (
-        <ComandoDeInstalacao
-          instalacao={criado.instalacao}
-          agora={estado.agora}
-        />
-      )}
-
-      {situacao === "aguardando_agente" && criado && (
-        <div className="min-w-0 space-y-2">
-          {instalacaoValida ? (
-            <p
-              role="status"
-              aria-live="polite"
-              className="text-muted-foreground text-sm leading-6"
+      <ol className={styles.steps} aria-label="Etapas para conectar o servidor">
+        {["Nome", "Instalação", "Confirmação"].map((nome, indice) => {
+          const numero = indice + 1;
+          const concluida = conexaoConcluida || numero < etapaAtual;
+          const atual = !conexaoConcluida && numero === etapaAtual;
+          return (
+            <li
+              key={nome}
+              className={styles.step}
+              data-state={concluida ? "complete" : atual ? "current" : "next"}
+              aria-current={atual ? "step" : undefined}
             >
-              Esperando o servidor… A tela confere sozinha a cada 5 s.
-            </p>
-          ) : (
-            <>
-              <p className="text-warning text-sm leading-6">
-                {resposta?.tipo === "nao"
-                  ? resposta.mensagem
-                  : "O comando venceu antes de o servidor se registrar. Gere outro."}
-              </p>
-              <GerarNovoComando
-                servidorId={criado.servidorId}
-                motivo={motivo}
-                destino={destino}
-                aoGerar={(instalacao) => {
-                  setResposta(null);
+              <span className={styles.stepNumber} aria-hidden>
+                {concluida ? <Check /> : `0${numero}`}
+              </span>
+              <span className={styles.stepText}>
+                <strong>{nome}</strong>
+                <span>
+                  {concluida
+                    ? "Concluído"
+                    : atual
+                      ? "Em andamento"
+                      : "A seguir"}
+                </span>
+              </span>
+            </li>
+          );
+        })}
+      </ol>
+
+      <div className={styles.layout}>
+        <div className={styles.main}>
+          <Bloco
+            rotulo="Passo 1"
+            titulo="Nome do servidor"
+            descricao="Só para você reconhecer o servidor no painel."
+            className={styles.namePanel}
+          >
+            <form
+              onSubmit={(evento) => void gerar(evento)}
+              className={styles.form}
+            >
+              <div className="min-w-0 space-y-2">
+                <label
+                  htmlFor={campoNome}
+                  className="block text-sm font-medium"
+                >
+                  Nome do servidor
+                </label>
+                <Input
+                  id={campoNome}
+                  name="nome"
+                  maxLength={VPS_INPUT_LIMITS.name}
+                  autoComplete="off"
+                  placeholder="VPS da loja"
+                  aria-invalid={Boolean(operacao.erros.nome) || undefined}
+                  disabled={motivo !== null}
+                  className={styles.nameInput}
+                />
+                {operacao.erros.nome && (
+                  <p className="text-destructive text-xs">
+                    {operacao.erros.nome}
+                  </p>
+                )}
+              </div>
+              <Button
+                type="submit"
+                loading={Boolean(operacao.ocupado)}
+                disabled={motivo !== null}
+                className={styles.generateButton}
+              >
+                {!operacao.ocupado && <Terminal aria-hidden />}
+                <span>Gerar comando</span>
+              </Button>
+              {motivo && (
+                <p className="text-muted-foreground text-xs leading-5">
+                  {motivo}
+                </p>
+              )}
+              <RetornoDaOperacao operacao={operacao} destino={destino} />
+            </form>
+          </Bloco>
+
+          {!criado && (
+            <div className={styles.upcoming} aria-label="Próximos passos">
+              <div className={styles.upcomingStep}>
+                <Terminal aria-hidden className={styles.upcomingIcon} />
+                <span className={styles.upcomingLabel}>
+                  Passo 2 · Instalação
+                </span>
+                <h3>O comando aparece aqui</h3>
+                <p>
+                  Depois de dar um nome, copie o comando gerado e execute no
+                  console da sua VPS.
+                </p>
+              </div>
+              <div className={styles.upcomingStep}>
+                <ShieldCheck aria-hidden className={styles.upcomingIcon} />
+                <span className={styles.upcomingLabel}>
+                  Passo 3 · Confirmação
+                </span>
+                <h3>Confira a identidade</h3>
+                <p>
+                  Quando o agente responder, confira o hostname, o sistema e o
+                  IP antes de confirmar o servidor.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {situacao === "aguardando_agente" && criado?.instalacao && (
+            <ComandoDeInstalacao
+              instalacao={criado.instalacao}
+              agora={estado.agora}
+            />
+          )}
+
+          {situacao === "aguardando_agente" && criado && (
+            <div className={styles.connectionStatus}>
+              {instalacaoValida ? (
+                <p
+                  role="status"
+                  aria-live="polite"
+                  className="text-muted-foreground text-sm leading-6"
+                >
+                  Esperando o servidor… A tela confere sozinha a cada 5 s.
+                </p>
+              ) : (
+                <>
+                  <p className="text-warning text-sm leading-6">
+                    {resposta?.tipo === "nao"
+                      ? resposta.mensagem
+                      : "O comando venceu antes de o servidor se registrar. Gere outro."}
+                  </p>
+                  <GerarNovoComando
+                    servidorId={criado.servidorId}
+                    motivo={motivo}
+                    destino={destino}
+                    aoGerar={(instalacao) => {
+                      setResposta(null);
+                      setCriado({
+                        servidorId: criado.servidorId,
+                        instalacao,
+                        agoraNaCriacao: estado.agora,
+                      });
+                      atualizar();
+                    }}
+                  />
+                </>
+              )}
+            </div>
+          )}
+
+          {servidor?.estado === "aguardando_confirmacao" && (
+            <ConfirmarServidor
+              servidor={servidor}
+              destino={destino}
+              aoResponder={(tipo, mensagem) => {
+                setResposta({ tipo, mensagem });
+                if (tipo === "nao")
                   setCriado({
-                    servidorId: criado.servidorId,
-                    instalacao,
+                    servidorId: servidor.id,
+                    instalacao: null,
                     agoraNaCriacao: estado.agora,
                   });
-                  atualizar();
-                }}
-              />
-            </>
+                atualizar();
+              }}
+            />
+          )}
+
+          {servidor?.estado === "ativo" && (
+            <Bloco rotulo="Pronto" titulo={`${servidor.nome} está conectado`}>
+              <p role="status" className="text-success text-sm leading-6">
+                {resposta?.tipo === "sim"
+                  ? resposta.mensagem
+                  : "Servidor confirmado."}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <Button asChild variant="outline" size="sm">
+                  <Link href={`/servidor/${servidor.id}`}>
+                    <span>Abrir o servidor</span>
+                    <ArrowRight aria-hidden />
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" size="sm">
+                  <Link href="/servidor/sites">
+                    <span>Criar um site</span>
+                    <ArrowRight aria-hidden />
+                  </Link>
+                </Button>
+              </div>
+            </Bloco>
+          )}
+
+          {situacao === "sumiu" && (
+            <Vazio>
+              Este servidor não aparece mais no painel (foi removido?).{" "}
+              <Link
+                href="/servidor"
+                className="font-semibold underline underline-offset-4"
+              >
+                Ver servidores
+              </Link>
+            </Vazio>
           )}
         </div>
-      )}
 
-      {servidor?.estado === "aguardando_confirmacao" && (
-        <ConfirmarServidor
-          servidor={servidor}
-          destino={destino}
-          aoResponder={(tipo, mensagem) => {
-            setResposta({ tipo, mensagem });
-            if (tipo === "nao")
-              setCriado({
-                servidorId: servidor.id,
-                instalacao: null,
-                agoraNaCriacao: estado.agora,
-              });
-            atualizar();
-          }}
-        />
-      )}
-
-      {servidor?.estado === "ativo" && (
-        <Bloco rotulo="Pronto" titulo={`${servidor.nome} está conectado`}>
-          <p role="status" className="text-success text-sm leading-6">
-            {resposta?.tipo === "sim"
-              ? resposta.mensagem
-              : "Servidor confirmado."}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <Button asChild variant="outline" size="sm">
-              <Link href={`/servidor/${servidor.id}`}>
-                <span>Abrir o servidor</span>
-                <ArrowRight aria-hidden />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" size="sm">
-              <Link href="/servidor/sites">
-                <span>Criar um site</span>
-                <ArrowRight aria-hidden />
-              </Link>
-            </Button>
-          </div>
-        </Bloco>
-      )}
-
-      {situacao === "sumiu" && (
-        <Vazio>
-          Este servidor não aparece mais no painel (foi removido?).{" "}
-          <Link
-            href="/servidor"
-            className="font-semibold underline underline-offset-4"
+        <aside className={styles.sidebar} aria-label="Requisitos da VPS">
+          <Bloco
+            rotulo="Antes de começar"
+            titulo="O que a VPS precisa ter"
+            descricao="O instalador confere o sistema e para com uma mensagem em português se algo não servir, antes de mexer em qualquer coisa."
           >
-            Ver servidores
-          </Link>
-        </Vazio>
-      )}
+            <ul className={styles.requirements}>
+              <li>
+                <Server aria-hidden />
+                <div>
+                  <strong>Sistema compatível</strong>
+                  <p>
+                    VPS limpa com Ubuntu 22.04 ou 24.04, ou Debian 12 ou 13, sem
+                    aaPanel, cPanel, Plesk ou Apache, e pelo menos 1 GB livre em
+                    /var.
+                  </p>
+                </div>
+              </li>
+              <li>
+                <Globe aria-hidden />
+                <div>
+                  <strong>Rede liberada</strong>
+                  <p>
+                    Portas 80 e 443 liberadas no firewall do provedor (o
+                    instalador só abre as duas no ufw da própria VPS).
+                  </p>
+                </div>
+              </li>
+              <li>
+                <KeyRound aria-hidden />
+                <div>
+                  <strong>Acesso ao console</strong>
+                  <p>Acesso ao console da VPS como root (ou com sudo).</p>
+                </div>
+              </li>
+              <li>
+                <Clock3 aria-hidden />
+                <div>
+                  <strong>Horário sincronizado</strong>
+                  <p>
+                    Relógio certo (NTP ligado): as tarefas vencem em 10 min.
+                  </p>
+                </div>
+              </li>
+            </ul>
+          </Bloco>
+          <p className={styles.sidebarNote}>
+            A conexão começa no console da VPS. Você não precisa informar a
+            senha do servidor neste painel.
+          </p>
+        </aside>
+      </div>
     </div>
   );
 }

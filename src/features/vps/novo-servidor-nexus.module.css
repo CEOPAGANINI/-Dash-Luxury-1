@@ -1,0 +1,324 @@
+.onboarding {
+  display: grid;
+  min-width: 0;
+  gap: 1.5rem;
+  color: #fafafa;
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.step {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid rgb(255 255 255 / 8%);
+  background: #111113;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 3%),
+    0 6px 18px rgb(0 0 0 / 14%);
+}
+
+.step[data-state="current"] {
+  border-color: rgb(255 255 255 / 22%);
+  background: #18181b;
+  box-shadow:
+    inset 0 2px 0 #fafafa,
+    0 6px 18px rgb(0 0 0 / 20%);
+}
+
+.stepNumber {
+  display: grid;
+  flex: 0 0 auto;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border: 1px solid rgb(255 255 255 / 12%);
+  background: #09090b;
+  color: #a1a1aa;
+  font-size: 0.75rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.stepNumber svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.step[data-state="current"] .stepNumber {
+  border-color: #fafafa;
+  background: #fafafa;
+  color: #09090b;
+}
+
+/* The console remains dark even when the surrounding dashboard is light. */
+:global(#server-console) .step[data-state="current"] .stepNumber {
+  color: #09090b !important;
+}
+
+:global(#server-console)
+  :is(
+    .stepText > span,
+    .upcomingLabel,
+    .upcomingStep p,
+    .requirements p,
+    .sidebarNote,
+    .terminalHeader
+  ) {
+  color: #a1a1aa !important;
+}
+
+.step[data-state="complete"] .stepNumber {
+  color: #fafafa;
+}
+
+.stepText {
+  display: grid;
+  min-width: 0;
+  gap: 0.15rem;
+}
+
+.stepText strong {
+  font-size: 0.875rem;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+.stepText > span {
+  color: #a1a1aa;
+  font-size: 0.6875rem;
+  line-height: 1.5;
+}
+
+.layout,
+.main,
+.sidebar {
+  display: grid;
+  min-width: 0;
+  gap: 1.25rem;
+  align-content: start;
+}
+
+.onboarding .namePanel > header {
+  padding: 1.5rem;
+}
+
+.onboarding .namePanel > div {
+  padding: 1.5rem;
+}
+
+.form {
+  display: grid;
+  min-width: 0;
+  gap: 1.25rem;
+}
+
+.onboarding .nameInput {
+  width: 100%;
+  height: 3.125rem;
+  padding-inline: 1rem;
+  font-size: 0.875rem;
+}
+
+.onboarding .generateButton {
+  width: 100%;
+  min-height: 3rem;
+}
+
+.upcoming {
+  display: grid;
+  min-width: 0;
+  gap: 1rem;
+}
+
+.upcomingStep {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: 0.625rem;
+  padding: 1.5rem;
+  border: 1px solid rgb(255 255 255 / 8%);
+  background: #111113;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 4%),
+    0 8px 20px rgb(0 0 0 / 18%);
+}
+
+.upcomingIcon {
+  width: 1.125rem;
+  height: 1.125rem;
+  margin-bottom: 0.75rem;
+  color: #d4d4d8;
+}
+
+.upcomingLabel {
+  color: #a1a1aa;
+  font-size: 0.6875rem;
+  line-height: 1.5;
+}
+
+.upcomingStep h3 {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.4;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.upcomingStep p,
+.requirements p,
+.sidebarNote {
+  margin: 0;
+  color: #a1a1aa;
+  font-size: 0.75rem;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+
+.requirements {
+  display: grid;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.requirements li {
+  display: flex;
+  min-width: 0;
+  gap: 0.875rem;
+  padding-block: 1rem;
+}
+
+.requirements li:first-child {
+  padding-top: 0.25rem;
+}
+
+.requirements li:last-child {
+  padding-bottom: 0.25rem;
+}
+
+.requirements li + li {
+  border-top: 1px solid rgb(255 255 255 / 8%);
+}
+
+.requirements li > svg {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  margin-top: 0.2rem;
+  color: #a1a1aa;
+}
+
+.requirements li > div {
+  min-width: 0;
+}
+
+.requirements strong {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+.sidebarNote {
+  padding-inline: 0.25rem;
+}
+
+.terminal {
+  min-width: 0;
+  border: 1px solid rgb(255 255 255 / 12%);
+  background: #09090b;
+  box-shadow: inset 0 1px 8px rgb(0 0 0 / 35%);
+}
+
+.terminalHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgb(255 255 255 / 8%);
+  color: #a1a1aa;
+  font-size: 0.6875rem;
+  line-height: 1.5;
+}
+
+.terminalHeader svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.command {
+  max-width: 100%;
+  padding: 1.25rem 1rem;
+  margin: 0;
+  color: #e4e4e7;
+  font-family: var(--font-server-mono), monospace;
+  font-size: 0.75rem;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.connectionStatus {
+  display: grid;
+  min-width: 0;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-inline-start: 2px solid rgb(255 255 255 / 28%);
+  background: #111113;
+}
+
+@media (min-width: 40rem) {
+  .upcoming {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 68rem) {
+  .layout {
+    grid-template-columns: minmax(0, 1.65fr) minmax(18rem, 1fr);
+    gap: 1.5rem;
+  }
+
+  .steps {
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 39.999rem) {
+  .onboarding {
+    gap: 1rem;
+  }
+
+  .step {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.875rem 0.625rem;
+  }
+
+  .stepText strong {
+    font-size: 0.75rem;
+  }
+
+  .stepText > span {
+    font-size: 0.6875rem;
+  }
+
+  .onboarding .namePanel > header,
+  .onboarding .namePanel > div,
+  .upcomingStep {
+    padding: 1.25rem;
+  }
+}

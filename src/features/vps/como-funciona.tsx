@@ -1,6 +1,7 @@
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
+import styles from "./servidor-nexus.module.css";
 
 /*
   Peças de apresentação do Servidor que não dependem do navegador: a
@@ -8,10 +9,8 @@ import { cn } from "@/lib/utils";
   modo demonstração. Sem "use client": a página (Server Component) desenha
   o demo sem mandar JavaScript nenhum, e as ilhas reusam a mesma moldura.
 
-  O bloco segue a convenção do painel (seguranca, integracoes): section
-  bg-card com borda e raio de 16, header como filho direto, h3 no título.
-  Sem ícone decorativo e sem CSS module — layout só com Tailwind, para a
-  pele Orbit mandar na superfície.
+  O bloco usa o material Nexus, exclusivo da área Servidor: cantos retos,
+  aresta fina e profundidade. O header continua filho direto e o título h3.
 */
 
 export function Bloco({
@@ -35,9 +34,7 @@ export function Bloco({
   className?: string;
 }) {
   return (
-    <section
-      className={cn("bg-card min-w-0 overflow-hidden border", className)}
-    >
+    <section className={cn(styles.panel, className)}>
       <header className="flex flex-wrap items-start gap-3 border-b px-4 py-3">
         <div className="min-w-0 flex-1">
           {rotulo && (

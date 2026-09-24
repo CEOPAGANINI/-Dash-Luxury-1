@@ -1,0 +1,135 @@
+{
+  "name": "Nexus — Servidor",
+  "version": 1,
+  "source": {
+    "archive": "nexus-arcade.aura.build.zip",
+    "title": "Nexus Idea Arcade Landing Page Template",
+    "documentTitle": "NEXUS — The Idea Arcade",
+    "authorHtml": "assets/4ca8e09eef78cc5b_shared_code.json#/[0]/code",
+    "fontManifest": "assets/4b8e5a9e40584a7e_css2.css",
+    "thumbnail": "assets/fa1fc8639ba76db2_nexus-arcade.png"
+  },
+  "original": {
+    "color": {
+      "background": "#02030A",
+      "backgroundSecondary": "#08051A",
+      "surface": "#100A24",
+      "surfaceRaised": "#171032",
+      "text": "#F8F3FF",
+      "muted": "#A9A1B8",
+      "soft": "#7C748E",
+      "cyan": "#35DDF2",
+      "pink": "#F45BA8",
+      "gold": "#E8B85D",
+      "blue": "#5E8CFF",
+      "purple": "#A477FF",
+      "border": "rgba(248, 243, 255, 0.11)",
+      "borderSoft": "rgba(248, 243, 255, 0.07)"
+    },
+    "font": {
+      "display": "'Space Grotesk', sans-serif",
+      "body": "'Space Mono', monospace",
+      "arcade": "'VT323', monospace",
+      "heroSize": "clamp(4.7rem, 9vw, 8.4rem)",
+      "heroLineHeight": 0.86,
+      "heroTracking": "-0.035em",
+      "sectionSize": "clamp(2.85rem, 5.15vw, 5.35rem)",
+      "sectionLineHeight": 0.92,
+      "sectionTracking": "-0.066em",
+      "bodySize": "0.98rem",
+      "bodyLineHeight": 1.9,
+      "labelTracking": "0.18em"
+    },
+    "geometry": {
+      "panelRadius": "0px",
+      "borderWidth": "1px",
+      "buttonBorderWidth": "2px",
+      "frameStepCut": "18px",
+      "cornerMarker": "24px",
+      "maxWidth": "90rem",
+      "gridSizes": ["28px", "32px", "34px", "42px", "44px"]
+    },
+    "shadow": {
+      "header": "0 22px 70px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.055)",
+      "frame": "0 0 90px rgba(0, 0, 0, 0.52), inset 0 1px 0 rgba(248, 243, 255, 0.06)",
+      "card": "0 0 28px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(248, 243, 255, 0.045)"
+    },
+    "breakpoints": { "sm": "640px", "md": "768px", "lg": "1024px" }
+  },
+  "dashboardAdaptation": {
+    "scope": "Rotas /servidor: console escuro isolado, sem alterar a tipografia ou o tema das demais páginas.",
+    "color": {
+      "background": "#09090b",
+      "surface": "#111113",
+      "surfaceRaised": "#18181b",
+      "text": "#fafafa",
+      "muted": "#a1a1aa",
+      "border": "rgba(255, 255, 255, 0.11)",
+      "borderStrong": "rgba(255, 255, 255, 0.35)",
+      "primary": "#fafafa",
+      "onPrimary": "#09090b",
+      "focus": "#fafafa",
+      "semanticPolicy": "Usar os tokens semânticos existentes exclusivamente para estados reais; acompanhar com texto ou ícone."
+    },
+    "geometry": {
+      "radius": "0px",
+      "borderWidth": "1px",
+      "minimumTouchTarget": "44px",
+      "focusWidth": "2px",
+      "focusOffset": "4px"
+    },
+    "spacing": ["4px", "8px", "12px", "16px", "20px", "24px", "32px", "48px"],
+    "shadow": {
+      "card": "inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 4px 0 #050506, 0 18px 32px -20px #000",
+      "insetControl": "inset 0 2px 6px rgba(0, 0, 0, 0.40)"
+    },
+    "typography": {
+      "display": "Space Grotesk (local, 400–700)",
+      "technical": "Space Mono (local, 400)",
+      "titleRange": "28–42px (título de boas-vindas)",
+      "bodyRange": "11–14px (conteúdo auxiliar e explicações)",
+      "labelMinimum": "11px",
+      "arcadeRequired": false
+    },
+    "breakpoints": {
+      "overview": {
+        "mobileMax": "700px",
+        "tabletMax": "1000px",
+        "wideMin": "1500px"
+      },
+      "onboarding": { "mobileMax": "639.984px", "twoColumnsMin": "1088px" }
+    },
+    "statePolicy": {
+      "unconfigured": "Exibir configuração, requisitos e próximos passos; telemetria indisponível.",
+      "saved": "Dado salvo não comprova conectividade.",
+      "loading": "Preservar composição e anunciar a operação em andamento.",
+      "error": "Preservar dados e oferecer nova tentativa quando implementada.",
+      "connected": "Depender de resposta real e separar conexão, serviços e telemetria.",
+      "stale": "Identificar idade ou horário da última leitura.",
+      "missingMetric": "Não substituir ausência por zero, barra, gráfico ou valor demonstrativo.",
+      "reducedMotion": "Respeitar prefers-reduced-motion; sem animação contínua de marketing."
+    }
+  },
+  "localFonts": [
+    {
+      "family": "Space Grotesk",
+      "weight": "400 700",
+      "file": "assets/a0d054c4af557de2_V8mDoQDjQSkFtoMM3T6r8E7mPbF4C_.woff2"
+    },
+    {
+      "family": "Space Mono",
+      "weight": "400",
+      "file": "assets/e0c8e616bda27642_i7dPIFZifjKcF5UAWdDRYEF8RXi4Ew.woff2"
+    },
+    {
+      "family": "Space Mono",
+      "weight": "700",
+      "file": "assets/af7cf6d2b897ec45_i7dMIFZifjKcF5UAWdDRaPpZUFWaHi.woff2"
+    },
+    {
+      "family": "VT323",
+      "weight": "400",
+      "file": "assets/043a60145af2ddbc_pxiKyp0ihIEF2isfFJXUdVNF.woff2"
+    }
+  ]
+}

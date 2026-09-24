@@ -1,0 +1,625 @@
+/* Nexus reference, adapted to the user's monochrome, square dashboard.
+   The route scope prevents this material from changing other modules. */
+.scope {
+  --server-base: #09090b;
+  --server-surface: #111113;
+  --server-raised: #18181b;
+  --server-text: #fafafa;
+  --server-muted: #a1a1aa;
+  --server-line: rgb(255 255 255 / 11%);
+  --server-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 5%), 0 4px 0 #050506, 0 18px 32px -20px #000;
+  --orb-base: var(--server-base);
+  --orb-raised: var(--server-raised);
+  --orb-text: var(--server-text);
+  --orb-muted: var(--server-muted);
+  --orb-line: var(--server-line);
+  --orb-acento: #fafafa;
+  --orb-acento-texto: #09090b;
+  --muted-foreground: var(--server-muted);
+  --foreground: var(--server-text);
+  --border: var(--server-line);
+  --card: var(--server-surface);
+  --primary: #fafafa;
+  --primary-foreground: #09090b;
+  --text-page-title: clamp(1.75rem, 1.4rem + 1vw, 2.4rem);
+  min-width: 0;
+  color: var(--server-text);
+  background: var(--server-base);
+  font-family: var(--font-server-display), var(--font-outfit), sans-serif;
+  isolation: isolate;
+}
+.content {
+  padding: 26px 0 32px;
+}
+.scope h2,
+.scope h3 {
+  font-family: var(--font-server-display), var(--font-outfit), sans-serif;
+}
+.scope h2 {
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+.scope p {
+  text-wrap: pretty;
+}
+/* Keep this dark console legible under the dashboard's legacy light-theme
+   !important rules, without changing colors outside the server routes. */
+.scope:global(#server-console) {
+  color: var(--server-text) !important;
+}
+.scope:global(#server-console)
+  :is(
+    .navigation a,
+    .overview dt,
+    .overview dd span,
+    .eyebrow,
+    .welcomeCopy > p,
+    .securityNote,
+    .mapHeading,
+    .mapNode div span,
+    .nodeIndex,
+    .mapConnector,
+    .requirementRows p,
+    .requirementFooter,
+    .resourceLink span,
+    .monitoringNote > p,
+    .configuration > summary > span:last-child
+  ) {
+  color: var(--server-muted) !important;
+}
+.scope:global(#server-console) .navigation a:hover,
+.scope:global(#server-console) .navigation a[aria-current="page"] {
+  color: var(--server-text) !important;
+}
+.scope:global(#server-console) .primaryLink,
+.scope:global(#server-console) .primaryLink * {
+  color: #09090b !important;
+}
+.scope:global(#server-console) [data-slot="button"] > :is(span, svg) {
+  color: inherit !important;
+}
+.scope a:focus-visible,
+.scope button:focus-visible,
+.scope summary:focus-visible,
+.scope input:focus-visible {
+  outline: 2px solid #fafafa;
+  outline-offset: 4px;
+}
+.navigation {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 54px;
+  border-block: 1px solid var(--server-line);
+}
+.navigationLinks {
+  display: flex;
+  gap: 26px;
+}
+.navigation a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 52px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--server-muted);
+  white-space: nowrap;
+}
+.navigation a:hover {
+  color: var(--server-text);
+}
+.scope:global(#server-console) .navigation a[aria-current="page"] {
+  color: #fff;
+  border: 0;
+  border-bottom: 2px solid #fafafa;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.editorLink {
+  padding-inline: 12px;
+}
+.panel {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--server-line);
+  background: var(--server-surface);
+  box-shadow: var(--server-shadow);
+}
+.panel > header {
+  padding: 18px 22px;
+  background: rgb(255 255 255 / 2%);
+}
+.scope .panel > header {
+  border-bottom: 1px solid var(--server-line) !important;
+}
+.panel > div {
+  padding: 22px;
+}
+.scope:global(#server-console) [data-slot="button"],
+.scope:global(#server-console) [data-slot="input"] {
+  border: 1px solid var(--server-line) !important;
+  border-radius: 0 !important;
+  background: var(--server-raised) !important;
+  color: var(--server-text);
+  font-family: var(--font-server-display), sans-serif;
+  min-height: 44px;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 5%),
+    0 3px 0 #050506 !important;
+}
+.scope:global(#server-console) [data-slot="button"][class*="bg-primary"] {
+  color: #09090b !important;
+  background: #fafafa !important;
+}
+.scope:global(#server-console) [data-slot="button"][class*="bg-destructive"] {
+  background: #922b38 !important;
+  color: white !important;
+}
+.scope:global(#server-console) [data-slot="button"]:not(:disabled):hover {
+  filter: brightness(1.12);
+}
+.scope:global(#server-console) [data-slot="input"] {
+  background: #09090b !important;
+  box-shadow: inset 0 2px 6px rgb(0 0 0 / 40%) !important;
+  text-align: left;
+}
+.scope:global(#server-console) [data-slot="badge"] {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.scope:global(#server-console) pre {
+  background: #09090b !important;
+  border: 1px solid var(--server-line) !important;
+  box-shadow: inset 0 2px 6px #000 !important;
+}
+.overview {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border: 1px solid var(--server-line);
+  background: var(--server-surface);
+  box-shadow: var(--server-shadow);
+}
+.overview > div {
+  padding: 21px 24px;
+}
+.overview > div + div {
+  border-left: 1px solid var(--server-line);
+}
+.overview dt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--server-muted);
+  font-size: 12px;
+}
+.overview dd {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin-top: 8px;
+  font-size: 30px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.overview dd span {
+  font-size: 11px;
+  color: var(--server-muted);
+  font-weight: 400;
+}
+.welcome {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  border: 1px solid var(--server-line);
+  background: linear-gradient(115deg, #1a1a1e 0%, #111113 60%);
+  box-shadow: var(--server-shadow);
+}
+.welcomeCopy {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  padding: clamp(24px, 3vw, 44px);
+}
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--server-muted);
+  font-family: var(--font-server-mono), monospace;
+  font-size: 11px;
+  line-height: 1.8;
+  letter-spacing: 0.045em;
+}
+.welcomeCopy h3 {
+  margin-top: 18px;
+  font-size: clamp(28px, 2.7vw, 42px);
+  font-weight: 500;
+  line-height: 1.13;
+  letter-spacing: -0.045em;
+}
+.welcomeCopy > p {
+  margin-top: 16px;
+  max-width: 44ch;
+  font-size: 14px;
+  line-height: 1.75;
+  color: var(--server-muted);
+}
+.primaryLink {
+  display: inline-flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  margin-top: 26px;
+  padding: 0 18px;
+  color: #09090b;
+  background: #fafafa;
+  border: 1px solid #fff;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow:
+    0 4px 0 #777,
+    0 12px 22px -12px #000;
+  transition:
+    background 150ms,
+    transform 150ms;
+}
+.primaryLink:hover {
+  background: #d4d4d8;
+}
+.primaryLink:active {
+  transform: translateY(2px);
+}
+.securityNote {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 24px;
+  font-size: 11px;
+  color: var(--server-muted);
+}
+.connectionMap {
+  padding: 24px 30px 30px;
+  margin: 20px;
+  border: 1px solid var(--server-line);
+  background-color: #0c0c0e;
+  background-image:
+    linear-gradient(rgb(255 255 255 / 2%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 2%) 1px, transparent 1px);
+  background-size: 22px 22px;
+  box-shadow: inset 0 2px 12px #000;
+}
+.mapHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  font:
+    11px var(--font-server-mono),
+    monospace;
+  color: var(--server-muted);
+}
+.mapNode {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--server-line);
+  background: #141416;
+  box-shadow:
+    0 3px 0 #050505,
+    inset 0 1px 0 rgb(255 255 255 / 3%);
+}
+.mapNode > svg {
+  width: 23px;
+  height: 23px;
+  flex-shrink: 0;
+}
+.mapNode > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.mapNode strong {
+  font-size: 13px;
+  font-weight: 500;
+}
+.mapNode div span {
+  font-size: 11px;
+  color: var(--server-muted);
+}
+.mapNodeEmphasis {
+  border-color: rgb(255 255 255 / 35%);
+  background: #202024;
+}
+.nodeIndex {
+  margin-left: auto;
+  color: #85858e;
+  font:
+    11px var(--font-server-mono),
+    monospace;
+}
+.mapConnector {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 32px;
+  padding-left: 27px;
+  color: #a1a1aa;
+  font:
+    11px var(--font-server-mono),
+    monospace;
+}
+.mapConnector > span {
+  height: 100%;
+  width: 1px;
+  background: #51515b;
+}
+.lowerGrid {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+.preparation {
+  min-width: 0;
+  display: grid;
+  gap: 16px;
+}
+.requirements,
+.resources {
+  border: 1px solid var(--server-line);
+  background: var(--server-surface);
+  box-shadow: var(--server-shadow);
+  min-width: 0;
+}
+.sectionHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--server-line);
+}
+.sectionHeading h3 {
+  margin-top: 3px;
+  font-size: 16px;
+  font-weight: 500;
+}
+.sectionHeading > svg {
+  color: #a1a1aa;
+  flex-shrink: 0;
+}
+.requirementRows {
+  padding: 6px 24px;
+}
+.requirementRows > div {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  padding: 16px 0;
+}
+.requirementRows > div + div {
+  border-top: 1px solid rgb(255 255 255 / 6%);
+}
+.requirementRows svg {
+  color: #a1a1aa;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+.requirementRows strong {
+  font-size: 13px;
+  font-weight: 500;
+}
+.requirementRows p {
+  margin-top: 6px;
+  color: var(--server-muted);
+  font-size: 12px;
+  line-height: 1.7;
+  max-width: 65ch;
+}
+.requirementFooter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-top: 1px solid var(--server-line);
+  padding: 14px 24px;
+  color: var(--server-muted);
+  font-size: 11px;
+  line-height: 1.65;
+  background: rgb(255 255 255 / 2%);
+}
+.requirementFooter svg {
+  flex-shrink: 0;
+}
+.resourceLink {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 24px;
+  min-height: 78px;
+  border-bottom: 1px solid rgb(255 255 255 / 6%);
+  transition: background 150ms;
+}
+.resourceLink:hover {
+  background: var(--server-raised);
+}
+.resourceLink > svg {
+  flex-shrink: 0;
+  width: 18px;
+  color: #a1a1aa;
+}
+.resourceLink > svg:last-child {
+  margin-left: auto;
+}
+.resourceLink div {
+  display: grid;
+  gap: 5px;
+}
+.resourceLink strong {
+  font-size: 13px;
+  font-weight: 500;
+}
+.resourceLink span {
+  color: var(--server-muted);
+  font-size: 11px;
+  line-height: 1.6;
+}
+.monitoringNote {
+  padding: 20px 24px;
+}
+.monitoringNote > div {
+  display: flex;
+  gap: 16px;
+  color: #a1a1aa;
+  margin-bottom: 14px;
+}
+.monitoringNote > strong {
+  font-size: 12px;
+  font-weight: 500;
+}
+.monitoringNote > p {
+  color: var(--server-muted);
+  font-size: 11px;
+  line-height: 1.7;
+  margin-top: 5px;
+}
+.configuration {
+  border: 1px solid var(--server-line);
+  background: var(--server-surface);
+}
+.configuration > summary {
+  min-height: 52px;
+  padding: 16px 20px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 12px;
+}
+.configuration > summary > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.configuration > summary > span:last-child {
+  color: var(--server-muted);
+  font:
+    11px var(--font-server-mono),
+    monospace;
+}
+.listHeading {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.listHeading h3 {
+  font-size: 17px;
+  font-weight: 500;
+}
+.serverList {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+.unavailable {
+  padding: 24px;
+  border: 1px solid var(--server-line);
+  background: var(--server-surface);
+  box-shadow: var(--server-shadow);
+}
+@media (min-width: 1500px) {
+  .serverList {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 1000px) {
+  .welcome {
+    grid-template-columns: 1fr 1fr;
+  }
+  .connectionMap {
+    padding: 20px;
+    margin: 14px;
+  }
+  .lowerGrid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 700px) {
+  .navigation {
+    display: block;
+  }
+  .navigationLinks {
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .navigation a {
+    font-size: 11px;
+    gap: 6px;
+  }
+  .navigation .editorLink {
+    display: none;
+  }
+  .content {
+    padding-top: 20px;
+  }
+  .overview > div {
+    padding: 16px 12px;
+  }
+  .overview dt {
+    flex-direction: column;
+    align-items: flex-start;
+    min-height: 58px;
+    font-size: 11px;
+  }
+  .overview dd {
+    font-size: 26px;
+  }
+  .overview dd span {
+    display: none;
+  }
+  .welcome {
+    grid-template-columns: 1fr;
+  }
+  .welcomeCopy {
+    padding: 26px;
+  }
+  .welcomeCopy h3 {
+    font-size: 30px;
+  }
+  .connectionMap {
+    margin: 0 18px 18px;
+  }
+  .serverList {
+    grid-template-columns: 1fr;
+  }
+  .sectionHeading,
+  .resourceLink {
+    padding-inline: 20px;
+  }
+  .requirementRows {
+    padding-inline: 20px;
+  }
+  .securityNote {
+    font-size: 11px;
+  }
+  .panel > header,
+  .panel > div {
+    padding: 18px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scope *,
+  .scope *::before,
+  .scope *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}

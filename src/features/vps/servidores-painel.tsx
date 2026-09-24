@@ -11,12 +11,19 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 import { reentrarAction } from "./actions";
-import { Bloco, Vazio } from "./como-funciona";
+import { Bloco } from "./como-funciona";
 import { MedidasDoServidor } from "./medidas-do-servidor";
 import { formatarHora, type ServidorDTO } from "./modelo";
 import { PreRequisitos } from "./pre-requisitos";
 import { useEstadoVps, type FalhaDeAtualizacao } from "./use-estado-vps";
 import type { Operacao } from "./use-operacao";
+import {
+  ServidorBoasVindas,
+  ServidorPreparacao,
+  ServidorRecursos,
+  ServidorResumo,
+} from "./servidor-boas-vindas";
+import styles from "./servidor-nexus.module.css";
 import {
   CLASSE_DO_TOM,
   copiarTexto,
@@ -354,27 +361,20 @@ export function ServidoresPainel({ inicial }: { inicial: EstadoDaTela }) {
   const faltaAlgo = estado.pendencias.some((p) => !p.ok);
 
   return (
-    <div className="min-w-0 space-y-4">
+    <div className="min-w-0 space-y-5">
       <AvisoDeAtualizacao falha={falha} destino="/servidor" />
       {faltaAlgo && <PreRequisitos pendencias={estado.pendencias} />}
+      <ServidorResumo estado={estado} />
       {estado.servidores.length === 0 ? (
-        <Vazio>
-          Nenhum servidor conectado ainda.{" "}
-          <Link
-            href="/servidor/novo"
-            className="font-semibold underline underline-offset-4"
-          >
-            Adicionar servidor
-          </Link>
-        </Vazio>
+        <ServidorBoasVindas />
       ) : (
         <>
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-muted-foreground text-sm">
+          <div className={styles.listHeading}>
+            <h3>
               {estado.servidores.length === 1
                 ? "1 servidor neste painel."
                 : `${estado.servidores.length} servidores neste painel.`}
-            </p>
+            </h3>
             <Button asChild size="sm" variant="outline">
               <Link href="/servidor/novo">
                 <Plus aria-hidden />
@@ -382,7 +382,7 @@ export function ServidoresPainel({ inicial }: { inicial: EstadoDaTela }) {
               </Link>
             </Button>
           </div>
-          <div className="grid min-w-0 gap-4 lg:grid-cols-2 2xl:grid-cols-3">
+          <div className={styles.serverList}>
             {estado.servidores.map((servidor) => (
               <CartaoDoServidor
                 key={servidor.id}
@@ -393,6 +393,10 @@ export function ServidoresPainel({ inicial }: { inicial: EstadoDaTela }) {
           </div>
         </>
       )}
+      <div className={styles.lowerGrid}>
+        <ServidorPreparacao estado={faltaAlgo ? undefined : estado} />
+        <ServidorRecursos />
+      </div>
     </div>
   );
 }
