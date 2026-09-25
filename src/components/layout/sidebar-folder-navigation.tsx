@@ -155,6 +155,7 @@ const groups: PastaDoMenu[] = [
         icon: SquarePen,
       },
       { title: "Baixar site", href: "/captura", icon: FileZip },
+      { title: "Filtro de acesso", href: "/filtro-de-acesso", icon: Globe },
     ],
   },
   {

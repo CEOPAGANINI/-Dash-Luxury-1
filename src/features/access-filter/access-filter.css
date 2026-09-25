@@ -1,0 +1,315 @@
+/* =====================================================================
+   Filtro de acesso — a pele, sobre os tokens CommandLayer do painel.
+
+   Bloco preto quadrado, como o resto do painel: superfícies escuras,
+   bordas de 1px, cantos retos, um único acento branco, mono nos dados.
+   Tudo escopado em .acf, então não vaza para outras telas. Cor só para
+   status: verde quem passa, âmbar no aviso, vermelho quem é barrado.
+
+   Contraste: os textos apagados usam #a3a3a3 (o --cl-text-muted já
+   auditado), acima de 4,5:1 sobre as superfícies escuras; no tema claro
+   os tokens CommandLayer invertem sozinhos.
+   ===================================================================== */
+
+.acf {
+  --acf-bg: var(--cl-screen, #080808);
+  --acf-card: var(--cl-chassis, #0b0b0b);
+  --acf-card-top: var(--cl-card-top, #111111);
+  --acf-raised: var(--cl-raised, #101010);
+  --acf-well: var(--cl-well, #000000);
+  --acf-line: var(--cl-border, #202020);
+  --acf-line-strong: var(--cl-border-strong, #303030);
+  --acf-text: var(--cl-text-primary, #f5f5f5);
+  --acf-muted: var(--cl-text-muted, #a3a3a3);
+  --acf-accent: var(--cl-accent, #fafafa);
+  --acf-on-accent: #0a0a0a;
+  --acf-ok: #34d399;
+  --acf-warn: #fbbf24;
+  --acf-danger: #fb7185;
+  --acf-sans: var(--cl-sans, var(--font-inter), "Inter", system-ui, sans-serif);
+  --acf-mono: var(--cl-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+
+  min-height: calc(100svh - 9.5rem);
+  background: var(--acf-bg);
+  color: var(--acf-text);
+  font-family: var(--acf-sans);
+  border: 1px solid var(--acf-line);
+  -webkit-font-smoothing: antialiased;
+}
+.acf__stage {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 20px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* ── Cabeçalho ────────────────────────────────────────────────────── */
+.acf__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.acf__brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.acf__mark {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--acf-line-strong);
+  background: var(--acf-raised);
+  font-size: 20px;
+  color: var(--acf-accent);
+}
+.acf__title {
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.acf__sub {
+  font-family: var(--acf-mono);
+  font-size: 11px;
+  color: var(--acf-muted);
+}
+.acf__demo-chip {
+  flex: none;
+  font-family: var(--acf-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--acf-warn);
+  border: 1px solid color-mix(in srgb, var(--acf-warn) 45%, transparent);
+  background: color-mix(in srgb, var(--acf-warn) 12%, transparent);
+  padding: 4px 8px;
+}
+.acf__lead {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--acf-muted);
+  max-width: 74ch;
+}
+.acf__lead b {
+  color: var(--acf-text);
+}
+
+/* ── Grade das duas colunas ───────────────────────────────────────── */
+.acf__grid {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 860px) {
+  .acf__grid {
+    grid-template-columns: 1fr;
+  }
+}
+.acf__card {
+  background: linear-gradient(var(--acf-card-top), var(--acf-card));
+  border: 1px solid var(--acf-line-strong);
+  box-shadow: inset 0 0 0 4px var(--acf-card), inset 0 0 0 5px rgb(255 255 255 / 5%);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.acf__card-head {
+  font-size: 13px;
+  font-weight: 600;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--acf-line);
+}
+
+/* ── Campo ────────────────────────────────────────────────────────── */
+.acf__field {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.acf__label {
+  font-family: var(--acf-mono);
+  font-size: 11px;
+  color: var(--acf-muted);
+}
+.acf__hint {
+  font-size: 10px;
+  color: var(--acf-muted);
+  font-family: var(--acf-mono);
+}
+.acf__hint[data-warn] {
+  color: var(--acf-warn);
+}
+
+/* Pílulas (site) e segmentos (modo/ação) */
+.acf__pills,
+.acf__seg {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.acf__seg {
+  border: 1px solid var(--acf-line-strong);
+  padding: 3px;
+  width: fit-content;
+}
+.acf__pill,
+.acf__seg-btn,
+.acf__chip {
+  font-family: var(--acf-sans);
+  font-size: 12px;
+  color: var(--acf-muted);
+  background: var(--acf-raised);
+  border: 1px solid var(--acf-line-strong);
+  padding: 7px 12px;
+  cursor: pointer;
+  transition: color 100ms ease, background 100ms ease, border-color 100ms ease;
+}
+.acf__seg-btn {
+  border: 0;
+  background: transparent;
+}
+.acf__pill:hover,
+.acf__seg-btn:hover,
+.acf__chip:hover {
+  color: var(--acf-text);
+}
+.acf__pill[data-on="true"],
+.acf__seg-btn[data-on="true"] {
+  color: var(--acf-on-accent);
+  background: var(--acf-accent);
+  border-color: var(--acf-accent);
+}
+.acf__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.acf__chip[data-on="true"] {
+  color: var(--acf-text);
+  border-color: var(--acf-accent);
+  background: color-mix(in srgb, var(--acf-accent) 14%, var(--acf-raised));
+}
+.acf__pill:focus-visible,
+.acf__seg-btn:focus-visible,
+.acf__chip:focus-visible,
+.acf__input:focus-visible,
+.acf__select:focus-visible {
+  outline: 2px solid var(--acf-accent);
+  outline-offset: 1px;
+}
+
+.acf__inline-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.acf__input,
+.acf__select {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid var(--acf-line-strong);
+  background: var(--acf-well);
+  color: var(--acf-text);
+  font-family: var(--acf-sans);
+  font-size: 13px;
+  padding: 9px 11px;
+  box-shadow: inset 0 2px 4px rgb(0 0 0 / 60%);
+}
+.acf__select {
+  appearance: none;
+  cursor: pointer;
+}
+
+/* ── Simulador ────────────────────────────────────────────────────── */
+.acf__sim-lead {
+  font-size: 12px;
+  color: var(--acf-muted);
+  margin: -6px 0 0;
+}
+.acf__verdict {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--acf-line-strong);
+  background: var(--acf-well);
+}
+.acf__verdict[data-ok="true"] {
+  border-color: color-mix(in srgb, var(--acf-ok) 55%, transparent);
+  background: color-mix(in srgb, var(--acf-ok) 10%, var(--acf-well));
+}
+.acf__verdict[data-ok="false"] {
+  border-color: color-mix(in srgb, var(--acf-danger) 55%, transparent);
+  background: color-mix(in srgb, var(--acf-danger) 10%, var(--acf-well));
+}
+.acf__verdict-mark {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--acf-on-accent);
+}
+.acf__verdict[data-ok="true"] .acf__verdict-mark {
+  background: var(--acf-ok);
+}
+.acf__verdict[data-ok="false"] .acf__verdict-mark {
+  background: var(--acf-danger);
+}
+.acf__verdict-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.acf__verdict-body b {
+  font-size: 14px;
+}
+.acf__verdict-body span {
+  font-size: 12px;
+  color: var(--acf-muted);
+}
+.acf__verdict-why {
+  font-family: var(--acf-mono);
+  font-size: 11px;
+}
+.acf__verdict-action {
+  font-family: var(--acf-mono);
+  font-size: 11px;
+  color: var(--acf-text) !important;
+}
+.acf__fair {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--acf-muted);
+  padding: 12px 14px;
+  border: 1px dashed var(--acf-line-strong);
+}
+.acf__fair b {
+  color: var(--acf-text);
+}
+
+.acf__note {
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--acf-muted);
+  padding: 12px 14px;
+  border: 1px solid var(--acf-line);
+  background: var(--acf-raised);
+}
+.acf__note b {
+  color: var(--acf-text);
+}
