@@ -141,6 +141,52 @@ function Editor({
   const [undoCount, setUndoCount] = React.useState(0);
   const history = React.useRef<LandingFlow[]>([]);
   const viewport = React.useRef<HTMLDivElement>(null);
+  /* Navegação como num quadro do Miro: segurar o fundo e arrastar move a
+     vista. Cartões, botões, campos e painéis continuam donos do clique. */
+  const pan = React.useRef<{
+    x: number;
+    y: number;
+    left: number;
+    top: number;
+    id: number;
+  } | null>(null);
+  const [arrastandoQuadro, setArrastandoQuadro] = React.useState(false);
+  /* O painel "Ligações do fluxo" no modo quadro: fechado por padrão, para
+     não cobrir os cartões; o botão fica junto do zoom. */
+  const [ligacoesAbertas, setLigacoesAbertas] = React.useState(false);
+  const beginPan = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.button !== 0) return;
+    const alvo = event.target as HTMLElement;
+    if (alvo.closest("article, button, input, select, textarea, a, label"))
+      return;
+    const el = viewport.current;
+    if (!el) return;
+    pan.current = {
+      x: event.clientX,
+      y: event.clientY,
+      left: el.scrollLeft,
+      top: el.scrollTop,
+      id: event.pointerId,
+    };
+    try {
+      el.setPointerCapture(event.pointerId);
+    } catch {
+      // Sem captura o arrasto ainda funciona enquanto o ponteiro estiver dentro.
+    }
+    setArrastandoQuadro(true);
+  };
+  const movePan = (event: React.PointerEvent<HTMLDivElement>) => {
+    const alvo = pan.current;
+    const el = viewport.current;
+    if (!alvo || !el || event.pointerId !== alvo.id) return;
+    el.scrollLeft = alvo.left - (event.clientX - alvo.x);
+    el.scrollTop = alvo.top - (event.clientY - alvo.y);
+  };
+  const endPan = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (pan.current?.id !== event.pointerId) return;
+    pan.current = null;
+    setArrastandoQuadro(false);
+  };
   const upload = React.useRef<HTMLInputElement>(null);
   const importSequence = React.useRef(0);
   const drag = React.useRef<{
@@ -470,7 +516,7 @@ function Editor({
             className={styles.previewButton}
             onClick={() => setView("files")}
           >
-            <Download size={16} /> Exportar esta página (ZIP)
+            <Download size={16} /> Publicar: ZIP, site e domínio
           </button>
         </div>
         <form className={styles.linkForm} onSubmit={connect}>
@@ -523,7 +569,12 @@ function Editor({
   }
 
   return (
-    <div className={styles.root} data-orbit-workspace>
+    <div
+      className={styles.root}
+      data-orbit-workspace
+      data-quadro-cheio
+      data-ligacoes={ligacoesAbertas || undefined}
+    >
       <div className={styles.breadcrumb}>
         <Link href="/landing-pages">Páginas</Link>
         <span>/</span>
@@ -601,7 +652,11 @@ function Editor({
         {message ||
           "Salve o funil em JSON e baixe os ZIPs separadamente. Em Servidor → Sites, cada ZIP é publicado no site escolhido."}
       </div>
-      <div hidden={view !== "files"}>
+      <aside
+        hidden={view !== "files"}
+        className={styles.painelPublicacao}
+        aria-label="Publicação: ZIP, site e domínio"
+      >
         {selected ? (
           <>
             <div className={styles.templateBar}>
@@ -640,8 +695,12 @@ function Editor({
         ) : (
           <p>Adicione uma página no funil para exportar seu ZIP.</p>
         )}
-      </div>
-      <div hidden={view !== "flow"}>
+        <p className={styles.dominioNota}>
+          Domínios e HTTPS do site publicado ficam em{" "}
+          <Link href="/servidor/sites">Servidor → Sites</Link>.
+        </p>
+      </aside>
+      <div className={styles.areaDoFluxo}>
         <div className={styles.templateBar}>
           <label>
             Começar com um modelo
@@ -735,13 +794,18 @@ function Editor({
               className={styles.viewport}
               ref={viewport}
               data-cartao-aberto={paginaAberta ? "true" : undefined}
+              data-arrastando={arrastandoQuadro || undefined}
+              onPointerDown={beginPan}
+              onPointerMove={movePan}
+              onPointerUp={endPan}
+              onPointerCancel={endPan}
               style={
                 {
                   "--altura-do-quadro": `${boardHeight * zoom + 2}px`,
                 } as React.CSSProperties
               }
               tabIndex={0}
-              aria-label="Área de blocos; role para explorar"
+              aria-label="Quadro do funil; arraste o fundo para navegar"
             >
               <div
                 className={styles.boardSize}
@@ -906,6 +970,14 @@ function Editor({
               </span>
               <button type="button" onClick={undo} disabled={!undoCount}>
                 <Undo2 size={16} /> Desfazer
+              </button>
+              <button
+                type="button"
+                className={styles.ligacoesToggle}
+                aria-pressed={ligacoesAbertas}
+                onClick={() => setLigacoesAbertas((atual) => !atual)}
+              >
+                <Link2 size={15} /> Ligações
               </button>
               <div className={styles.zoomControls}>
                 <button

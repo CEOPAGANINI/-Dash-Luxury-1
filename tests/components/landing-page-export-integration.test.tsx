@@ -155,7 +155,7 @@ describe("Landing editor per-page export integration", () => {
       screen.getByRole("button", { name: "Configurar Checkout" }),
     );
     fireEvent.click(
-      screen.getByRole("button", { name: "Exportar esta página (ZIP)" }),
+      screen.getByRole("button", { name: "Publicar: ZIP, site e domínio" }),
     );
     expect(
       screen.getByRole("heading", { name: "ZIP selecionado: Checkout" }),
@@ -172,9 +172,16 @@ describe("Landing editor per-page export integration", () => {
         .getByRole("button", { name: "ZIP de cada página" })
         .getAttribute("aria-pressed"),
     ).toBe("true");
+    // O quadro é a página: ele continua visível, com o painel de
+    // publicação flutuando por cima.
     expect(
-      screen.queryByRole("region", { name: "Fluxo de páginas" }),
-    ).toBeNull();
+      screen.getByRole("region", { name: "Fluxo de páginas" }),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("complementary", {
+        name: "Publicação: ZIP, site e domínio",
+      }),
+    ).toBeTruthy();
   });
 
   it("retains independent packages when switching pages and removes only the selected package", () => {

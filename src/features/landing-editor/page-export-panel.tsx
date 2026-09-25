@@ -219,8 +219,12 @@ export function PageExportPanel({ flow, page, site, onSiteChange }: Props) {
                 PHP e .htaccess não são aceitos.
               </p>
               {selected.length ? (
-                <p>{selected.length}{" "}
-                  {selected.length === 1 ? "arquivo selecionado" : "arquivos selecionados"}</p>
+                <p>
+                  {selected.length}{" "}
+                  {selected.length === 1
+                    ? "arquivo selecionado"
+                    : "arquivos selecionados"}
+                </p>
               ) : null}
               <button
                 type="button"
@@ -286,7 +290,8 @@ export function PageExportPanel({ flow, page, site, onSiteChange }: Props) {
                     ))}
                   </select>
                   <p>
-                    {site.files.length} {site.files.length === 1 ? "arquivo" : "arquivos"} ·{" "}
+                    {site.files.length}{" "}
+                    {site.files.length === 1 ? "arquivo" : "arquivos"} ·{" "}
                     {formatBytes(
                       site.files.reduce(
                         (total, file) => total + file.data.byteLength,

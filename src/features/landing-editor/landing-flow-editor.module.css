@@ -1026,3 +1026,242 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* =====================================================================
+   O quadro completo, como no Miro.
+
+   O usuário pediu: "essa página seja o quadro completo… navegar por ele
+   clicando e arrastando o mouse igual um quadro do miro", com páginas,
+   sites e domínios configurados lá dentro. A página inteira vira o
+   quadro; tudo o que era formulário em volta flutua por cima dele.
+   A ordem do DOM não muda — só o lugar onde cada peça é desenhada — e
+   abaixo de 1000px volta tudo ao empilhado de antes.
+   ===================================================================== */
+@media (min-width: 1000px) {
+  .root[data-quadro-cheio] {
+    position: relative;
+    height: calc(100svh - 150px);
+    min-height: 640px;
+    overflow: hidden;
+  }
+  /* O quadro ocupa a página: o embrulho do fluxo vira transparente e o
+     canvas estica até as bordas. */
+  .root[data-quadro-cheio] .areaDoFluxo {
+    display: contents;
+  }
+  .root[data-quadro-cheio] .workspace {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    display: block;
+  }
+  .root[data-quadro-cheio] .canvas {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  .root[data-quadro-cheio] .viewport {
+    flex: 1;
+    height: auto;
+    max-height: none;
+    min-height: 0;
+    cursor: grab;
+  }
+  .root[data-quadro-cheio] .viewport[data-arrastando] {
+    cursor: grabbing;
+    user-select: none;
+  }
+
+  /* ── As peças flutuantes ─────────────────────────────────────────── */
+  .root[data-quadro-cheio]
+    :is(
+      .breadcrumb,
+      .header,
+      .workspaceNav,
+      .projectBar,
+      .feedback,
+      .notice,
+      .canvasToolbar,
+      .canvasFooter,
+      .statusBar,
+      .connections,
+      .painelPublicacao
+    ) {
+    position: absolute;
+    z-index: 30;
+    margin: 0;
+  }
+  .root[data-quadro-cheio]
+    :is(
+      .workspaceNav,
+      .areaDoFluxo > .templateBar,
+      .projectBar,
+      .canvasToolbar,
+      .canvasFooter,
+      .statusBar
+    ) {
+    border: 1px solid var(--orbit-border);
+    background: linear-gradient(var(--cl-card-top), var(--cl-chassis));
+    box-shadow: var(--cl-shadow-card);
+    padding: 8px 10px;
+  }
+
+  /* Topo esquerdo: migalha + título compacto; o nome do fluxo logo abaixo. */
+  .root[data-quadro-cheio] .breadcrumb {
+    display: none;
+  }
+  .root[data-quadro-cheio] .header {
+    top: 8px;
+    left: 16px;
+    right: 16px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    pointer-events: none;
+  }
+  .root[data-quadro-cheio] .header > * {
+    pointer-events: auto;
+  }
+  .root[data-quadro-cheio] .header h2 {
+    font-size: 20px;
+  }
+  .root[data-quadro-cheio] .header p {
+    display: none;
+  }
+  .root[data-quadro-cheio] .projectBar {
+    top: 64px;
+    left: 16px;
+    width: 380px;
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+  }
+  .root[data-quadro-cheio] .projectBar .flowName {
+    flex: 1 1 auto;
+    min-width: 0;
+    white-space: nowrap;
+  }
+  .root[data-quadro-cheio] .projectBar .localState {
+    white-space: nowrap;
+  }
+
+  /* Topo centro: as duas áreas (Funil | Publicação). */
+  .root[data-quadro-cheio] .workspaceNav {
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 6px;
+  }
+
+  /* Topo direito: abaixo de importar/exportar/salvar, o adicionar bloco. */
+  .root[data-quadro-cheio] .canvasToolbar {
+    top: 60px;
+    right: 16px;
+    left: auto;
+    border-bottom: 1px solid var(--orbit-border);
+    flex-wrap: nowrap;
+  }
+  .root[data-quadro-cheio] .canvasToolbar .canvasHeading {
+    display: none;
+  }
+
+  /* O modelo mora sob o nome do fluxo; baixo direito: desfazer e zoom. */
+  .root[data-quadro-cheio] .areaDoFluxo > .templateBar {
+    position: absolute;
+    z-index: 30;
+    margin: 0;
+    top: 122px;
+    left: 16px;
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+  }
+  .root[data-quadro-cheio] .areaDoFluxo > .templateBar p {
+    display: none;
+  }
+  .root[data-quadro-cheio] .canvasFooter {
+    bottom: 14px;
+    right: 16px;
+    left: auto;
+    top: auto;
+    border-top: 1px solid var(--orbit-border);
+  }
+  .root[data-quadro-cheio] .canvasFooter .dragHint {
+    display: none;
+  }
+  .root[data-quadro-cheio] .statusBar {
+    bottom: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+  }
+
+  /* O aviso e o feedback viram torradas no centro. */
+  .root[data-quadro-cheio] .feedback {
+    bottom: 64px;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: min(72ch, 60vw);
+    border: 1px solid var(--orbit-border);
+    background: linear-gradient(var(--cl-card-top), var(--cl-chassis));
+    box-shadow: var(--cl-shadow-card);
+    padding: 8px 14px;
+  }
+  .root[data-quadro-cheio] .notice {
+    top: 64px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 40;
+  }
+
+  /* Ligações do fluxo: painel à esquerda, aberto pelo botão junto do
+     zoom. Fechado por padrão para não cobrir os cartões. */
+  .root[data-quadro-cheio] .connections {
+    top: 148px;
+    bottom: 72px;
+    left: 16px;
+    width: 330px;
+    overflow: auto;
+    overscroll-behavior: contain;
+    z-index: 34;
+  }
+  .root[data-quadro-cheio]:not([data-ligacoes]) .connections {
+    display: none;
+  }
+  /* O quadro nasce com respiro: os cartões começam abaixo das barras do
+     topo, e sobra margem para arrastar em volta. O box-sizing volta a
+     content-box porque a largura da grade vem inline. */
+  .root[data-quadro-cheio] .boardSize {
+    box-sizing: content-box;
+    padding: 104px 56px 128px 56px;
+  }
+
+  /* Publicação (ZIP, site e domínio): painel à direita, sobre o quadro. */
+  .root[data-quadro-cheio] .painelPublicacao {
+    top: 122px;
+    right: 16px;
+    bottom: 72px;
+    width: min(520px, 44vw);
+    overflow: auto;
+    overscroll-behavior: contain;
+    z-index: 35;
+    border: 1px solid var(--orbit-border);
+    background: linear-gradient(var(--cl-card-top), var(--cl-chassis));
+    box-shadow: var(--cl-shadow-overlay, var(--cl-shadow-card));
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+.dominioNota {
+  color: var(--orbit-muted);
+  font-size: 12px;
+}
+.dominioNota a {
+  color: var(--orbit-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
