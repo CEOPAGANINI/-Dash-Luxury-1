@@ -1,0 +1,644 @@
+/*
+  O quadro de funil — a pele, extraída do editor do SellFlux e assentada
+  sobre os tokens orbit do dashboard.
+
+  A assinatura do quadro é a inversão: a mesa é escura (o canvas de
+  pontinhos que o dashboard já usa) e cada nó é um "papel" claro que
+  flutua sobre ela. Os nós ficam claros mesmo no tema escuro — não os
+  escureça.
+*/
+
+.funnel {
+  /* ── Tokens do quadro ─────────────────────────────────────────────── */
+  /* O quadro é uma ilha escura nos dois temas, como a área do Servidor:
+     a mesa escura com nós claros é a assinatura do desenho. Os tokens
+     orbit citados pelo pacote não são mais carregados; os valores fixos
+     abaixo são os da pele atual (command-layer). */
+  --fn-canvas: #0d0d0d;
+  --fn-dot: rgb(255 255 255 / 9%);
+  --fn-grid: 20px;
+
+  --fn-surface: #1f1f23;
+  --fn-surface-2: #26262b;
+  --fn-surface-3: #161719;
+  --fn-hover: #313236;
+  --fn-line: #36373a;
+  --fn-line-2: #45464a;
+
+  --fn-text: #f1f1f3;
+  --fn-muted: #a1a1aa;
+
+  /* Ação da barra do quadro e seleção: o índigo do editor de origem. */
+  --fn-action: #6d5ef2;
+  --fn-action-2: #5a5fe8;
+  --fn-select: #82a2f6;
+
+  --fn-primary: #ffffff;
+  --fn-primary-text: #0d0d0d;
+
+  /* Cores fixas do nó (claro nos dois temas). */
+  --fn-node-frame: #f2f2f2;
+  --fn-node-header: #ffffff;
+  --fn-node-title: #374151;
+  --fn-node-sub: #6b7280;
+  --fn-node-badge: #000000;
+  --fn-node-edit: #c2410c; /* #f97316 dava só 2,87:1 com o texto branco */
+  --fn-handle: #000000;
+  --fn-handle-line: #555555;
+  --fn-edge: #b1b1b7;
+
+  --fn-shadow-node: 0 0 20px 1px rgb(0 0 0 / 65%);
+  --fn-shadow-panel:
+    0 20px 25px -5px rgb(0 0 0 / 50%), 0 8px 10px -6px rgb(0 0 0 / 40%);
+  --fn-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 30%);
+
+  --fn-r-sm: 4px;
+  --fn-r-md: 8px;
+  --fn-r-lg: 12px;
+  --fn-r-xl: 16px;
+
+  position: relative;
+  width: 100%;
+  height: calc(100svh - 9.5rem);
+  min-height: 520px;
+  border-radius: var(--fn-r-lg);
+  overflow: hidden;
+  background: var(--fn-canvas);
+  color: var(--fn-text);
+  font-family: var(--cl-sans, var(--font-inter, system-ui, sans-serif));
+  user-select: none;
+  touch-action: none;
+}
+
+/* ── O canvas: viewport que faz pan/zoom, com o grid preso ao mundo ──── */
+.funnel__viewport {
+  position: absolute;
+  inset: 0;
+  cursor: grab;
+}
+.funnel__viewport[data-panning="true"] {
+  cursor: grabbing;
+}
+.funnel__viewport[data-locked="true"] {
+  cursor: default;
+}
+
+/* O grid de pontinhos vive na camada do mundo, então acompanha pan e zoom. */
+.funnel__dots {
+  position: absolute;
+  /* Grande o bastante para cobrir arrastos longos sem emendas visíveis. */
+  left: -8000px;
+  top: -8000px;
+  width: 16000px;
+  height: 16000px;
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    var(--fn-dot) 1px,
+    transparent 0
+  );
+  background-size: var(--fn-grid) var(--fn-grid);
+  pointer-events: none;
+}
+
+.funnel__world {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+/* ── Arestas ──────────────────────────────────────────────────────────── */
+.funnel__edges {
+  position: absolute;
+  left: -8000px;
+  top: -8000px;
+  width: 16000px;
+  height: 16000px;
+  overflow: visible;
+  pointer-events: none;
+}
+.funnel__edge {
+  fill: none;
+  stroke: var(--fn-edge);
+  stroke-width: 4;
+  stroke-linecap: round;
+  pointer-events: stroke;
+  cursor: pointer;
+  transition: filter 150ms ease;
+}
+.funnel__edge:hover {
+  filter: brightness(1.3);
+  stroke-width: 5;
+}
+.funnel__edge[data-selected="true"] {
+  stroke: var(--fn-select);
+  stroke-width: 5;
+}
+.funnel__edge-hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 18;
+  pointer-events: stroke;
+  cursor: pointer;
+}
+.funnel__edge--temp {
+  fill: none;
+  stroke: var(--fn-action);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-dasharray: 6 6;
+  pointer-events: none;
+}
+
+/* ── Nó ──────────────────────────────────────────────────────────────── */
+.funnel__node {
+  position: absolute;
+  width: 250px;
+  cursor: grab;
+}
+.funnel__node[data-dragging="true"] {
+  cursor: grabbing;
+  z-index: 10;
+}
+.funnel__node-shell {
+  border-radius: var(--fn-r-md);
+  box-shadow: var(--fn-shadow-node);
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  transition: outline-color 120ms ease;
+}
+.funnel__node[data-selected="true"] .funnel__node-shell {
+  outline-color: var(--fn-select);
+}
+.funnel__node-frame {
+  background: var(--fn-node-frame);
+  padding: 3px;
+  border-radius: var(--fn-r-md) var(--fn-r-md) 0 0;
+  overflow: hidden;
+}
+.funnel__node--plain .funnel__node-frame {
+  border-radius: var(--fn-r-md);
+}
+.funnel__node-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background: var(--fn-node-header);
+  border-radius: 5px 5px 0 0;
+}
+.funnel__node--plain .funnel__node-head {
+  border-radius: 5px;
+}
+.funnel__node-badge {
+  flex: none;
+  width: 25px;
+  height: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: var(--fn-node-badge);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+}
+.funnel__node-titles {
+  flex: 1;
+  min-width: 0;
+}
+.funnel__node-title {
+  display: block;
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 700;
+  color: var(--fn-node-title);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.funnel__node-sub {
+  display: block;
+  font-size: 10px;
+  line-height: 14px;
+  font-weight: 500;
+  color: var(--fn-node-sub);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.funnel__node-type {
+  flex: none;
+  padding: 2px 6px;
+  font-size: 8px;
+  line-height: 12px;
+  font-weight: 500;
+  color: #fff;
+  background: var(--fn-node-badge);
+  border-radius: var(--fn-r-sm);
+}
+.funnel__node-preview {
+  height: 170px;
+  margin-top: 3px;
+  background: #e7e7ea;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  color: #22c55e;
+}
+.funnel__node-preview svg {
+  margin-top: 44px;
+}
+.funnel__node-edit {
+  display: block;
+  width: 100%;
+  border: 0;
+  border-top: 1px solid rgb(0 0 0 / 15%);
+  border-radius: 0 0 var(--fn-r-md) var(--fn-r-md);
+  background: var(--fn-node-edit);
+  color: #fff;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  padding: 6px 0;
+  cursor: pointer;
+}
+
+/* Nó de marca/origem: só o cabeçalho, sem preview nem editar. */
+.funnel__node-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: var(--fn-node-header);
+  border-radius: var(--fn-r-md);
+}
+.funnel__brand-disc {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+/* ── Alças de conexão ─────────────────────────────────────────────────── */
+.funnel__handle {
+  position: absolute;
+  top: 50%;
+  width: 20px;
+  height: 20px;
+  margin-top: -10px;
+  border-radius: 9999px;
+  background: var(--fn-handle);
+  border: 1px solid var(--fn-handle-line);
+  cursor: crosshair;
+  z-index: 2;
+}
+.funnel__handle--in {
+  left: -10px;
+}
+.funnel__handle--out {
+  right: -10px;
+}
+.funnel__node[data-locked="true"] .funnel__handle {
+  display: none;
+}
+
+/* ── Barra flutuante do quadro ────────────────────────────────────────── */
+.funnel__header {
+  position: absolute;
+  left: 16px;
+  top: 16px;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--fn-surface);
+  border: 1px solid var(--fn-line);
+  border-radius: var(--fn-r-lg);
+  box-shadow: var(--fn-shadow-node);
+  max-width: calc(100% - 32px);
+}
+.funnel__header-id {
+  min-width: 0;
+}
+.funnel__header-name {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--fn-text);
+}
+.funnel__header-name b {
+  font-weight: 700;
+}
+.funnel__header-name span {
+  color: var(--fn-muted);
+}
+.funnel__header-sub {
+  display: block;
+  font-size: 11px;
+  line-height: 16px;
+  color: var(--fn-muted);
+}
+.funnel__header-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: 4px;
+}
+.funnel__act {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: var(--fn-r-md);
+  background: var(--fn-action);
+  color: #fff;
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+.funnel__act:hover {
+  background: var(--fn-action-2);
+}
+.funnel__act[data-on="true"] {
+  background: var(--fn-action-2);
+  box-shadow: 0 0 0 2px rgb(109 94 242 / 35%);
+}
+
+/* ── Painel suspenso (Recursos / Ícones) ──────────────────────────────── */
+.funnel__panel {
+  position: absolute;
+  left: 16px;
+  top: 78px;
+  z-index: 29;
+  width: min(560px, calc(100% - 32px));
+  background: var(--fn-surface-2);
+  border: 1px solid var(--fn-line);
+  border-radius: var(--fn-r-xl);
+  box-shadow: var(--fn-shadow-panel);
+  padding: 20px;
+}
+.funnel__panel-title {
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 700;
+  color: var(--fn-text);
+}
+.funnel__panel-hint {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--fn-muted);
+  margin-top: 2px;
+}
+.funnel__grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+  margin-top: 16px;
+}
+@media (max-width: 720px) {
+  .funnel__grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+.funnel__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 4px;
+  border: 0;
+  border-radius: var(--fn-r-md);
+  background: transparent;
+  color: var(--fn-text);
+  cursor: grab;
+  transition:
+    background 120ms ease,
+    color 120ms ease;
+}
+.funnel__item:hover {
+  background: var(--fn-hover);
+}
+.funnel__item-label {
+  font-size: 13px;
+  line-height: 16px;
+  font-weight: 500;
+  color: var(--fn-muted);
+  text-align: center;
+}
+.funnel__item:hover .funnel__item-label {
+  color: var(--fn-text);
+}
+.funnel__item-disc {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+/* ── Toolbar de zoom ──────────────────────────────────────────────────── */
+.funnel__zoom {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  z-index: 28;
+  display: flex;
+  flex-direction: column;
+  background: var(--fn-surface);
+  border: 1px solid var(--fn-line);
+  border-radius: var(--fn-r-md);
+  box-shadow: var(--fn-shadow-sm);
+  overflow: hidden;
+}
+.funnel__zoom button {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-bottom: 1px solid var(--fn-line);
+  background: transparent;
+  color: var(--fn-text);
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+.funnel__zoom button:last-child {
+  border-bottom: 0;
+}
+.funnel__zoom button:hover {
+  background: var(--fn-hover);
+}
+.funnel__zoom button[data-on="true"] {
+  color: var(--fn-action);
+}
+
+/* ── Modal de configurações ───────────────────────────────────────────── */
+.funnel__overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgb(0 0 0 / 60%);
+}
+.funnel__dialog {
+  width: 100%;
+  max-width: 520px;
+  background: var(--fn-surface-2);
+  border: 1px solid var(--fn-line);
+  border-radius: var(--fn-r-lg);
+  box-shadow: var(--fn-shadow-panel);
+  overflow: hidden;
+}
+.funnel__dialog-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--fn-line);
+}
+.funnel__dialog-head span {
+  font-size: 20px;
+  line-height: 26px;
+  font-weight: 700;
+  color: var(--fn-text);
+}
+.funnel__dialog-close {
+  border: 0;
+  background: transparent;
+  color: var(--fn-muted);
+  cursor: pointer;
+  display: flex;
+}
+.funnel__dialog-body {
+  padding: 24px;
+}
+.funnel__dialog-body label {
+  display: block;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--fn-text);
+  margin-bottom: 8px;
+}
+.funnel__input {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--fn-surface-3);
+  border: 1px solid var(--fn-line);
+  border-radius: var(--fn-r-md);
+  padding: 12px 14px;
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--fn-text);
+  outline-offset: 2px;
+}
+.funnel__input:focus-visible {
+  outline: 2px solid var(--fn-action);
+}
+.funnel__count {
+  font-size: 10px;
+  line-height: 14px;
+  font-weight: 500;
+  color: var(--fn-muted);
+  margin-top: 6px;
+}
+.funnel__dialog-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 24px;
+}
+.funnel__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--fn-line);
+  border-radius: var(--fn-r-md);
+  background: transparent;
+  color: var(--fn-text);
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  padding: 9px 14px;
+  cursor: pointer;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease;
+}
+.funnel__btn:hover {
+  background: var(--fn-hover);
+}
+.funnel__btn--danger:hover {
+  color: #fb747e;
+  border-color: #fb747e;
+}
+.funnel__btn--primary {
+  border-color: transparent;
+  background: var(--fn-primary);
+  color: var(--fn-primary-text);
+  padding: 10px 16px;
+}
+.funnel__btn--primary:hover {
+  background: var(--fn-primary);
+  opacity: 0.9;
+}
+.funnel__foot-right {
+  display: inline-flex;
+  gap: 8px;
+}
+
+/* Dica de estado vazio, quando não há nós. */
+.funnel__empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  pointer-events: none;
+}
+.funnel__empty b {
+  font-size: 28px;
+  line-height: 1.15;
+  font-weight: 800;
+  color: var(--fn-action);
+  max-width: 12ch;
+}
+.funnel__empty span {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--fn-muted);
+  max-width: 22ch;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .funnel *,
+  .funnel *::before,
+  .funnel *::after {
+    transition: none !important;
+  }
+}

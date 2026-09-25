@@ -4,6 +4,8 @@ import "@/features/ads/campaigns.css";
 /* O quadro "Por classe" no Lumen: carregado depois, para vencer as
    camadas antigas de campaigns.css só onde o quadro pede. */
 import "@/features/ads/class-board-lumen.css";
+/* A pele do Quadro do funil (rota /campanhas/quadro). */
+import "@/features/funnel/funnel.css";
 
 /* Geist, a fonte do Lumen Design System (arquivo do kit, variável 100–900). */
 const geist = localFont({
@@ -18,5 +20,7 @@ export default function CampaignLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <div className={`campaign-workspace ${geist.variable}`}>{children}</div>;
+  return (
+    <div className={`campaign-workspace ${geist.variable}`}>{children}</div>
+  );
 }
