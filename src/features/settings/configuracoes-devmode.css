@@ -1,0 +1,594 @@
+/* =====================================================================
+   Configurações no design system "DevMode" (developer-dashboard-8).
+
+   Regras do kit: fundo quase preto #050505, tudo em tons de zinco,
+   bordas de 5–10% de branco, superfícies translúcidas, cor só para
+   status, um único botão branco por tela, Inter compacta e mono nos
+   dados. Raios 4/6/8px, nunca mais que isso.
+
+   Só esta página usa estas classes (prefixo cfg-). O escopo
+   `html[data-tema] .cl .cfg-devmode` e os !important vencem as trancas
+   antigas de globals.css e as peles CommandLayer, como no quadro Lumen.
+
+   Contraste: os cinzas do kit que ficavam abaixo de 4,5:1 sobre as
+   superfícies (#71717a e #52525b) subiram para --cfg-muted/--cfg-faint,
+   mantendo a hierarquia branco → claro → corpo → apagado.
+   ===================================================================== */
+
+html[data-tema] .cl .cfg-devmode {
+  --cfg-bg: #050505;
+  --cfg-surface: rgb(24 24 27 / 30%);
+  --cfg-card: rgb(24 24 27 / 20%);
+  --cfg-input: rgb(24 24 27 / 50%);
+  --cfg-sunken: rgb(0 0 0 / 20%);
+  --cfg-hover: rgb(255 255 255 / 5%);
+  --cfg-row-hover: rgb(255 255 255 / 2%);
+  --cfg-border: rgb(255 255 255 / 5%);
+  --cfg-border-strong: rgb(255 255 255 / 10%);
+  --cfg-border-focus: rgb(255 255 255 / 20%);
+  --cfg-text: #ffffff;
+  --cfg-primary: #e4e4e7;
+  --cfg-body: #a1a1aa;
+  --cfg-muted: #8f8f98; /* zinc-500 dava 3,9:1 sobre os cartões */
+  --cfg-faint: #85858f;
+  --cfg-cta: #ffffff;
+  --cfg-cta-texto: #000000;
+  --cfg-cta-hover: #e4e4e7;
+  --cfg-sucesso: #10b981;
+  --cfg-aviso: #fbbf24;
+  --cfg-perigo: #f87171;
+  --cfg-indigo: #818cf8;
+  --cfg-blue: #60a5fa;
+  --cfg-orange: #fb923c;
+  --cfg-toggle-trilho: #27272a;
+  --cfg-toggle-bola: #a1a1aa;
+  --cfg-sans: var(--font-inter), "Inter", system-ui, sans-serif;
+  --cfg-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding: 8px 4px 24px;
+  color: var(--cfg-body);
+  font-family: var(--cfg-sans);
+  -webkit-font-smoothing: antialiased;
+}
+html[data-tema="branco"] .cl .cfg-devmode {
+  --cfg-bg: #fafafa;
+  --cfg-surface: #ffffff;
+  --cfg-card: #ffffff;
+  --cfg-input: #ffffff;
+  --cfg-sunken: rgb(0 0 0 / 4%);
+  --cfg-hover: rgb(0 0 0 / 5%);
+  --cfg-row-hover: rgb(0 0 0 / 2%);
+  --cfg-border: rgb(0 0 0 / 8%);
+  --cfg-border-strong: rgb(0 0 0 / 14%);
+  --cfg-border-focus: rgb(0 0 0 / 30%);
+  --cfg-text: #0a0a0a;
+  --cfg-primary: #18181b;
+  --cfg-body: #3f3f46;
+  --cfg-muted: #52525b;
+  --cfg-faint: #5b5b64;
+  --cfg-cta: #0a0a0a;
+  --cfg-cta-texto: #ffffff;
+  --cfg-cta-hover: #27272a;
+  --cfg-sucesso: #065f46;
+  --cfg-aviso: #92400e;
+  --cfg-perigo: #b91c1c;
+  --cfg-indigo: #4338ca;
+  --cfg-blue: #1d4ed8;
+  --cfg-orange: #9a3412;
+  --cfg-toggle-trilho: #d4d4d8;
+  --cfg-toggle-bola: #52525b;
+}
+
+/* ── Cabeçalho da página ─────────────────────────────────────────────── */
+html[data-tema] .cl .cfg-devmode .cfg-cabecalho {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+html[data-tema] .cl .cfg-devmode .cfg-cabecalho > div > h2 {
+  margin: 0 0 8px;
+  color: var(--cfg-text);
+  font: 600 clamp(1.5rem, 2.4cqi, 1.875rem) / 1.2 var(--cfg-sans);
+  letter-spacing: -0.025em;
+}
+html[data-tema] .cl .cfg-devmode .cfg-cabecalho > div > p {
+  margin: 0;
+  max-width: 64ch;
+  color: var(--cfg-muted);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+html[data-tema] .cl .cfg-devmode .cfg-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* ── Botões: um branco por tela, o resto escuro ──────────────────────── */
+html[data-tema]
+  .cl
+  .cfg-devmode
+  :is(.cfg-botao, .cfg-botao-primario, .cfg-botao-perigo) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 16px !important;
+  border-radius: 6px !important;
+  font: 500 0.875rem/1 var(--cfg-sans) !important;
+  letter-spacing: 0;
+  text-decoration: none;
+  text-transform: none;
+  transition:
+    background-color 150ms,
+    color 150ms,
+    border-color 150ms;
+}
+html[data-tema]
+  .cl
+  .cfg-devmode
+  :is(.cfg-botao, .cfg-botao-primario, .cfg-botao-perigo)
+  svg {
+  width: 16px;
+  height: 16px;
+}
+html[data-tema] .cl .cfg-devmode .cfg-botao-primario {
+  color: var(--cfg-cta-texto) !important;
+  background: var(--cfg-cta) !important;
+  border: 1px solid transparent !important;
+  box-shadow: 0 10px 15px -3px rgb(255 255 255 / 5%) !important;
+}
+html[data-tema] .cl .cfg-devmode .cfg-botao-primario:hover {
+  background: var(--cfg-cta-hover) !important;
+}
+html[data-tema] .cl .cfg-devmode .cfg-botao {
+  color: var(--cfg-primary) !important;
+  background: var(--cfg-input) !important;
+  border: 1px solid var(--cfg-border-strong) !important;
+  box-shadow: none !important;
+}
+html[data-tema] .cl .cfg-devmode .cfg-botao:hover:not(:disabled) {
+  color: var(--cfg-text) !important;
+  background: var(--cfg-hover) !important;
+}
+html[data-tema] .cl .cfg-devmode .cfg-botao:disabled {
+  color: var(--cfg-faint) !important;
+  cursor: not-allowed;
+}
+html[data-tema] .cl .cfg-devmode .cfg-botao-perigoso:hover:not(:disabled) {
+  color: var(--cfg-perigo) !important;
+  background: rgb(239 68 68 / 10%) !important;
+  border-color: rgb(239 68 68 / 20%) !important;
+}
+html[data-tema] .cl .cfg-devmode .cfg-botao-perigo {
+  color: #ffffff !important;
+  background: #b91c1c !important;
+  border: 1px solid transparent !important;
+}
+html[data-tema] .cl .cfg-devmode .cfg-botao-perigo:hover {
+  background: #991b1b !important;
+}
+html[data-tema] .cl .cfg-devmode .cfg-confirmar {
+  display: inline-flex;
+  gap: 8px;
+}
+html[data-tema] .cl .cfg-devmode .cfg-link {
+  align-self: flex-start;
+  color: var(--cfg-body);
+  font-size: 0.75rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+html[data-tema] .cl .cfg-devmode .cfg-link:hover {
+  color: var(--cfg-text);
+}
+
+/* ── Alerta âmbar (modo demonstração) ────────────────────────────────── */
+html[data-tema] .cl .cfg-devmode .cfg-alerta {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid rgb(245 158 11 / 20%);
+  border-radius: 8px !important;
+  background: rgb(245 158 11 / 5%);
+}
+html[data-tema] .cl .cfg-devmode .cfg-alerta > svg {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  flex-shrink: 0;
+  color: var(--cfg-aviso);
+}
+html[data-tema] .cl .cfg-devmode .cfg-alerta h3 {
+  margin: 0 0 4px;
+  color: var(--cfg-aviso);
+  font: 500 0.875rem/1.3 var(--cfg-sans);
+}
+html[data-tema] .cl .cfg-devmode .cfg-alerta p {
+  margin: 0;
+  color: var(--cfg-aviso);
+  font-size: 0.75rem;
+  line-height: 1.6;
+  opacity: 0.9;
+}
+html[data-tema] .cl .cfg-devmode .cfg-alerta code {
+  font-family: var(--cfg-mono);
+}
+
+/* ── Seções ──────────────────────────────────────────────────────────── */
+html[data-tema] .cl .cfg-devmode .cfg-secao {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+html[data-tema] .cl .cfg-devmode .cfg-secao > h2 {
+  margin: 0;
+  color: var(--cfg-primary);
+  font: 500 1.125rem/1.3 var(--cfg-sans);
+  letter-spacing: -0.02em;
+}
+html[data-tema] .cl .cfg-devmode .cfg-secao-nota {
+  margin: -8px 0 0;
+  color: var(--cfg-muted);
+  font-size: 0.8125rem;
+}
+html[data-tema] .cl .cfg-devmode .cfg-grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr));
+  gap: 16px;
+  align-items: stretch;
+}
+
+/* ── Cartão de configuração ──────────────────────────────────────────── */
+html[data-tema] .cl .cfg-devmode .cfg-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  border: 1px solid var(--cfg-border) !important;
+  border-radius: 8px !important;
+  background: var(--cfg-card) !important;
+  box-shadow: none !important;
+}
+html[data-tema="branco"] .cl .cfg-devmode .cfg-card {
+  box-shadow: 0 1px 2px rgb(0 0 0 / 5%) !important;
+}
+html[data-tema] .cl .cfg-devmode .cfg-card-topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+html[data-tema] .cl .cfg-devmode .cfg-card-titulo {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+}
+html[data-tema] .cl .cfg-devmode .cfg-icone {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  color: var(--cfg-body);
+  border: 1px solid var(--cfg-border);
+  border-radius: 6px;
+  background: var(--cfg-hover);
+}
+html[data-tema] .cl .cfg-devmode .cfg-icone svg {
+  width: 18px;
+  height: 18px;
+}
+html[data-tema] .cl .cfg-devmode .cfg-card h3 {
+  margin: 0;
+  color: var(--cfg-primary);
+  font: 500 0.875rem/1.3 var(--cfg-sans);
+}
+html[data-tema] .cl .cfg-devmode .cfg-card-titulo p {
+  margin: 2px 0 0;
+  color: var(--cfg-muted);
+  font-size: 0.75rem;
+  line-height: 1.55;
+}
+html[data-tema] .cl .cfg-devmode .cfg-card-valor {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--cfg-muted);
+}
+html[data-tema] .cl .cfg-devmode .cfg-card-valor code,
+html[data-tema] .cl .cfg-devmode .cfg-chips code {
+  padding: 4px 8px;
+  color: var(--cfg-muted);
+  border: 1px solid var(--cfg-border);
+  border-radius: 4px !important;
+  background: var(--cfg-sunken);
+  font: 400 0.6875rem/1.4 var(--cfg-mono);
+}
+html[data-tema] .cl .cfg-devmode .cfg-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+html[data-tema] .cl .cfg-devmode .cfg-chips code[data-presente="true"] {
+  color: var(--cfg-sucesso);
+  border-color: color-mix(in srgb, var(--cfg-sucesso) 25%, transparent);
+}
+
+/* ── Toggle do kit ───────────────────────────────────────────────────── */
+html[data-tema] .cl .cfg-devmode .cfg-toggle {
+  position: relative;
+  width: 40px;
+  height: 20px;
+  flex-shrink: 0;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: var(--cfg-toggle-trilho) !important;
+  transition: background-color 300ms;
+  cursor: pointer;
+}
+html[data-tema] .cl .cfg-devmode .cfg-toggle[data-ligado="true"] {
+  background: var(--cfg-cta) !important;
+}
+html[data-tema] .cl .cfg-devmode .cfg-toggle > i {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  border: 4px solid var(--cfg-bg);
+  border-radius: 999px;
+  background: var(--cfg-toggle-bola);
+  transition: transform 300ms;
+}
+html[data-tema] .cl .cfg-devmode .cfg-toggle[data-ligado="true"] > i {
+  transform: translateX(20px);
+}
+
+/* ── Campos ──────────────────────────────────────────────────────────── */
+html[data-tema] .cl .cfg-devmode .cfg-campo label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--cfg-muted);
+  font-size: 0.75rem;
+}
+html[data-tema] .cl .cfg-devmode .cfg-campo-linha {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+html[data-tema] .cl .cfg-devmode .cfg-campo input {
+  width: 120px;
+  min-height: 40px;
+  padding: 8px 12px !important;
+  color: var(--cfg-primary) !important;
+  border: 1px solid var(--cfg-border-strong) !important;
+  border-radius: 6px !important;
+  background: var(--cfg-sunken) !important;
+  box-shadow: none !important;
+  font: 400 0.8125rem/1 var(--cfg-mono) !important;
+}
+html[data-tema] .cl .cfg-devmode .cfg-campo input:focus-visible {
+  outline: none !important;
+  border-color: var(--cfg-border-focus) !important;
+  box-shadow: 0 0 0 1px var(--cfg-border-focus) !important;
+}
+html[data-tema] .cl .cfg-devmode .cfg-campo-linha > span {
+  color: var(--cfg-muted);
+  font-size: 0.8125rem;
+}
+html[data-tema] .cl .cfg-devmode .cfg-aviso-campo {
+  margin: 8px 0 0;
+  color: var(--cfg-aviso);
+  font-size: 0.75rem;
+}
+
+/* ── Selos e listas ──────────────────────────────────────────────────── */
+html[data-tema] .cl .cfg-devmode .cfg-selo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px !important;
+  font: 500 0.625rem/1.4 var(--cfg-sans);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+html[data-tema] .cl .cfg-devmode .cfg-selo svg {
+  width: 12px;
+  height: 12px;
+}
+html[data-tema] .cl .cfg-devmode .cfg-selo[data-tom="sucesso"] {
+  color: var(--cfg-sucesso);
+  border: 1px solid color-mix(in srgb, var(--cfg-sucesso) 25%, transparent);
+  background: color-mix(in srgb, var(--cfg-sucesso) 10%, transparent);
+}
+html[data-tema] .cl .cfg-devmode .cfg-selo[data-tom="neutro"] {
+  color: var(--cfg-body);
+  border: 1px solid var(--cfg-border-strong);
+  background: var(--cfg-hover);
+}
+html[data-tema] .cl .cfg-devmode .cfg-lista {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+html[data-tema] .cl .cfg-devmode .cfg-lista li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--cfg-border);
+  color: var(--cfg-primary);
+  font-size: 0.875rem;
+}
+html[data-tema] .cl .cfg-devmode .cfg-lista li:last-child {
+  border-bottom: 0;
+}
+
+/* ── Fichas do freio de mão ──────────────────────────────────────────── */
+html[data-tema] .cl .cfg-devmode .cfg-fichas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
+  gap: 1px;
+  margin: 0;
+  border: 1px solid var(--cfg-border);
+  border-radius: 6px !important;
+  background: var(--cfg-border);
+  overflow: hidden;
+}
+html[data-tema] .cl .cfg-devmode .cfg-fichas > div {
+  padding: 12px 16px;
+  background: var(--cfg-bg);
+}
+html[data-tema] .cl .cfg-devmode .cfg-fichas dt {
+  margin-bottom: 4px;
+  color: var(--cfg-muted);
+  font-size: 0.625rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+html[data-tema] .cl .cfg-devmode .cfg-fichas dd {
+  margin: 0;
+  color: var(--cfg-primary);
+  font: 400 0.875rem/1.3 var(--cfg-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Tabela de credenciais ───────────────────────────────────────────── */
+html[data-tema] .cl .cfg-devmode .cfg-tabela {
+  border: 1px solid var(--cfg-border);
+  border-radius: 8px !important;
+  background: var(--cfg-surface);
+  overflow-x: auto;
+}
+html[data-tema] .cl .cfg-devmode .cfg-tabela table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+html[data-tema] .cl .cfg-devmode .cfg-tabela caption {
+  padding: 12px 16px 4px;
+  color: var(--cfg-muted);
+  font-size: 0.625rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-align: left;
+  text-transform: uppercase;
+}
+html[data-tema] .cl .cfg-devmode .cfg-tabela th {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--cfg-border);
+  background: var(--cfg-row-hover);
+  color: var(--cfg-muted);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+html[data-tema] .cl .cfg-devmode .cfg-tabela td {
+  padding: 16px;
+  border-bottom: 1px solid var(--cfg-border);
+  vertical-align: top;
+}
+html[data-tema] .cl .cfg-devmode .cfg-tabela tbody tr:last-child td {
+  border-bottom: 0;
+}
+html[data-tema] .cl .cfg-devmode .cfg-tabela tbody tr:hover {
+  background: var(--cfg-row-hover);
+}
+html[data-tema] .cl .cfg-devmode .cfg-servico {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 220px;
+}
+html[data-tema] .cl .cfg-devmode .cfg-servico b {
+  display: block;
+  color: var(--cfg-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+html[data-tema] .cl .cfg-devmode .cfg-servico small {
+  color: var(--cfg-muted);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+html[data-tema] .cl .cfg-devmode .cfg-avatar {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 999px !important;
+  border: 1px solid var(--cfg-border-strong);
+}
+html[data-tema] .cl .cfg-devmode .cfg-avatar svg {
+  width: 14px;
+  height: 14px;
+}
+html[data-tema] .cl .cfg-devmode .cfg-avatar[data-cor="emerald"] {
+  color: var(--cfg-sucesso);
+  border-color: color-mix(in srgb, var(--cfg-sucesso) 20%, transparent);
+  background: color-mix(in srgb, var(--cfg-sucesso) 10%, transparent);
+}
+html[data-tema] .cl .cfg-devmode .cfg-avatar[data-cor="indigo"] {
+  color: var(--cfg-indigo);
+  border-color: color-mix(in srgb, var(--cfg-indigo) 20%, transparent);
+  background: color-mix(in srgb, var(--cfg-indigo) 10%, transparent);
+}
+html[data-tema] .cl .cfg-devmode .cfg-avatar[data-cor="blue"] {
+  color: var(--cfg-blue);
+  border-color: color-mix(in srgb, var(--cfg-blue) 20%, transparent);
+  background: color-mix(in srgb, var(--cfg-blue) 10%, transparent);
+}
+html[data-tema] .cl .cfg-devmode .cfg-avatar[data-cor="orange"] {
+  color: var(--cfg-orange);
+  border-color: color-mix(in srgb, var(--cfg-orange) 20%, transparent);
+  background: color-mix(in srgb, var(--cfg-orange) 10%, transparent);
+}
+html[data-tema] .cl .cfg-devmode .cfg-avatar[data-cor="zinc"] {
+  color: var(--cfg-body);
+  background: var(--cfg-hover);
+}
+html[data-tema] .cl .cfg-devmode .cfg-rodape {
+  margin: 0;
+  color: var(--cfg-faint);
+  font-size: 0.75rem;
+}
+
+/* ── Zona de perigo ──────────────────────────────────────────────────── */
+html[data-tema] .cl .cfg-devmode .cfg-card-perigo {
+  border-color: color-mix(
+    in srgb,
+    var(--cfg-perigo) 18%,
+    transparent
+  ) !important;
+}
+
+/* ── Foco e movimento ────────────────────────────────────────────────── */
+html[data-tema] .cl .cfg-devmode :is(a, button):focus-visible {
+  outline: 2px solid var(--cfg-border-focus) !important;
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-tema] .cl .cfg-devmode * {
+    transition: none !important;
+  }
+}
