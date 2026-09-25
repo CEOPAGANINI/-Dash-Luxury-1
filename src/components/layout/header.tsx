@@ -1,11 +1,9 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SolarIcon } from "@/components/command-layer/solar-icon";
 import styles from "@/components/command-layer/shell.module.css";
-import { ThemeToggle } from "@/components/layout/theme-toggle";
 
 import { brand } from "@/lib/brand";
 import type { SessionUser } from "@/lib/auth/session";
@@ -35,8 +33,11 @@ export function Header({ user, unreadCount }: HeaderProps) {
   const [drawerOpen, setDrawerOpen] = React.useState(false);
 
   return (
-    <div className={`nebula-topbar ${styles.topbar}`}>
-      <header className={styles.navigation}>
+    <>
+      {/* Sem a barra do topo, o nome da página continua sendo o h1 de cada
+        rota para leitores de tela e buscadores, sem aparecer na tela. */}
+      <h1 className="sr-only">{sidebarPageTitle(pathname)}</h1>
+      <div className="fixed top-1/2 left-0 z-40 -translate-y-1/2 lg:hidden">
         <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
           <SheetTrigger asChild>
             <Button
@@ -52,7 +53,7 @@ export function Header({ user, unreadCount }: HeaderProps) {
             side="left"
             data-design-system="commandlayer"
             className={`dash-skin cl flex w-72 flex-col border-0 p-0 sm:max-w-72 ${styles.sidebar}`}
-            showClose={false}
+            showClose={true}
             onEscapeKeyDown={(event) => {
               if (
                 event.target instanceof Element &&
@@ -89,41 +90,7 @@ export function Header({ user, unreadCount }: HeaderProps) {
             </div>
           </SheetContent>
         </Sheet>
-        <Link
-          href="/dashboard"
-          aria-label={brand.name}
-          className={`nebula-brand ${styles.brand}`}
-        >
-          <div className={`nebula-brand-mark ${styles.brandMark}`}>
-            <SolarIcon name="bolt" size={18} />
-          </div>
-          <span className={`${styles.brandCopy} ${styles.brandName}`}>
-            <span className={styles.brandLabel}>Painel de controle</span>
-            {brand.name}
-          </span>
-        </Link>
-        <span aria-hidden className={styles.divider} />
-        <h1 className={styles.pageTitle}>{sidebarPageTitle(pathname)}</h1>
-        <div className={styles.actions}>
-          <ThemeToggle compact />
-          <Link
-            href="/notificacoes"
-            aria-label={
-              unreadCount > 0
-                ? `Notificações: ${unreadCount} não lidas`
-                : "Notificações"
-            }
-            className={styles.iconButton}
-          >
-            <SolarIcon name="bell" />
-            {unreadCount > 0 && (
-              <span aria-hidden className={styles.notificationCount}>
-                {unreadCount > 9 ? "9+" : unreadCount}
-              </span>
-            )}
-          </Link>
-        </div>
-      </header>
-    </div>
+      </div>
+    </>
   );
 }

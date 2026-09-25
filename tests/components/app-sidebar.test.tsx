@@ -99,14 +99,31 @@ describe("left menu without pinned areas", () => {
     ).toBe(document.activeElement);
   });
 
-  it("keeps an accessible menu trigger in the CommandLayer header at every viewport", () => {
+  it("replaces the top bar with a fixed mobile menu trigger", () => {
     const { container } = render(<Header user={user} unreadCount={0} />);
-    const topbar = container.querySelector(".nebula-topbar")!;
-    expect(topbar).not.toBeNull();
-    expect(topbar.classList.contains("lg:hidden")).toBe(false);
-    expect(
-      within(topbar as HTMLElement).getByRole("button", { name: "Abrir menu" }),
-    ).not.toBeNull();
-    expect(container.querySelector(".nebula-brand-mark")).not.toBeNull();
+    expect(container.querySelector(".nebula-topbar, header")).toBeNull();
+    // O nome da página continua sendo o h1, só para leitor de tela.
+    const title = screen.getByRole("heading", { level: 1 });
+    expect(title.classList.contains("sr-only")).toBe(true);
+    expect(title.closest(".lg\\:hidden")).toBeNull();
+    const trigger = screen.getByRole("button", { name: "Abrir menu" });
+    expect(trigger.closest(".fixed")?.classList.contains("lg:hidden")).toBe(
+      true,
+    );
+  });
+
+  it("slides a fixed desktop drawer over the page and closes with Escape", () => {
+    const { container } = render(<AppSidebar user={user} unreadCount={0} />);
+    const drawer = container.querySelector("aside")!;
+    const trigger = screen.getByRole("button", { name: "Abrir menu lateral" });
+    expect(drawer.classList.contains("fixed")).toBe(true);
+    expect(drawer.classList.contains("-translate-x-full")).toBe(true);
+    expect(drawer.hasAttribute("inert")).toBe(true);
+    fireEvent.focus(trigger);
+    expect(drawer.classList.contains("translate-x-0")).toBe(true);
+    expect(drawer.hasAttribute("inert")).toBe(false);
+    fireEvent.keyDown(drawer, { key: "Escape" });
+    expect(trigger.getAttribute("aria-expanded")).toBe("false");
+    expect(drawer.hasAttribute("inert")).toBe(true);
   });
 });

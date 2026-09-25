@@ -134,8 +134,8 @@ export function SidebarUtilities({
 }
 
 /**
- * Gaveta lateral de desktop. Fechada ocupa zero de largura e abre ao
- * encostar na borda esquerda. Aberta, entra no fluxo e não cobre o painel.
+ * Gaveta fixa de desktop: abre pela borda esquerda e desliza sobre
+ * o painel, sem deslocar ou redimensionar o conteúdo.
  */
 export function AppSidebar({ user, unreadCount }: SidebarProps) {
   const [aberto, setAberto] = React.useState(false);
@@ -153,7 +153,7 @@ export function AppSidebar({ user, unreadCount }: SidebarProps) {
         aria-controls="menu-principal"
         aria-label="Abrir menu lateral"
         className={cn(
-          "fixed inset-y-0 left-0 z-[60] hidden w-3 cursor-pointer bg-transparent opacity-0 outline-none lg:block",
+          "fixed inset-y-0 left-0 z-[60] hidden w-3 cursor-pointer bg-transparent outline-none focus-visible:bg-foreground/10 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring lg:block",
           aberto && "pointer-events-none",
         )}
       />
@@ -179,8 +179,8 @@ export function AppSidebar({ user, unreadCount }: SidebarProps) {
           if (event.key === "Escape") fechar();
         }}
         className={cn(
-          "sticky top-0 z-50 hidden h-svh max-h-svh shrink-0 overflow-hidden transition-[width,opacity,visibility] duration-200 ease-out motion-reduce:transition-none lg:flex",
-          aberto ? "visible w-64 opacity-100" : "invisible w-0 opacity-0",
+          "fixed inset-y-0 left-0 z-50 hidden h-svh max-h-svh w-64 overflow-hidden transition-transform duration-200 ease-out motion-reduce:transition-none lg:flex",
+          aberto ? "translate-x-0" : "pointer-events-none -translate-x-full",
         )}
         data-open={String(aberto)}
       >
