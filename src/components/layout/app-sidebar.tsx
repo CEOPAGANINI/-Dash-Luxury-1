@@ -147,6 +147,12 @@ export function AppSidebar({ user, unreadCount }: SidebarProps) {
       <button
         type="button"
         onPointerEnter={() => setAberto(true)}
+        onPointerLeave={(event) => {
+          // O ponteiro saiu da tela pela esquerda (outro monitor, print):
+          // a gaveta que abriu por engano fecha, em vez de ficar presa
+          // meio aberta por cima do painel.
+          if (event.clientX <= 1 && !contaAbertaRef.current) fechar();
+        }}
         onFocus={() => setAberto(true)}
         onClick={() => setAberto(true)}
         aria-expanded={aberto}

@@ -276,7 +276,9 @@
     min-height: 0;
     gap: 16px;
     width: 100%;
-    max-width: 1440px;
+    /* Sem teto de largura: o painel preenche 1512, 1920 ou o que a tela
+       tiver, em vez de deixar faixas pretas dos lados. Quem limita linha
+       de leitura são os próprios blocos, não a coluna. */
     margin-inline: auto;
   }
   .cl-workspace-scroll {
