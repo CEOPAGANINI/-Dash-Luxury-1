@@ -2,10 +2,11 @@
   O quadro de funil — a pele, extraída do editor do SellFlux e assentada
   sobre os tokens orbit do dashboard.
 
-  A assinatura do quadro é a inversão: a mesa é escura (o canvas de
-  pontinhos que o dashboard já usa) e cada nó é um "papel" claro que
-  flutua sobre ela. Os nós ficam claros mesmo no tema escuro — não os
-  escureça.
+  A mesa é escura (o canvas de pontinhos que o dashboard já usa) e cada
+  nó é o bloco preto quadrado do editor de páginas (CommandLayer), com a
+  configuração da página aberta dentro do próprio bloco — o mesmo desenho
+  do outro quadro, a pedido do dono. Os valores são os do tema escuro,
+  fixos, para o bloco ficar preto nos dois temas.
 */
 
 .funnel {
@@ -36,19 +37,23 @@
   --fn-primary: #ffffff;
   --fn-primary-text: #0d0d0d;
 
-  /* Cores do nó: o preto do design antigo do dashboard, a pedido do
-     dono (o card claro do SellFlux foi trocado pelo bloco escuro). O
-     quadro amplo — canvas, pan, zoom — continua igual. */
-  --fn-node-frame: #0f0f11;
-  --fn-node-header: #18181b;
-  --fn-node-title: #f4f4f5;
-  --fn-node-sub: #a1a1aa;
-  --fn-node-badge: #26262b;
-  --fn-node-preview: #0b0b0d;
-  --fn-node-edit: #c2410c; /* #f97316 dava só 2,87:1 com o texto branco */
-  --fn-handle: #000000;
-  --fn-handle-line: #555555;
+  /* Cores do nó: o bloco preto do editor de páginas (os tokens
+     CommandLayer do tema escuro — chassis, card-top, raised, screen,
+     border-strong, text-primary, text-muted, accent), fixos para o
+     bloco ser preto nos dois temas. O quadro amplo — canvas, pan,
+     zoom — continua igual. */
+  --fn-node-frame: #0b0b0b;
+  --fn-node-top: #111111;
+  --fn-node-raised: #101010;
+  --fn-node-well: #080808;
+  --fn-node-line: #303030;
+  --fn-node-title: #f5f5f5;
+  --fn-node-sub: #a3a3a3;
+  --fn-node-ok: #34d399;
+  --fn-node-danger: #fb7185;
+  --fn-handle: #fafafa;
   --fn-edge: #b1b1b7;
+  --fn-mono: var(--cl-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
 
   --fn-shadow-node: 0 0 20px 1px rgb(0 0 0 / 65%);
   --fn-shadow-panel:
@@ -154,60 +159,273 @@
   pointer-events: none;
 }
 
-/* ── Nó ──────────────────────────────────────────────────────────────── */
+/* ── Nó: o bloco preto do editor de páginas ───────────────────────── */
 .funnel__node {
   position: absolute;
-  width: 250px;
+  width: 280px;
   cursor: grab;
 }
 .funnel__node[data-dragging="true"] {
   cursor: grabbing;
   z-index: 10;
 }
+/* Aberto, o bloco cresce com a configuração e fica por cima dos vizinhos. */
+.funnel__node[data-aberto="true"] {
+  z-index: 5;
+}
 .funnel__node-shell {
-  border-radius: var(--fn-r-md);
-  box-shadow: var(--fn-shadow-node);
+  display: block;
+  border: 1px solid var(--fn-node-line);
+  border-radius: 0;
+  background: linear-gradient(var(--fn-node-top), var(--fn-node-frame));
+  box-shadow:
+    inset 0 0 0 4px var(--fn-node-frame),
+    inset 0 0 0 5px rgb(255 255 255 / 5%),
+    var(--fn-shadow-node);
+  color: var(--fn-node-title);
   outline: 2px solid transparent;
-  outline-offset: 2px;
+  outline-offset: 3px;
   transition: outline-color 120ms ease;
 }
 .funnel__node[data-selected="true"] .funnel__node-shell {
   outline-color: var(--fn-select);
 }
-.funnel__node-frame {
-  background: var(--fn-node-frame);
-  padding: 3px;
-  border: 1px solid var(--fn-line);
-  border-radius: var(--fn-r-md) var(--fn-r-md) 0 0;
-  overflow: hidden;
-}
-.funnel__node--plain .funnel__node-frame {
-  border-radius: var(--fn-r-md);
-}
 .funnel__node-head {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px;
-  background: var(--fn-node-header);
-  border-radius: 5px 5px 0 0;
+  gap: 10px;
+  height: 58px;
+  padding: 10px 12px 10px 16px;
+  border-bottom: 1px solid var(--fn-node-line);
+  font-size: 12px;
+  color: var(--fn-node-title);
 }
-.funnel__node--plain .funnel__node-head {
-  border-radius: 5px;
+.funnel__node-icon {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--fn-node-line);
+  background: var(--fn-node-raised);
+}
+.funnel__node-kind {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .funnel__node-badge {
   flex: none;
-  width: 25px;
-  height: 25px;
-  display: flex;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 7px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 9999px;
-  background: var(--fn-node-badge);
-  border: 1px solid var(--fn-line-2);
-  color: #f4f4f5;
+  border: 1px solid var(--fn-node-line);
+  background: var(--fn-node-raised);
+  font-family: var(--fn-mono);
   font-size: 10px;
-  font-weight: 700;
+  color: var(--fn-node-sub);
+}
+/* O corpo é o botão que abre a configuração dentro do bloco. */
+.funnel__node-body {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 10px;
+  width: 100%;
+  min-height: 141px;
+  padding: 18px 18px 14px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  white-space: normal;
+  cursor: inherit;
+}
+.funnel__node-body:hover {
+  background: rgb(255 255 255 / 3%);
+}
+.funnel__node-body:focus-visible {
+  outline: 2px solid var(--fn-select);
+  outline-offset: -2px;
+}
+.funnel__node-name {
+  display: block;
+  font-size: 16px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.funnel__node-headline {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 36px;
+  line-height: 18px;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--fn-node-sub);
+}
+.funnel__node-url {
+  font-family: var(--fn-mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--fn-node-sub);
+  font-size: 10px;
+  font-weight: 400;
+}
+
+/* A configuração mora dentro do bloco, abaixo do corpo. */
+.funnel__cfg {
+  border-top: 1px solid var(--fn-node-line);
+  text-align: left;
+  cursor: default;
+  user-select: text;
+}
+.funnel__cfg-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 16px 0;
+}
+.funnel__cfg-head h3 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fn-node-title);
+}
+.funnel__cfg-remove {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--fn-node-line);
+  border-radius: 0;
+  background: var(--fn-node-raised);
+  color: var(--fn-node-sub);
+  cursor: pointer;
+}
+.funnel__cfg-remove:hover {
+  color: var(--fn-node-danger);
+  border-color: var(--fn-node-danger);
+}
+.funnel__fields {
+  padding: 20px 16px;
+  display: grid;
+  gap: 16px;
+}
+.funnel__fields label {
+  font-family: var(--fn-mono);
+  display: grid;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--fn-node-title);
+}
+.funnel__fields input,
+.funnel__fields textarea {
+  min-width: 0;
+  min-height: 40px;
+  width: 100%;
+  border: 1px solid var(--fn-node-line);
+  border-radius: 0;
+  padding: 9px 11px;
+  background: var(--fn-node-well);
+  box-shadow: inset 0 2px 4px rgb(0 0 0 / 60%);
+  color: var(--fn-node-title);
+  font-family: var(--cl-sans, var(--font-inter, system-ui, sans-serif));
+  font-size: 12px;
+}
+.funnel__fields input::placeholder,
+.funnel__fields textarea::placeholder {
+  color: var(--fn-node-sub);
+  opacity: 0.8;
+}
+.funnel__fields input:focus-visible,
+.funnel__fields textarea:focus-visible {
+  outline: 1px solid var(--fn-node-title);
+  outline-offset: 0;
+}
+.funnel__fields textarea {
+  resize: vertical;
+  min-height: 88px;
+}
+.funnel__fields [aria-invalid="true"] {
+  outline: 1px solid var(--fn-node-danger);
+}
+.funnel__fields small {
+  color: var(--fn-node-sub);
+  font-size: 10px;
+  font-weight: 400;
+}
+.funnel__cfg-editor {
+  width: 100%;
+  min-height: 36px;
+  border: 1px solid var(--fn-node-line);
+  border-radius: 0;
+  background: var(--fn-node-raised);
+  color: var(--fn-node-title);
+  font-family: var(--fn-mono);
+  font-size: 11px;
+  cursor: pointer;
+}
+.funnel__cfg-editor:hover {
+  background: rgb(255 255 255 / 6%);
+}
+
+.funnel__node-foot {
+  font-family: var(--fn-mono);
+  height: 45px;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 16px;
+  border-top: 1px solid var(--fn-node-line);
+  font-size: 10px;
+  color: var(--fn-node-sub);
+}
+.funnel__node-foot > span:first-child {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.funnel__node-foot > span:last-child {
+  flex: none;
+}
+.funnel__node-foot i {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  background: var(--fn-node-sub);
+}
+.funnel__node-foot [data-ok="true"] i {
+  background: var(--fn-node-ok);
+}
+
+/* Nó de marca/origem: só o cabeçalho, no mesmo bloco preto. */
+.funnel__node-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px 12px 12px;
 }
 .funnel__node-titles {
   flex: 1;
@@ -225,62 +443,13 @@
 }
 .funnel__node-sub {
   display: block;
+  font-family: var(--fn-mono);
   font-size: 10px;
   line-height: 14px;
-  font-weight: 500;
   color: var(--fn-node-sub);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-.funnel__node-type {
-  flex: none;
-  padding: 2px 6px;
-  font-size: 8px;
-  line-height: 12px;
-  font-weight: 500;
-  color: var(--fn-node-sub);
-  background: var(--fn-node-badge);
-  border: 1px solid var(--fn-line);
-  border-radius: var(--fn-r-sm);
-}
-.funnel__node-preview {
-  height: 170px;
-  margin-top: 3px;
-  background: var(--fn-node-preview);
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  color: #22c55e;
-}
-.funnel__node-preview svg {
-  margin-top: 44px;
-}
-.funnel__node-edit {
-  display: block;
-  width: 100%;
-  border: 0;
-  border-top: 1px solid rgb(255 255 255 / 14%);
-  border-radius: 0 0 var(--fn-r-md) var(--fn-r-md);
-  background: var(--fn-node-edit);
-  color: #fff;
-  font-family: inherit;
-  font-size: 14px;
-  line-height: 20px;
-  font-weight: 500;
-  padding: 6px 0;
-  cursor: pointer;
-}
-
-/* Nó de marca/origem: só o cabeçalho, sem preview nem editar. */
-.funnel__node-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px;
-  background: var(--fn-node-header);
-  border: 1px solid var(--fn-line);
-  border-radius: var(--fn-r-md);
 }
 .funnel__brand-disc {
   flex: none;
@@ -295,24 +464,25 @@
   font-weight: 800;
 }
 
-/* ── Alças de conexão ─────────────────────────────────────────────────── */
+/* ── Alças de conexão: a porta quadrada do editor de páginas ─────────── */
 .funnel__handle {
   position: absolute;
   top: 50%;
-  width: 20px;
-  height: 20px;
-  margin-top: -10px;
-  border-radius: 9999px;
+  width: 14px;
+  height: 14px;
+  margin-top: -7px;
+  border-radius: 0;
   background: var(--fn-handle);
-  border: 1px solid var(--fn-handle-line);
+  border: 3px solid var(--fn-node-frame);
+  outline: 1px solid var(--fn-node-line);
   cursor: crosshair;
   z-index: 2;
 }
 .funnel__handle--in {
-  left: -10px;
+  left: -7px;
 }
 .funnel__handle--out {
-  right: -10px;
+  right: -7px;
 }
 .funnel__node[data-locked="true"] .funnel__handle {
   display: none;

@@ -50,6 +50,7 @@ const Settings = navigationIcon("settings");
 const ShieldCheck = navigationIcon("shield-check");
 const ShoppingBag = navigationIcon("bag-4");
 const SquarePen = navigationIcon("pen-new-square");
+const FileZip = navigationIcon("file-zip");
 const Search = navigationIcon("magnifier");
 const Server = navigationIcon("server-square");
 const Store = navigationIcon("shop");
@@ -153,6 +154,7 @@ const groups: PastaDoMenu[] = [
         href: "/editor/landing-page",
         icon: SquarePen,
       },
+      { title: "Baixar site", href: "/captura", icon: FileZip },
     ],
   },
   {

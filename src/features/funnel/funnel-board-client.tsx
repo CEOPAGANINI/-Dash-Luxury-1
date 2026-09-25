@@ -31,7 +31,6 @@ export function FunnelBoardClient({ inicial }: { inicial?: FunnelData }) {
     } catch {
       /* localStorage indisponível — segue com o exemplo. */
     }
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- evita divergência de hidratação
     setPronto(true);
   }, []);
 

@@ -1,0 +1,477 @@
+/* =====================================================================
+   Asimov Capture — a pele do Asimov Site Downloader.
+
+   Tokens e regras do design system que o dono enviou (extraído de
+   sd.asimov.academy): fundo quase preto, um único matiz teal, card de
+   vidro flutuando, tipografia Inter compacta, log em mono. É uma ilha
+   escura por escolha (não há tema claro), escopada em .asimov-capture,
+   então não afeta o resto do painel. O fundo Aurora usa o fallback CSS
+   (dois radiais teal) — a cena WebGL não faz parte deste sistema.
+   ===================================================================== */
+
+.asimov-capture {
+  --void: #050505;
+  --accent: #14b8a6;
+  --accent-dark: #0d9488;
+  --accent-light: #2dd4bf;
+  --accent-glow: #5eead4;
+  --white: #ffffff;
+  --text: #e0e0e0;
+  --input-text: #f3f5f6;
+  --copy: #b4b4b4;
+  --muted: #a1a1aa;
+  --sub: #969aa0;
+  --log-text: #c4c8cc;
+  --border: rgb(255 255 255 / 8%);
+  --field: rgb(255 255 255 / 9%);
+  --control-border: rgb(255 255 255 / 22%);
+  --card-surface: rgb(8 8 18 / 78%);
+  --card-border: rgb(255 255 255 / 9%);
+  --log-surface: rgb(0 0 0 / 35%);
+  --log-border: rgb(255 255 255 / 5%);
+  --ok: #4ade80;
+  --warn: #fbbf24;
+  --error: #fb7185;
+  --font-sans: var(--font-inter), "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  position: relative;
+  min-height: calc(100svh - 9.5rem);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--void);
+  color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+/* Aurora (fallback CSS): dois radiais teal sobre o void. */
+.asimov-capture::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(60% 50% at 20% 0%, rgb(13 148 136 / 26%), transparent 70%),
+    radial-gradient(
+      50% 50% at 85% 100%,
+      rgb(20 184 166 / 15%),
+      transparent 70%
+    ),
+    var(--void);
+  pointer-events: none;
+}
+/* HUD: quatro cantos discretos. */
+.asimov-capture::after {
+  content: "";
+  position: absolute;
+  inset: 18px;
+  border: 0 solid rgb(255 255 255 / 6%);
+  border-image: none;
+  background:
+    linear-gradient(var(--white), var(--white)) 0 0 / 12px 1px no-repeat,
+    linear-gradient(var(--white), var(--white)) 0 0 / 1px 12px no-repeat,
+    linear-gradient(var(--white), var(--white)) 100% 0 / 12px 1px no-repeat,
+    linear-gradient(var(--white), var(--white)) 100% 0 / 1px 12px no-repeat,
+    linear-gradient(var(--white), var(--white)) 0 100% / 12px 1px no-repeat,
+    linear-gradient(var(--white), var(--white)) 0 100% / 1px 12px no-repeat,
+    linear-gradient(var(--white), var(--white)) 100% 100% / 12px 1px no-repeat,
+    linear-gradient(var(--white), var(--white)) 100% 100% / 1px 12px no-repeat;
+  opacity: 0.14;
+  pointer-events: none;
+}
+
+.asimov-capture .ac-stage {
+  position: relative;
+  z-index: 1;
+  min-height: inherit;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 64px 20px 56px;
+}
+
+/* ── Card de vidro ────────────────────────────────────────────────── */
+.asimov-capture .ac-card {
+  position: relative;
+  width: 100%;
+  max-width: 540px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 36px 32px 32px;
+  border: 1px solid var(--card-border);
+  border-radius: 24px;
+  background: var(--card-surface);
+  backdrop-filter: blur(16px);
+  box-shadow:
+    inset 0 1px rgb(255 255 255 / 9%),
+    inset 0 0 48px -24px rgb(20 184 166 / 12%),
+    0 26px 60px -32px rgb(0 0 0 / 92%);
+  animation: ac-in 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes ac-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+}
+.asimov-capture .ac-card-line {
+  position: absolute;
+  top: 0;
+  left: 24px;
+  right: 24px;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--accent-glow),
+    transparent
+  );
+  opacity: 0.6;
+}
+.asimov-capture .ac-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.asimov-capture .ac-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.asimov-capture .ac-mark {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, var(--accent-light), var(--accent-dark));
+  color: var(--void);
+  font-size: 16px;
+  font-weight: 600;
+  box-shadow: 0 0 14px rgb(94 234 212 / 35%);
+}
+.asimov-capture .ac-brand-name {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--white);
+}
+.asimov-capture .ac-ver {
+  color: var(--accent-light);
+  font-weight: 500;
+}
+.asimov-capture .ac-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  color: var(--sub);
+}
+.asimov-capture .ac-status i {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--accent);
+  animation: ac-pulse 2s ease-in-out infinite;
+}
+.asimov-capture .ac-status[data-estado="concluido"] i {
+  background: var(--ok);
+  box-shadow: none;
+  animation: none;
+}
+.asimov-capture .ac-status[data-estado="falhou"] i {
+  background: var(--error);
+  box-shadow: none;
+  animation: none;
+}
+@keyframes ac-pulse {
+  50% {
+    opacity: 0.4;
+  }
+}
+.asimov-capture .ac-lead {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--copy);
+}
+
+/* ── Campo de URL ─────────────────────────────────────────────────── */
+.asimov-capture .ac-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px;
+  border: 1px solid var(--control-border);
+  border-radius: 11px;
+  background: var(--field);
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+.asimov-capture .ac-input-wrap:focus-within {
+  border-color: rgb(20 184 166 / 45%);
+  box-shadow: 0 0 0 3px rgb(20 184 166 / 10%);
+}
+.asimov-capture .ac-input-wrap.ac-invalid {
+  border-color: rgb(251 113 133 / 60%);
+  box-shadow: 0 0 0 3px rgb(251 113 133 / 12%);
+}
+.asimov-capture .ac-chevron {
+  color: var(--accent-light);
+  font-size: 18px;
+}
+.asimov-capture .ac-input-wrap input {
+  flex: 1;
+  min-width: 0;
+  padding: 13px 0;
+  border: 0;
+  background: transparent;
+  color: var(--input-text);
+  font-family: inherit;
+  font-size: 15px;
+  outline: none;
+}
+.asimov-capture .ac-input-wrap input::placeholder {
+  color: rgb(255 255 255 / 34%);
+}
+
+/* ── Opções ───────────────────────────────────────────────────────── */
+.asimov-capture .ac-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--copy);
+  cursor: pointer;
+}
+.asimov-capture .ac-toggle b {
+  color: var(--white);
+  font-weight: 500;
+}
+.asimov-capture .ac-toggle input,
+.asimov-capture .ac-format input {
+  appearance: none;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+  border: 1px solid var(--control-border);
+  background: rgb(255 255 255 / 3%);
+  cursor: pointer;
+}
+.asimov-capture .ac-toggle input {
+  border-radius: 4px;
+}
+.asimov-capture .ac-format input {
+  border-radius: 999px;
+}
+.asimov-capture .ac-toggle input:checked,
+.asimov-capture .ac-format input:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 3px var(--void);
+}
+.asimov-capture .ac-toggle input:focus-visible,
+.asimov-capture .ac-format input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.asimov-capture .ac-format {
+  display: flex;
+  gap: 18px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.asimov-capture .ac-format legend {
+  padding: 0;
+  margin-bottom: 8px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--sub);
+}
+.asimov-capture .ac-format label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+/* ── Botão ────────────────────────────────────────────────────────── */
+.asimov-capture .ac-grab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--accent-light), var(--accent-dark));
+  color: var(--void);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow:
+    0 4px 24px rgb(20 184 166 / 35%),
+    inset 0 1px rgb(255 255 255 / 35%);
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+.asimov-capture .ac-grab:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 32px rgb(20 184 166 / 50%),
+    inset 0 1px rgb(255 255 255 / 40%);
+}
+.asimov-capture .ac-grab:hover:not(:disabled) span[aria-hidden] {
+  transform: translateX(4px);
+}
+.asimov-capture .ac-grab span[aria-hidden] {
+  transition: transform 0.2s;
+}
+.asimov-capture .ac-grab:disabled {
+  cursor: progress;
+  opacity: 0.65;
+}
+.asimov-capture .ac-grab:focus-visible {
+  outline: 2px solid var(--accent-light);
+  outline-offset: 3px;
+}
+.asimov-capture .ac-spinner {
+  width: 15px;
+  height: 15px;
+  border-radius: 999px;
+  border: 2px solid rgb(5 5 5 / 35%);
+  border-top-color: var(--void);
+  animation: ac-spin 0.7s linear infinite;
+}
+@keyframes ac-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Log ao vivo ──────────────────────────────────────────────────── */
+.asimov-capture .ac-log {
+  border: 1px solid var(--log-border);
+  border-radius: 14px;
+  background: var(--log-surface);
+  padding: 12px 14px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+}
+.asimov-capture .ac-log-head {
+  color: var(--sub);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.asimov-capture .ac-log-line {
+  margin: 3px 0;
+  color: var(--log-text);
+  animation: ac-line 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.asimov-capture .ac-log-line span {
+  color: var(--accent-light);
+}
+.asimov-capture .ac-log-line[data-glifo="✓"] span {
+  color: var(--ok);
+}
+.asimov-capture .ac-log-line[data-glifo="!"] span {
+  color: var(--warn);
+}
+.asimov-capture .ac-log-line[data-glifo="✗"] span {
+  color: var(--error);
+}
+@keyframes ac-line {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+/* ── Barra de sucesso ─────────────────────────────────────────────── */
+.asimov-capture .ac-success {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgb(74 222 128 / 22%);
+  border-radius: 14px;
+  background: rgb(74 222 128 / 6%);
+  animation: ac-line 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.asimov-capture .ac-check {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border-radius: 11px;
+  background: linear-gradient(180deg, var(--accent-light), var(--accent-dark));
+  color: var(--void);
+  font-weight: 700;
+  box-shadow: 0 0 18px rgb(94 234 212 / 45%);
+}
+.asimov-capture .ac-success-body {
+  flex: 1;
+  min-width: 0;
+}
+.asimov-capture .ac-success-body b {
+  display: block;
+  color: var(--white);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.asimov-capture .ac-success-body span {
+  color: var(--muted);
+  font-size: 12px;
+}
+.asimov-capture .ac-success-link {
+  flex: none;
+  color: var(--accent-light);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+}
+.asimov-capture .ac-success-link:hover {
+  text-decoration: underline;
+}
+
+.asimov-capture .ac-note {
+  margin: 0;
+  color: var(--sub);
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+@media (max-width: 480px) {
+  .asimov-capture .ac-card {
+    padding: 28px 22px 24px;
+  }
+  .asimov-capture .ac-stage {
+    padding: 40px 16px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .asimov-capture *,
+  .asimov-capture .ac-card {
+    animation: none !important;
+    transition: none !important;
+  }
+}

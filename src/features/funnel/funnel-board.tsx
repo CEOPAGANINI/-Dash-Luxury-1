@@ -44,6 +44,7 @@ import {
   RECURSOS,
   RECURSO_POR_TIPO,
   ROTULO_TIPO,
+  enderecoConfigurado,
   type FunnelData,
   type FunnelEdge,
   type FunnelNode,
@@ -163,6 +164,8 @@ export function FunnelBoard({
   } | null>(null);
   const [panning, setPanning] = React.useState(false);
   const [dragId, setDragId] = React.useState<string | null>(null);
+  // O nó cuja configuração está aberta dentro do próprio bloco.
+  const [aberto, setAberto] = React.useState<string | null>(null);
 
   const inter = React.useRef<Interacao>(null);
   // Semeia o contador a partir do maior id já existente, para novos nós e
@@ -318,6 +321,7 @@ export function FunnelBoard({
       if (e.key === "Escape") {
         setPainel(null);
         setSel(null);
+        setAberto(null);
       }
     };
     window.addEventListener("keydown", onKey);
@@ -463,6 +467,27 @@ export function FunnelBoard({
     setDialog(false);
   };
 
+  // Edição dos campos dentro do bloco (nome, endereço, título, descrição).
+  const atualizar = React.useCallback(
+    (id: string, patch: Partial<FunnelNode>) =>
+      setNodes((ns) => ns.map((n) => (n.id === id ? { ...n, ...patch } : n))),
+    [],
+  );
+
+  const remover = React.useCallback((id: string) => {
+    setNodes((ns) => ns.filter((n) => n.id !== id));
+    setEdges((es) => es.filter((ed) => ed.source !== id && ed.target !== id));
+    setSel(null);
+    setAberto(null);
+  }, []);
+
+  // Quantas ligações saem de cada nó, para o rodapé "N saídas".
+  const saidas = React.useMemo(() => {
+    const c: Record<string, number> = {};
+    for (const ed of edges) c[ed.source] = (c[ed.source] ?? 0) + 1;
+    return c;
+  }, [edges]);
+
   const paginaAt = React.useMemo(() => {
     let i = 0;
     const ordem: Record<string, number> = {};
@@ -537,9 +562,16 @@ export function FunnelBoard({
               selected={sel?.tipo === "node" && sel.id === node.id}
               dragging={dragId === node.id}
               locked={locked}
+              aberto={aberto === node.id}
+              saidas={saidas[node.id] ?? 0}
               measure={medir}
               onPointerDown={(e) => iniciarArrasto(e, node)}
               onHandleOut={(e) => iniciarConexao(e, node)}
+              onToggle={() =>
+                setAberto((a) => (a === node.id ? null : node.id))
+              }
+              onChange={(patch) => atualizar(node.id, patch)}
+              onRemover={() => remover(node.id)}
               onEditar={() => onEditarPagina?.(node)}
             />
           ))}
@@ -768,32 +800,66 @@ interface NodeViewProps {
   selected: boolean;
   dragging: boolean;
   locked: boolean;
+  /** A configuração deste nó está aberta dentro do bloco. */
+  aberto: boolean;
+  /** Ligações que saem deste nó. */
+  saidas: number;
   measure: (id: string, el: HTMLDivElement | null) => void;
   onPointerDown: (e: React.PointerEvent) => void;
   onHandleOut: (e: React.PointerEvent) => void;
+  onToggle: () => void;
+  onChange: (patch: Partial<FunnelNode>) => void;
+  onRemover: () => void;
   onEditar: () => void;
 }
 
+/**
+ * Um nó do quadro, no desenho do editor de páginas: o bloco preto
+ * quadrado do CommandLayer — cabeçalho com ícone e tipo, corpo com nome,
+ * título e endereço, rodapé mono com o status — e, ao clicar no corpo, a
+ * configuração da página abre DENTRO do próprio bloco, como no outro
+ * quadro. O nó de origem (marca) é só o cabeçalho.
+ */
 function NodeView({
   node,
   ord,
   selected,
   dragging,
   locked,
+  aberto,
+  saidas,
   measure,
   onPointerDown,
   onHandleOut,
+  onToggle,
+  onChange,
+  onRemover,
   onEditar,
 }: NodeViewProps) {
   const ref = React.useRef<HTMLDivElement>(null);
   // Medir antes do paint (layout effect), e só quando o conteúdo muda a
-  // altura — não a cada pan/arrasto —, para as arestas não "pularem".
+  // altura — abrir a configuração, editar um campo —, não a cada pan.
   React.useLayoutEffect(() => {
     measure(node.id, ref.current);
-  }, [measure, node.id, node.type, node.title, node.url]);
+  }, [
+    measure,
+    node.id,
+    node.type,
+    node.title,
+    node.url,
+    node.headline,
+    node.descricao,
+    aberto,
+  ]);
 
   const marca = node.type === "brand";
   const pagina = isPagina(node.type);
+  const def = RECURSO_POR_TIPO[node.type];
+  const Icone = def ? ICONES[def.icon] : FileText;
+  const url = node.url ?? "";
+  const urlOk = enderecoConfigurado(url);
+  const configId = `funnel-cfg-${node.id}`;
+  const rotuloSaidas = `${saidas} ${saidas === 1 ? "saída" : "saídas"}`;
 
   return (
     <div
@@ -807,6 +873,7 @@ function NodeView({
       data-selected={selected}
       data-dragging={dragging}
       data-locked={locked}
+      data-aberto={aberto || undefined}
       data-in={node.id}
       onPointerDown={onPointerDown}
     >
@@ -832,49 +899,145 @@ function NodeView({
           </div>
         </div>
       ) : (
-        <div className="funnel__node-shell">
-          <div className="funnel__node-frame">
-            <div className="funnel__node-head">
-              <span className="funnel__node-badge">{ord}</span>
-              <span className="funnel__node-titles">
-                <span className="funnel__node-title">{node.title}</span>
-                <span className="funnel__node-sub">{node.url ?? " "}</span>
-              </span>
-              <span className="funnel__node-type">
-                {ROTULO_TIPO[node.type]}
-              </span>
-            </div>
-            {pagina && (
-              <div className="funnel__node-preview">
-                <svg
-                  width="72"
-                  height="72"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-                  <polyline points="14 2 14 8 20 8" />
-                  <line x1="8" y1="13" x2="14" y2="13" />
-                  <line x1="8" y1="17" x2="16" y2="17" />
-                </svg>
-              </div>
-            )}
-          </div>
-          {pagina && (
-            <button
-              type="button"
-              className="funnel__node-edit"
+        <article
+          className="funnel__node-shell"
+          aria-label={`${ROTULO_TIPO[node.type]} ${node.title}`}
+        >
+          <header className="funnel__node-head">
+            <span className="funnel__node-icon" aria-hidden>
+              <Icone size={17} />
+            </span>
+            <span className="funnel__node-kind">{ROTULO_TIPO[node.type]}</span>
+            <span className="funnel__node-badge">{ord}</span>
+          </header>
+
+          <button
+            type="button"
+            className="funnel__node-body"
+            onClick={onToggle}
+            aria-expanded={aberto}
+            aria-controls={aberto ? configId : undefined}
+            aria-label={`Configurar ${node.title || "bloco sem nome"}`}
+          >
+            <span className="funnel__node-name">
+              {node.title || (pagina ? "Página sem nome" : "Sem nome")}
+            </span>
+            <span className="funnel__node-headline">
+              {pagina
+                ? node.headline || "Adicione um título para sua página"
+                : node.descricao || "Adicione uma observação"}
+            </span>
+            <span className="funnel__node-url">
+              {url || (pagina ? "Endereço não definido" : "Sem referência")}
+            </span>
+          </button>
+
+          {aberto && (
+            <div
+              id={configId}
+              role="region"
+              aria-label={`Configuração de ${node.title || "bloco sem nome"}`}
+              className="funnel__cfg"
+              // Digitar nos campos não pode começar a arrastar o bloco.
               onPointerDown={(e) => e.stopPropagation()}
-              onClick={onEditar}
             >
-              Editar
-            </button>
+              <header className="funnel__cfg-head">
+                <h3>{pagina ? "Configurar página" : "Configurar bloco"}</h3>
+                <button
+                  type="button"
+                  className="funnel__cfg-remove"
+                  aria-label={`Remover ${node.title || "bloco"}`}
+                  onClick={onRemover}
+                >
+                  <Trash2 size={16} />
+                </button>
+              </header>
+              <div className="funnel__fields">
+                <label>
+                  {pagina ? "Nome da página" : "Nome"}
+                  <input
+                    value={node.title}
+                    maxLength={120}
+                    onChange={(e) => onChange({ title: e.target.value })}
+                  />
+                </label>
+                <label>
+                  {pagina ? "Endereço da página" : "Referência"}
+                  <input
+                    value={url}
+                    maxLength={2048}
+                    placeholder={
+                      pagina ? "https://sualoja.com/oferta" : "ex.: lista-vip"
+                    }
+                    aria-invalid={pagina && Boolean(url) && !urlOk}
+                    onChange={(e) => onChange({ url: e.target.value })}
+                  />
+                  {pagina && (
+                    <small>
+                      {url && !urlOk
+                        ? "Use https:// ou um caminho interno iniciado por /."
+                        : "Isso não publica nem cria a rota."}
+                    </small>
+                  )}
+                </label>
+                {pagina ? (
+                  <>
+                    <label>
+                      Título da landing page
+                      <input
+                        value={node.headline ?? ""}
+                        maxLength={240}
+                        onChange={(e) =>
+                          onChange({ headline: e.target.value })
+                        }
+                      />
+                    </label>
+                    <label>
+                      Descrição
+                      <textarea
+                        rows={3}
+                        value={node.descricao ?? ""}
+                        maxLength={2000}
+                        onChange={(e) =>
+                          onChange({ descricao: e.target.value })
+                        }
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      className="funnel__cfg-editor"
+                      onClick={onEditar}
+                    >
+                      Editar conteúdo e ZIP
+                    </button>
+                  </>
+                ) : (
+                  <label>
+                    Observação
+                    <textarea
+                      rows={3}
+                      value={node.descricao ?? ""}
+                      maxLength={2000}
+                      onChange={(e) => onChange({ descricao: e.target.value })}
+                    />
+                  </label>
+                )}
+              </div>
+            </div>
           )}
-        </div>
+
+          <footer className="funnel__node-foot">
+            <span data-ok={pagina ? urlOk : true}>
+              <i aria-hidden />
+              {pagina
+                ? urlOk
+                  ? "Endereço configurado"
+                  : "Configuração pendente"
+                : ROTULO_TIPO[node.type]}
+            </span>
+            <span>{rotuloSaidas}</span>
+          </footer>
+        </article>
       )}
 
       <span

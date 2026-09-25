@@ -175,6 +175,10 @@ export interface FunnelNode {
   title: string;
   /** URL/subtítulo (nós de página). */
   url?: string;
+  /** Título da landing (nós de página) — editado dentro do nó. */
+  headline?: string;
+  /** Descrição da landing (nós de página) — editada dentro do nó. */
+  descricao?: string;
   /** Cor do selo (nós `brand`). */
   cor?: string;
   sigla?: string;
@@ -199,4 +203,21 @@ export interface FunnelData {
 /** Passo do grid do canvas (snap 20×20), igual ao editor de origem. */
 export const GRID = 20;
 /** Largura fixa do card de nó. */
-export const NODE_W = 250;
+export const NODE_W = 280;
+
+/**
+ * Um endereço é "configurado" quando é um caminho interno (começa com /)
+ * ou uma URL http(s) com host. Serve só ao selo de status do nó — não
+ * publica nem cria rota, como diz o próprio editor.
+ */
+export function enderecoConfigurado(url?: string): boolean {
+  const t = (url ?? "").trim();
+  if (!t) return false;
+  if (t.startsWith("/")) return t.length > 1;
+  try {
+    const u = new URL(t);
+    return (u.protocol === "http:" || u.protocol === "https:") && !!u.hostname;
+  } catch {
+    return false;
+  }
+}
