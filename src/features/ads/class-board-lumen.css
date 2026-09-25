@@ -1,0 +1,933 @@
+/* =====================================================================
+   Quadro "Por classe" no Lumen Design System.
+
+   Referência: a landing "Lumen — Zero-Trust Shared Password Vault" e o
+   kit lumen-design-system (tokens.json / lumen.css). Três desenhos dela,
+   escolhidos pelo usuário por print:
+
+   1. "Isolated Workspaces" → as faixas e os blocos: uma pasta na raiz de
+      cada faixa, fios em árvore descendo até cada bloco, blocos como
+      cartões escuros de vidro fosco e as campanhas como trilhos
+      afundados, com o semáforo no lugar das bolinhas.
+   2. "Immutable Audit Logs" → os avisos das métricas: fio vertical,
+      nó por aviso, horário em mono e o chip da gravidade.
+   3. "Step_02" / o aparelho "Audit.Node" → o painel que abre na setinha:
+      moldura de aparelho, chip de estado, a tela funda e o cartão remoto
+      com a origem e a hora da leitura.
+
+   Só o desenho muda: nenhuma classe, atributo ou texto que os testes e
+   os leitores de tela usam sai do lugar. Carregado depois de
+   campaigns.css, com um nível a mais de especificidade (o
+   [data-design="lumen"] da raiz do quadro).
+
+   Contraste: todos os textos usam --lm-text / --lm-muted / --lm-subtle,
+   que passam 4,5:1 sobre as superfícies daqui. O branco translúcido da
+   referência (white/30, white/40) ficou só em fios e ornamentos.
+   ===================================================================== */
+
+/* ── Tokens (escuro é o padrão do Lumen) ─────────────────────────────── */
+html[data-tema] .cl .class-board-quadro[data-design="lumen"] {
+  --lm-canvas: #050505;
+  --lm-surface: #0d0d0d;
+  --lm-raised: #171717;
+  --lm-border: #303030;
+  --lm-control-border: #737373;
+  --lm-text: #f5f5f5;
+  --lm-muted: #a3a3a3;
+  --lm-subtle: #919191; /* #858585 do kit dava 4,42:1 sobre o vidro #232323 */
+  --lm-accent: #34d399;
+  --lm-accent-soft: #0b2920;
+  --lm-on-accent: #052e22;
+  --lm-warning: #fbbf24;
+  --lm-danger: #fca5a5;
+  --lm-info: #a5b4fc;
+  --lm-fio: rgb(255 255 255 / 20%);
+  --lm-vidro: linear-gradient(135deg, #232323, #0f0f0f);
+  --lm-vidro-borda: rgb(255 255 255 / 10%);
+  --lm-vidro-sombra:
+    0 10px 20px rgb(0 0 0 / 50%), inset 0 1px 1px rgb(255 255 255 / 10%);
+  --lm-trilho: linear-gradient(#1a1a1a, #050505);
+  --lm-trilho-borda: rgb(0 0 0 / 50%);
+  --lm-pontos: radial-gradient(
+    circle at center,
+    rgb(255 255 255 / 8%) 1px,
+    transparent 1px
+  );
+  --lm-tela: #020202;
+  --lm-sans: var(--font-geist, "Geist"), var(--cl-sans, Arial), sans-serif;
+  --lm-mono: var(--cl-mono, "Cascadia Code", Consolas, monospace);
+  --lm-dur: 160ms;
+  --lm-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+/* Tema claro: a mesma estrutura, invertida, com os tons do kit escurecidos
+   até passarem 4,5:1 sobre branco. */
+html[data-tema="branco"] .cl .class-board-quadro[data-design="lumen"] {
+  --lm-canvas: #f5f5f5;
+  --lm-surface: #ffffff;
+  --lm-raised: #fafafa;
+  --lm-border: #d4d4d4;
+  --lm-control-border: #737373;
+  --lm-text: #0a0a0a;
+  --lm-muted: #404040;
+  --lm-subtle: #525252;
+  --lm-accent: #047857;
+  --lm-accent-soft: #ecfdf5;
+  --lm-on-accent: #ffffff;
+  --lm-warning: #92400e;
+  --lm-danger: #b91c1c;
+  --lm-info: #4338ca;
+  --lm-fio: rgb(0 0 0 / 22%);
+  --lm-vidro: linear-gradient(135deg, #ffffff, #f4f4f4);
+  --lm-vidro-borda: rgb(0 0 0 / 10%);
+  --lm-vidro-sombra:
+    0 8px 18px rgb(0 0 0 / 8%), inset 0 1px 0 rgb(255 255 255 / 90%);
+  --lm-trilho: linear-gradient(#fafafa, #efefef);
+  --lm-trilho-borda: rgb(0 0 0 / 10%);
+  --lm-pontos: radial-gradient(
+    circle at center,
+    rgb(0 0 0 / 9%) 1px,
+    transparent 1px
+  );
+  --lm-tela: #fafafa;
+}
+
+/* ── O quadro: fundo pontilhado, Geist, respiro entre as fileiras ─────── */
+html[data-tema] .cl .class-board-quadro[data-design="lumen"] {
+  font-family: var(--lm-sans);
+  color: var(--lm-text);
+}
+html[data-tema] .cl .class-board-quadro[data-design="lumen"] > .class-board-pilares {
+  row-gap: 14px !important;
+  column-gap: 14px !important;
+  padding: 4px;
+  /* O cinza antigo das "linhas da tabela" dava fundo aos vãos: aqui o
+     fundo é o canvas do Lumen, pontilhado. */
+  background: var(--lm-pontos) 0 0 / 6px 6px, var(--lm-canvas) !important;
+}
+
+/* ── 1. A faixa: rótulo "// FAIXA 1", a pasta e os fios da árvore ─────── */
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-pilares
+  > .class-board-faixa-barra {
+  position: relative;
+  align-items: flex-start;
+  min-height: 72px;
+  padding: 6px 4px 26px;
+  color: var(--lm-muted);
+  background: transparent !important;
+  border: 0 !important;
+  font-family: var(--lm-mono);
+  font-weight: 400;
+}
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-faixa-barra
+  > .class-board-faixa-nome {
+  padding: 5px 10px;
+  color: var(--lm-info);
+  border: 1px solid color-mix(in srgb, var(--lm-info) 30%, transparent);
+  background: color-mix(in srgb, var(--lm-info) 4%, transparent);
+  font-family: var(--lm-mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+}
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-faixa-barra
+  > .class-board-faixa-nome::before {
+  content: "// ";
+}
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-faixa-barra
+  > .class-board-faixa-conta {
+  align-self: center;
+  color: var(--lm-subtle);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+}
+
+/* A pasta na raiz, com o tronco descendo até a travessa. */
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-faixa-barra
+  > .class-board-arvore {
+  position: absolute;
+  top: 4px;
+  bottom: 0;
+  left: 50%;
+  width: 44px;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-arvore-no {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  color: var(--lm-info);
+  border: 1px solid var(--lm-vidro-borda);
+  border-radius: 16px;
+  background: var(--lm-vidro);
+  box-shadow:
+    0 8px 16px rgb(0 0 0 / 45%),
+    inset 0 1px 1px rgb(255 255 255 / 15%);
+}
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-arvore-no
+  > svg {
+  width: 20px;
+  height: 20px;
+}
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-faixa-barra
+  > .class-board-arvore::after {
+  position: absolute;
+  top: 44px;
+  bottom: 0;
+  left: calc(50% - 0.75px);
+  width: 1.5px;
+  content: "";
+  background: linear-gradient(
+    color-mix(in srgb, var(--lm-info) 55%, transparent),
+    var(--lm-fio)
+  );
+}
+/* A travessa e os cinco pingentes, um por coluna (as colunas têm 14px de
+   vão: o centro da coluna i fica em (100% − 56px)/10 · (2i+1) + 14px · i).
+   Só com a grade de cinco colunas à vista e sem campanha aberta: noutras
+   larguras as colunas mudam e o desenho mentiria. */
+@container (min-width: 1001px) {
+  html[data-tema]
+    .cl
+    .class-board-quadro[data-design="lumen"]:not([data-campanha-aberta])
+    .class-board-pilares
+    > .class-board-faixa-barra::after {
+    position: absolute;
+    right: 0;
+    bottom: -14px;
+    left: 0;
+    height: 26px;
+    content: "";
+    pointer-events: none;
+    --c: calc((100% - 56px) / 10);
+    background:
+      linear-gradient(var(--lm-fio), var(--lm-fio)) center 12px / calc(80% + 11.2px) 1.5px no-repeat,
+      linear-gradient(var(--lm-fio), var(--lm-fio)) calc(var(--c) * 1) 12px / 1.5px 100% no-repeat,
+      linear-gradient(var(--lm-fio), var(--lm-fio)) calc(var(--c) * 3 + 14px) 12px / 1.5px 100% no-repeat,
+      linear-gradient(var(--lm-fio), var(--lm-fio)) calc(var(--c) * 5 + 28px) 12px / 1.5px 100% no-repeat,
+      linear-gradient(var(--lm-fio), var(--lm-fio)) calc(var(--c) * 7 + 42px) 12px / 1.5px 100% no-repeat,
+      linear-gradient(var(--lm-fio), var(--lm-fio)) calc(var(--c) * 9 + 56px) 12px / 1.5px 100% no-repeat;
+  }
+}
+@container (max-width: 1000px) {
+  html[data-tema]
+    .cl
+    .class-board-quadro[data-design="lumen"]
+    .class-board-faixa-barra
+    > .class-board-arvore {
+    display: none;
+  }
+  html[data-tema]
+    .cl
+    .class-board-quadro[data-design="lumen"]
+    .class-board-pilares
+    > .class-board-faixa-barra {
+    min-height: 0;
+    padding-bottom: 6px;
+  }
+}
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"][data-campanha-aberta]
+  .class-board-faixa-barra
+  > .class-board-arvore {
+  display: none;
+}
+
+/* A pílula do resumo da faixa ("Cross-Pollination 0%" na referência). */
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-faixa-barra
+  > .class-board-faixa-resumo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  padding: 6px 12px;
+  color: var(--lm-muted);
+  border: 1px solid var(--lm-vidro-borda);
+  border-radius: 14px;
+  background: var(--lm-vidro);
+  box-shadow: var(--lm-vidro-sombra);
+  font-family: var(--lm-sans);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-faixa-resumo
+  > b {
+  padding: 2px 8px;
+  color: var(--lm-subtle);
+  border: 1px solid var(--lm-vidro-borda);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--lm-canvas) 60%, transparent);
+  font-family: var(--lm-mono);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-faixa-resumo[data-roas="otimo"]
+  > b {
+  color: var(--lm-accent);
+}
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-faixa-resumo[data-roas="mediano"]
+  > b {
+  color: var(--lm-warning);
+}
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-faixa-resumo[data-roas="ruim"]
+  > b {
+  color: var(--lm-danger);
+}
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-faixa-barra
+  > .class-board-faixa-acao {
+  align-self: center;
+  color: var(--lm-muted);
+  border: 1px solid var(--lm-border) !important;
+  border-radius: 8px !important;
+  background: var(--lm-surface) !important;
+  font-family: var(--lm-mono);
+  transition:
+    color var(--lm-dur) var(--lm-ease),
+    border-color var(--lm-dur) var(--lm-ease);
+}
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-faixa-barra
+  > .class-board-faixa-acao:hover:not(:disabled) {
+  color: var(--lm-text);
+  border-color: var(--lm-control-border) !important;
+}
+
+/* ── Os blocos: cartões de vidro fosco, como "Client Alpha" ─────────── */
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-pilares
+  > section.class-board-pilar[aria-label],
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-pilares
+  > section.class-board-pilar[aria-label]:hover {
+  border-width: 1px !important;
+  border-color: var(--lm-vidro-borda) !important;
+  border-radius: 16px !important;
+  background: var(--lm-vidro) !important;
+  box-shadow: var(--lm-vidro-sombra) !important;
+  overflow: hidden;
+}
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-pilar-cabecalho {
+  margin: 0 10px;
+  padding: 10px 2px 8px !important;
+  color: var(--lm-muted);
+  border-bottom: 1px solid var(--lm-vidro-borda);
+  background: transparent !important;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-pilar-cabecalho
+  :is(button, .class-board-pilar-nome) {
+  color: var(--lm-muted);
+  background: transparent !important;
+}
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-pilar-contagem {
+  color: var(--lm-muted) !important;
+  border: 1px solid var(--lm-vidro-borda);
+  border-radius: 6px !important;
+  background: color-mix(in srgb, var(--lm-canvas) 55%, transparent) !important;
+  font-family: var(--lm-mono);
+  font-weight: 500 !important;
+}
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-pilar-corpo {
+  padding: 10px !important;
+}
+
+/* As campanhas: trilhos afundados ("DB Creds"), semáforo à direita. */
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-cartao {
+  border: 1px solid var(--lm-trilho-borda) !important;
+  border-radius: 10px !important;
+  background: var(--lm-trilho) !important;
+  box-shadow: inset 0 2px 4px rgb(0 0 0 / 35%) !important;
+  transition: border-color var(--lm-dur) var(--lm-ease);
+}
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-cartao:hover {
+  border-color: var(--lm-border) !important;
+}
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-cartao
+  :is(.class-board-cartao-nome, .class-board-cartao-meio) {
+  color: var(--lm-text);
+  font-family: var(--lm-sans);
+  font-size: 12px;
+  font-weight: 400;
+}
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-cartao
+  :is(.class-board-cartao-tile, .class-board-cartao-abrir) {
+  color: var(--lm-muted);
+  background: transparent !important;
+}
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-cartao
+  .class-board-cartao-abrir:hover {
+  color: var(--lm-accent);
+}
+/* A campanha aberta: o trilho acende em esmeralda. */
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-cartao:has(.class-board-cartao-abrir[aria-expanded="true"]) {
+  border-color: color-mix(in srgb, var(--lm-accent) 45%, transparent) !important;
+  box-shadow:
+    inset 0 2px 4px rgb(0 0 0 / 35%),
+    0 0 0 1px color-mix(in srgb, var(--lm-accent) 18%, transparent) !important;
+}
+
+/* As vagas livres e o "Nova faixa": tracejado discreto. */
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-pilares
+  > .class-board-vaga-livre,
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  > .class-board-nova-faixa {
+  color: var(--lm-subtle);
+  border: 1px dashed var(--lm-border) !important;
+  border-radius: 16px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  > .class-board-nova-faixa:hover {
+  color: var(--lm-text);
+  border-color: var(--lm-control-border) !important;
+}
+
+/* ── 2. Avisos das métricas: a linha do tempo "Audit Logs" ──────────── */
+html[data-tema] .cl .class-board-quadro[data-design="lumen"] > .class-board-avisos {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+  gap: 24px 48px;
+  margin-top: 24px;
+  padding: 32px;
+  overflow: hidden;
+  border: 1px solid var(--lm-border);
+  border-radius: 16px;
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      color-mix(in srgb, var(--lm-warning) 10%, transparent),
+      transparent 40%
+    ),
+    var(--lm-pontos) 0 0 / 6px 6px,
+    var(--lm-canvas);
+}
+html[data-tema] .cl .class-board-quadro[data-design="lumen"] .class-board-avisos-texto h2 {
+  margin: 0 0 8px;
+  color: var(--lm-text);
+  font-family: var(--lm-sans);
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+}
+html[data-tema] .cl .class-board-quadro[data-design="lumen"] .class-board-avisos-texto p,
+html[data-tema] .cl .class-board-quadro[data-design="lumen"] .class-board-avisos-vazio {
+  margin: 0;
+  max-width: 46ch;
+  color: var(--lm-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+html[data-tema] .cl .class-board-quadro[data-design="lumen"] .class-board-avisos-linha {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0 0 0 24px;
+  list-style: none;
+}
+/* O fio vertical, em âmbar no topo, sumindo para baixo. */
+html[data-tema] .cl .class-board-quadro[data-design="lumen"] .class-board-avisos-linha::before {
+  position: absolute;
+  top: 0;
+  bottom: 8px;
+  left: 0;
+  width: 1.5px;
+  content: "";
+  background: linear-gradient(
+    color-mix(in srgb, var(--lm-warning) 55%, transparent),
+    var(--lm-fio),
+    transparent
+  );
+}
+html[data-tema] .cl .class-board-quadro[data-design="lumen"] .class-board-aviso {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--lm-vidro-borda);
+  border-radius: 12px;
+  background: var(--lm-vidro);
+  box-shadow: var(--lm-vidro-sombra);
+}
+/* O ramo e o nó de cada aviso. */
+html[data-tema] .cl .class-board-quadro[data-design="lumen"] .class-board-aviso::before {
+  position: absolute;
+  top: 50%;
+  left: -24px;
+  width: 24px;
+  height: 1.5px;
+  content: "";
+  background: var(--lm-fio);
+}
+html[data-tema] .cl .class-board-quadro[data-design="lumen"] .class-board-aviso::after {
+  position: absolute;
+  top: calc(50% - 4px);
+  left: -28px;
+  width: 8px;
+  height: 8px;
+  content: "";
+  border: 1px solid var(--lm-canvas);
+  border-radius: 999px;
+  background: var(--lm-subtle);
+}
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-aviso[data-ordem="0"]::after {
+  background: var(--lm-warning);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--lm-warning) 60%, transparent);
+}
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-aviso[data-ordem="0"]::before {
+  background: color-mix(in srgb, var(--lm-warning) 50%, transparent);
+}
+html[data-tema] .cl .class-board-quadro[data-design="lumen"] .class-board-aviso-topo,
+html[data-tema] .cl .class-board-quadro[data-design="lumen"] .class-board-aviso-meio {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+html[data-tema] .cl .class-board-quadro[data-design="lumen"] .class-board-aviso-hora {
+  color: var(--lm-subtle);
+  font-family: var(--lm-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-aviso[data-ordem="0"]
+  .class-board-aviso-hora {
+  color: var(--lm-warning);
+}
+html[data-tema] .cl .class-board-quadro[data-design="lumen"] .class-board-aviso-onde {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--lm-muted);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+html[data-tema] .cl .class-board-quadro[data-design="lumen"] .class-board-aviso-titulo {
+  min-width: 0;
+  color: var(--lm-text);
+  font-size: 13px;
+  line-height: 1.4;
+}
+html[data-tema] .cl .class-board-quadro[data-design="lumen"] .class-board-aviso-chip {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  color: var(--lm-muted);
+  border: 1px solid var(--lm-vidro-borda);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--lm-canvas) 60%, transparent);
+  font-family: var(--lm-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-aviso[data-gravidade="falha"]
+  .class-board-aviso-chip {
+  color: var(--lm-danger);
+}
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-aviso[data-gravidade="fraco"]
+  .class-board-aviso-chip {
+  color: var(--lm-warning);
+}
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-aviso[data-gravidade="forte"]
+  .class-board-aviso-chip {
+  color: var(--lm-accent);
+}
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-aviso[data-gravidade="info"]
+  .class-board-aviso-chip {
+  color: var(--lm-info);
+}
+/* "Cryptographic Ledger": a pílula que leva ao diagnóstico completo. */
+html[data-tema] .cl .class-board-quadro[data-design="lumen"] .class-board-avisos-pilula {
+  grid-column: 2;
+  justify-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 20px;
+  color: var(--lm-muted);
+  border: 1px solid var(--lm-vidro-borda);
+  border-radius: 16px;
+  background: var(--lm-vidro);
+  box-shadow: var(--lm-vidro-sombra);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  transition: color var(--lm-dur) var(--lm-ease);
+}
+html[data-tema] .cl .class-board-quadro[data-design="lumen"] .class-board-avisos-pilula:hover {
+  color: var(--lm-text);
+}
+html[data-tema] .cl .class-board-quadro[data-design="lumen"] .class-board-avisos-pilula > svg {
+  width: 14px;
+  height: 14px;
+  color: var(--lm-warning);
+}
+@container (max-width: 760px) {
+  html[data-tema] .cl .class-board-quadro[data-design="lumen"] > .class-board-avisos {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 20px;
+  }
+  html[data-tema] .cl .class-board-quadro[data-design="lumen"] .class-board-avisos-pilula {
+    grid-column: 1;
+  }
+}
+
+/* ── 3. O painel da setinha: o aparelho "Audit.Node" ───────────────── */
+html[data-tema] .cl .class-board-quadro[data-design="lumen"] > .class-board-dados {
+  border: 1.5px solid transparent !important;
+  border-radius: 16px !important;
+  background:
+    linear-gradient(var(--lm-surface), var(--lm-surface)) padding-box,
+    linear-gradient(135deg, #444, #222 45%, #000) border-box !important;
+  box-shadow:
+    0 40px 80px -30px rgb(0 0 0 / 90%),
+    inset 0 1px 2px rgb(255 255 255 / 12%) !important;
+}
+html[data-tema="branco"] .cl .class-board-quadro[data-design="lumen"] > .class-board-dados {
+  background:
+    linear-gradient(var(--lm-surface), var(--lm-surface)) padding-box,
+    linear-gradient(135deg, #e5e5e5, #cfcfcf 45%, #a3a3a3) border-box !important;
+  box-shadow: 0 24px 48px -28px rgb(0 0 0 / 35%) !important;
+}
+/* A barra de cima: o chip do estado (semáforo + texto), o cartão remoto,
+   "Abrir a página" e fechar. */
+html[data-tema] .cl .class-board-quadro[data-design="lumen"] .class-board-dados > .class-board-dados-topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px !important;
+  background: transparent !important;
+  border-bottom: 1px solid var(--lm-border);
+}
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-dados-topo
+  > .class-board-semaforo {
+  margin-right: 0 !important;
+  padding: 7px 4px 7px 10px;
+  border: 1px solid var(--lm-vidro-borda);
+  border-right: 0;
+  border-radius: 6px 0 0 6px;
+  background: var(--lm-tela);
+}
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-dados-topo
+  > .class-board-dados-estado {
+  margin: 0 0 0 -10px !important;
+  padding: 6px 12px 6px 6px;
+  color: var(--lm-muted);
+  border: 1px solid var(--lm-vidro-borda);
+  border-left: 0;
+  border-radius: 0 6px 6px 0;
+  background: var(--lm-tela);
+  font-family: var(--lm-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+}
+/* O cartão remoto ("Secure.Remote · Link Active"). */
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-dados-topo
+  > .class-board-dados-sinal {
+  display: inline-grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  column-gap: 8px;
+  margin-left: auto;
+  padding: 6px 12px;
+  border: 1px solid var(--lm-vidro-borda);
+  border-radius: 12px;
+  background: var(--lm-tela);
+  box-shadow: inset 0 2px 10px rgb(0 0 0 / 45%);
+}
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-dados-sinal
+  > i {
+  grid-row: span 2;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--lm-info);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--lm-info) 70%, transparent);
+}
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-dados-sinal
+  > span {
+  color: var(--lm-accent);
+  font-family: var(--lm-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-dados-sinal
+  > small {
+  color: var(--lm-subtle);
+  font-family: var(--lm-mono);
+  font-size: 11px;
+  line-height: 1.2;
+}
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-dados-topo
+  > :is(.class-board-dados-pagina, .class-board-dados-fechar) {
+  min-height: 36px;
+  color: var(--lm-muted);
+  border: 1px solid var(--lm-border) !important;
+  border-radius: 8px !important;
+  background: var(--lm-surface) !important;
+  transition:
+    color var(--lm-dur) var(--lm-ease),
+    border-color var(--lm-dur) var(--lm-ease);
+}
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-dados-topo
+  > :is(.class-board-dados-pagina, .class-board-dados-fechar):hover {
+  color: var(--lm-text);
+  border-color: var(--lm-control-border) !important;
+}
+/* Cada secção é a "tela funda" do aparelho, com a faixa "LIVE_NODE_FEED". */
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-dados
+  .class-board-dados-secao {
+  border: 3px solid #000 !important;
+  border-radius: 12px !important;
+  background: var(--lm-tela) !important;
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 3%),
+    inset 0 0 40px rgb(0 0 0 / 70%) !important;
+}
+html[data-tema="branco"]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-dados
+  .class-board-dados-secao {
+  border: 1px solid var(--lm-border) !important;
+  box-shadow: inset 0 1px 3px rgb(0 0 0 / 6%) !important;
+}
+/* O lucro: a linha "RSA_4096 · ACTIVE", em esmeralda (ou vermelho). */
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-dados-lucro {
+  border: 1px solid color-mix(in srgb, var(--lm-accent) 14%, transparent) !important;
+  border-radius: 10px !important;
+  background: color-mix(in srgb, var(--lm-accent) 3%, transparent) !important;
+}
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-dados-lucro
+  > span {
+  color: var(--lm-muted) !important;
+  font-family: var(--lm-mono);
+  letter-spacing: 0.2em;
+}
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-dados-lucro[data-lucro="positivo"]
+  > b {
+  color: var(--lm-accent) !important;
+}
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-dados-lucro[data-lucro="negativo"]
+  > b {
+  color: var(--lm-danger) !important;
+}
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  .class-board-dados-lucro
+  > small {
+  color: var(--lm-subtle) !important;
+}
+/* Números e fichas: "ENTROPY LEVEL 98.42%", com o fio esmeralda à esquerda. */
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  :is(.class-board-dados-numeros, .class-board-dados-fichas)
+  > div {
+  border: 0 !important;
+  border-left: 2px solid color-mix(in srgb, var(--lm-accent) 25%, transparent) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  :is(.class-board-dados-numeros, .class-board-dados-fichas)
+  dt {
+  color: var(--lm-subtle) !important;
+  font-family: var(--lm-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  :is(.class-board-dados-numeros, .class-board-dados-fichas)
+  dd {
+  color: var(--lm-text) !important;
+}
+
+/* Foco: 2px esmeralda com 4px de afastamento, como pede o kit. */
+html[data-tema]
+  .cl
+  .class-board-quadro[data-design="lumen"]
+  :is(a, button, [tabindex]):focus-visible {
+  outline: 2px solid var(--lm-accent) !important;
+  outline-offset: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-tema] .cl .class-board-quadro[data-design="lumen"] * {
+    transition: none !important;
+  }
+}

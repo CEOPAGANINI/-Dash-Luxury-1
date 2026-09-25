@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import {
   ArrowRight, ChevronDown, ChevronLeft, ChevronRight, Clapperboard, Columns2, Compass, GripVertical,
-  LayoutGrid, Megaphone, MessageCircle, MonitorPlay, MoreHorizontal, Pin, Plus, Square, Store, X,
+  Folder, LayoutGrid, Lock, Megaphone, MessageCircle, MonitorPlay, MoreHorizontal, Pin, Plus, Square, Store, X,
 } from "lucide-react";
 
 import type { ProfitGuardrails } from "@/features/guardrails/rules";
@@ -74,6 +74,7 @@ import {
   type SecaoId,
 } from "./campaign-panel-order-store";
 import { QuadroAoVivo } from "./class-board-live";
+import { AvisosDasMetricas } from "./metric-alerts-timeline";
 import { PainelDoBloco } from "./block-metrics-panel";
 import { INTERVALO_AMOSTRA_MS, chaveDoHistorico, registrarRoasDoBloco, useRoasHistory } from "./roas-history-store";
 import { PainelFlutuante } from "./painel-flutuante";
@@ -884,6 +885,13 @@ export function ClassBoard({
             const naFaixa = ordemVisivel.filter((id) => Number(VAGA.exec(vagas.get(id) ?? "")?.[1]) === f).length;
             const vagaLivre = livres.find((v) => Number(VAGA.exec(v)?.[1]) === f) ?? null;
             const livresNaFaixa = livres.filter((v) => Number(VAGA.exec(v)?.[1]) === f).length;
+            /* O resumo da faixa (a pílula da árvore Lumen): o ROAS somado
+               das campanhas dos blocos dela, dos mesmos números do quadro. */
+            const daFaixa = numerosDoBloco(
+              ordemVisivel
+                .filter((id) => Number(VAGA.exec(vagas.get(id) ?? "")?.[1]) === f)
+                .flatMap((id) => porBloco.get(id) ?? []),
+            );
             return (
               <div
                 key={`faixa-${f}`}
@@ -898,6 +906,17 @@ export function ClassBoard({
                 <span className="class-board-faixa-conta">
                   {naFaixa} {naFaixa === 1 ? "bloco" : "blocos"}
                   {livresNaFaixa > 0 ? ` · ${livresNaFaixa} ${livresNaFaixa === 1 ? "vaga livre" : "vagas livres"}` : ""}
+                </span>
+                {/* A raiz da árvore: a pasta da faixa, de onde descem os fios
+                    até cada bloco. Só desenho — o nome da faixa já está ao lado. */}
+                <span className="class-board-arvore" aria-hidden="true">
+                  <span className="class-board-arvore-no">
+                    <Folder />
+                  </span>
+                </span>
+                <span className="class-board-faixa-resumo" data-roas={daFaixa.estado}>
+                  <span>ROAS da faixa</span>
+                  <b>{daFaixa.roas === null ? "sem gasto" : formatRatio(daFaixa.roas)}</b>
                 </span>
                 <button
                   type="button"
@@ -1221,7 +1240,7 @@ export function ClassBoard({
   }
 
   return (
-    <div ref={quadroRef} className="class-board-quadro" data-campanha-aberta={campanha ? "true" : undefined}>
+    <div ref={quadroRef} className="class-board-quadro" data-design="lumen" data-campanha-aberta={campanha ? "true" : undefined}>
       {/* O aviso de "bloco movido / campanha movida" fica só para leitores
           de tela: nada aparece no topo da página. */}
       {aviso && (
@@ -1289,6 +1308,11 @@ export function ClassBoard({
           botão fica embaixo do quadro, como sempre esteve. Com a
           campanha aberta ele já foi para a barra. */}
       {faixaSozinha === null && botaoDeNovaFaixa("class-board-nova-faixa")}
+      {/* Os avisos das métricas, na linha do tempo do Lumen: só com o
+          quadro inteiro à vista (com a campanha aberta o espaço é dela). */}
+      {faixaSozinha === null && (
+        <AvisosDasMetricas campanhas={tree.campanhas} regras={regras} network={network} />
+      )}
     </div>
   );
 }
@@ -1436,6 +1460,16 @@ function DadosDaCampanha({
           só o que se clica. */}
       <div className="class-board-dados-topo">
         <Semaforo saude={saude} rotulo={`Saúde de ${c.name}`} />
+        {/* O chip do aparelho (Lumen): o estado da campanha em texto, ao
+            lado do semáforo — a cor nunca é o único sinal. */}
+        <span className="class-board-dados-estado">{STATUS_LABEL[c.status]}</span>
+        {/* O cartão "remoto" do desenho: de onde vêm os números e quando
+            foram lidos pela última vez. */}
+        <span className="class-board-dados-sinal" data-origem={c.source}>
+          <i aria-hidden="true" />
+          <span>{c.source === "demo" ? "Demonstração" : NETWORK_MANAGERS[c.network].label}</span>
+          <small>{fichas.sincronizada[1] === "—" ? "sem leitura" : `lido ${fichas.sincronizada[1]}`}</small>
+        </span>
         <Link href={href} className="class-board-dados-pagina">Abrir a página</Link>
         <button type="button" className="class-board-dados-fechar" aria-label={`Fechar dados de ${c.name}`} onClick={onClose}>
           <X aria-hidden="true" />
