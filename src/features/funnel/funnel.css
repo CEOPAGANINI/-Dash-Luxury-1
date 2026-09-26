@@ -567,43 +567,11 @@
   outline-offset: 2px;
 }
 
-/* Legenda flutuante: qual funil está aberto, à direita do trilho. */
-.funnel__caption {
-  position: absolute;
-  left: 72px;
-  top: 16px;
-  z-index: 29;
-  max-width: calc(100% - 88px);
-  padding: 8px 12px;
-  background: var(--fn-surface);
-  border: 1px solid var(--fn-line);
-  border-radius: var(--fn-r-md);
-  box-shadow: var(--fn-shadow-sm);
-  pointer-events: none;
-}
-.funnel__caption-name {
-  font-size: 13px;
-  line-height: 18px;
-  color: var(--fn-text);
-}
-.funnel__caption-name b {
-  font-weight: 700;
-}
-.funnel__caption-name span {
-  color: var(--fn-muted);
-}
-.funnel__caption-sub {
-  display: block;
-  font-size: 11px;
-  line-height: 16px;
-  color: var(--fn-muted);
-}
-
 /* ── Painel suspenso (Recursos / Ícones) ──────────────────────────────── */
 .funnel__panel {
   position: absolute;
   left: 72px;
-  top: 74px;
+  top: 16px;
   z-index: 29;
   width: min(560px, calc(100% - 88px));
   background: var(--fn-surface-2);

@@ -630,16 +630,6 @@ export function FunnelBoard({
         </button>
       </nav>
 
-      {/* Legenda de qual funil está aberto (o menu virou só ícones). */}
-      <div className="funnel__caption">
-        <div className="funnel__caption-name">
-          <b>{nome}</b> <span>· {inicial.projeto}</span>
-        </div>
-        <span className="funnel__caption-sub">
-          Planejamento do Funil de Vendas
-        </span>
-      </div>
-
       {painel === "recursos" && (
         <div className="funnel__panel">
           <div className="funnel__panel-title">Recursos</div>
