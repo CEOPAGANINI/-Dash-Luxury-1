@@ -217,6 +217,32 @@ export function PagePublisher({
         {aba === "essencial" && (
           <>
             <label className="pub__campo">
+              <span>Adicionar domínio</span>
+              <div className="pub__linha">
+                <input
+                  className="pub__input"
+                  value={novoDominio}
+                  placeholder="meusite.com.br"
+                  onChange={(e) => setNovoDominio(e.target.value)}
+                />
+                <button
+                  type="button"
+                  className="pub__btn"
+                  onClick={() => {
+                    const d = novoDominio.trim().toLowerCase();
+                    if (d) set({ dominio: d });
+                    setNovoDominio("");
+                  }}
+                >
+                  Usar
+                </button>
+              </div>
+              <small className="pub__hint">
+                No painel do domínio, aponte um registro A para o IP da VPS.
+                Isso não publica nada aqui.
+              </small>
+            </label>
+            <label className="pub__campo">
               <span>Domínio</span>
               <div className="pub__chips">
                 {DOMINIOS_VPS.map((d) => (
@@ -262,32 +288,6 @@ export function PagePublisher({
                   )}
                 </div>
               )}
-            </label>
-            <label className="pub__campo">
-              <span>Adicionar domínio</span>
-              <div className="pub__linha">
-                <input
-                  className="pub__input"
-                  value={novoDominio}
-                  placeholder="meusite.com.br"
-                  onChange={(e) => setNovoDominio(e.target.value)}
-                />
-                <button
-                  type="button"
-                  className="pub__btn"
-                  onClick={() => {
-                    const d = novoDominio.trim().toLowerCase();
-                    if (d) set({ dominio: d });
-                    setNovoDominio("");
-                  }}
-                >
-                  Usar
-                </button>
-              </div>
-              <small className="pub__hint">
-                No painel do domínio, aponte um registro A para o IP da VPS.
-                Isso não publica nada aqui.
-              </small>
             </label>
             <label className="pub__campo">
               <span>Caminho</span>
