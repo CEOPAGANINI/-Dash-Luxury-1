@@ -363,3 +363,15 @@
   color: var(--acf-danger);
   background: color-mix(in srgb, var(--acf-danger) 10%, transparent);
 }
+
+/* Bandeira + nome alinhados no chip e na célula da matriz. */
+.acf__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.acf__pais-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}

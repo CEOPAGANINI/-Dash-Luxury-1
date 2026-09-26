@@ -526,3 +526,10 @@
 .ofr__note b {
   color: var(--ofr-text);
 }
+
+/* Bandeira + nome alinhados no chip de país. */
+.ofr__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}

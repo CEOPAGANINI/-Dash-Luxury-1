@@ -25,6 +25,7 @@ import {
   totalDeRedirecionamentos,
   totalRedirecionados,
 } from "./offer-router-model";
+import { CountryFlag } from "@/features/access-filter/country-flag";
 
 /*
   A tela do Roteador de ofertas — só a interface, a pedido do dono. Quatro
@@ -191,7 +192,7 @@ export function OfferRouterPanel() {
                         aria-pressed={r.paises.includes(p.code)}
                         onClick={() => togglePais(r.id, p.code, r.paises)}
                       >
-                        <span aria-hidden>{p.flag}</span> {p.nome}
+                        <CountryFlag code={p.code} /> {p.nome}
                       </button>
                     ))}
                   </div>
@@ -265,7 +266,7 @@ export function OfferRouterPanel() {
                 >
                   {PAISES.map((p) => (
                     <option key={p.code} value={p.code}>
-                      {p.flag} {p.nome}
+                      {p.nome}
                     </option>
                   ))}
                 </select>

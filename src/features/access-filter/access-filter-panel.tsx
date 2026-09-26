@@ -16,6 +16,7 @@ import {
   nomeDoPais,
   resumoDaRegra,
 } from "./access-filter-model";
+import { CountryFlag } from "./country-flag";
 
 /*
   A tela do Filtro de acesso — só a interface, a pedido do dono. Você monta
@@ -152,7 +153,7 @@ export function AccessFilterPanel() {
                     aria-pressed={regra.paises.includes(p.code)}
                     onClick={() => togglePais(p.code)}
                   >
-                    <span aria-hidden>{p.flag}</span> {p.nome}
+                    <CountryFlag code={p.code} /> {p.nome}
                   </button>
                 ))}
               </div>
@@ -232,7 +233,7 @@ export function AccessFilterPanel() {
                 >
                   {PAISES.map((p) => (
                     <option key={p.code} value={p.code}>
-                      {p.flag} {p.nome}
+                      {p.nome}
                     </option>
                   ))}
                 </select>
@@ -315,7 +316,11 @@ export function AccessFilterPanel() {
               <tbody>
                 {MATRIZ_PAISES.map((code) => (
                   <tr key={code}>
-                    <th scope="row">{nomeDoPais(code)}</th>
+                    <th scope="row">
+                      <span className="acf__pais-cell">
+                        <CountryFlag code={code} size={16} /> {nomeDoPais(code)}
+                      </span>
+                    </th>
                     {DISPOSITIVOS.map((d) => {
                       const ok = avaliarAcesso(regra, {
                         pais: code,

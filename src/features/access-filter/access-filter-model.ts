@@ -60,7 +60,7 @@ const NOME_DISPOSITIVO = new Map(DISPOSITIVOS.map((d) => [d.id, d.nome]));
 
 export function nomeDoPais(code: string): string {
   const p = NOME_PAIS.get(code);
-  return p ? `${p.flag} ${p.nome}` : code;
+  return p ? p.nome : code;
 }
 
 export function nomeDoDispositivo(id: DeviceKind): string {
