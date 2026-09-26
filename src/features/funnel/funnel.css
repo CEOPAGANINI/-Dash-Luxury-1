@@ -1279,3 +1279,128 @@
   background: #2bd975;
   border-color: #2bd975;
 }
+
+/* ── Saúde do domínio: checklist ao escolher o domínio ──────────────────── */
+.pub__saude {
+  margin-top: 10px;
+  border: 1px solid var(--fn-line-2);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.pub__saude-topo {
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fbbf24;
+  background: color-mix(in srgb, #fbbf24 10%, transparent);
+  border-bottom: 1px solid var(--fn-line);
+}
+.pub__saude[data-ok] .pub__saude-topo {
+  color: #86efac;
+  background: color-mix(in srgb, #2bd975 12%, transparent);
+}
+.pub__saude-lista {
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.pub__saude-lista li {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 8px;
+  font-size: 12px;
+  color: var(--fn-muted);
+}
+.pub__saude-lista li[data-ok] {
+  color: var(--fn-text);
+}
+.pub__saude-dot {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #fbbf24;
+  box-shadow: 0 0 8px color-mix(in srgb, #fbbf24 60%, transparent);
+}
+.pub__saude-lista li[data-ok] .pub__saude-dot {
+  background: #2bd975;
+  box-shadow: 0 0 8px color-mix(in srgb, #2bd975 60%, transparent);
+}
+.pub__saude-txt {
+  flex: 1;
+  min-width: 0;
+}
+.pub__saude-tag {
+  flex: none;
+  font-family: var(--fn-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #fbbf24;
+}
+.pub__saude-lista li[data-ok] .pub__saude-tag {
+  color: #86efac;
+}
+.pub__saude .pub__hint {
+  padding: 0 12px 10px;
+}
+
+/* Lista de slugs do domínio (reusar/criar caminhos — só organiza) */
+.pub__slugs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 168px;
+  overflow-y: auto;
+}
+.pub__slug {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  text-align: left;
+  background: var(--fn-panel-2, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--fn-line);
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--fn-text);
+  transition: border-color 0.14s, background 0.14s;
+}
+.pub__slug:hover {
+  border-color: color-mix(in srgb, #2bd975 45%, var(--fn-line));
+}
+.pub__slug[data-on] {
+  border-color: #2bd975;
+  background: color-mix(in srgb, #2bd975 12%, transparent);
+}
+.pub__slug-path {
+  flex: none;
+  font-family: var(--fn-mono);
+  font-size: 12px;
+  color: #86efac;
+}
+.pub__slug-nome {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--fn-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
+}
+.pub__slug-vazio {
+  padding: 8px 10px;
+  font-size: 12px;
+  color: var(--fn-muted);
+  border: 1px dashed var(--fn-line);
+  border-radius: 8px;
+}

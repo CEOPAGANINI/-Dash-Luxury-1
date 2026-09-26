@@ -15,12 +15,24 @@ export type PaginaTipo =
   | "loja"
   | "produto";
 
+/** A saúde de um domínio: o que já está pronto para subir uma landing. */
+export interface SaudeDominio {
+  /** Registro A apontado para o IP da VPS. */
+  dns: boolean;
+  /** Domínio já propagou na internet. */
+  propagado: boolean;
+  /** Certificado HTTPS emitido e ativo. */
+  https: boolean;
+}
+
 /** Um domínio hospedado na VPS. */
 export interface DominioVps {
   host: string;
   titulo: string;
   /** Estado do domínio (demonstração), como nas telas da VPS. */
   estado: "ativo" | "configurando";
+  /** Verificação de saúde do domínio (demonstração). */
+  saude: SaudeDominio;
 }
 
 /** Uma página publicada num domínio da VPS. */
@@ -35,10 +47,31 @@ export interface PaginaVps {
 
 /** Os domínios da VPS (demonstração). */
 export const DOMINIOS_VPS: DominioVps[] = [
-  { host: "loja-suprema.com", titulo: "Loja Suprema", estado: "ativo" },
-  { host: "oferta-quente.com", titulo: "Oferta Quente", estado: "ativo" },
-  { host: "promo-vip.com", titulo: "Promo VIP", estado: "ativo" },
-  { host: "meusite.com", titulo: "Meu site", estado: "configurando" },
+  {
+    host: "loja-suprema.com",
+    titulo: "Loja Suprema",
+    estado: "ativo",
+    saude: { dns: true, propagado: true, https: true },
+  },
+  {
+    host: "oferta-quente.com",
+    titulo: "Oferta Quente",
+    estado: "ativo",
+    saude: { dns: true, propagado: true, https: true },
+  },
+  {
+    host: "promo-vip.com",
+    titulo: "Promo VIP",
+    estado: "ativo",
+    saude: { dns: true, propagado: true, https: true },
+  },
+  {
+    // Apontou o DNS, mas ainda propagando e sem HTTPS emitido.
+    host: "meusite.com",
+    titulo: "Meu site",
+    estado: "configurando",
+    saude: { dns: true, propagado: false, https: false },
+  },
 ];
 
 /** As páginas de cada domínio (demonstração). */
@@ -143,6 +176,62 @@ export function paginasDoDominio(host: string): PaginaVps[] {
   return PAGINAS_VPS.filter((p) => p.host === host);
 }
 
+/*
+  Slugs criados pelo dono na sessão (demonstração). Ficam num store em
+  memória do navegador para aparecerem na lista de todos os blocos até
+  recarregar a página. Nada publica nem cria rota de verdade.
+*/
+const SLUGS_CRIADOS: PaginaVps[] = [];
+let seqSlug = 1;
+
+/** Normaliza um caminho para virar um slug (ex.: "Oferta Nova" → "/oferta-nova"). */
+export function normalizarSlug(caminho: string): string {
+  const t = (caminho ?? "").trim();
+  if (!t || t === "/") return "/";
+  return (
+    "/" +
+    t
+      .replace(/^\/+/, "")
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9/]+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-+|-+$/g, "")
+  );
+}
+
+/** Todos os slugs de um domínio: as páginas hospedadas + os criados aqui. */
+export function slugsDoDominio(host: string): PaginaVps[] {
+  return [
+    ...paginasDoDominio(host),
+    ...SLUGS_CRIADOS.filter((s) => s.host === host),
+  ];
+}
+
+/**
+ * Cria um slug novo num domínio (demonstração) e devolve-o. Se o caminho
+ * já existe no domínio, devolve o existente sem duplicar.
+ */
+export function criarSlug(
+  host: string,
+  caminho: string,
+  nome?: string,
+): PaginaVps {
+  const c = normalizarSlug(caminho);
+  const jaExiste = slugsDoDominio(host).find((s) => s.caminho === c);
+  if (jaExiste) return jaExiste;
+  const novo: PaginaVps = {
+    id: `slug-${seqSlug++}`,
+    host,
+    tipo: "pagina",
+    nome: nome?.trim() || c,
+    caminho: c,
+  };
+  SLUGS_CRIADOS.push(novo);
+  return novo;
+}
+
 /** As páginas de um domínio de um dado tipo. */
 export function paginasDoDominioTipo(
   host: string,
@@ -152,16 +241,31 @@ export function paginasDoDominioTipo(
 }
 
 /**
- * O estado de um domínio para o selo do bloco: os do catálogo usam o
- * próprio estado; um domínio digitado à mão (fora do catálogo) fica
- * "configurando" — aguardando o DNS apontar (demonstração).
+ * A saúde de um domínio (demonstração): os do catálogo usam a sua própria
+ * verificação; um domínio digitado à mão (fora do catálogo) começa tudo
+ * pendente — nada apontado ainda.
+ */
+export function saudeDoDominio(host?: string): SaudeDominio {
+  if (!host) return { dns: false, propagado: false, https: false };
+  const d = DOMINIOS_VPS.find((x) => x.host === host);
+  return d ? d.saude : { dns: false, propagado: false, https: false };
+}
+
+/** Um domínio está pronto para subir landing quando passou em tudo. */
+export function dominioPronto(host?: string): boolean {
+  const s = saudeDoDominio(host);
+  return s.dns && s.propagado && s.https;
+}
+
+/**
+ * O estado de um domínio para o selo do bloco: 🟢 quando passou em tudo,
+ * 🟡 enquanto ainda falta algo. Sem domínio, indefinido.
  */
 export function estadoDoDominio(
   host?: string,
 ): "ativo" | "configurando" | undefined {
   if (!host) return undefined;
-  const d = DOMINIOS_VPS.find((x) => x.host === host);
-  return d ? d.estado : "configurando";
+  return dominioPronto(host) ? "ativo" : "configurando";
 }
 
 /** Quantas páginas de cada tipo um domínio tem. */

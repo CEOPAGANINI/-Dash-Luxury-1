@@ -8,7 +8,13 @@ import {
   VelocidadePagina,
   paginaVazia,
 } from "./funnel-model";
-import { DOMINIOS_VPS, estadoDoDominio } from "@/features/vps/catalogo-demo";
+import {
+  DOMINIOS_VPS,
+  criarSlug,
+  dominioPronto,
+  saudeDoDominio,
+  slugsDoDominio,
+} from "@/features/vps/catalogo-demo";
 
 /*
   O publicador do bloco "Página" — só a interface, a pedido do dono. Um
@@ -91,6 +97,9 @@ export function PagePublisher({
   const [aba, setAba] = React.useState<Aba>("essencial");
   const [novoDominio, setNovoDominio] = React.useState("");
   const [novaSaida, setNovaSaida] = React.useState("");
+  const [novoSlug, setNovoSlug] = React.useState("");
+  // Bump para re-renderizar quando um slug novo entra no store da sessão.
+  const [, forcar] = React.useReducer((x: number) => x + 1, 0);
   const [arrastando, setArrastando] = React.useState(false);
   const inputZip = React.useRef<HTMLInputElement>(null);
   const inputFav = React.useRef<HTMLInputElement>(null);
@@ -106,7 +115,13 @@ export function PagePublisher({
 
   // Status do "crachá": rascunho até ter domínio, caminho e ZIP conferido.
   const pronto = Boolean(dados.dominio && dados.zip?.ok);
-  const estadoDom = estadoDoDominio(dados.dominio);
+  const saudeDom = saudeDoDominio(dados.dominio);
+  const domPronto = dominioPronto(dados.dominio);
+  const checksDominio = [
+    { ok: saudeDom.dns, txt: "DNS apontado (registro A)" },
+    { ok: saudeDom.propagado, txt: "Domínio propagado" },
+    { ok: saudeDom.https, txt: "HTTPS ativo (certificado)" },
+  ];
   const caminhoOk = caminho.length > 0;
   const checklist = [
     {
@@ -222,11 +237,29 @@ export function PagePublisher({
                 ))}
               </div>
               {dados.dominio && (
-                <div className="pub__dns" data-estado={estadoDom}>
-                  <i aria-hidden />
-                  {estadoDom === "ativo"
-                    ? "Domínio pronto — DNS apontado, HTTPS automático."
-                    : "Aguardando DNS — aponte um registro A para o IP da VPS."}
+                <div className="pub__saude" data-ok={domPronto || undefined}>
+                  <div className="pub__saude-topo">
+                    {domPronto
+                      ? "Domínio pronto para subir a landing"
+                      : "Ainda falta para este domínio ficar pronto"}
+                  </div>
+                  <ul className="pub__saude-lista">
+                    {checksDominio.map((c, i) => (
+                      <li key={i} data-ok={c.ok || undefined}>
+                        <span className="pub__saude-dot" aria-hidden />
+                        <span className="pub__saude-txt">{c.txt}</span>
+                        <span className="pub__saude-tag">
+                          {c.ok ? "ativo" : "aguardando"}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  {!domPronto && (
+                    <small className="pub__hint">
+                      Aponte um registro A do domínio para o IP da VPS; o HTTPS
+                      é emitido sozinho na primeira visita.
+                    </small>
+                  )}
                 </div>
               )}
             </label>
@@ -265,6 +298,58 @@ export function PagePublisher({
                 onChange={(e) => set({ caminho: e.target.value })}
               />
             </label>
+
+            {dados.dominio && (
+              <div className="pub__campo">
+                <span>Slugs deste domínio</span>
+                <ul className="pub__slugs">
+                  {slugsDoDominio(dados.dominio).map((s) => (
+                    <li key={s.id}>
+                      <button
+                        type="button"
+                        className="pub__slug"
+                        data-on={caminho === s.caminho || undefined}
+                        onClick={() => set({ caminho: s.caminho })}
+                      >
+                        <span className="pub__slug-path">{s.caminho}</span>
+                        <span className="pub__slug-nome">{s.nome}</span>
+                      </button>
+                    </li>
+                  ))}
+                  {slugsDoDominio(dados.dominio).length === 0 && (
+                    <li className="pub__slug-vazio">
+                      Nenhum slug ainda neste domínio.
+                    </li>
+                  )}
+                </ul>
+                <div className="pub__linha">
+                  <input
+                    className="pub__input"
+                    value={novoSlug}
+                    placeholder="criar slug: /promo-de-julho"
+                    onChange={(e) => setNovoSlug(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    className="pub__btn"
+                    onClick={() => {
+                      const c = novoSlug.trim();
+                      if (!c || !dados.dominio) return;
+                      const s = criarSlug(dados.dominio, c);
+                      set({ caminho: s.caminho });
+                      setNovoSlug("");
+                      forcar();
+                    }}
+                  >
+                    + Criar
+                  </button>
+                </div>
+                <small className="pub__hint">
+                  Toque num slug para reusar o caminho, ou crie um novo. Isso
+                  não publica — só organiza os endereços.
+                </small>
+              </div>
+            )}
 
             <ul className="pub__check" aria-label="Checklist para publicar">
               {checklist.map((c, i) => (
