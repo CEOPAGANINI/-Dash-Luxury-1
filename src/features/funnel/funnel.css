@@ -78,6 +78,29 @@
   touch-action: none;
 }
 
+/* Quadro em tela cheia: ocupa a área de conteúdo inteira (a dash-main),
+   sem cabeçalho e sem moldura, com o menu no trilho à esquerda. A dash-main
+   perde o respiro e vira uma coluna flex; o quadro estica e preenche tudo,
+   sem nada ficar de fora nem sobrar rolagem. */
+.dash-main:has(> .funnel-stage) {
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.funnel-stage {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+}
+.funnel-stage .funnel {
+  flex: 1;
+  height: auto;
+  min-height: 0;
+  border-radius: 0;
+}
+
 /* ── O canvas: viewport que faz pan/zoom, com o grid preso ao mundo ──── */
 .funnel__viewport {
   position: absolute;

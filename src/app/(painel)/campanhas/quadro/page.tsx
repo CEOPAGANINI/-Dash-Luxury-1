@@ -13,22 +13,13 @@ export const dynamic = "force-dynamic";
  * dashboard. Substitui o antigo quadro de campanhas nesta rota.
  */
 export default function QuadroPage() {
+  // Sem cabeçalho, a pedido do dono: só o quadro, em tela cheia.
   return (
-    <div className="space-y-4">
-      <header className="min-w-0">
-        <p className="text-muted-foreground text-[11px] font-extrabold tracking-[0.14em] uppercase">
-          Planejamento
-        </p>
-        <h2 className="mt-1 text-[clamp(1.5rem,1.2rem+1vw,2.2rem)] leading-none font-extrabold tracking-[-0.045em]">
-          Quadro do funil
-        </h2>
-        <p className="text-muted-foreground mt-2 max-w-4xl text-sm leading-6">
-          Arraste recursos do topo para o canvas, ligue a saída de um card à
-          entrada do próximo e desenhe o funil inteiro. Demonstração — os cards
-          são exemplos e ficam salvos neste navegador.
-        </p>
-      </header>
-      <FunnelBoardClient />
-    </div>
+    <>
+      <h1 className="sr-only">Quadro do funil</h1>
+      <div className="funnel-stage">
+        <FunnelBoardClient />
+      </div>
+    </>
   );
 }
