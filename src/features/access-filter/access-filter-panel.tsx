@@ -50,12 +50,21 @@ const ACOES: { id: BlockedAction; nome: string }[] = [
 export function AccessFilterPanel() {
   const [siteId, setSiteId] = React.useState(SITES[0].id);
   const [regra, setRegra] = React.useState<AccessRule>(REGRA_EXEMPLO);
+  const [buscaPais, setBuscaPais] = React.useState("");
   const [visitante, setVisitante] = React.useState<Visitor>({
     pais: "RU",
     dispositivo: "desktop",
   });
 
   const site = SITES.find((s) => s.id === siteId) ?? SITES[0];
+  const paisesVisiveis = PAISES.filter((p) => {
+    const q = buscaPais.trim().toLowerCase();
+    return (
+      regra.paises.includes(p.code) ||
+      (q.length > 0 &&
+        (p.nome.toLowerCase().includes(q) || p.code.toLowerCase().includes(q)))
+    );
+  });
   const veredito = avaliarAcesso(regra, visitante);
 
   const alterar = (patch: Partial<AccessRule>) =>
@@ -143,8 +152,15 @@ export function AccessFilterPanel() {
                   Bloquear estes
                 </button>
               </div>
+              <input
+                className="acf__input acf__search"
+                value={buscaPais}
+                placeholder="Buscar país… (ex.: Japão, BR, Alemanha)"
+                aria-label="Buscar país"
+                onChange={(e) => setBuscaPais(e.target.value)}
+              />
               <div className="acf__chips">
-                {PAISES.map((p) => (
+                {paisesVisiveis.map((p) => (
                   <button
                     key={p.code}
                     type="button"
@@ -156,6 +172,11 @@ export function AccessFilterPanel() {
                     <CountryFlag code={p.code} /> {p.nome}
                   </button>
                 ))}
+                {paisesVisiveis.length === 0 && (
+                  <span className="acf__hint">
+                    Digite acima para achar um país (são todos do mundo).
+                  </span>
+                )}
               </div>
               {regra.paises.length === 0 && (
                 <small className="acf__hint" data-warn>

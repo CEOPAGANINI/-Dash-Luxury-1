@@ -533,3 +533,13 @@
   align-items: center;
   gap: 6px;
 }
+
+/* Busca de país e área da regra por região (todos os países do mundo). */
+.ofr__region {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ofr__search {
+  max-width: 340px;
+}

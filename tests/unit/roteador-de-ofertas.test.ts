@@ -61,3 +61,27 @@ describe("helpers", () => {
     expect(descreverRegra(oferta.regras[1])).toMatch(/computador/i);
   });
 });
+
+describe("regras por sistema e por rede", () => {
+  const base: OfferPage = {
+    id: "s",
+    nome: "S",
+    url: "/s",
+    regras: [
+      { id: "so", tipo: "sistema", paises: [], dispositivos: [], sistemas: ["ios"], percentual: 50, destino: "/apple", ativo: true },
+      { id: "re", tipo: "rede", paises: [], dispositivos: [], redes: ["cel5g"], percentual: 50, destino: "/turbo", ativo: true },
+    ],
+  };
+  it("redireciona por sistema (iOS)", () => {
+    const d = decidirDestino(base, { pais: "BR", dispositivo: "mobile", sistema: "ios", rede: "wifi" }, 90);
+    expect(d.destino).toBe("/apple");
+  });
+  it("redireciona por rede (5G) quando o sistema não bate", () => {
+    const d = decidirDestino(base, { pais: "BR", dispositivo: "mobile", sistema: "android", rede: "cel5g" }, 90);
+    expect(d.destino).toBe("/turbo");
+  });
+  it("fica na origem quando nem sistema nem rede batem", () => {
+    const d = decidirDestino(base, { pais: "BR", dispositivo: "mobile", sistema: "windows", rede: "wifi" }, 90);
+    expect(d.ficou).toBe(true);
+  });
+});

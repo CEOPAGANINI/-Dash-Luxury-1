@@ -17,8 +17,64 @@ import {
 
 export type { DeviceKind, Visitor };
 
+/** O visitante do simulador do roteador, com sistema e rede. */
+export interface RouterVisitor extends Visitor {
+  sistema?: SystemKind;
+  rede?: NetworkKind;
+}
+
 /** O critério de uma regra: por região (país), por aparelho, ou por fatia %. */
-export type MatchKind = "regiao" | "dispositivo" | "fatia";
+export type MatchKind = "regiao" | "dispositivo" | "sistema" | "rede" | "fatia";
+
+export type SystemKind =
+  | "windows"
+  | "macos"
+  | "ios"
+  | "android"
+  | "linux"
+  | "chromeos"
+  | "outro_so";
+
+export type NetworkKind = "wifi" | "cabo" | "cel5g" | "cel4g" | "cel3g" | "outra_rede";
+
+export interface SistemaDef {
+  id: SystemKind;
+  nome: string;
+}
+export interface RedeDef {
+  id: NetworkKind;
+  nome: string;
+}
+
+/** Sistemas operacionais, para a regra "por sistema" e o simulador. */
+export const SISTEMAS: SistemaDef[] = [
+  { id: "windows", nome: "Windows" },
+  { id: "macos", nome: "macOS" },
+  { id: "ios", nome: "iOS (iPhone/iPad)" },
+  { id: "android", nome: "Android" },
+  { id: "linux", nome: "Linux" },
+  { id: "chromeos", nome: "ChromeOS" },
+  { id: "outro_so", nome: "Outro" },
+];
+
+/** Tipos de conexão, para a regra "por rede" e o simulador. */
+export const REDES: RedeDef[] = [
+  { id: "wifi", nome: "Wi-Fi" },
+  { id: "cabo", nome: "Cabo / fibra" },
+  { id: "cel5g", nome: "5G" },
+  { id: "cel4g", nome: "4G" },
+  { id: "cel3g", nome: "3G" },
+  { id: "outra_rede", nome: "Outra" },
+];
+
+const NOME_SISTEMA = new Map(SISTEMAS.map((x) => [x.id, x.nome]));
+const NOME_REDE = new Map(REDES.map((x) => [x.id, x.nome]));
+export function nomeDoSistema(id: SystemKind): string {
+  return NOME_SISTEMA.get(id) ?? id;
+}
+export function nomeDaRede(id: NetworkKind): string {
+  return NOME_REDE.get(id) ?? id;
+}
 
 /** Uma regra de redirecionamento de uma página. */
 export interface RedirectRule {
@@ -28,6 +84,10 @@ export interface RedirectRule {
   paises: string[];
   /** Aparelhos da regra (quando tipo = "dispositivo"). */
   dispositivos: DeviceKind[];
+  /** Sistemas da regra (quando tipo = "sistema"). */
+  sistemas?: SystemKind[];
+  /** Redes da regra (quando tipo = "rede"). */
+  redes?: NetworkKind[];
   /** Fatia do tráfego 1–100 (quando tipo = "fatia"). */
   percentual: number;
   /** Para onde o visitante que bate na regra é mandado. */
@@ -67,7 +127,7 @@ export interface DecisaoDeRota {
  */
 export function decidirDestino(
   pagina: OfferPage,
-  visitante: Visitor,
+  visitante: RouterVisitor,
   sorteio: number,
 ): DecisaoDeRota {
   for (const r of pagina.regras) {
@@ -76,6 +136,10 @@ export function decidirDestino(
     if (r.tipo === "regiao") bate = r.paises.includes(visitante.pais);
     else if (r.tipo === "dispositivo")
       bate = r.dispositivos.includes(visitante.dispositivo);
+    else if (r.tipo === "sistema")
+      bate = !!visitante.sistema && (r.sistemas ?? []).includes(visitante.sistema);
+    else if (r.tipo === "rede")
+      bate = !!visitante.rede && (r.redes ?? []).includes(visitante.rede);
     else if (r.tipo === "fatia") bate = sorteio < r.percentual;
     if (bate && r.destino.trim())
       return { destino: r.destino, regra: r, ficou: false };
@@ -93,6 +157,14 @@ export function descreverRegra(regra: RedirectRule): string {
     return regra.dispositivos.length
       ? `Quem usa ${regra.dispositivos.map(nomeDoDispositivo).join(", ").toLowerCase()}`
       : "Quem usa (nenhum aparelho escolhido)";
+  if (regra.tipo === "sistema")
+    return (regra.sistemas ?? []).length
+      ? `Quem usa ${(regra.sistemas ?? []).map(nomeDoSistema).join(", ")}`
+      : "Quem usa (nenhum sistema escolhido)";
+  if (regra.tipo === "rede")
+    return (regra.redes ?? []).length
+      ? `Quem está no ${(regra.redes ?? []).map(nomeDaRede).join(", ")}`
+      : "Quem está em (nenhuma rede escolhida)";
   return `${regra.percentual}% do tráfego`;
 }
 

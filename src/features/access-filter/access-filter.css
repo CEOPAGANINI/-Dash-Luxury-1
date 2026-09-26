@@ -375,3 +375,8 @@
   align-items: center;
   gap: 6px;
 }
+
+/* Busca de país (a lista tem todos os países do mundo). */
+.acf__search {
+  max-width: 340px;
+}

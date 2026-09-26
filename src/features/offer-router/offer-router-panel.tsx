@@ -11,15 +11,21 @@ import {
 import {
   DeviceKind,
   MatchKind,
+  NetworkKind,
   OfferPage,
+  REDES,
+  RouterVisitor,
+  SISTEMAS,
+  SystemKind,
   PAGINAS_EXEMPLO,
   POR_DISPOSITIVO,
   POR_REGIAO,
   REDIRECIONADOS_EXEMPLO,
   RedirectRule,
-  Visitor,
   decidirDestino,
   descreverRegra,
+  nomeDaRede,
+  nomeDoSistema,
   paginasComRedirecionamento,
   regraNova,
   totalDeRedirecionamentos,
@@ -38,17 +44,22 @@ import { CountryFlag } from "@/features/access-filter/country-flag";
 const TIPOS: { id: MatchKind; nome: string }[] = [
   { id: "regiao", nome: "Por região" },
   { id: "dispositivo", nome: "Por aparelho" },
+  { id: "sistema", nome: "Por sistema" },
+  { id: "rede", nome: "Por rede" },
   { id: "fatia", nome: "Por fatia %" },
 ];
 
 export function OfferRouterPanel() {
   const [paginas, setPaginas] = React.useState<OfferPage[]>(PAGINAS_EXEMPLO);
   const [selId, setSelId] = React.useState(PAGINAS_EXEMPLO[0].id);
-  const [visitante, setVisitante] = React.useState<Visitor>({
+  const [visitante, setVisitante] = React.useState<RouterVisitor>({
     pais: "RU",
     dispositivo: "mobile",
+    sistema: "android",
+    rede: "cel4g",
   });
   const [sorteio, setSorteio] = React.useState(20);
+  const [filtroPais, setFiltroPais] = React.useState<Record<string, string>>({});
   const seq = React.useRef(100);
 
   const pagina = paginas.find((p) => p.id === selId) ?? paginas[0];
@@ -90,6 +101,33 @@ export function OfferRouterPanel() {
         : [...atual, id],
     });
 
+  const toggleSis = (ruleId: string, id: SystemKind, atual: SystemKind[]) =>
+    setRegra(ruleId, {
+      sistemas: atual.includes(id)
+        ? atual.filter((x) => x !== id)
+        : [...atual, id],
+    });
+
+  const toggleRede = (ruleId: string, id: NetworkKind, atual: NetworkKind[]) =>
+    setRegra(ruleId, {
+      redes: atual.includes(id)
+        ? atual.filter((x) => x !== id)
+        : [...atual, id],
+    });
+
+  // Os países mostrados numa regra: os já escolhidos sempre, e os que
+  // batem com a busca (são ~230, não cabem todos de uma vez).
+  const paisesDaRegra = (r: RedirectRule) => {
+    const q = (filtroPais[r.id] ?? "").trim().toLowerCase();
+    return PAISES.filter(
+      (p) =>
+        r.paises.includes(p.code) ||
+        (q.length > 0 &&
+          (p.nome.toLowerCase().includes(q) ||
+            p.code.toLowerCase().includes(q))),
+    );
+  };
+
   return (
     <div className="ofr">
       <div className="ofr__stage">
@@ -111,8 +149,9 @@ export function OfferRouterPanel() {
 
         <p className="ofr__lead">
           Escolha a página que recebe o tráfego e mande uma parte dos
-          visitantes para outra página — por <b>região</b>, <b>aparelho</b> ou
-          uma <b>fatia</b> do tráfego. Abaixo, veja só as páginas com
+          visitantes para outra página — por <b>região</b>, <b>aparelho</b>,{" "}
+          <b>sistema</b>, <b>rede</b> ou uma <b>fatia</b> do tráfego. Abaixo,
+          veja só as páginas com
           redirecionamento, de onde vêm os visitantes e quem foi redirecionado.
         </p>
 
@@ -182,19 +221,35 @@ export function OfferRouterPanel() {
                 </div>
 
                 {r.tipo === "regiao" && (
-                  <div className="ofr__chips">
-                    {PAISES.map((p) => (
-                      <button
-                        key={p.code}
-                        type="button"
-                        className="ofr__chip"
-                        data-on={r.paises.includes(p.code)}
-                        aria-pressed={r.paises.includes(p.code)}
-                        onClick={() => togglePais(r.id, p.code, r.paises)}
-                      >
-                        <CountryFlag code={p.code} /> {p.nome}
-                      </button>
-                    ))}
+                  <div className="ofr__region">
+                    <input
+                      className="ofr__input ofr__search"
+                      value={filtroPais[r.id] ?? ""}
+                      placeholder="Buscar país… (ex.: Japão, BR, Alemanha)"
+                      aria-label="Buscar país"
+                      onChange={(e) =>
+                        setFiltroPais((f) => ({ ...f, [r.id]: e.target.value }))
+                      }
+                    />
+                    <div className="ofr__chips">
+                      {paisesDaRegra(r).map((p) => (
+                        <button
+                          key={p.code}
+                          type="button"
+                          className="ofr__chip"
+                          data-on={r.paises.includes(p.code)}
+                          aria-pressed={r.paises.includes(p.code)}
+                          onClick={() => togglePais(r.id, p.code, r.paises)}
+                        >
+                          <CountryFlag code={p.code} /> {p.nome}
+                        </button>
+                      ))}
+                      {paisesDaRegra(r).length === 0 && (
+                        <span className="ofr__hint">
+                          Digite acima para achar um país (são todos do mundo).
+                        </span>
+                      )}
+                    </div>
                   </div>
                 )}
                 {r.tipo === "dispositivo" && (
@@ -209,6 +264,38 @@ export function OfferRouterPanel() {
                         onClick={() => toggleDisp(r.id, d.id, r.dispositivos)}
                       >
                         {d.nome}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {r.tipo === "sistema" && (
+                  <div className="ofr__chips">
+                    {SISTEMAS.map((x) => (
+                      <button
+                        key={x.id}
+                        type="button"
+                        className="ofr__chip"
+                        data-on={(r.sistemas ?? []).includes(x.id)}
+                        aria-pressed={(r.sistemas ?? []).includes(x.id)}
+                        onClick={() => toggleSis(r.id, x.id, r.sistemas ?? [])}
+                      >
+                        {x.nome}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {r.tipo === "rede" && (
+                  <div className="ofr__chips">
+                    {REDES.map((x) => (
+                      <button
+                        key={x.id}
+                        type="button"
+                        className="ofr__chip"
+                        data-on={(r.redes ?? []).includes(x.id)}
+                        aria-pressed={(r.redes ?? []).includes(x.id)}
+                        onClick={() => toggleRede(r.id, x.id, r.redes ?? [])}
+                      >
+                        {x.nome}
                       </button>
                     ))}
                   </div>
@@ -291,6 +378,44 @@ export function OfferRouterPanel() {
                 </select>
               </label>
               <label className="ofr__inline">
+                <span className="ofr__label">Sistema</span>
+                <select
+                  className="ofr__select"
+                  value={visitante.sistema}
+                  onChange={(e) =>
+                    setVisitante((v) => ({
+                      ...v,
+                      sistema: e.target.value as SystemKind,
+                    }))
+                  }
+                >
+                  {SISTEMAS.map((x) => (
+                    <option key={x.id} value={x.id}>
+                      {x.nome}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="ofr__inline">
+                <span className="ofr__label">Rede</span>
+                <select
+                  className="ofr__select"
+                  value={visitante.rede}
+                  onChange={(e) =>
+                    setVisitante((v) => ({
+                      ...v,
+                      rede: e.target.value as NetworkKind,
+                    }))
+                  }
+                >
+                  {REDES.map((x) => (
+                    <option key={x.id} value={x.id}>
+                      {x.nome}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="ofr__inline">
                 <span className="ofr__label">
                   Roleta do tráfego: <b>{sorteio}</b>
                 </span>
@@ -316,7 +441,9 @@ export function OfferRouterPanel() {
                 </b>
                 <span>
                   {nomeDoPais(visitante.pais)} ·{" "}
-                  {nomeDoDispositivo(visitante.dispositivo)} · roleta {sorteio}
+                  {nomeDoDispositivo(visitante.dispositivo)} ·{" "}
+                  {nomeDoSistema(visitante.sistema ?? "windows")} ·{" "}
+                  {nomeDaRede(visitante.rede ?? "wifi")} · roleta {sorteio}
                 </span>
                 <span className="ofr__verdict-dest">→ {decisao.destino}</span>
                 {decisao.regra && (
