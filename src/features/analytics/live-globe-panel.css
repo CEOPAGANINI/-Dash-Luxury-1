@@ -1,101 +1,237 @@
 /* =====================================================================
-   Painel do globo ao vivo — pele do design aether-node-dashboard:
-   moldura escura, acento verde, barra de topo com ponto "ao vivo".
+   Globo ao vivo na cara do design aether-node-dashboard (aura):
+   card de vidro escuro, globo point-cloud monocromático, telemetria em
+   marquee, leituras AZIMUTH/ELEVATION e rótulo INTERACTIVE PROJECTION,
+   tudo em JetBrains Mono. Fundo de pontinhos. Escopado em .aeg.
    ===================================================================== */
-.lvg {
-  --lvg-bg: #0a0a0b;
-  --lvg-panel: #0d0e10;
-  --lvg-line: rgb(255 255 255 / 8%);
-  --lvg-text: #e7e8ea;
-  --lvg-muted: #8a8d94;
-  --lvg-accent: #2bd975;
-  --lvg-accent-dim: rgb(43 217 117 / 45%);
-  --lvg-mono: var(--cl-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+.aeg {
+  --aeg-card: rgb(23 23 23 / 30%);
+  --aeg-well: rgb(10 10 10 / 50%);
+  --aeg-line: rgb(255 255 255 / 5%);
+  --aeg-text: #fafafa;
+  --aeg-muted: #a3a3a3;
+  --aeg-dim: #737373;
+  --aeg-faint: #525252;
+  --aeg-mono: var(--cl-mono, "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace);
 
-  border: 1px solid var(--lvg-line);
-  border-radius: 14px;
+  position: relative;
   overflow: hidden;
+  border: 1px solid var(--aeg-line);
+  border-radius: 24px;
+  padding: 20px;
   background:
-    radial-gradient(120% 80% at 50% -10%, rgb(43 217 117 / 8%), transparent 60%),
-    var(--lvg-bg);
-  color: var(--lvg-text);
+    radial-gradient(ellipse at top, rgb(255 255 255 / 2%), transparent 55%),
+    var(--aeg-card);
+  backdrop-filter: blur(24px);
+  box-shadow:
+    0 20px 40px -10px rgb(0 0 0 / 80%),
+    inset 0 1px 0 rgb(255 255 255 / 5%);
+  color: var(--aeg-text);
 }
-.lvg__top {
+.aeg__grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.12;
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    rgb(255 255 255 / 15%) 1px,
+    transparent 0
+  );
+  background-size: 32px 32px;
+}
+.aeg__head {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.aeg__title {
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: var(--aeg-text);
+}
+.aeg__sub {
+  margin-top: 6px;
+  max-width: 42ch;
+  font-size: 13px;
+  font-weight: 300;
+  line-height: 1.5;
+  color: var(--aeg-muted);
+}
+.aeg__rel {
+  flex: none;
+  padding: 3px 10px;
+  border: 1px solid var(--aeg-line);
+  border-radius: 6px;
+  background: rgb(10 10 10 / 80%);
+  box-shadow: inset 0 1px 1px rgb(0 0 0 / 50%);
+  font-family: var(--aeg-mono);
+  font-size: 11px;
+  color: var(--aeg-muted);
+}
+.aeg__display {
+  position: relative;
+  z-index: 1;
+  height: 460px;
+  border: 1px solid rgb(255 255 255 / 3%);
+  border-radius: 12px;
+  background: var(--aeg-well);
+  box-shadow: inset 0 2px 15px rgb(0 0 0 / 50%);
+  overflow: hidden;
+}
+@media (min-width: 1024px) {
+  .aeg__display {
+    height: 560px;
+  }
+}
+.aeg__stage {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+.aeg__canvas {
+  width: min(74%, 540px);
+  height: 100%;
+}
+.aeg__loading {
+  font-family: var(--aeg-mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--aeg-faint);
+  animation: aeg-pulse 1.6s ease-in-out infinite;
+}
+.aeg__marquee {
+  position: absolute;
+  inset-inline: 0;
+  height: 32px;
+  z-index: 3;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--lvg-line);
+  overflow: hidden;
+  background: rgb(10 10 10 / 80%);
+  backdrop-filter: blur(4px);
+  pointer-events: none;
 }
-.lvg__brand {
-  display: inline-flex;
+.aeg__marquee:first-child {
+  top: 0;
+  border-bottom: 1px solid rgb(255 255 255 / 3%);
+}
+.aeg__marquee[data-dim] {
+  bottom: 0;
+  top: auto;
+  border-top: 1px solid rgb(255 255 255 / 3%);
+}
+.aeg__marquee-track {
+  display: flex;
+  width: max-content;
+  animation: aeg-marquee 34s linear infinite;
+}
+.aeg__marquee-row {
+  display: flex;
   align-items: center;
-  gap: 8px;
-  font-family: var(--lvg-mono);
-  font-size: 12px;
-  letter-spacing: 0.02em;
-}
-.lvg__brand-ico {
-  color: var(--lvg-accent);
-  font-size: 14px;
-}
-.lvg__live {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-family: var(--lvg-mono);
+  gap: 32px;
+  padding-inline-end: 32px;
+  font-family: var(--aeg-mono);
   font-size: 11px;
-  color: var(--lvg-muted);
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  color: var(--aeg-dim);
 }
-.lvg__live i {
-  width: 7px;
-  height: 7px;
+.aeg__marquee[data-dim] .aeg__marquee-row {
+  color: var(--aeg-faint);
+}
+.aeg__marquee-dot {
+  width: 2px;
+  height: 2px;
   border-radius: 50%;
-  background: var(--lvg-accent);
-  box-shadow: 0 0 8px var(--lvg-accent-dim);
-  animation: lvg-pulse 1.8s ease-in-out infinite;
+  background: currentColor;
+  opacity: 0.6;
 }
-@keyframes lvg-pulse {
+.aeg__read {
+  position: absolute;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  pointer-events: none;
+  font-family: var(--aeg-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--aeg-dim);
+}
+.aeg__read--tl {
+  top: 48px;
+  left: 20px;
+}
+.aeg__read--br {
+  right: 20px;
+  bottom: 48px;
+  align-items: flex-end;
+  text-align: right;
+}
+.aeg__read-line {
+  width: 32px;
+  height: 1px;
+  background: rgb(255 255 255 / 22%);
+}
+.aeg__read-val {
+  color: var(--aeg-text);
+}
+@media (max-width: 640px) {
+  .aeg__read {
+    display: none;
+  }
+}
+.aeg__proj {
+  position: absolute;
+  bottom: 40px;
+  inset-inline: 0;
+  z-index: 4;
+  text-align: center;
+  pointer-events: none;
+  font-family: var(--aeg-mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--aeg-faint);
+}
+.aeg__foot {
+  position: relative;
+  z-index: 2;
+  margin-top: 14px;
+  font-size: 12px;
+  color: var(--aeg-muted);
+}
+@keyframes aeg-marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+@keyframes aeg-pulse {
   0%,
   100% {
     opacity: 1;
   }
   50% {
-    opacity: 0.35;
+    opacity: 0.4;
   }
-}
-.lvg__stage {
-  position: relative;
-  height: 460px;
-}
-@media (min-width: 1024px) {
-  .lvg__stage {
-    height: 560px;
-  }
-}
-.lvg__canvas,
-.lvg__skeleton {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-.lvg__skeleton {
-  background:
-    radial-gradient(closest-side, rgb(43 217 117 / 12%), transparent 70%),
-    var(--lvg-panel);
-}
-.lvg__foot {
-  padding: 10px 16px;
-  border-top: 1px solid var(--lvg-line);
-  font-size: 11px;
-  color: var(--lvg-muted);
 }
 @media (prefers-reduced-motion: reduce) {
-  .lvg__live i {
+  .aeg__marquee-track {
     animation: none;
   }
+}
+
+/* Esconde os overlays internos do globo (cards "AO VIVO"/regiões e a dica
+   de arrastar) dentro do painel aether — quem manda aqui é o HUD de
+   telemetria. Mantém o canvas, o tooltip de hover e a vinheta. */
+.aeg .aeg__canvas > div[class*="inset-x-0"] {
+  display: none !important;
 }
