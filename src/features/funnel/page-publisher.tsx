@@ -469,13 +469,6 @@ export function PagePublisher({
                 </li>
               ))}
             </ul>
-            <div className="pub__vps">
-              <span className="pub__vps-dot" aria-hidden />
-              VPS não conectada — configure aqui; publicar liga na Fase 2.
-            </div>
-            <button type="button" className="pub__publicar" disabled>
-              🚀 Publicar
-            </button>
           </>
         )}
 
@@ -736,6 +729,18 @@ export function PagePublisher({
         )}
         </div>
       </div>
+
+      {/* Rodapé fixo: o Publicar fica sempre à vista, mesmo em telas baixas.
+          O meio (acima) é que rola. Só interface: sem VPS, fica em espera. */}
+      <footer className="pub__foot">
+        <span className="pub__foot-vps">
+          <span className="pub__vps-dot" aria-hidden />
+          VPS não conectada — publicar liga na Fase 2
+        </span>
+        <button type="button" className="pub__publicar" disabled>
+          🚀 Publicar
+        </button>
+      </footer>
     </aside>
   );
 }

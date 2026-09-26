@@ -975,19 +975,73 @@
    conteúdo ROLAR por dentro em vez de vazar para fora do painel (o corte
    que aparecia embaixo, escondendo o Publicar). */
 .pub__body {
+  position: relative;
   flex: 1;
   min-height: 0;
   display: flex;
+}
+/* Esmaecimento no pé da área que rola: mostra que tem mais conteúdo
+   acima do rodapé, em vez de cortar seco. */
+.pub__body::after {
+  content: "";
+  position: absolute;
+  left: 78px;
+  right: 0;
+  bottom: 0;
+  height: 30px;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    color-mix(in srgb, var(--fn-surface-3) 92%, transparent)
+  );
 }
 .pub__corpo {
   flex: 1;
   min-width: 0;
   min-height: 0;
   overflow: auto;
-  padding: 16px 18px 20px;
+  padding: 14px 16px 34px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
+  /* Barra de rolagem sempre visível (o Mac esconde a padrão). */
+  scrollbar-width: thin;
+  scrollbar-color: var(--fn-line-2) transparent;
+  scrollbar-gutter: stable;
+}
+.pub__corpo::-webkit-scrollbar {
+  width: 8px;
+}
+.pub__corpo::-webkit-scrollbar-thumb {
+  background: var(--fn-line-2);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.pub__corpo::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Rodapé fixo: Publicar sempre à vista, mesmo em telas baixas. */
+.pub__foot {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-top: 1px solid var(--fn-line);
+  background: var(--fn-surface-3);
+}
+.pub__foot-vps {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  line-height: 1.3;
+  color: #fbbf24;
 }
 
 /* Trilho de ícones = o menu de configurações (uma aba por ícone). */
@@ -1051,17 +1105,16 @@
 /* Cabeçalho da aba: crachá com ícone + título + subtítulo. */
 .pub__sec {
   position: sticky;
-  top: -16px;
+  top: -14px;
   z-index: 1;
   display: flex;
   align-items: center;
   gap: 12px;
-  margin: -16px -18px 2px;
-  padding: 16px 18px 12px;
-  background: linear-gradient(
-    var(--fn-surface-3) 72%,
-    color-mix(in srgb, var(--fn-surface-3) 0%, transparent)
-  );
+  margin: -14px -16px 2px;
+  padding: 14px 16px 12px;
+  /* Fundo sólido: o que rola por baixo some de vez, sem "meio aparecer". */
+  background: var(--fn-surface-3);
+  box-shadow: 0 10px 12px -10px rgb(0 0 0 / 70%);
 }
 .pub__sec-badge {
   flex: none;
@@ -1103,13 +1156,13 @@
 .pub__campo {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 7px;
   font-size: 12px;
   color: var(--fn-muted);
   background: color-mix(in srgb, #ffffff 3.5%, transparent);
   border: 1px solid var(--fn-line);
   border-radius: 14px;
-  padding: 13px 14px;
+  padding: 11px 13px;
 }
 .pub__campo > span {
   font-weight: 600;
@@ -1198,13 +1251,15 @@
   background: #fbbf24;
 }
 .pub__publicar {
-  font-size: 14px;
+  flex: none;
+  font-size: 13px;
   font-weight: 700;
   color: var(--fn-muted);
   background: var(--fn-surface);
   border: 1px solid var(--fn-line-2);
   border-radius: 10px;
-  padding: 11px;
+  padding: 9px 14px;
+  white-space: nowrap;
   cursor: not-allowed;
 }
 .pub__drop {
