@@ -986,13 +986,11 @@ function LiveGlobeImpl({ points, className }: LiveGlobeProps) {
       ref={containerRef}
       className={cn(
         "relative isolate h-[440px] w-full overflow-hidden rounded-xl sm:h-[520px] lg:h-[560px]",
-        "bg-[#0b0b0f]",
+        // Sem fundo e sem degradê, a pedido do dono: o globo fica solto —
+        // some a luz azul (o antigo radial indigo) e o card por trás.
+        "bg-transparent",
         className,
       )}
-      style={{
-        backgroundImage:
-          "radial-gradient(ellipse 70% 60% at 50% 45%, rgba(76,95,214,0.16), transparent 70%)",
-      }}
     >
       <canvas ref={canvasRef} className="block h-full w-full touch-none" />
 
@@ -1101,14 +1099,7 @@ function LiveGlobeImpl({ points, className }: LiveGlobeProps) {
         </AnimatePresence>
       </div>
 
-      {/* Vinheta para o globo assentar no card */}
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(ellipse 92% 88% at 50% 50%, transparent 68%, rgba(11,11,15,0.6) 100%)",
-        }}
-      />
+      {/* Sem vinheta: o globo fica solto, sem nenhum degradê ao redor. */}
     </div>
   );
 }
