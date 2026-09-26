@@ -45,6 +45,25 @@ import { CountryFlag } from "@/features/access-filter/country-flag";
   Nada roteia de verdade; é demonstração.
 */
 
+const NAV_QUADRO: { id: string; nome: string; d: string }[] = [
+  { id: "cfg", nome: "Configurar", d: "M4 7h16M4 12h16M4 17h16" },
+  {
+    id: "pgs",
+    nome: "Páginas com redirecionamento",
+    d: "M6 3h9l3 3v15H6z M15 3v3h3",
+  },
+  {
+    id: "onde",
+    nome: "De onde vêm",
+    d: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18 M3 12h18 M12 3c2.8 2.8 2.8 15.2 0 18 M12 3c-2.8 2.8-2.8 15.2 0 18",
+  },
+  {
+    id: "redir",
+    nome: "Redirecionados",
+    d: "M5 9h10M12 6l3 3-3 3 M19 15H9M12 18l-3-3 3-3",
+  },
+];
+
 const TIPOS: { id: MatchKind; nome: string }[] = [
   { id: "regiao", nome: "Por região" },
   { id: "dispositivo", nome: "Por aparelho" },
@@ -68,6 +87,15 @@ export function OfferRouterPanel() {
   const [filtroPais, setFiltroPais] = React.useState<Record<string, string>>({});
   const canvasRef = React.useRef<HTMLDivElement>(null);
   const [fios, setFios] = React.useState<string[]>([]);
+  const [navAtivo, setNavAtivo] = React.useState("cfg");
+
+  const irPara = (id: string) => {
+    setNavAtivo(id);
+    if (typeof document !== "undefined")
+      document
+        .getElementById(`nav-${id}`)
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
   const seq = React.useRef(100);
 
   const pagina = paginas.find((p) => p.id === selId) ?? paginas[0];
@@ -223,13 +251,34 @@ export function OfferRouterPanel() {
         </p>
 
         {/* ── 1) Configurar ─────────────────────────────────────────── */}
-        <section className="wf" aria-label="Configurar redirecionador">
-          <div className="wf__rail" aria-hidden>
-            <span className="wf__rail-ico wf__rail-ico--on" />
-            <span className="wf__rail-ico" />
-            <span className="wf__rail-ico" />
-            <span className="wf__rail-ico" />
-          </div>
+        <section id="nav-cfg" className="wf" aria-label="Configurar redirecionador">
+          <nav className="wf__rail" aria-label="Navegação do quadro">
+            {NAV_QUADRO.map((n) => (
+              <button
+                key={n.id}
+                type="button"
+                className="wf__rail-btn"
+                title={n.nome}
+                aria-label={n.nome}
+                data-on={navAtivo === n.id}
+                onClick={() => irPara(n.id)}
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden
+                >
+                  <path d={n.d} />
+                </svg>
+              </button>
+            ))}
+          </nav>
           <div className="wf__main">
             <header className="wf__top">
               <span className="wf__top-title">
@@ -622,7 +671,7 @@ export function OfferRouterPanel() {
         </section>
 
         {/* ── 2) Páginas com redirecionamento ───────────────────────── */}
-        <section className="ofr__card">
+        <section id="nav-pgs" className="ofr__card">
           <div className="ofr__card-head">Páginas com redirecionamento</div>
           {comRedir.length === 0 ? (
             <p className="ofr__empty">Nenhuma página tem redirecionamento.</p>
@@ -651,7 +700,7 @@ export function OfferRouterPanel() {
         </section>
 
         {/* ── 3) De onde vêm ────────────────────────────────────────── */}
-        <section className="ofr__card">
+        <section id="nav-onde" className="ofr__card">
           <div className="ofr__card-head">
             De onde vêm — página principal
           </div>
@@ -681,7 +730,7 @@ export function OfferRouterPanel() {
         </section>
 
         {/* ── 4) Redirecionados ─────────────────────────────────────── */}
-        <section className="ofr__card">
+        <section id="nav-redir" className="ofr__card">
           <div className="ofr__card-head">
             Redirecionados — região e aparelho
           </div>
