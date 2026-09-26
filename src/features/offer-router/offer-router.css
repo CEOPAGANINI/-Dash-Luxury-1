@@ -662,10 +662,10 @@
   background-size: 22px 22px;
 }
 .wf__canvas[data-view="cfg"] {
-  display: flex;
-  align-items: flex-start;
-  gap: 48px;
-  padding: 40px 32px;
+  display: block;
+  padding: 0;
+  overflow: hidden;
+  background-image: none;
 }
 .wf__canvas:not([data-view="cfg"]) {
   display: block;
@@ -694,6 +694,155 @@
   opacity: 0.85;
   filter: drop-shadow(0 0 4px var(--wf-accent-dim));
 }
+
+/* ── O quadro arrastável: blocos que se movem e se ligam ────────────────
+   Mesmo modelo do quadro de funil — mesa escura de pontinhos, mundo com
+   pan/zoom, cada bloco um nó com bolinhas de entrada/saída. */
+.wf {
+  --wf-node-w: 280px;
+}
+.wf__flow {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--wf-bg);
+  cursor: grab;
+  touch-action: none;
+}
+.wf__flow[data-panning] {
+  cursor: grabbing;
+}
+.wf__world {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+.wf__dots {
+  position: absolute;
+  left: -8000px;
+  top: -8000px;
+  width: 16000px;
+  height: 16000px;
+  pointer-events: none;
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    rgb(255 255 255 / 6%) 1px,
+    transparent 0
+  );
+  background-size: 22px 22px;
+}
+.wf__edges {
+  position: absolute;
+  left: -8000px;
+  top: -8000px;
+  width: 16000px;
+  height: 16000px;
+  overflow: visible;
+  pointer-events: none;
+}
+.wf__edge {
+  fill: none;
+  stroke: var(--wf-accent);
+  stroke-width: 2.5;
+  opacity: 0.9;
+  filter: drop-shadow(0 0 4px var(--wf-accent-dim));
+}
+.wf__edge[data-selected] {
+  stroke: #ffffff;
+  opacity: 1;
+}
+.wf__edge-hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 18;
+  pointer-events: stroke;
+  cursor: pointer;
+}
+.wf__edge--temp {
+  fill: none;
+  stroke: var(--wf-accent);
+  stroke-width: 2;
+  stroke-dasharray: 6 5;
+  opacity: 0.9;
+}
+.wf__fnode {
+  position: absolute;
+  width: var(--wf-node-w);
+  touch-action: none;
+}
+.wf__fnode[data-dragging] {
+  z-index: 6;
+}
+/* Os cards dentro do nó ocupam a largura padrão do bloco. */
+.wf__fnode > .wf__node,
+.wf__fnode > .ofr__rule {
+  width: 100%;
+}
+/* A regra ganha a mesma pele dos outros nós, para os blocos ficarem
+   padronizados (mesmo material do quadro de funil). */
+.wf__fnode > .ofr__rule {
+  background: linear-gradient(180deg, var(--wf-node-2), var(--wf-node));
+  border: 1px solid var(--wf-line);
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgb(0 0 0 / 45%);
+  padding: 14px;
+}
+/* Bolinhas de entrada/saída para ligar um bloco ao outro. */
+.wf__port {
+  position: absolute;
+  top: 24px;
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  border-radius: 50%;
+  border: 2px solid var(--wf-accent);
+  background: var(--wf-node);
+  box-shadow: 0 0 8px var(--wf-accent-dim);
+}
+.wf__port--in {
+  left: -8px;
+}
+.wf__port--out {
+  right: -8px;
+  cursor: crosshair;
+}
+.wf__port--out:hover {
+  background: var(--wf-accent);
+}
+.wf__flow-hint {
+  position: absolute;
+  left: 14px;
+  bottom: 12px;
+  z-index: 5;
+  font-family: var(--ofr-mono);
+  font-size: 11px;
+  color: var(--wf-muted);
+  pointer-events: none;
+}
+.wf__flow-add {
+  position: absolute;
+  right: 14px;
+  bottom: 12px;
+  z-index: 5;
+  font-family: var(--ofr-sans);
+  font-size: 12px;
+  color: #06210f;
+  background: var(--wf-accent);
+  border: 1px solid var(--wf-accent);
+  border-radius: 8px;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+.wf__flow-add:hover {
+  filter: brightness(1.05);
+}
+/* No bloco estreito, o simulador fica em uma coluna só. */
+.wf__fnode .ofr__sim-controls {
+  grid-template-columns: 1fr;
+}
+
 .wf__fonte {
   flex: none;
   width: 244px;
