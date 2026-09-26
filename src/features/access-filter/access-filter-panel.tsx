@@ -37,6 +37,9 @@ const SITES: SiteDef[] = [
   { id: "quiz", nome: "Quiz de entrada", dominio: "quiz.sualoja.com" },
 ];
 
+/* Um recorte de países para a matriz de relance — comum em campanhas. */
+const MATRIZ_PAISES = ["BR", "PT", "US", "RU", "IN", "NG"];
+
 const ACOES: { id: BlockedAction; nome: string }[] = [
   { id: "not_found", nome: "Erro 404" },
   { id: "redirect", nome: "Redirecionar" },
@@ -290,6 +293,49 @@ export function AccessFilterPanel() {
             </div>
           </section>
         </div>
+
+        <section className="acf__matrix-card">
+          <div className="acf__card-head">Quem entra, de relance</div>
+          <p className="acf__sim-lead">
+            A mesma regra aplicada a vários visitantes. Verde vê a página;
+            vermelho é barrado — igual para qualquer um, inclusive o revisor.
+          </p>
+          <div className="acf__matrix-wrap">
+            <table className="acf__matrix">
+              <thead>
+                <tr>
+                  <th scope="col">País</th>
+                  {DISPOSITIVOS.map((d) => (
+                    <th key={d.id} scope="col">
+                      {d.nome}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {MATRIZ_PAISES.map((code) => (
+                  <tr key={code}>
+                    <th scope="row">{nomeDoPais(code)}</th>
+                    {DISPOSITIVOS.map((d) => {
+                      const ok = avaliarAcesso(regra, {
+                        pais: code,
+                        dispositivo: d.id,
+                      }).permitido;
+                      return (
+                        <td key={d.id} data-ok={ok}>
+                          <span aria-hidden>{ok ? "✓" : "✕"}</span>
+                          <span className="sr-only">
+                            {ok ? "vê a página" : "barrado"}
+                          </span>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
 
         <p className="acf__note">
           <b>Demonstração:</b> esta tela é só a interface — a regra não está
