@@ -588,54 +588,56 @@ export function FunnelBoard({
         </div>
       )}
 
-      {/* Barra flutuante do quadro */}
-      <div className="funnel__header">
+      {/* Menu do quadro — trilho vertical à esquerda, igual ao do
+          redirecionador: ícones num trilho escuro, o ativo em verde. */}
+      <nav className="funnel__rail" aria-label="Menu do quadro">
         <button
           type="button"
-          className="funnel__act"
+          className="funnel__rail-btn"
           aria-label="Voltar"
           onClick={onVoltar}
         >
-          <ArrowLeft size={16} strokeWidth={2.5} />
+          <ArrowLeft size={18} strokeWidth={2.2} />
         </button>
-        <div className="funnel__header-id">
-          <div className="funnel__header-name">
-            <b>{nome}</b> <span>· {inicial.projeto}</span>
-          </div>
-          <span className="funnel__header-sub">
-            Planejamento do Funil de Vendas
-          </span>
+        <span className="funnel__rail-sep" aria-hidden />
+        <button
+          type="button"
+          className="funnel__rail-btn"
+          aria-label="Ícones"
+          data-on={painel === "icones"}
+          onClick={() => setPainel((p) => (p === "icones" ? null : "icones"))}
+        >
+          <Plus size={18} strokeWidth={2} />
+        </button>
+        <button
+          type="button"
+          className="funnel__rail-btn"
+          aria-label="Recursos"
+          data-on={painel === "recursos"}
+          onClick={() =>
+            setPainel((p) => (p === "recursos" ? null : "recursos"))
+          }
+        >
+          <Grid2x2 size={18} strokeWidth={2} />
+        </button>
+        <button
+          type="button"
+          className="funnel__rail-btn"
+          aria-label="Configurações"
+          onClick={() => setDialog(true)}
+        >
+          <Settings size={18} strokeWidth={2} />
+        </button>
+      </nav>
+
+      {/* Legenda de qual funil está aberto (o menu virou só ícones). */}
+      <div className="funnel__caption">
+        <div className="funnel__caption-name">
+          <b>{nome}</b> <span>· {inicial.projeto}</span>
         </div>
-        <div className="funnel__header-actions">
-          <button
-            type="button"
-            className="funnel__act"
-            aria-label="Ícones"
-            data-on={painel === "icones"}
-            onClick={() => setPainel((p) => (p === "icones" ? null : "icones"))}
-          >
-            <Plus size={16} strokeWidth={2} />
-          </button>
-          <button
-            type="button"
-            className="funnel__act"
-            aria-label="Recursos"
-            data-on={painel === "recursos"}
-            onClick={() =>
-              setPainel((p) => (p === "recursos" ? null : "recursos"))
-            }
-          >
-            <Grid2x2 size={16} strokeWidth={2} />
-          </button>
-          <button
-            type="button"
-            className="funnel__act"
-            aria-label="Configurações"
-            onClick={() => setDialog(true)}
-          >
-            <Settings size={16} strokeWidth={2} />
-          </button>
-        </div>
+        <span className="funnel__caption-sub">
+          Planejamento do Funil de Vendas
+        </span>
       </div>
 
       {painel === "recursos" && (
