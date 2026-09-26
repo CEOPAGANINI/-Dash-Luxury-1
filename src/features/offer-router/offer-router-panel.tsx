@@ -15,15 +15,19 @@ import {
   OfferPage,
   REDES,
   RouterVisitor,
+  TrafficKind,
   SISTEMAS,
   SystemKind,
   PAGINAS_EXEMPLO,
+  ORIGENS,
   POR_DISPOSITIVO,
+  POR_ORIGEM,
   POR_REGIAO,
   REDIRECIONADOS_EXEMPLO,
   RedirectRule,
   decidirDestino,
   descreverRegra,
+  nomeDaOrigem,
   nomeDaRede,
   nomeDoSistema,
   paginasComRedirecionamento,
@@ -46,6 +50,7 @@ const TIPOS: { id: MatchKind; nome: string }[] = [
   { id: "dispositivo", nome: "Por aparelho" },
   { id: "sistema", nome: "Por sistema" },
   { id: "rede", nome: "Por rede" },
+  { id: "origem", nome: "Por origem" },
   { id: "fatia", nome: "Por fatia %" },
 ];
 
@@ -57,6 +62,7 @@ export function OfferRouterPanel() {
     dispositivo: "mobile",
     sistema: "android",
     rede: "cel4g",
+    origem: "facebook",
   });
   const [sorteio, setSorteio] = React.useState(20);
   const [filtroPais, setFiltroPais] = React.useState<Record<string, string>>({});
@@ -111,6 +117,17 @@ export function OfferRouterPanel() {
   const toggleRede = (ruleId: string, id: NetworkKind, atual: NetworkKind[]) =>
     setRegra(ruleId, {
       redes: atual.includes(id)
+        ? atual.filter((x) => x !== id)
+        : [...atual, id],
+    });
+
+  const toggleOrigem = (
+    ruleId: string,
+    id: TrafficKind,
+    atual: TrafficKind[],
+  ) =>
+    setRegra(ruleId, {
+      origens: atual.includes(id)
         ? atual.filter((x) => x !== id)
         : [...atual, id],
     });
@@ -300,6 +317,29 @@ export function OfferRouterPanel() {
                     ))}
                   </div>
                 )}
+                {r.tipo === "origem" && (
+                  <div className="ofr__chips">
+                    {ORIGENS.map((x) => (
+                      <button
+                        key={x.id}
+                        type="button"
+                        className="ofr__chip"
+                        data-on={(r.origens ?? []).includes(x.id)}
+                        aria-pressed={(r.origens ?? []).includes(x.id)}
+                        onClick={() =>
+                          toggleOrigem(r.id, x.id, r.origens ?? [])
+                        }
+                      >
+                        <span
+                          className="ofr__dot"
+                          style={{ background: x.cor }}
+                          aria-hidden
+                        />
+                        {x.nome}
+                      </button>
+                    ))}
+                  </div>
+                )}
                 {r.tipo === "fatia" && (
                   <label className="ofr__slider">
                     <span className="ofr__label">
@@ -416,6 +456,25 @@ export function OfferRouterPanel() {
                 </select>
               </label>
               <label className="ofr__inline">
+                <span className="ofr__label">Origem do anúncio</span>
+                <select
+                  className="ofr__select"
+                  value={visitante.origem}
+                  onChange={(e) =>
+                    setVisitante((v) => ({
+                      ...v,
+                      origem: e.target.value as TrafficKind,
+                    }))
+                  }
+                >
+                  {ORIGENS.map((x) => (
+                    <option key={x.id} value={x.id}>
+                      {x.nome}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="ofr__inline">
                 <span className="ofr__label">
                   Roleta do tráfego: <b>{sorteio}</b>
                 </span>
@@ -443,7 +502,9 @@ export function OfferRouterPanel() {
                   {nomeDoPais(visitante.pais)} ·{" "}
                   {nomeDoDispositivo(visitante.dispositivo)} ·{" "}
                   {nomeDoSistema(visitante.sistema ?? "windows")} ·{" "}
-                  {nomeDaRede(visitante.rede ?? "wifi")} · roleta {sorteio}
+                  {nomeDaRede(visitante.rede ?? "wifi")} ·{" "}
+                  {nomeDaOrigem(visitante.origem ?? "facebook")} · roleta{" "}
+                  {sorteio}
                 </span>
                 <span className="ofr__verdict-dest">→ {decisao.destino}</span>
                 {decisao.regra && (
@@ -503,6 +564,12 @@ export function OfferRouterPanel() {
             <div>
               <div className="ofr__bars-title">Por região</div>
               {POR_REGIAO.map((f) => (
+                <Barra key={f.rotulo} rotulo={f.rotulo} pct={f.pct} />
+              ))}
+            </div>
+            <div>
+              <div className="ofr__bars-title">Por origem de anúncio</div>
+              {POR_ORIGEM.map((f) => (
                 <Barra key={f.rotulo} rotulo={f.rotulo} pct={f.pct} />
               ))}
             </div>

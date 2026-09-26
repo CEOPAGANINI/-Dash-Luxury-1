@@ -21,10 +21,17 @@ export type { DeviceKind, Visitor };
 export interface RouterVisitor extends Visitor {
   sistema?: SystemKind;
   rede?: NetworkKind;
+  origem?: TrafficKind;
 }
 
 /** O critério de uma regra: por região (país), por aparelho, ou por fatia %. */
-export type MatchKind = "regiao" | "dispositivo" | "sistema" | "rede" | "fatia";
+export type MatchKind =
+  | "regiao"
+  | "dispositivo"
+  | "sistema"
+  | "rede"
+  | "origem"
+  | "fatia";
 
 export type SystemKind =
   | "windows"
@@ -76,6 +83,48 @@ export function nomeDaRede(id: NetworkKind): string {
   return NOME_REDE.get(id) ?? id;
 }
 
+export type TrafficKind =
+  | "facebook"
+  | "instagram"
+  | "google"
+  | "youtube"
+  | "tiktok"
+  | "taboola"
+  | "outbrain"
+  | "kwai"
+  | "pinterest"
+  | "snapchat"
+  | "bing"
+  | "outra_origem";
+
+export interface OrigemDef {
+  id: TrafficKind;
+  nome: string;
+  /** Cor da marca, para o pontinho do chip e a barra. */
+  cor: string;
+}
+
+/** Redes de tráfego (onde a página é anunciada), para a regra e o simulador. */
+export const ORIGENS: OrigemDef[] = [
+  { id: "facebook", nome: "Facebook", cor: "#1877f2" },
+  { id: "instagram", nome: "Instagram", cor: "#e1306c" },
+  { id: "google", nome: "Google Ads", cor: "#4285f4" },
+  { id: "youtube", nome: "YouTube", cor: "#ff0000" },
+  { id: "tiktok", nome: "TikTok", cor: "#ee1d52" },
+  { id: "taboola", nome: "Taboola", cor: "#1a73e8" },
+  { id: "outbrain", nome: "Outbrain", cor: "#ff6600" },
+  { id: "kwai", nome: "Kwai", cor: "#ff8000" },
+  { id: "pinterest", nome: "Pinterest", cor: "#e60023" },
+  { id: "snapchat", nome: "Snapchat", cor: "#f7d417" },
+  { id: "bing", nome: "Microsoft (Bing)", cor: "#0c8484" },
+  { id: "outra_origem", nome: "Outra", cor: "#9aa0a6" },
+];
+
+const NOME_ORIGEM = new Map(ORIGENS.map((x) => [x.id, x.nome]));
+export function nomeDaOrigem(id: TrafficKind): string {
+  return NOME_ORIGEM.get(id) ?? id;
+}
+
 /** Uma regra de redirecionamento de uma página. */
 export interface RedirectRule {
   id: string;
@@ -88,6 +137,8 @@ export interface RedirectRule {
   sistemas?: SystemKind[];
   /** Redes da regra (quando tipo = "rede"). */
   redes?: NetworkKind[];
+  /** Origens de tráfego da regra (quando tipo = "origem"). */
+  origens?: TrafficKind[];
   /** Fatia do tráfego 1–100 (quando tipo = "fatia"). */
   percentual: number;
   /** Para onde o visitante que bate na regra é mandado. */
@@ -140,6 +191,8 @@ export function decidirDestino(
       bate = !!visitante.sistema && (r.sistemas ?? []).includes(visitante.sistema);
     else if (r.tipo === "rede")
       bate = !!visitante.rede && (r.redes ?? []).includes(visitante.rede);
+    else if (r.tipo === "origem")
+      bate = !!visitante.origem && (r.origens ?? []).includes(visitante.origem);
     else if (r.tipo === "fatia") bate = sorteio < r.percentual;
     if (bate && r.destino.trim())
       return { destino: r.destino, regra: r, ficou: false };
@@ -165,6 +218,10 @@ export function descreverRegra(regra: RedirectRule): string {
     return (regra.redes ?? []).length
       ? `Quem está no ${(regra.redes ?? []).map(nomeDaRede).join(", ")}`
       : "Quem está em (nenhuma rede escolhida)";
+  if (regra.tipo === "origem")
+    return (regra.origens ?? []).length
+      ? `Quem veio de ${(regra.origens ?? []).map(nomeDaOrigem).join(", ")}`
+      : "Quem veio de (nenhuma origem escolhida)";
   return `${regra.percentual}% do tráfego`;
 }
 
@@ -246,6 +303,16 @@ export const POR_REGIAO: Fatia[] = [
   { rotulo: "Sul (BR)", pct: 15 },
   { rotulo: "Portugal", pct: 12 },
   { rotulo: "Outros", pct: 12 },
+];
+
+/** De onde vem o tráfego da página principal — origem de anúncio (demo). */
+export const POR_ORIGEM: Fatia[] = [
+  { rotulo: "Facebook", pct: 38 },
+  { rotulo: "Instagram", pct: 22 },
+  { rotulo: "TikTok", pct: 16 },
+  { rotulo: "YouTube", pct: 10 },
+  { rotulo: "Google Ads", pct: 8 },
+  { rotulo: "Taboola", pct: 6 },
 ];
 
 /** Uma regra nova em branco, do tipo escolhido. */

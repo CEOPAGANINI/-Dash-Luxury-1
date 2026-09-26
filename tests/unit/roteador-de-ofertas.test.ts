@@ -85,3 +85,22 @@ describe("regras por sistema e por rede", () => {
     expect(d.ficou).toBe(true);
   });
 });
+
+describe("regra por origem de tráfego", () => {
+  const base: OfferPage = {
+    id: "o",
+    nome: "O",
+    url: "/o",
+    regras: [
+      { id: "or", tipo: "origem", paises: [], dispositivos: [], origens: ["tiktok"], percentual: 50, destino: "/tt", ativo: true },
+    ],
+  };
+  it("redireciona quem veio do TikTok", () => {
+    const d = decidirDestino(base, { pais: "BR", dispositivo: "mobile", origem: "tiktok" }, 90);
+    expect(d.destino).toBe("/tt");
+  });
+  it("fica na origem quando a origem não bate", () => {
+    const d = decidirDestino(base, { pais: "BR", dispositivo: "mobile", origem: "facebook" }, 90);
+    expect(d.ficou).toBe(true);
+  });
+});

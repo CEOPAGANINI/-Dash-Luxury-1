@@ -432,10 +432,10 @@
 /* De onde vêm — barras */
 .ofr__bars-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 20px;
 }
-@media (max-width: 720px) {
+@media (max-width: 900px) {
   .ofr__bars-grid {
     grid-template-columns: 1fr;
   }
@@ -542,4 +542,13 @@
 }
 .ofr__search {
   max-width: 340px;
+}
+
+/* Pontinho com a cor da marca no chip de origem de tráfego. */
+.ofr__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 9999px;
+  flex: none;
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 20%);
 }
