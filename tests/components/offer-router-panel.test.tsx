@@ -10,7 +10,7 @@ afterEach(cleanup);
 describe("Roteador de ofertas (demonstração)", () => {
   it("mostra as quatro partes", () => {
     render(<OfferRouterPanel />);
-    expect(screen.getByText("Configurar oferta")).toBeTruthy();
+    expect(screen.getByText(/Configurar oferta/)).toBeTruthy();
     expect(screen.getByText("Páginas com redirecionamento")).toBeTruthy();
     expect(screen.getByText(/De onde vêm/)).toBeTruthy();
     expect(screen.getByText(/Redirecionados — região/)).toBeTruthy();

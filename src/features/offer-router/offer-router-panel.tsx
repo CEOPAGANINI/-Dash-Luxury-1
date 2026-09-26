@@ -66,6 +66,8 @@ export function OfferRouterPanel() {
   });
   const [sorteio, setSorteio] = React.useState(20);
   const [filtroPais, setFiltroPais] = React.useState<Record<string, string>>({});
+  const canvasRef = React.useRef<HTMLDivElement>(null);
+  const [fios, setFios] = React.useState<string[]>([]);
   const seq = React.useRef(100);
 
   const pagina = paginas.find((p) => p.id === selId) ?? paginas[0];
@@ -145,6 +147,54 @@ export function OfferRouterPanel() {
     );
   };
 
+  // Mede as portas dos nós e desenha os conectores verdes (Fonte → Regras
+  // → Hub → Saída). Recalcula quando o layout muda (regras, busca, tamanho).
+  React.useLayoutEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const medir = () => {
+      const cr = canvas.getBoundingClientRect();
+      const rel = (el: Element) => {
+        const r = el.getBoundingClientRect();
+        return { l: r.left - cr.left, r: r.right - cr.left, cy: r.top - cr.top + r.height / 2 };
+      };
+      const curva = (x1: number, y1: number, x2: number, y2: number) => {
+        const dx = Math.max(28, Math.abs(x2 - x1) / 2);
+        return `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`;
+      };
+      const fonte = canvas.querySelector(".wf__fonte");
+      const hub = canvas.querySelector(".wf__hub");
+      const saida = canvas.querySelector(".wf__saida");
+      const paths: string[] = [];
+      if (fonte && hub && saida) {
+        const F = rel(fonte);
+        const H = rel(hub);
+        const S = rel(saida);
+        const regras = Array.from(canvas.querySelectorAll(".ofr__rule"));
+        if (regras.length === 0) {
+          paths.push(curva(F.r, F.cy, H.l, H.cy));
+        } else {
+          for (const el of regras) {
+            const R = rel(el);
+            paths.push(curva(F.r, F.cy, R.l, R.cy));
+            paths.push(curva(R.r, R.cy, H.l, H.cy));
+          }
+        }
+        paths.push(curva(H.r, H.cy, S.l, S.cy));
+      }
+      setFios(paths);
+    };
+    medir();
+    const ro =
+      typeof ResizeObserver !== "undefined" ? new ResizeObserver(medir) : null;
+    ro?.observe(canvas);
+    window.addEventListener("resize", medir);
+    return () => {
+      ro?.disconnect();
+      window.removeEventListener("resize", medir);
+    };
+  }, [paginas, selId, filtroPais, visitante]);
+
   return (
     <div className="ofr">
       <div className="ofr__stage">
@@ -173,9 +223,39 @@ export function OfferRouterPanel() {
         </p>
 
         {/* ── 1) Configurar ─────────────────────────────────────────── */}
-        <section className="ofr__card">
-          <div className="ofr__card-head">Configurar oferta</div>
+        <section className="wf" aria-label="Configurar redirecionador">
+          <div className="wf__rail" aria-hidden>
+            <span className="wf__rail-ico wf__rail-ico--on" />
+            <span className="wf__rail-ico" />
+            <span className="wf__rail-ico" />
+            <span className="wf__rail-ico" />
+          </div>
+          <div className="wf__main">
+            <header className="wf__top">
+              <span className="wf__top-title">
+                redirecionador.fluxo — Configurar oferta
+              </span>
+              <span className="wf__status">
+                <i />
+                fluxo ativo
+              </span>
+            </header>
+            <div className="wf__canvas" ref={canvasRef}>
+              <svg className="wf__wires" aria-hidden>
+                {fios.map((d, i) => (
+                  <path key={i} className="wf__wire" d={d} />
+                ))}
+              </svg>
 
+              <div className="wf__node wf__fonte">
+                <header className="wf__node-head">
+                  <span className="wf__node-ico" aria-hidden>
+                    ◈
+                  </span>
+                  <span className="wf__node-title">Fonte</span>
+                  <span className="wf__node-dot" aria-hidden />
+                </header>
+                <div className="wf__node-body">
           <div className="ofr__field">
             <span className="ofr__label">Página que recebe o tráfego</span>
             <div className="ofr__pills">
@@ -195,7 +275,10 @@ export function OfferRouterPanel() {
               Origem: {pagina.url} — quem não bater em regra nenhuma fica aqui.
             </small>
           </div>
+                </div>
+              </div>
 
+              <div className="wf__regras">
           <div className="ofr__rules">
             {pagina.regras.length === 0 && (
               <p className="ofr__empty">
@@ -377,7 +460,25 @@ export function OfferRouterPanel() {
               + Adicionar regra
             </button>
           </div>
+              </div>
 
+              <div className="wf__hub" aria-hidden>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <circle cx="5" cy="12" r="2.4" fill="currentColor" />
+                  <circle cx="19" cy="5" r="2.4" fill="currentColor" />
+                  <circle cx="19" cy="19" r="2.4" fill="currentColor" />
+                  <path d="M7 12h4M13 8l4-2M13 16l4 2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                </svg>
+              </div>
+
+              <div className="wf__node wf__saida">
+                <header className="wf__node-head">
+                  <span className="wf__node-ico" aria-hidden>
+                    ▣
+                  </span>
+                  <span className="wf__node-title">Saída</span>
+                  <span className="wf__node-dot" aria-hidden />
+                </header>
           {/* Simulador */}
           <div className="ofr__sim">
             <div className="ofr__card-head">Simular um visitante</div>
@@ -512,6 +613,9 @@ export function OfferRouterPanel() {
                     pela regra: {descreverRegra(decisao.regra)}
                   </span>
                 )}
+              </div>
+            </div>
+          </div>
               </div>
             </div>
           </div>
