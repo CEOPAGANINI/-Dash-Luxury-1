@@ -838,9 +838,207 @@
 .wf__flow-add:hover {
   filter: brightness(1.05);
 }
+.wf__flow-acts {
+  position: absolute;
+  right: 14px;
+  bottom: 12px;
+  z-index: 5;
+  display: flex;
+  gap: 8px;
+}
+.wf__flow-acts .wf__flow-add {
+  position: static;
+}
+.wf__flow-add--ghost {
+  color: var(--wf-text);
+  background: var(--wf-node-2);
+  border-color: var(--wf-line-2);
+}
+.wf__flow-add--ghost[data-on] {
+  border-color: var(--wf-accent);
+  color: var(--wf-accent);
+}
 /* No bloco estreito, o simulador fica em uma coluna só. */
 .wf__fnode .ofr__sim-controls {
   grid-template-columns: 1fr;
+}
+
+/* ── Bloco de página (adicionado da paleta / VPS) ──────────────────────── */
+.wf__page {
+  border-top: 2px solid var(--tipo-cor, var(--wf-accent));
+}
+.wf__page-ico {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  color: #06210f;
+  background: var(--tipo-cor, var(--wf-accent));
+}
+.wf__page-del {
+  margin-left: auto;
+  border: 0;
+  background: transparent;
+  color: var(--wf-muted);
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  padding: 4px;
+}
+.wf__page-del:hover {
+  color: var(--ofr-danger);
+}
+.wf__page-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+}
+.wf__page-host {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--ofr-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--wf-muted);
+}
+.wf__page-host i {
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+  background: var(--tipo-cor, var(--wf-accent));
+}
+
+/* ── Paleta de ferramentas (adicionar bloco) ───────────────────────────── */
+.wf__palette {
+  position: absolute;
+  left: 14px;
+  bottom: 56px;
+  z-index: 8;
+  width: min(420px, calc(100% - 28px));
+  max-height: min(70%, 560px);
+  display: flex;
+  flex-direction: column;
+  background: var(--wf-node);
+  border: 1px solid var(--wf-line-2);
+  border-radius: 14px;
+  box-shadow: 0 24px 48px rgb(0 0 0 / 55%);
+  overflow: hidden;
+}
+.wf__palette-head {
+  position: relative;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--wf-line);
+}
+.wf__palette-head b {
+  display: block;
+  font-size: 14px;
+  color: var(--wf-text);
+}
+.wf__palette-head > span {
+  font-size: 12px;
+  color: var(--wf-muted);
+}
+.wf__palette-x {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  border: 0;
+  background: transparent;
+  color: var(--wf-muted);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 4px 6px;
+}
+.wf__palette-x:hover {
+  color: var(--wf-text);
+}
+.wf__palette-body {
+  overflow: auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.wf__tool {
+  border: 1px solid var(--wf-line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.wf__tool-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--wf-node-2);
+}
+.wf__tool-ico {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  color: #06210f;
+  background: var(--tipo-cor, var(--wf-accent));
+}
+.wf__tool-head > div {
+  min-width: 0;
+  flex: 1;
+}
+.wf__tool-head > div b {
+  display: block;
+  font-size: 13px;
+  color: var(--wf-text);
+}
+.wf__tool-head > div span {
+  font-size: 11px;
+  color: var(--wf-muted);
+}
+.wf__tool-new {
+  flex: none;
+  font-family: var(--ofr-sans);
+  font-size: 12px;
+  color: var(--wf-text);
+  background: transparent;
+  border: 1px dashed var(--wf-line-2);
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+.wf__tool-new:hover {
+  border-color: var(--wf-accent);
+  color: var(--wf-accent);
+}
+.wf__tool-hosted {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 12px;
+}
+.wf__tool-item {
+  text-align: left;
+  border: 1px solid var(--wf-line-2);
+  border-radius: 8px;
+  background: transparent;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+.wf__tool-item:hover {
+  border-color: var(--wf-accent);
+  background: color-mix(in srgb, var(--wf-accent) 12%, transparent);
+}
+.wf__tool-item b {
+  display: block;
+  font-size: 12px;
+  color: var(--wf-text);
+}
+.wf__tool-item span {
+  font-family: var(--ofr-mono);
+  font-size: 10px;
+  color: var(--wf-muted);
 }
 
 .wf__fonte {

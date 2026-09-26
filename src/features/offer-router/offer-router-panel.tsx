@@ -42,6 +42,15 @@ import {
   ROTULO_CATEGORIA,
   destinosPorCategoria,
 } from "./funnel-link";
+import {
+  BlocoPagina,
+  BlocoTipo,
+  FERRAMENTAS,
+  HospedadoVps,
+  ferramenta,
+  hospedadosDoTipo,
+  rotuloTipo,
+} from "./redirector-tools";
 import { CountryFlag } from "@/features/access-filter/country-flag";
 
 /*
@@ -243,6 +252,43 @@ export function OfferRouterPanel() {
   const [selEdge, setSelEdge] = React.useState<string | null>(null);
   const inter = React.useRef<Interacao>(null);
   const eseq = React.useRef(1);
+  // Blocos de página que o dono adiciona pela paleta (do que está na VPS).
+  const [blocos, setBlocos] = React.useState<BlocoPagina[]>([]);
+  const [paleta, setPaleta] = React.useState(false);
+  const bseq = React.useRef(1);
+
+  // Adiciona um bloco novo no quadro (de um item hospedado, ou em branco
+  // para o dono preencher o endereço). Ganha um lugar padrão à direita.
+  const addBloco = (tipo: BlocoTipo, hosp?: HospedadoVps) => {
+    const id = `b${bseq.current++}`;
+    const n = blocos.length;
+    setBlocos((bs) => [
+      ...bs,
+      {
+        id,
+        tipo,
+        nome: hosp?.nome ?? `${rotuloTipo(tipo)} nova`,
+        url: hosp?.url ?? "",
+        site: hosp?.site,
+      },
+    ]);
+    setPos((ps) => ({ ...ps, [id]: { x: 480 + (n % 3) * 40, y: 620 + n * 40 } }));
+    setPaleta(false);
+  };
+
+  const setBloco = (id: string, patch: Partial<BlocoPagina>) =>
+    setBlocos((bs) => bs.map((b) => (b.id === id ? { ...b, ...patch } : b)));
+
+  const removeBloco = (id: string) => {
+    setBlocos((bs) => bs.filter((b) => b.id !== id));
+    setExtras((es) => es.filter((x) => x.source !== id && x.target !== id));
+    setPos((ps) => {
+      if (!(id in ps)) return ps;
+      const resto = { ...ps };
+      delete resto[id];
+      return resto;
+    });
+  };
 
   // Semeia uma posição para cada bloco (Fonte, cada regra, Saída) que ainda
   // não tem uma. Blocos ganham um lugar padrão em colunas: Fonte à esquerda,
@@ -1036,19 +1082,185 @@ export function OfferRouterPanel() {
                         </div>
                       </div>
                     </NodeShell>
+
+                    {/* ── Blocos de página que o dono adicionou (VPS) ─── */}
+                    {blocos.map((b) => {
+                      const f = ferramenta(b.tipo);
+                      return (
+                        <NodeShell
+                          key={b.id}
+                          id={b.id}
+                          pos={p(b.id)}
+                          dragging={dragId === b.id}
+                          hasIn
+                          hasOut
+                          onDrag={iniciarArrasto}
+                          onConnect={iniciarConexao}
+                          onMeasure={medir}
+                        >
+                          <div
+                            className="wf__node wf__page"
+                            data-tipo={b.tipo}
+                            style={
+                              { "--tipo-cor": f.cor } as React.CSSProperties
+                            }
+                          >
+                            <header className="wf__node-head">
+                              <span className="wf__page-ico" aria-hidden>
+                                <svg
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="1.7"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
+                                  <path d={f.icone} />
+                                </svg>
+                              </span>
+                              <span className="wf__node-title">{f.nome}</span>
+                              <button
+                                type="button"
+                                className="wf__page-del"
+                                aria-label={`Remover ${f.nome}`}
+                                onClick={() => removeBloco(b.id)}
+                              >
+                                ✕
+                              </button>
+                            </header>
+                            <div className="wf__page-body">
+                              <input
+                                className="ofr__input"
+                                value={b.nome}
+                                maxLength={120}
+                                aria-label="Nome do bloco"
+                                onChange={(e) =>
+                                  setBloco(b.id, { nome: e.target.value })
+                                }
+                              />
+                              <input
+                                className="ofr__input"
+                                value={b.url}
+                                maxLength={2048}
+                                placeholder="https://… (endereço na VPS)"
+                                aria-label="Endereço do bloco"
+                                onChange={(e) =>
+                                  setBloco(b.id, { url: e.target.value })
+                                }
+                              />
+                              {b.site && (
+                                <span className="wf__page-host">
+                                  <i aria-hidden />
+                                  hospedado na VPS · {b.site}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </NodeShell>
+                      );
+                    })}
                   </div>
 
                   <p className="wf__flow-hint" aria-hidden>
                     Arraste os blocos • puxe da bolinha ▸ de um bloco até outro
                     para ligar • roda do mouse dá zoom
                   </p>
-                  <button
-                    type="button"
-                    className="wf__flow-add"
-                    onClick={addRegra}
-                  >
-                    + Adicionar regra
-                  </button>
+                  <div className="wf__flow-acts">
+                    <button
+                      type="button"
+                      className="wf__flow-add wf__flow-add--ghost"
+                      onClick={() => setPaleta((v) => !v)}
+                      data-on={paleta || undefined}
+                    >
+                      + Bloco
+                    </button>
+                    <button
+                      type="button"
+                      className="wf__flow-add"
+                      onClick={addRegra}
+                    >
+                      + Adicionar regra
+                    </button>
+                  </div>
+
+                  {paleta && (
+                    <div
+                      className="wf__palette"
+                      onPointerDown={(e) => e.stopPropagation()}
+                    >
+                      <div className="wf__palette-head">
+                        <b>Adicionar bloco</b>
+                        <span>Ferramentas e o que está hospedado na sua VPS</span>
+                        <button
+                          type="button"
+                          className="wf__palette-x"
+                          aria-label="Fechar"
+                          onClick={() => setPaleta(false)}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                      <div className="wf__palette-body">
+                        {FERRAMENTAS.map((f) => {
+                          const hosp = hospedadosDoTipo(f.tipo);
+                          return (
+                            <div className="wf__tool" key={f.tipo}>
+                              <div
+                                className="wf__tool-head"
+                                style={
+                                  { "--tipo-cor": f.cor } as React.CSSProperties
+                                }
+                              >
+                                <span className="wf__tool-ico" aria-hidden>
+                                  <svg
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="1.7"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  >
+                                    <path d={f.icone} />
+                                  </svg>
+                                </span>
+                                <div>
+                                  <b>{f.nome}</b>
+                                  <span>{f.descricao}</span>
+                                </div>
+                                <button
+                                  type="button"
+                                  className="wf__tool-new"
+                                  onClick={() => addBloco(f.tipo)}
+                                >
+                                  + Em branco
+                                </button>
+                              </div>
+                              {hosp.length > 0 && (
+                                <div className="wf__tool-hosted">
+                                  {hosp.map((h) => (
+                                    <button
+                                      key={h.id}
+                                      type="button"
+                                      className="wf__tool-item"
+                                      onClick={() => addBloco(f.tipo, h)}
+                                      title={h.url}
+                                    >
+                                      <b>{h.nome}</b>
+                                      <span>{h.site}</span>
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
