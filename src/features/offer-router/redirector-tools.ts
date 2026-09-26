@@ -1,18 +1,15 @@
 /*
   As ferramentas do redirecionador: os tipos de bloco que o dono pode
   adicionar no quadro (página, página fake, página de oferta, home da loja
-  e página de produto). Os blocos disponíveis vêm do que está hospedado na
-  VPS — aqui, um catálogo de demonstração no mesmo espírito do resto da
-  tela (nada roteia nem publica de verdade).
+  e página de produto). O que se pode escolher vem do catálogo da VPS
+  (domínios → páginas), compartilhado com o quadro de funil. Continua só
+  demonstração: nada roteia nem publica de verdade.
 */
 
-/** Os tipos de bloco/página que o quadro conhece. */
-export type BlocoTipo =
-  | "pagina"
-  | "pagina_fake"
-  | "oferta"
-  | "loja"
-  | "produto";
+import type { PaginaTipo } from "@/features/vps/catalogo-demo";
+
+/** O tipo de bloco é o mesmo tipo de página da VPS. */
+export type BlocoTipo = PaginaTipo;
 
 export interface FerramentaDef {
   tipo: BlocoTipo;
@@ -74,88 +71,12 @@ export function corDoTipo(tipo: BlocoTipo): string {
   return ferramenta(tipo).cor;
 }
 
-/** Uma coisa hospedada na VPS que vira um bloco pronto no quadro. */
-export interface HospedadoVps {
-  id: string;
-  tipo: BlocoTipo;
-  nome: string;
-  /** Endereço público (caminho ou URL). */
-  url: string;
-  /** O site/servidor da VPS onde está hospedado. */
-  site: string;
-}
-
-/**
- * O que está hospedado na VPS (demonstração): dois sites — uma loja com
- * home e produtos, e um site de oferta com página de oferta e uma página
- * fake. Numa versão ligada, viria dos sites/servidores reais da VPS.
- */
-export const HOSPEDADO_VPS: HospedadoVps[] = [
-  // Loja "Suprema" — home + produtos
-  {
-    id: "loja-suprema",
-    tipo: "loja",
-    nome: "Loja Suprema — home",
-    url: "https://loja-suprema.com/",
-    site: "loja-suprema.com",
-  },
-  {
-    id: "prod-relogio",
-    tipo: "produto",
-    nome: "Relógio Aviator",
-    url: "https://loja-suprema.com/produto/relogio-aviator",
-    site: "loja-suprema.com",
-  },
-  {
-    id: "prod-oculos",
-    tipo: "produto",
-    nome: "Óculos Eclipse",
-    url: "https://loja-suprema.com/produto/oculos-eclipse",
-    site: "loja-suprema.com",
-  },
-  {
-    id: "prod-bota",
-    tipo: "produto",
-    nome: "Bota Trek",
-    url: "https://loja-suprema.com/produto/bota-trek",
-    site: "loja-suprema.com",
-  },
-  // Site de oferta — oferta + página fake
-  {
-    id: "oferta-quente",
-    tipo: "oferta",
-    nome: "Oferta Black — VSL",
-    url: "https://oferta-quente.com/oferta",
-    site: "oferta-quente.com",
-  },
-  {
-    id: "fake-avaliacao",
-    tipo: "pagina_fake",
-    nome: "Avaliação (fachada)",
-    url: "https://oferta-quente.com/avaliacao",
-    site: "oferta-quente.com",
-  },
-  // Site comum
-  {
-    id: "pagina-inicio",
-    tipo: "pagina",
-    nome: "Página inicial",
-    url: "https://meusite.com/inicio",
-    site: "meusite.com",
-  },
-];
-
-/** O que está hospedado na VPS de um dado tipo. */
-export function hospedadosDoTipo(tipo: BlocoTipo): HospedadoVps[] {
-  return HOSPEDADO_VPS.filter((h) => h.tipo === tipo);
-}
-
 /** Um bloco de página posto no quadro pelo dono. */
 export interface BlocoPagina {
   id: string;
   tipo: BlocoTipo;
   nome: string;
   url: string;
-  /** O site da VPS, quando o bloco veio de algo hospedado. */
-  site?: string;
+  /** O domínio da VPS, quando o bloco veio de uma página hospedada. */
+  host?: string;
 }

@@ -592,6 +592,28 @@
   color: var(--fn-muted);
   margin-top: 2px;
 }
+/* Seletor de domínio da VPS no painel "Páginas da VPS". */
+.funnel__vps-doms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+.funnel__vps-dom {
+  font-family: var(--fn-mono);
+  font-size: 12px;
+  color: var(--fn-muted);
+  background: var(--fn-surface-3);
+  border: 1px solid var(--fn-line);
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+.funnel__vps-dom[data-on] {
+  color: var(--fn-primary-text);
+  background: #2bd975;
+  border-color: #2bd975;
+}
 .funnel__grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);

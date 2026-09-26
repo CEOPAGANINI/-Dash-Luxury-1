@@ -46,11 +46,16 @@ import {
   BlocoPagina,
   BlocoTipo,
   FERRAMENTAS,
-  HospedadoVps,
   ferramenta,
-  hospedadosDoTipo,
   rotuloTipo,
 } from "./redirector-tools";
+import {
+  DOMINIOS_VPS,
+  PaginaVps,
+  paginasDoDominioTipo,
+  resumoDoDominio,
+  urlDaPagina,
+} from "@/features/vps/catalogo-demo";
 import { CountryFlag } from "@/features/access-filter/country-flag";
 
 /*
@@ -255,11 +260,13 @@ export function OfferRouterPanel() {
   // Blocos de página que o dono adiciona pela paleta (do que está na VPS).
   const [blocos, setBlocos] = React.useState<BlocoPagina[]>([]);
   const [paleta, setPaleta] = React.useState(false);
+  // O domínio da VPS escolhido na paleta (as páginas vêm dele).
+  const [dominioSel, setDominioSel] = React.useState(DOMINIOS_VPS[0].host);
   const bseq = React.useRef(1);
 
-  // Adiciona um bloco novo no quadro (de um item hospedado, ou em branco
+  // Adiciona um bloco novo no quadro (de uma página da VPS, ou em branco
   // para o dono preencher o endereço). Ganha um lugar padrão à direita.
-  const addBloco = (tipo: BlocoTipo, hosp?: HospedadoVps) => {
+  const addBloco = (tipo: BlocoTipo, pag?: PaginaVps) => {
     const id = `b${bseq.current++}`;
     const n = blocos.length;
     setBlocos((bs) => [
@@ -267,9 +274,9 @@ export function OfferRouterPanel() {
       {
         id,
         tipo,
-        nome: hosp?.nome ?? `${rotuloTipo(tipo)} nova`,
-        url: hosp?.url ?? "",
-        site: hosp?.site,
+        nome: pag?.nome ?? `${rotuloTipo(tipo)} nova`,
+        url: pag ? urlDaPagina(pag) : "",
+        host: pag?.host ?? (pag ? undefined : dominioSel),
       },
     ]);
     setPos((ps) => ({ ...ps, [id]: { x: 480 + (n % 3) * 40, y: 620 + n * 40 } }));
@@ -1150,10 +1157,10 @@ export function OfferRouterPanel() {
                                   setBloco(b.id, { url: e.target.value })
                                 }
                               />
-                              {b.site && (
+                              {b.host && (
                                 <span className="wf__page-host">
                                   <i aria-hidden />
-                                  hospedado na VPS · {b.site}
+                                  hospedado na VPS · {b.host}
                                 </span>
                               )}
                             </div>
@@ -1192,7 +1199,7 @@ export function OfferRouterPanel() {
                     >
                       <div className="wf__palette-head">
                         <b>Adicionar bloco</b>
-                        <span>Ferramentas e o que está hospedado na sua VPS</span>
+                        <span>Escolha o domínio da VPS e o que ele hospeda</span>
                         <button
                           type="button"
                           className="wf__palette-x"
@@ -1202,9 +1209,33 @@ export function OfferRouterPanel() {
                           ✕
                         </button>
                       </div>
+                      <div className="wf__palette-dominios" role="group" aria-label="Domínio da VPS">
+                        {DOMINIOS_VPS.map((d) => {
+                          const r = resumoDoDominio(d.host);
+                          const total =
+                            r.pagina + r.pagina_fake + r.oferta + r.loja + r.produto;
+                          return (
+                            <button
+                              key={d.host}
+                              type="button"
+                              className="wf__dominio"
+                              data-on={dominioSel === d.host || undefined}
+                              onClick={() => setDominioSel(d.host)}
+                            >
+                              <span className="wf__dominio-host">
+                                <i data-estado={d.estado} aria-hidden />
+                                {d.host}
+                              </span>
+                              <span className="wf__dominio-sub">
+                                {d.titulo} · {total} página(s)
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
                       <div className="wf__palette-body">
                         {FERRAMENTAS.map((f) => {
-                          const hosp = hospedadosDoTipo(f.tipo);
+                          const hosp = paginasDoDominioTipo(dominioSel, f.tipo);
                           return (
                             <div className="wf__tool" key={f.tipo}>
                               <div
@@ -1239,7 +1270,7 @@ export function OfferRouterPanel() {
                                   + Em branco
                                 </button>
                               </div>
-                              {hosp.length > 0 && (
+                              {hosp.length > 0 ? (
                                 <div className="wf__tool-hosted">
                                   {hosp.map((h) => (
                                     <button
@@ -1247,12 +1278,18 @@ export function OfferRouterPanel() {
                                       type="button"
                                       className="wf__tool-item"
                                       onClick={() => addBloco(f.tipo, h)}
-                                      title={h.url}
+                                      title={urlDaPagina(h)}
                                     >
                                       <b>{h.nome}</b>
-                                      <span>{h.site}</span>
+                                      <span>{h.caminho}</span>
                                     </button>
                                   ))}
+                                </div>
+                              ) : (
+                                <div className="wf__tool-hosted">
+                                  <span className="ofr__hint">
+                                    Nada desse tipo em {dominioSel}.
+                                  </span>
                                 </div>
                               )}
                             </div>

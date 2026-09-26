@@ -27,6 +27,7 @@ import {
   Plug,
   Plus,
   Save,
+  Server,
   Settings,
   Smartphone,
   Split,
@@ -52,6 +53,12 @@ import {
   type LucideName,
   type MarcaDef,
 } from "./funnel-model";
+import {
+  DOMINIOS_VPS,
+  PAGINAS_VPS,
+  paginasDoDominio,
+  urlDaPagina,
+} from "@/features/vps/catalogo-demo";
 
 const ICONES: Record<
   LucideName,
@@ -146,9 +153,11 @@ export function FunnelBoard({
     tipo: "node" | "edge";
     id: string;
   } | null>(null);
-  const [painel, setPainel] = React.useState<"recursos" | "icones" | null>(
-    null,
-  );
+  const [painel, setPainel] = React.useState<
+    "recursos" | "icones" | "vps" | null
+  >(null);
+  // O domínio da VPS escolhido no painel VPS (as páginas vêm dele).
+  const [dominioVps, setDominioVps] = React.useState(DOMINIOS_VPS[0].host);
   const [dialog, setDialog] = React.useState(false);
   const [nome, setNome] = React.useState(inicial.nome);
   const [locked, setLocked] = React.useState(false);
@@ -370,7 +379,20 @@ export function FunnelBoard({
       const x = snap(wx - NODE_W / 2);
       const y = snap(wy - 40);
       let novo: FunnelNode;
-      if (payload.startsWith("marca:")) {
+      if (payload.startsWith("vps:")) {
+        // Uma página hospedada na VPS vira um nó de página com o endereço
+        // real do domínio escolhido.
+        const pag = PAGINAS_VPS.find((pp) => pp.id === payload.slice(4));
+        if (!pag) return;
+        novo = {
+          id: `n${idSeq.current++}`,
+          type: "page_v3",
+          x,
+          y,
+          title: pag.nome,
+          url: urlDaPagina(pag),
+        };
+      } else if (payload.startsWith("marca:")) {
         const m = MARCAS.find((mm) => mm.id === payload.slice(6));
         if (!m) return;
         novo = {
@@ -623,6 +645,15 @@ export function FunnelBoard({
         <button
           type="button"
           className="funnel__rail-btn"
+          aria-label="Páginas da VPS"
+          data-on={painel === "vps"}
+          onClick={() => setPainel((p) => (p === "vps" ? null : "vps"))}
+        >
+          <Server size={18} strokeWidth={2} />
+        </button>
+        <button
+          type="button"
+          className="funnel__rail-btn"
           aria-label="Configurações"
           onClick={() => setDialog(true)}
         >
@@ -682,6 +713,46 @@ export function FunnelBoard({
                   {m.sigla}
                 </span>
                 <span className="funnel__item-label">{m.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {painel === "vps" && (
+        <div className="funnel__panel">
+          <div className="funnel__panel-title">Páginas da VPS</div>
+          <div className="funnel__panel-hint">
+            Escolha o domínio e arraste uma página hospedada para o fluxo.
+          </div>
+          <div className="funnel__vps-doms" role="group" aria-label="Domínio">
+            {DOMINIOS_VPS.map((d) => (
+              <button
+                type="button"
+                key={d.host}
+                className="funnel__vps-dom"
+                data-on={dominioVps === d.host || undefined}
+                onClick={() => setDominioVps(d.host)}
+              >
+                {d.host}
+              </button>
+            ))}
+          </div>
+          <div className="funnel__grid">
+            {paginasDoDominio(dominioVps).map((pg) => (
+              <button
+                type="button"
+                key={pg.id}
+                className="funnel__item"
+                draggable
+                onDragStart={(e) =>
+                  e.dataTransfer.setData(DATA_KEY, `vps:${pg.id}`)
+                }
+                onClick={() => adicionarNoCentro(`vps:${pg.id}`)}
+                title={urlDaPagina(pg)}
+              >
+                <FileText size={24} strokeWidth={1.8} />
+                <span className="funnel__item-label">{pg.nome}</span>
               </button>
             ))}
           </div>
