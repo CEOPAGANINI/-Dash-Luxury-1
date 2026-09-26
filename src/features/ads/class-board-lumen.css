@@ -43,6 +43,7 @@ html[data-tema] .cl .class-board-quadro[data-design="lumen"] {
   --lm-info: #a5b4fc;
   --lm-fio: rgb(255 255 255 / 20%);
   --lm-vidro: linear-gradient(135deg, #232323, #0f0f0f);
+  --lm-bloco: #1a1a1a; /* fundo chapado dos blocos das campanhas */
   --lm-vidro-borda: rgb(255 255 255 / 10%);
   --lm-vidro-sombra:
     0 10px 20px rgb(0 0 0 / 50%), inset 0 1px 1px rgb(255 255 255 / 10%);
@@ -78,6 +79,7 @@ html[data-tema="branco"] .cl .class-board-quadro[data-design="lumen"] {
   --lm-info: #4338ca;
   --lm-fio: rgb(0 0 0 / 22%);
   --lm-vidro: linear-gradient(135deg, #ffffff, #f4f4f4);
+  --lm-bloco: #ffffff; /* fundo chapado dos blocos das campanhas */
   --lm-vidro-borda: rgb(0 0 0 / 10%);
   --lm-vidro-sombra:
     0 8px 18px rgb(0 0 0 / 8%), inset 0 1px 0 rgb(255 255 255 / 90%);
@@ -355,7 +357,8 @@ html[data-tema]
   border-width: 1px !important;
   border-color: var(--lm-vidro-borda) !important;
   border-radius: 16px !important;
-  background: var(--lm-vidro) !important;
+  /* Sem degrade nos blocos das campanhas, a pedido do dono: fundo chapado. */
+  background: var(--lm-bloco) !important;
   box-shadow: var(--lm-vidro-sombra) !important;
   overflow: hidden;
 }

@@ -9295,7 +9295,8 @@ html[data-tema]
   > section.class-board-pilar[aria-label]:hover {
   border: 1px solid var(--cl-border);
   border-radius: var(--cl-radius-panel);
-  background: linear-gradient(var(--cl-card-top), var(--cl-chassis)) !important;
+  /* Sem degrade nos blocos das campanhas, a pedido do dono: fundo chapado. */
+  background: var(--cl-chassis) !important;
   box-shadow:
     inset 0 0 0 var(--cl-frame) var(--cl-chassis),
     var(--cl-shadow-card) !important;
