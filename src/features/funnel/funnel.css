@@ -865,10 +865,17 @@
   right: 0;
   bottom: 0;
   z-index: 40;
-  width: min(400px, calc(100% - 12px));
+  width: min(600px, calc(100% - 12px));
   display: flex;
   flex-direction: column;
-  background: var(--fn-surface-3);
+  min-height: 0;
+  background:
+    radial-gradient(
+      120% 60% at 100% 0,
+      color-mix(in srgb, var(--fn-action) 10%, transparent),
+      transparent 60%
+    ),
+    var(--fn-surface-3);
   border-left: 1px solid var(--fn-line);
   box-shadow: -24px 0 48px rgb(0 0 0 / 55%);
   color: var(--fn-text);
@@ -962,20 +969,145 @@
   background: var(--aba-cor, #2bd975);
   border-color: var(--aba-cor, #2bd975);
 }
+/* Corpo = coluna principal ao lado do trilho. min-height:0 é o que faz o
+   conteúdo ROLAR por dentro em vez de vazar para fora do painel (o corte
+   que aparecia embaixo, escondendo o Publicar). */
+.pub__body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
 .pub__corpo {
   flex: 1;
+  min-width: 0;
+  min-height: 0;
   overflow: auto;
-  padding: 14px;
+  padding: 16px 18px 20px;
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
-.pub__campo {
+
+/* Trilho de ícones = o menu de configurações (uma aba por ícone). */
+.pub__rail {
+  flex: none;
+  width: 88px;
   display: flex;
   flex-direction: column;
   gap: 6px;
+  padding: 12px 8px;
+  overflow-y: auto;
+  border-right: 1px solid var(--fn-line);
+  background: color-mix(in srgb, #000000 22%, transparent);
+}
+.pub__rail-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 9px 4px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--fn-muted);
+  cursor: pointer;
+  transition:
+    color 0.14s,
+    background 0.14s,
+    border-color 0.14s,
+    box-shadow 0.14s;
+}
+.pub__rail-btn:hover {
+  color: var(--fn-text);
+  background: color-mix(in srgb, #ffffff 5%, transparent);
+}
+.pub__rail-btn[data-on] {
+  color: var(--aba-cor, #34d399);
+  background: color-mix(in srgb, var(--aba-cor, #34d399) 14%, transparent);
+  border-color: color-mix(in srgb, var(--aba-cor, #34d399) 42%, transparent);
+  box-shadow: 0 8px 20px -8px color-mix(in srgb, var(--aba-cor, #34d399) 65%, transparent);
+}
+.pub__rail-ic {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  background: color-mix(in srgb, #000000 28%, transparent);
+}
+.pub__rail-btn[data-on] .pub__rail-ic {
+  background: color-mix(in srgb, var(--aba-cor, #34d399) 20%, transparent);
+}
+.pub__rail-lbl {
+  font-size: 9px;
+  line-height: 1.1;
+  text-align: center;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+/* Cabeçalho da aba: crachá com ícone + título + subtítulo. */
+.pub__sec {
+  position: sticky;
+  top: -16px;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: -16px -18px 2px;
+  padding: 16px 18px 12px;
+  background: linear-gradient(
+    var(--fn-surface-3) 72%,
+    color-mix(in srgb, var(--fn-surface-3) 0%, transparent)
+  );
+}
+.pub__sec-badge {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  color: var(--aba-cor, #34d399);
+  background: color-mix(in srgb, var(--aba-cor, #34d399) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--aba-cor, #34d399) 38%, transparent);
+}
+.pub__sec-txt {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.pub__sec-titulo {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--fn-text);
+}
+.pub__sec-sub {
   font-size: 12px;
   color: var(--fn-muted);
+}
+
+/* Cartão genérico para grupos de controles (toggles, etc.). */
+.pub__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: color-mix(in srgb, #ffffff 3.5%, transparent);
+  border: 1px solid var(--fn-line);
+  border-radius: 14px;
+  padding: 10px 14px;
+}
+.pub__campo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--fn-muted);
+  background: color-mix(in srgb, #ffffff 3.5%, transparent);
+  border: 1px solid var(--fn-line);
+  border-radius: 14px;
+  padding: 13px 14px;
 }
 .pub__campo > span {
   font-weight: 600;
@@ -1197,6 +1329,22 @@
     border-left: 0;
     border-top: 1px solid var(--fn-line);
     border-radius: 16px 16px 0 0;
+  }
+  /* No celular o trilho vira uma faixa de ícones em cima do conteúdo. */
+  .pub__body {
+    flex-direction: column;
+  }
+  .pub__rail {
+    width: 100%;
+    flex-direction: row;
+    gap: 6px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border-right: 0;
+    border-bottom: 1px solid var(--fn-line);
+  }
+  .pub__rail-btn {
+    flex: none;
   }
 }
 

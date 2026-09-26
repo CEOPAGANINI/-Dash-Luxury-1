@@ -34,15 +34,103 @@ type Aba =
   | "protecao"
   | "saidas";
 
-const ABAS: { id: Aba; rotulo: string; cor: string }[] = [
-  { id: "essencial", rotulo: "Essencial", cor: "#34d399" },
-  { id: "conteudo", rotulo: "Conteúdo", cor: "#60a5fa" },
-  { id: "seo", rotulo: "SEO", cor: "#fbbf24" },
-  { id: "rastreio", rotulo: "Rastreio", cor: "#c084fc" },
-  { id: "velocidade", rotulo: "Velocidade", cor: "#38bdf8" },
-  { id: "protecao", rotulo: "Proteção", cor: "#fb923c" },
-  { id: "saidas", rotulo: "Saídas", cor: "#f87171" },
+const ABAS: { id: Aba; rotulo: string; sub: string; cor: string }[] = [
+  {
+    id: "essencial",
+    rotulo: "Essencial",
+    sub: "Domínio, caminho e o que falta para publicar",
+    cor: "#34d399",
+  },
+  {
+    id: "conteudo",
+    rotulo: "Conteúdo",
+    sub: "O ZIP da sua página (index.html na raiz)",
+    cor: "#60a5fa",
+  },
+  {
+    id: "seo",
+    rotulo: "SEO",
+    sub: "Título, descrição, imagem e favicon",
+    cor: "#fbbf24",
+  },
+  {
+    id: "rastreio",
+    rotulo: "Rastreio",
+    sub: "Pixel, GA4, GTM e Clarity",
+    cor: "#c084fc",
+  },
+  {
+    id: "velocidade",
+    rotulo: "Velocidade",
+    sub: "O Turbo que deixa a página leve",
+    cor: "#38bdf8",
+  },
+  {
+    id: "protecao",
+    rotulo: "Proteção",
+    sub: "Dificultar copiarem a sua página",
+    cor: "#fb923c",
+  },
+  {
+    id: "saidas",
+    rotulo: "Saídas",
+    sub: "Ligar os botões às próximas etapas",
+    cor: "#f87171",
+  },
 ];
+
+/** Ícone de cada aba (traço, herda a cor do texto). */
+function IconeAba({ id }: { id: Aba }) {
+  const paths: Record<Aba, React.ReactNode> = {
+    essencial: (
+      <>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M3 12h18" />
+        <path d="M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18" />
+      </>
+    ),
+    conteudo: (
+      <>
+        <path d="M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4" />
+        <path d="M12 3v12" />
+        <path d="M8 7l4-4 4 4" />
+      </>
+    ),
+    seo: (
+      <>
+        <circle cx="11" cy="11" r="7" />
+        <path d="M21 21l-4.3-4.3" />
+      </>
+    ),
+    rastreio: <path d="M3 12h4l3 8 4-16 3 8h4" />,
+    velocidade: <path d="M13 2 4 14h7l-1 8 9-12h-7z" />,
+    protecao: <path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z" />,
+    saidas: (
+      <>
+        <circle cx="6" cy="12" r="2.4" />
+        <circle cx="18" cy="6" r="2.4" />
+        <circle cx="18" cy="18" r="2.4" />
+        <path d="M8.3 11 15.7 7" />
+        <path d="M8.3 13 15.7 17" />
+      </>
+    ),
+  };
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="20"
+      height="20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      {paths[id]}
+    </svg>
+  );
+}
 
 const PROTECOES: { id: keyof ProtecaoPagina; rotulo: string }[] = [
   { id: "cliqueDireito", rotulo: "Bloquear botão direito" },
@@ -112,6 +200,7 @@ export function PagePublisher({
   const urlFinal = dados.dominio
     ? `https://${dados.dominio}${caminho}`
     : "— escolha um domínio";
+  const abaAtual = ABAS.find((a) => a.id === aba) ?? ABAS[0];
 
   // Status do "crachá": rascunho até ter domínio, caminho e ZIP conferido.
   const pronto = Boolean(dados.dominio && dados.zip?.ok);
@@ -198,23 +287,42 @@ export function PagePublisher({
         {urlFinal}
       </div>
 
-      <nav className="pub__abas" aria-label="Abas do publicador">
-        {ABAS.map((a) => (
-          <button
-            key={a.id}
-            type="button"
-            className="pub__aba"
-            data-on={aba === a.id || undefined}
-            style={{ "--aba-cor": a.cor } as React.CSSProperties}
-            onClick={() => setAba(a.id)}
-          >
-            {a.rotulo}
-          </button>
-        ))}
-      </nav>
+      <div className="pub__body">
+        <nav className="pub__rail" aria-label="Configurações da página">
+          {ABAS.map((a) => (
+            <button
+              key={a.id}
+              type="button"
+              className="pub__rail-btn"
+              data-on={aba === a.id || undefined}
+              style={{ "--aba-cor": a.cor } as React.CSSProperties}
+              onClick={() => setAba(a.id)}
+              title={a.rotulo}
+              aria-label={a.rotulo}
+            >
+              <span className="pub__rail-ic" aria-hidden>
+                <IconeAba id={a.id} />
+              </span>
+              <span className="pub__rail-lbl">{a.rotulo}</span>
+            </button>
+          ))}
+        </nav>
 
-      <div className="pub__corpo">
-        {aba === "essencial" && (
+        <div className="pub__corpo">
+          <div
+            className="pub__sec"
+            style={{ "--aba-cor": abaAtual.cor } as React.CSSProperties}
+          >
+            <span className="pub__sec-badge" aria-hidden>
+              <IconeAba id={abaAtual.id} />
+            </span>
+            <span className="pub__sec-txt">
+              <b className="pub__sec-titulo">{abaAtual.rotulo}</b>
+              <span className="pub__sec-sub">{abaAtual.sub}</span>
+            </span>
+          </div>
+
+          {aba === "essencial" && (
           <>
             <label className="pub__campo">
               <span>Adicionar domínio</span>
@@ -470,11 +578,13 @@ export function PagePublisher({
                 />
               </div>
             </label>
-            <Toggle
-              rotulo="Esconder do Google (noindex)"
-              on={Boolean(dados.meta.esconderDoGoogle)}
-              onToggle={(v) => setMeta({ esconderDoGoogle: v })}
-            />
+            <div className="pub__panel">
+              <Toggle
+                rotulo="Esconder do Google (noindex)"
+                on={Boolean(dados.meta.esconderDoGoogle)}
+                onToggle={(v) => setMeta({ esconderDoGoogle: v })}
+              />
+            </div>
           </>
         )}
 
@@ -500,16 +610,18 @@ export function PagePublisher({
               value={dados.meta.clarity ?? ""}
               onChange={(v) => setMeta({ clarity: v })}
             />
-            <Toggle
-              rotulo="Repassar UTM para as próximas etapas"
-              on={dados.meta.repassarUtm ?? true}
-              onToggle={(v) => setMeta({ repassarUtm: v })}
-            />
+            <div className="pub__panel">
+              <Toggle
+                rotulo="Repassar UTM para as próximas etapas"
+                on={dados.meta.repassarUtm ?? true}
+                onToggle={(v) => setMeta({ repassarUtm: v })}
+              />
+            </div>
           </>
         )}
 
         {aba === "velocidade" && (
-          <>
+          <div className="pub__panel">
             <Toggle
               rotulo="Turbo (otimização) ligado"
               on={velocidade !== null}
@@ -526,7 +638,7 @@ export function PagePublisher({
                   }
                 />
               ))}
-          </>
+          </div>
         )}
 
         {aba === "protecao" && (
@@ -534,16 +646,18 @@ export function PagePublisher({
             <small className="pub__hint">
               Dificulta copiar a página. Não é à prova de tudo — é demonstração.
             </small>
-            {PROTECOES.map((pp) => (
-              <Toggle
-                key={pp.id}
-                rotulo={pp.rotulo}
-                on={Boolean(protecao[pp.id])}
-                onToggle={(on) =>
-                  setMeta({ protecao: { ...protecao, [pp.id]: on } })
-                }
-              />
-            ))}
+            <div className="pub__panel">
+              {PROTECOES.map((pp) => (
+                <Toggle
+                  key={pp.id}
+                  rotulo={pp.rotulo}
+                  on={Boolean(protecao[pp.id])}
+                  onToggle={(on) =>
+                    setMeta({ protecao: { ...protecao, [pp.id]: on } })
+                  }
+                />
+              ))}
+            </div>
           </>
         )}
 
@@ -620,6 +734,7 @@ export function PagePublisher({
             </div>
           </>
         )}
+        </div>
       </div>
     </aside>
   );
