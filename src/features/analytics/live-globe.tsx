@@ -395,7 +395,12 @@ function LiveGlobeImpl({ points, className }: LiveGlobeProps) {
       64,
       64,
     );
-    globe.add(new THREE.Mesh(oceanGeometry, oceanMaterial));
+    // Globo transparente, a pedido do dono: sem a esfera do oceano — só os
+    // pontinhos dos continentes, vendo através (frente e verso). A malha
+    // fica invisível para não ocluir os pontos de trás.
+    const oceanMesh = new THREE.Mesh(oceanGeometry, oceanMaterial);
+    oceanMesh.visible = false;
+    globe.add(oceanMesh);
 
     /* ------------------------------------------------------- pontos de terra */
 
