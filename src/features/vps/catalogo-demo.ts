@@ -151,6 +151,19 @@ export function paginasDoDominioTipo(
   return PAGINAS_VPS.filter((p) => p.host === host && p.tipo === tipo);
 }
 
+/**
+ * O estado de um domínio para o selo do bloco: os do catálogo usam o
+ * próprio estado; um domínio digitado à mão (fora do catálogo) fica
+ * "configurando" — aguardando o DNS apontar (demonstração).
+ */
+export function estadoDoDominio(
+  host?: string,
+): "ativo" | "configurando" | undefined {
+  if (!host) return undefined;
+  const d = DOMINIOS_VPS.find((x) => x.host === host);
+  return d ? d.estado : "configurando";
+}
+
 /** Quantas páginas de cada tipo um domínio tem. */
 export function resumoDoDominio(host: string): Record<PaginaTipo, number> {
   const base: Record<PaginaTipo, number> = {

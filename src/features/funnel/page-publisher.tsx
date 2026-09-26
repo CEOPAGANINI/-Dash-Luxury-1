@@ -8,7 +8,7 @@ import {
   VelocidadePagina,
   paginaVazia,
 } from "./funnel-model";
-import { DOMINIOS_VPS } from "@/features/vps/catalogo-demo";
+import { DOMINIOS_VPS, estadoDoDominio } from "@/features/vps/catalogo-demo";
 
 /*
   O publicador do bloco "Página" — só a interface, a pedido do dono. Um
@@ -106,6 +106,24 @@ export function PagePublisher({
 
   // Status do "crachá": rascunho até ter domínio, caminho e ZIP conferido.
   const pronto = Boolean(dados.dominio && dados.zip?.ok);
+  const estadoDom = estadoDoDominio(dados.dominio);
+  const caminhoOk = caminho.length > 0;
+  const checklist = [
+    {
+      ok: Boolean(dados.dominio),
+      txt: dados.dominio ? "Domínio escolhido" : "Escolha um domínio",
+    },
+    { ok: caminhoOk, txt: caminhoOk ? "Caminho válido" : "Defina o caminho" },
+    {
+      ok: Boolean(dados.zip?.ok),
+      txt: dados.zip
+        ? dados.zip.ok
+          ? "ZIP conferido"
+          : "ZIP com problema"
+        : "Arraste o ZIP (aba Conteúdo)",
+    },
+    { ok: false, txt: "VPS não conectada" },
+  ];
 
   const receberZip = (f?: File) => {
     if (!f) return;
@@ -194,10 +212,23 @@ export function PagePublisher({
                     data-on={dados.dominio === d.host || undefined}
                     onClick={() => set({ dominio: d.host })}
                   >
+                    <span
+                      className="pub__chip-dot"
+                      data-estado={d.estado}
+                      aria-hidden
+                    />
                     {d.host}
                   </button>
                 ))}
               </div>
+              {dados.dominio && (
+                <div className="pub__dns" data-estado={estadoDom}>
+                  <i aria-hidden />
+                  {estadoDom === "ativo"
+                    ? "Domínio pronto — DNS apontado, HTTPS automático."
+                    : "Aguardando DNS — aponte um registro A para o IP da VPS."}
+                </div>
+              )}
             </label>
             <label className="pub__campo">
               <span>Adicionar domínio</span>
@@ -235,6 +266,16 @@ export function PagePublisher({
               />
             </label>
 
+            <ul className="pub__check" aria-label="Checklist para publicar">
+              {checklist.map((c, i) => (
+                <li key={i} data-ok={c.ok || undefined}>
+                  <span className="pub__check-mark" aria-hidden>
+                    {c.ok ? "✓" : "•"}
+                  </span>
+                  {c.txt}
+                </li>
+              ))}
+            </ul>
             <div className="pub__vps">
               <span className="pub__vps-dot" aria-hidden />
               VPS não conectada — configure aqui; publicar liga na Fase 2.

@@ -1199,3 +1199,83 @@
     border-radius: 16px 16px 0 0;
   }
 }
+
+/* ── Afinações do publicador: selo de domínio, DNS e checklist ──────────── */
+.pub__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.pub__chip-dot,
+.funnel__dom-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #2bd975;
+  flex: none;
+}
+.pub__chip-dot[data-estado="configurando"],
+.funnel__dom-dot[data-estado="configurando"] {
+  background: #fbbf24;
+}
+.funnel__dom-dot {
+  display: inline-block;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+.pub__dns {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--fn-muted);
+}
+.pub__dns i {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fbbf24;
+}
+.pub__dns[data-estado="ativo"] {
+  color: #86efac;
+}
+.pub__dns[data-estado="ativo"] i {
+  background: #2bd975;
+}
+.pub__check {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.pub__check li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--fn-muted);
+}
+.pub__check li[data-ok] {
+  color: var(--fn-text);
+}
+.pub__check-mark {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 11px;
+  color: var(--fn-muted);
+  border: 1px solid var(--fn-line-2);
+}
+.pub__check li[data-ok] .pub__check-mark {
+  color: #06210f;
+  background: #2bd975;
+  border-color: #2bd975;
+}

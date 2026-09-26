@@ -57,6 +57,7 @@ import {
 import {
   DOMINIOS_VPS,
   PAGINAS_VPS,
+  estadoDoDominio,
   paginasDoDominio,
   urlDaPagina,
 } from "@/features/vps/catalogo-demo";
@@ -1020,9 +1021,22 @@ function NodeView({
                 : node.descricao || "Adicione uma observação"}
             </span>
             <span className="funnel__node-url">
-              {pagina
-                ? enderecoPub || "Toque para configurar e publicar"
-                : url || "Sem referência"}
+              {pagina ? (
+                enderecoPub ? (
+                  <>
+                    <span
+                      className="funnel__dom-dot"
+                      data-estado={estadoDoDominio(pag?.dominio)}
+                      aria-hidden
+                    />
+                    {enderecoPub}
+                  </>
+                ) : (
+                  "Toque para configurar e publicar"
+                )
+              ) : (
+                url || "Sem referência"
+              )}
             </span>
           </button>
 
