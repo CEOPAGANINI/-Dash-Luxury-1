@@ -35,6 +35,13 @@ import {
   totalDeRedirecionamentos,
   totalRedirecionados,
 } from "./offer-router-model";
+import {
+  DESTINOS_FUNIL,
+  FunnelDestino,
+  ORIGENS_FUNIL,
+  ROTULO_CATEGORIA,
+  destinosPorCategoria,
+} from "./funnel-link";
 import { CountryFlag } from "@/features/access-filter/country-flag";
 
 /*
@@ -118,6 +125,25 @@ export function OfferRouterPanel() {
       ...p,
       regras: p.regras.filter((r) => r.id !== ruleId),
     }));
+
+  // Traz uma página/quiz do quadro de funil como origem (a página que
+  // recebe o tráfego). Se já foi trazida, só seleciona; nada roteia — é
+  // demonstração, igual ao resto da tela.
+  const usarOrigemDoFunil = (d: FunnelDestino) => {
+    const id = `funil-${d.id}`;
+    setPaginas((ps) =>
+      ps.some((p) => p.id === id)
+        ? ps
+        : [...ps, { id, nome: d.nome, url: d.url, regras: [] }],
+    );
+    setSelId(id);
+  };
+
+  // Os lugares do funil que ainda não viraram origem aqui.
+  const origensNovasDoFunil = ORIGENS_FUNIL.filter(
+    (d) => !paginas.some((p) => p.id === `funil-${d.id}`),
+  );
+  const gruposDestinoFunil = destinosPorCategoria(DESTINOS_FUNIL);
 
   const togglePais = (ruleId: string, code: string, atual: string[]) =>
     setRegra(ruleId, {
@@ -303,6 +329,31 @@ export function OfferRouterPanel() {
               Origem: {pagina.url} — quem não bater em regra nenhuma fica aqui.
             </small>
           </div>
+
+          {origensNovasDoFunil.length > 0 && (
+            <div className="ofr__field ofr__from-funnel">
+              <span className="ofr__label">
+                Do quadro de funil{" "}
+                <span className="ofr__from-funnel-tag">conectado</span>
+              </span>
+              <div className="ofr__pills">
+                {origensNovasDoFunil.map((d) => (
+                  <button
+                    key={d.id}
+                    type="button"
+                    className="ofr__pill ofr__pill--add"
+                    onClick={() => usarOrigemDoFunil(d)}
+                    title={`Usar "${d.nome}" (${d.url}) como origem`}
+                  >
+                    + {d.nome}
+                  </button>
+                ))}
+              </div>
+              <small className="ofr__hint">
+                Puxe uma página ou quiz do funil para receber o tráfego aqui.
+              </small>
+            </div>
+          )}
                 </div>
               </div>
 
@@ -478,6 +529,33 @@ export function OfferRouterPanel() {
                     onChange={(e) => setRegra(r.id, { destino: e.target.value })}
                   />
                 </label>
+
+                {gruposDestinoFunil.length > 0 && (
+                  <div className="ofr__funnel-pick">
+                    <span className="ofr__funnel-pick-lead">
+                      ou escolha do funil:
+                    </span>
+                    {gruposDestinoFunil.map((g) => (
+                      <div className="ofr__funnel-group" key={g.categoria}>
+                        <span className="ofr__funnel-group-name">
+                          {ROTULO_CATEGORIA[g.categoria]}
+                        </span>
+                        {g.itens.map((d) => (
+                          <button
+                            key={d.id}
+                            type="button"
+                            className="ofr__chip-funnel"
+                            data-on={r.destino === d.url}
+                            onClick={() => setRegra(r.id, { destino: d.url })}
+                            title={`${d.nome} — ${d.url}`}
+                          >
+                            {d.nome}
+                          </button>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <p className="ofr__rule-resumo">
                   {descreverRegra(r)} →{" "}
                   <b>{r.destino.trim() || "(defina o destino)"}</b>

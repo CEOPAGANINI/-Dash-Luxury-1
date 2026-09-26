@@ -34,4 +34,24 @@ describe("Roteador de ofertas (quadro com views)", () => {
     expect(texto).toMatch(/Quiz de entrada/);
     expect(texto).not.toMatch(/Página VIP/);
   });
+
+  it("conecta com o funil: dá para escolher um destino do funil numa regra", () => {
+    render(<OfferRouterPanel />);
+    // A ponte com o funil aparece na view Configurar (uma por regra).
+    expect(
+      screen.getAllByText("ou escolha do funil:", { exact: false }).length,
+    ).toBeGreaterThan(0);
+    // Escolher "Oferta" (uma página do funil) preenche o destino da regra.
+    const chip = screen.getAllByRole("button", { name: "Oferta" })[0];
+    fireEvent.click(chip);
+    expect(chip.getAttribute("data-on")).toBe("true");
+  });
+
+  it("conecta com o funil: dá para puxar uma origem do funil para a Fonte", () => {
+    render(<OfferRouterPanel />);
+    const btn = screen.getByRole("button", { name: "+ Captura" });
+    fireEvent.click(btn);
+    // Vira uma origem selecionável na Fonte (pílula com o nome da página).
+    expect(screen.getAllByRole("button", { name: "Captura" }).length).toBeGreaterThan(0);
+  });
 });

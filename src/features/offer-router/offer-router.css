@@ -829,6 +829,84 @@
   outline-color: var(--wf-accent);
 }
 
+/* ── Ponte com o quadro de funil ──────────────────────────────────────
+   Escolher páginas/lojas/links do funil como origem e destino. O verde
+   sinaliza "vem do funil, conectado". */
+.ofr__from-funnel {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--wf-line-2, var(--ofr-line-strong));
+}
+.ofr__from-funnel-tag {
+  margin-left: 6px;
+  padding: 1px 7px;
+  font-size: 10px;
+  font-family: var(--ofr-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--wf-accent, var(--ofr-ok));
+  border: 1px solid color-mix(in srgb, var(--wf-accent, #2bd975) 45%, transparent);
+  background: color-mix(in srgb, var(--wf-accent, #2bd975) 12%, transparent);
+  border-radius: 999px;
+}
+.ofr__pill--add {
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--wf-accent, #2bd975) 55%, var(--ofr-line-strong));
+  color: var(--wf-accent, var(--ofr-ok));
+}
+.ofr__pill--add:hover {
+  color: #06210f;
+  background: var(--wf-accent, var(--ofr-ok));
+  border-style: solid;
+}
+
+/* Seletor de destino do funil dentro de cada regra */
+.ofr__funnel-pick {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin-top: 8px;
+}
+.ofr__funnel-pick-lead {
+  font-size: 11px;
+  color: var(--ofr-muted);
+}
+.ofr__funnel-group {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+}
+.ofr__funnel-group-name {
+  font-size: 10px;
+  font-family: var(--ofr-mono);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ofr-muted);
+}
+.ofr__chip-funnel {
+  font-family: var(--ofr-sans);
+  font-size: 12px;
+  color: var(--ofr-text);
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--wf-accent, #2bd975) 40%, var(--ofr-line-strong));
+  padding: 5px 10px;
+  cursor: pointer;
+}
+.ofr__chip-funnel:hover {
+  border-color: var(--wf-accent, var(--ofr-ok));
+}
+.ofr__chip-funnel[data-on="true"] {
+  color: #06210f;
+  background: var(--wf-accent, var(--ofr-ok));
+  border-color: var(--wf-accent, var(--ofr-ok));
+}
+.ofr__chip-funnel:focus-visible {
+  outline: 2px solid var(--wf-accent, var(--ofr-accent));
+  outline-offset: 1px;
+}
+
 @media (max-width: 900px) {
   .wf__canvas[data-view="cfg"] {
     flex-direction: column;
