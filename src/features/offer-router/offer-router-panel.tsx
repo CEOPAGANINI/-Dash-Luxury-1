@@ -1,0 +1,437 @@
+"use client";
+
+import * as React from "react";
+
+import {
+  DISPOSITIVOS,
+  PAISES,
+  nomeDoDispositivo,
+  nomeDoPais,
+} from "@/features/access-filter/access-filter-model";
+import {
+  DeviceKind,
+  MatchKind,
+  OfferPage,
+  PAGINAS_EXEMPLO,
+  POR_DISPOSITIVO,
+  POR_REGIAO,
+  REDIRECIONADOS_EXEMPLO,
+  RedirectRule,
+  Visitor,
+  decidirDestino,
+  descreverRegra,
+  paginasComRedirecionamento,
+  regraNova,
+  totalDeRedirecionamentos,
+  totalRedirecionados,
+} from "./offer-router-model";
+
+/*
+  A tela do Roteador de ofertas — só a interface, a pedido do dono. Quatro
+  partes: configurar as regras de uma página (mandar parte dos visitantes
+  para outra página), a lista só das páginas que têm redirecionamento, de
+  onde vêm os visitantes (aparelho e região) e quem foi redirecionado.
+  Nada roteia de verdade; é demonstração.
+*/
+
+const TIPOS: { id: MatchKind; nome: string }[] = [
+  { id: "regiao", nome: "Por região" },
+  { id: "dispositivo", nome: "Por aparelho" },
+  { id: "fatia", nome: "Por fatia %" },
+];
+
+export function OfferRouterPanel() {
+  const [paginas, setPaginas] = React.useState<OfferPage[]>(PAGINAS_EXEMPLO);
+  const [selId, setSelId] = React.useState(PAGINAS_EXEMPLO[0].id);
+  const [visitante, setVisitante] = React.useState<Visitor>({
+    pais: "RU",
+    dispositivo: "mobile",
+  });
+  const [sorteio, setSorteio] = React.useState(20);
+  const seq = React.useRef(100);
+
+  const pagina = paginas.find((p) => p.id === selId) ?? paginas[0];
+  const decisao = decidirDestino(pagina, visitante, sorteio);
+  const comRedir = paginasComRedirecionamento(paginas);
+
+  const mudarPagina = (id: string, updater: (p: OfferPage) => OfferPage) =>
+    setPaginas((ps) => ps.map((p) => (p.id === id ? updater(p) : p)));
+
+  const setRegra = (ruleId: string, patch: Partial<RedirectRule>) =>
+    mudarPagina(selId, (p) => ({
+      ...p,
+      regras: p.regras.map((r) => (r.id === ruleId ? { ...r, ...patch } : r)),
+    }));
+
+  const addRegra = () =>
+    mudarPagina(selId, (p) => ({
+      ...p,
+      regras: [...p.regras, regraNova(`r${seq.current++}`, "regiao")],
+    }));
+
+  const removeRegra = (ruleId: string) =>
+    mudarPagina(selId, (p) => ({
+      ...p,
+      regras: p.regras.filter((r) => r.id !== ruleId),
+    }));
+
+  const togglePais = (ruleId: string, code: string, atual: string[]) =>
+    setRegra(ruleId, {
+      paises: atual.includes(code)
+        ? atual.filter((c) => c !== code)
+        : [...atual, code],
+    });
+
+  const toggleDisp = (ruleId: string, id: DeviceKind, atual: DeviceKind[]) =>
+    setRegra(ruleId, {
+      dispositivos: atual.includes(id)
+        ? atual.filter((d) => d !== id)
+        : [...atual, id],
+    });
+
+  return (
+    <div className="ofr">
+      <div className="ofr__stage">
+        <header className="ofr__head">
+          <div className="ofr__brand">
+            <span className="ofr__mark" aria-hidden>
+              ⤳
+            </span>
+            <div>
+              <div className="ofr__title">Roteador de ofertas</div>
+              <div className="ofr__sub">
+                {totalDeRedirecionamentos(paginas)} redirecionamento(s) ·{" "}
+                {comRedir.length} página(s)
+              </div>
+            </div>
+          </div>
+          <span className="ofr__demo-chip">demonstração</span>
+        </header>
+
+        <p className="ofr__lead">
+          Escolha a página que recebe o tráfego e mande uma parte dos
+          visitantes para outra página — por <b>região</b>, <b>aparelho</b> ou
+          uma <b>fatia</b> do tráfego. Abaixo, veja só as páginas com
+          redirecionamento, de onde vêm os visitantes e quem foi redirecionado.
+        </p>
+
+        {/* ── 1) Configurar ─────────────────────────────────────────── */}
+        <section className="ofr__card">
+          <div className="ofr__card-head">Configurar oferta</div>
+
+          <div className="ofr__field">
+            <span className="ofr__label">Página que recebe o tráfego</span>
+            <div className="ofr__pills">
+              {paginas.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  className="ofr__pill"
+                  data-on={p.id === selId}
+                  onClick={() => setSelId(p.id)}
+                >
+                  {p.nome}
+                </button>
+              ))}
+            </div>
+            <small className="ofr__hint">
+              Origem: {pagina.url} — quem não bater em regra nenhuma fica aqui.
+            </small>
+          </div>
+
+          <div className="ofr__rules">
+            {pagina.regras.length === 0 && (
+              <p className="ofr__empty">
+                Sem regras ainda — todo visitante fica na página de origem.
+              </p>
+            )}
+            {pagina.regras.map((r, i) => (
+              <div className="ofr__rule" key={r.id} data-off={!r.ativo}>
+                <div className="ofr__rule-head">
+                  <span className="ofr__rule-n">{i + 1}</span>
+                  <div className="ofr__seg" role="group" aria-label="Tipo da regra">
+                    {TIPOS.map((t) => (
+                      <button
+                        key={t.id}
+                        type="button"
+                        className="ofr__seg-btn"
+                        data-on={r.tipo === t.id}
+                        onClick={() => setRegra(r.id, { tipo: t.id })}
+                      >
+                        {t.nome}
+                      </button>
+                    ))}
+                  </div>
+                  <label className="ofr__switch">
+                    <input
+                      type="checkbox"
+                      checked={r.ativo}
+                      onChange={(e) => setRegra(r.id, { ativo: e.target.checked })}
+                    />
+                    <span>{r.ativo ? "Ativa" : "Pausada"}</span>
+                  </label>
+                  <button
+                    type="button"
+                    className="ofr__rule-del"
+                    aria-label={`Remover regra ${i + 1}`}
+                    onClick={() => removeRegra(r.id)}
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                {r.tipo === "regiao" && (
+                  <div className="ofr__chips">
+                    {PAISES.map((p) => (
+                      <button
+                        key={p.code}
+                        type="button"
+                        className="ofr__chip"
+                        data-on={r.paises.includes(p.code)}
+                        aria-pressed={r.paises.includes(p.code)}
+                        onClick={() => togglePais(r.id, p.code, r.paises)}
+                      >
+                        <span aria-hidden>{p.flag}</span> {p.nome}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {r.tipo === "dispositivo" && (
+                  <div className="ofr__chips">
+                    {DISPOSITIVOS.map((d) => (
+                      <button
+                        key={d.id}
+                        type="button"
+                        className="ofr__chip"
+                        data-on={r.dispositivos.includes(d.id)}
+                        aria-pressed={r.dispositivos.includes(d.id)}
+                        onClick={() => toggleDisp(r.id, d.id, r.dispositivos)}
+                      >
+                        {d.nome}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {r.tipo === "fatia" && (
+                  <label className="ofr__slider">
+                    <span className="ofr__label">
+                      Fatia do tráfego: <b>{r.percentual}%</b>
+                    </span>
+                    <input
+                      type="range"
+                      min={1}
+                      max={100}
+                      value={r.percentual}
+                      onChange={(e) =>
+                        setRegra(r.id, { percentual: Number(e.target.value) })
+                      }
+                    />
+                  </label>
+                )}
+
+                <label className="ofr__dest">
+                  <span className="ofr__label">Mandar para</span>
+                  <input
+                    className="ofr__input"
+                    value={r.destino}
+                    maxLength={2048}
+                    placeholder="/outra-pagina ou https://…"
+                    onChange={(e) => setRegra(r.id, { destino: e.target.value })}
+                  />
+                </label>
+                <p className="ofr__rule-resumo">
+                  {descreverRegra(r)} →{" "}
+                  <b>{r.destino.trim() || "(defina o destino)"}</b>
+                </p>
+              </div>
+            ))}
+            <button type="button" className="ofr__add" onClick={addRegra}>
+              + Adicionar regra
+            </button>
+          </div>
+
+          {/* Simulador */}
+          <div className="ofr__sim">
+            <div className="ofr__card-head">Simular um visitante</div>
+            <div className="ofr__sim-controls">
+              <label className="ofr__inline">
+                <span className="ofr__label">Região</span>
+                <select
+                  className="ofr__select"
+                  value={visitante.pais}
+                  onChange={(e) =>
+                    setVisitante((v) => ({ ...v, pais: e.target.value }))
+                  }
+                >
+                  {PAISES.map((p) => (
+                    <option key={p.code} value={p.code}>
+                      {p.flag} {p.nome}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="ofr__inline">
+                <span className="ofr__label">Aparelho</span>
+                <select
+                  className="ofr__select"
+                  value={visitante.dispositivo}
+                  onChange={(e) =>
+                    setVisitante((v) => ({
+                      ...v,
+                      dispositivo: e.target.value as DeviceKind,
+                    }))
+                  }
+                >
+                  {DISPOSITIVOS.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.nome}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="ofr__inline">
+                <span className="ofr__label">
+                  Roleta do tráfego: <b>{sorteio}</b>
+                </span>
+                <input
+                  type="range"
+                  min={0}
+                  max={99}
+                  value={sorteio}
+                  aria-label="Roleta do tráfego"
+                  onChange={(e) => setSorteio(Number(e.target.value))}
+                />
+              </label>
+            </div>
+            <div className="ofr__verdict" data-ficou={decisao.ficou}>
+              <span className="ofr__verdict-mark" aria-hidden>
+                {decisao.ficou ? "=" : "⤳"}
+              </span>
+              <div className="ofr__verdict-body">
+                <b>
+                  {decisao.ficou
+                    ? "Fica na página de origem"
+                    : "Redirecionado"}
+                </b>
+                <span>
+                  {nomeDoPais(visitante.pais)} ·{" "}
+                  {nomeDoDispositivo(visitante.dispositivo)} · roleta {sorteio}
+                </span>
+                <span className="ofr__verdict-dest">→ {decisao.destino}</span>
+                {decisao.regra && (
+                  <span className="ofr__verdict-why">
+                    pela regra: {descreverRegra(decisao.regra)}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── 2) Páginas com redirecionamento ───────────────────────── */}
+        <section className="ofr__card">
+          <div className="ofr__card-head">Páginas com redirecionamento</div>
+          {comRedir.length === 0 ? (
+            <p className="ofr__empty">Nenhuma página tem redirecionamento.</p>
+          ) : (
+            <div className="ofr__pages">
+              {comRedir.map((p) => (
+                <div className="ofr__page" key={p.id}>
+                  <div className="ofr__page-head">
+                    <b>{p.nome}</b>
+                    <span className="ofr__page-url">{p.url}</span>
+                  </div>
+                  <ul className="ofr__page-rules">
+                    {p.regras
+                      .filter((r) => r.ativo && r.destino.trim())
+                      .map((r) => (
+                        <li key={r.id}>
+                          {descreverRegra(r)} <span aria-hidden>→</span>{" "}
+                          <b>{r.destino}</b>
+                        </li>
+                      ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* ── 3) De onde vêm ────────────────────────────────────────── */}
+        <section className="ofr__card">
+          <div className="ofr__card-head">
+            De onde vêm — página principal
+          </div>
+          <p className="ofr__sim-lead">
+            Aparelho e região de quem entra (demonstração).
+          </p>
+          <div className="ofr__bars-grid">
+            <div>
+              <div className="ofr__bars-title">Por aparelho</div>
+              {POR_DISPOSITIVO.map((f) => (
+                <Barra key={f.rotulo} rotulo={f.rotulo} pct={f.pct} />
+              ))}
+            </div>
+            <div>
+              <div className="ofr__bars-title">Por região</div>
+              {POR_REGIAO.map((f) => (
+                <Barra key={f.rotulo} rotulo={f.rotulo} pct={f.pct} />
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── 4) Redirecionados ─────────────────────────────────────── */}
+        <section className="ofr__card">
+          <div className="ofr__card-head">
+            Redirecionados — região e aparelho
+          </div>
+          <p className="ofr__sim-lead">
+            Quem tentou entrar e foi mandado para outra página —{" "}
+            {totalRedirecionados(REDIRECIONADOS_EXEMPLO)} no total (demonstração).
+          </p>
+          <div className="ofr__matrix-wrap">
+            <table className="ofr__table">
+              <thead>
+                <tr>
+                  <th scope="col">Região</th>
+                  <th scope="col">Aparelho</th>
+                  <th scope="col">Foi para</th>
+                  <th scope="col">Visitantes</th>
+                </tr>
+              </thead>
+              <tbody>
+                {REDIRECIONADOS_EXEMPLO.map((l, i) => (
+                  <tr key={i}>
+                    <th scope="row">{l.regiao}</th>
+                    <td>{l.dispositivo}</td>
+                    <td className="ofr__mono">{l.destino}</td>
+                    <td className="ofr__num">{l.qtd}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <p className="ofr__note">
+          <b>Demonstração:</b> esta tela é só a interface — o roteamento não
+          está ligado em nenhum servidor, e os números são de exemplo. Todas as
+          configurações estão aqui; nada redireciona de verdade.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function Barra({ rotulo, pct }: { rotulo: string; pct: number }) {
+  return (
+    <div className="ofr__bar-row">
+      <span className="ofr__bar-label">{rotulo}</span>
+      <span className="ofr__bar-track">
+        <span className="ofr__bar-fill" style={{ width: `${pct}%` }} />
+      </span>
+      <span className="ofr__bar-pct">{pct}%</span>
+    </div>
+  );
+}

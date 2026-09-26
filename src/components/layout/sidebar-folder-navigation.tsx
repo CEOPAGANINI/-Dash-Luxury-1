@@ -156,6 +156,7 @@ const groups: PastaDoMenu[] = [
       },
       { title: "Baixar site", href: "/captura", icon: FileZip },
       { title: "Filtro de acesso", href: "/filtro-de-acesso", icon: Globe },
+      { title: "Roteador de ofertas", href: "/roteador-de-ofertas", icon: Megaphone },
     ],
   },
   {
