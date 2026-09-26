@@ -865,7 +865,9 @@
   right: 0;
   bottom: 0;
   z-index: 40;
-  width: min(600px, calc(100% - 12px));
+  /* Largura contida: acompanha a tela e nunca toma mais que 60% do quadro,
+     para não cobrir o card da página que está sendo configurado. */
+  width: min(468px, 60%, calc(100% - 12px));
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -991,7 +993,7 @@
 /* Trilho de ícones = o menu de configurações (uma aba por ícone). */
 .pub__rail {
   flex: none;
-  width: 88px;
+  width: 78px;
   display: flex;
   flex-direction: column;
   gap: 6px;
