@@ -31,16 +31,16 @@ const HOVER_RADIUS = 22;
 
 const COLOR_LAND_LOW = new THREE.Color("#3a3a3a");
 const COLOR_LAND_HIGH = new THREE.Color("#c2c2c2");
-const COLOR_CITY = new THREE.Color("#f5f5f5");
-const COLOR_ATMOSPHERE = new THREE.Color("#8a8a8a");
+const COLOR_CITY = new THREE.Color("#2bd975"); /* acento verde (design aether) */
+const COLOR_ATMOSPHERE = new THREE.Color("#3f7a5a"); /* halo esverdeado */
 const COLOR_OCEAN = new THREE.Color("#0a0a0a");
 
-/** Escala de intensidade: poucos utilizadores = ciano, muitos = magenta Infinity. */
+/** Escala de intensidade em verde (design aether): claro = poucos, forte = muitos. */
 const INTENSITY_RAMP = [
-  new THREE.Color("#f5f5f5"),
-  new THREE.Color("#c2c2c2"),
-  new THREE.Color("#909090"),
-  new THREE.Color("#6a6a6a"),
+  new THREE.Color("#7df7ad"),
+  new THREE.Color("#2bd975"),
+  new THREE.Color("#16a34a"),
+  new THREE.Color("#0f7a37"),
 ];
 
 /* -------------------------------------------------------------------------- */
@@ -387,7 +387,7 @@ function LiveGlobeImpl({ points, className }: LiveGlobeProps) {
       fragmentShader: OCEAN_FRAGMENT,
       uniforms: {
         uColor: { value: COLOR_OCEAN },
-        uRimColor: { value: new THREE.Color("#2a2a2a") },
+        uRimColor: { value: new THREE.Color("#173a28") }, /* rim esverdeado */
       },
     });
     const oceanGeometry = new THREE.SphereGeometry(
