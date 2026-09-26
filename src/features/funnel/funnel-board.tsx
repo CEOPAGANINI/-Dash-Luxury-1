@@ -46,6 +46,7 @@ import {
   RECURSO_POR_TIPO,
   ROTULO_TIPO,
   enderecoConfigurado,
+  paginaVazia,
   type FunnelData,
   type FunnelEdge,
   type FunnelNode,
@@ -59,6 +60,7 @@ import {
   paginasDoDominio,
   urlDaPagina,
 } from "@/features/vps/catalogo-demo";
+import { PagePublisher, type EtapaDestino } from "./page-publisher";
 
 const ICONES: Record<
   LucideName,
@@ -606,6 +608,35 @@ export function FunnelBoard({
         </div>
       )}
 
+      {/* Publicador da página: painel lateral quando um nó de página está
+          aberto. Só a interface — nada publica de verdade. */}
+      {(() => {
+        if (!aberto) return null;
+        const n = nodes.find((x) => x.id === aberto);
+        if (!n || !isPagina(n.type)) return null;
+        const dados = n.pagina ?? paginaVazia();
+        const proximas: EtapaDestino[] = [];
+        for (const e of edges) {
+          if (e.source !== n.id) continue;
+          const t = nodes.find((x) => x.id === e.target);
+          if (!t) continue;
+          const url = t.pagina?.dominio
+            ? `https://${t.pagina.dominio}${t.pagina.caminho}`
+            : t.url;
+          proximas.push({ id: t.id, nome: t.title, url });
+        }
+        return (
+          <PagePublisher
+            nome={n.title}
+            dados={dados}
+            onNome={(nm) => atualizar(n.id, { title: nm })}
+            onChange={(d) => atualizar(n.id, { pagina: d })}
+            proximasEtapas={proximas}
+            onFechar={() => setAberto(null)}
+          />
+        );
+      })()}
+
       {/* Menu do quadro — trilho vertical à esquerda, igual ao do
           redirecionador: ícones num trilho escuro, o ativo em verde. */}
       <nav className="funnel__rail" aria-label="Menu do quadro">
@@ -915,6 +946,10 @@ function NodeView({
   const Icone = def ? ICONES[def.icon] : FileText;
   const url = node.url ?? "";
   const urlOk = enderecoConfigurado(url);
+  // Publicador (nós de página): estado do "crachá".
+  const pag = node.pagina;
+  const paginaPronta = Boolean(pag?.dominio && pag?.zip?.ok);
+  const enderecoPub = pag?.dominio ? `${pag.dominio}${pag.caminho}` : "";
   const configId = `funnel-cfg-${node.id}`;
   const rotuloSaidas = `${saidas} ${saidas === 1 ? "saída" : "saídas"}`;
 
@@ -985,11 +1020,13 @@ function NodeView({
                 : node.descricao || "Adicione uma observação"}
             </span>
             <span className="funnel__node-url">
-              {url || (pagina ? "Endereço não definido" : "Sem referência")}
+              {pagina
+                ? enderecoPub || "Toque para configurar e publicar"
+                : url || "Sem referência"}
             </span>
           </button>
 
-          {aberto && (
+          {aberto && !pagina && (
             <div
               id={configId}
               role="region"
@@ -1077,12 +1114,12 @@ function NodeView({
           )}
 
           <footer className="funnel__node-foot">
-            <span data-ok={pagina ? urlOk : true}>
+            <span data-ok={pagina ? paginaPronta : true}>
               <i aria-hidden />
               {pagina
-                ? urlOk
-                  ? "Endereço configurado"
-                  : "Configuração pendente"
+                ? paginaPronta
+                  ? "Pronto para publicar"
+                  : "Rascunho"
                 : ROTULO_TIPO[node.type]}
             </span>
             <span>{rotuloSaidas}</span>

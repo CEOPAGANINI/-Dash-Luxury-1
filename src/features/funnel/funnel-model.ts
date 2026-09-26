@@ -182,6 +182,72 @@ export interface FunnelNode {
   /** Cor do selo (nós `brand`). */
   cor?: string;
   sigla?: string;
+  /** Dados do publicador (nós de página) — só interface, demonstração. */
+  pagina?: DadosPagina;
+}
+
+/* ── Publicador da página (só a interface, demonstração) ──────────────────
+   O bloco "Página" ganha as funções do publicador: escolher domínio e
+   caminho, arrastar o ZIP para conferir, SEO, rastreio (pixels), proteção,
+   velocidade (Turbo) e as saídas ligadas às próximas etapas. Nada publica
+   nem sobe ZIP de verdade — o botão Publicar fica em "VPS não conectada". */
+
+export interface PaginaSaida {
+  /** Próxima etapa do funil (id de um nó), quando ligada a uma. */
+  etapaId?: string;
+  /** Ou um link manual. */
+  url?: string;
+}
+
+export interface ProtecaoPagina {
+  cliqueDireito?: boolean;
+  atalhos?: boolean;
+  selecao?: boolean;
+  imagens?: boolean;
+  devtools?: boolean;
+}
+
+export interface VelocidadePagina {
+  imagens?: boolean;
+  lazy?: boolean;
+  fontes?: boolean;
+  minificar?: boolean;
+  comprimir?: boolean;
+  cache?: boolean;
+}
+
+export interface DadosPagina {
+  /** Domínio da VPS (ex.: loja-suprema.com). */
+  dominio?: string;
+  /** Caminho no domínio (ex.: "/nova-pagina" ou "/"). */
+  caminho: string;
+  meta: {
+    titulo?: string;
+    descricao?: string;
+    imagem?: string;
+    faviconPng?: string;
+    esconderDoGoogle?: boolean;
+    metaPixel?: string;
+    ga4?: string;
+    gtm?: string;
+    clarity?: string;
+    repassarUtm?: boolean;
+    protecao?: ProtecaoPagina;
+    velocidade?: VelocidadePagina | false;
+  };
+  /** nome da saída (data-saida no HTML) → próxima etapa ou link manual. */
+  saidas: Record<string, PaginaSaida>;
+  /** O último ZIP conferido (só nome/tamanho — demonstração). */
+  zip?: { nome: string; tamanho: number; ok: boolean };
+}
+
+/** Uma página nova em branco para o publicador. */
+export function paginaVazia(): DadosPagina {
+  return {
+    caminho: "/nova-pagina",
+    meta: { repassarUtm: true, velocidade: {} },
+    saidas: {},
+  };
 }
 
 /** Uma ligação saída → entrada entre dois nós. */
