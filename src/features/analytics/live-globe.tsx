@@ -441,7 +441,43 @@ function LiveGlobeImpl({ points, className }: LiveGlobeProps) {
       48,
       48,
     );
-    scene.add(new THREE.Mesh(atmosphereGeometry, atmosphereMaterial));
+    // Sem luz, a pedido do dono: a atmosfera (glow) fica invisível.
+    const atmosphereMesh = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
+    atmosphereMesh.visible = false;
+    scene.add(atmosphereMesh);
+
+    /* -------------------------------------------------- grade (meridianos) */
+    // Uma grade fina de meridianos e paralelos, como no globo de referência.
+    const gridMaterial = new THREE.LineBasicMaterial({
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0.06,
+      depthWrite: false,
+    });
+    const grid = new THREE.Group();
+    for (let lat = -60; lat <= 60; lat += 30) {
+      const pts: THREE.Vector3[] = [];
+      for (let lon = 0; lon <= 360; lon += 5)
+        pts.push(latLonToVector3(lat, lon, GLOBE_RADIUS * 0.999));
+      grid.add(
+        new THREE.Line(
+          new THREE.BufferGeometry().setFromPoints(pts),
+          gridMaterial,
+        ),
+      );
+    }
+    for (let lon = 0; lon < 180; lon += 30) {
+      const pts: THREE.Vector3[] = [];
+      for (let lat = -90; lat <= 90; lat += 5)
+        pts.push(latLonToVector3(lat, lon, GLOBE_RADIUS * 0.999));
+      grid.add(
+        new THREE.Line(
+          new THREE.BufferGeometry().setFromPoints(pts),
+          gridMaterial,
+        ),
+      );
+    }
+    globe.add(grid);
 
     /* ---------------------------------------------------------- marcadores */
 
