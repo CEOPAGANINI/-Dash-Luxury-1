@@ -89,13 +89,9 @@ export function OfferRouterPanel() {
   const [fios, setFios] = React.useState<string[]>([]);
   const [navAtivo, setNavAtivo] = React.useState("cfg");
 
-  const irPara = (id: string) => {
-    setNavAtivo(id);
-    if (typeof document !== "undefined")
-      document
-        .getElementById(`nav-${id}`)
-        ?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
+  const irPara = (id: string) => setNavAtivo(id);
+  const tituloView =
+    NAV_QUADRO.find((n) => n.id === navAtivo)?.nome ?? "Configurar";
   const seq = React.useRef(100);
 
   const pagina = paginas.find((p) => p.id === selId) ?? paginas[0];
@@ -225,33 +221,10 @@ export function OfferRouterPanel() {
 
   return (
     <div className="ofr">
-      <div className="ofr__stage">
-        <header className="ofr__head">
-          <div className="ofr__brand">
-            <span className="ofr__mark" aria-hidden>
-              ⤳
-            </span>
-            <div>
-              <div className="ofr__title">Roteador de ofertas</div>
-              <div className="ofr__sub">
-                {totalDeRedirecionamentos(paginas)} redirecionamento(s) ·{" "}
-                {comRedir.length} página(s)
-              </div>
-            </div>
-          </div>
-          <span className="ofr__demo-chip">demonstração</span>
-        </header>
-
-        <p className="ofr__lead">
-          Escolha a página que recebe o tráfego e mande uma parte dos
-          visitantes para outra página — por <b>região</b>, <b>aparelho</b>,{" "}
-          <b>sistema</b>, <b>rede</b> ou uma <b>fatia</b> do tráfego. Abaixo,
-          veja só as páginas com
-          redirecionamento, de onde vêm os visitantes e quem foi redirecionado.
-        </p>
-
-        {/* ── 1) Configurar ─────────────────────────────────────────── */}
-        <section id="nav-cfg" className="wf" aria-label="Configurar redirecionador">
+      <div className="ofr__stage ofr__stage--flow">
+        {/* O quadro do redirecionador — tela cheia, sem moldura; o menu do
+            trilho troca a view DENTRO do quadro. */}
+        <section className="wf wf--full" aria-label="Roteador de ofertas">
           <nav className="wf__rail" aria-label="Navegação do quadro">
             {NAV_QUADRO.map((n) => (
               <button
@@ -282,14 +255,20 @@ export function OfferRouterPanel() {
           <div className="wf__main">
             <header className="wf__top">
               <span className="wf__top-title">
-                redirecionador.fluxo — Configurar oferta
+                redirecionador.fluxo — {tituloView}
+              </span>
+              <span className="wf__top-meta">
+                {totalDeRedirecionamentos(paginas)} redirecionamento(s) ·{" "}
+                {comRedir.length} página(s)
               </span>
               <span className="wf__status">
                 <i />
-                fluxo ativo
+                demonstração
               </span>
             </header>
-            <div className="wf__canvas" ref={canvasRef}>
+            <div className="wf__canvas" data-view={navAtivo} ref={canvasRef}>
+              {navAtivo === "cfg" && (
+                <>
               <svg className="wf__wires" aria-hidden>
                 {fios.map((d, i) => (
                   <path key={i} className="wf__wire" d={d} />
@@ -666,12 +645,11 @@ export function OfferRouterPanel() {
             </div>
           </div>
               </div>
-            </div>
-          </div>
-        </section>
+                </>
+              )}
 
-        {/* ── 2) Páginas com redirecionamento ───────────────────────── */}
-        <section id="nav-pgs" className="ofr__card">
+              {navAtivo === "pgs" && (
+                <div className="wf__view">
           <div className="ofr__card-head">Páginas com redirecionamento</div>
           {comRedir.length === 0 ? (
             <p className="ofr__empty">Nenhuma página tem redirecionamento.</p>
@@ -697,10 +675,10 @@ export function OfferRouterPanel() {
               ))}
             </div>
           )}
-        </section>
-
-        {/* ── 3) De onde vêm ────────────────────────────────────────── */}
-        <section id="nav-onde" className="ofr__card">
+                </div>
+              )}
+              {navAtivo === "onde" && (
+                <div className="wf__view">
           <div className="ofr__card-head">
             De onde vêm — página principal
           </div>
@@ -727,10 +705,10 @@ export function OfferRouterPanel() {
               ))}
             </div>
           </div>
-        </section>
-
-        {/* ── 4) Redirecionados ─────────────────────────────────────── */}
-        <section id="nav-redir" className="ofr__card">
+                </div>
+              )}
+              {navAtivo === "redir" && (
+                <div className="wf__view">
           <div className="ofr__card-head">
             Redirecionados — região e aparelho
           </div>
@@ -760,13 +738,12 @@ export function OfferRouterPanel() {
               </tbody>
             </table>
           </div>
+                </div>
+              )}
+            </div>
+          </div>
         </section>
 
-        <p className="ofr__note">
-          <b>Demonstração:</b> esta tela é só a interface — o roteamento não
-          está ligado em nenhum servidor, e os números são de exemplo. Todas as
-          configurações estão aqui; nada redireciona de verdade.
-        </p>
       </div>
     </div>
   );

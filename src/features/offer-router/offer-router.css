@@ -35,7 +35,7 @@
   -webkit-font-smoothing: antialiased;
 }
 .ofr__stage {
-  max-width: none; /* o quadro ocupa a página toda */
+  max-width: 1100px;
   margin: 0 auto;
   padding: 24px 20px 32px;
   display: flex;
@@ -656,13 +656,28 @@
 .wf__canvas {
   position: relative;
   flex: 1;
+  min-height: 0;
+  overflow: auto;
+  background-image: radial-gradient(rgb(255 255 255 / 5%) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+.wf__canvas[data-view="cfg"] {
   display: flex;
   align-items: flex-start;
   gap: 48px;
   padding: 40px 32px;
-  overflow: auto;
-  background-image: radial-gradient(rgb(255 255 255 / 5%) 1px, transparent 1px);
-  background-size: 22px 22px;
+}
+.wf__canvas:not([data-view="cfg"]) {
+  display: block;
+  padding: 28px 32px;
+}
+/* Uma view (Páginas/De onde vêm/Redirecionados) dentro do quadro. */
+.wf__view {
+  max-width: 1100px;
+}
+.wf__view > .ofr__card-head {
+  font-size: 15px;
+  padding-bottom: 14px;
 }
 .wf__wires {
   position: absolute;
@@ -815,7 +830,7 @@
 }
 
 @media (max-width: 900px) {
-  .wf__canvas {
+  .wf__canvas[data-view="cfg"] {
     flex-direction: column;
     align-items: stretch;
     gap: 22px;
@@ -831,4 +846,25 @@
   .wf__wires {
     display: none;
   }
+}
+
+/* ── Quadro em tela cheia, sem moldura ─────────────────────────────── */
+.ofr__stage--flow {
+  max-width: none;
+  padding: 0;
+  margin: calc(-1 * clamp(16px, 2.2vw, 32px));
+}
+.wf--full {
+  border: 0;
+  border-radius: 0;
+  min-height: calc(100svh - 1.5rem);
+}
+.wf__top-meta {
+  margin-left: auto;
+  font-family: var(--ofr-mono);
+  font-size: 11px;
+  color: var(--ofr-muted);
+}
+.wf__top-meta + .wf__status {
+  margin-left: 16px;
 }
