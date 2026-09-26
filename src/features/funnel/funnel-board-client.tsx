@@ -53,11 +53,6 @@ export function FunnelBoardClient({ inicial }: { inicial?: FunnelData }) {
       inicial={dados}
       onVoltar={() => router.push("/campanhas")}
       onSalvar={salvar}
-      onEditarPagina={() => {
-        // O editor de páginas do projeto: o quadro Miro que monta cada
-        // página do funil e exporta o ZIP.
-        router.push("/editor/pagina");
-      }}
       onArquivar={() => router.push("/campanhas")}
       onExcluir={() => {
         try {

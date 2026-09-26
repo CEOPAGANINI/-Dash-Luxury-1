@@ -123,8 +123,6 @@ export interface FunnelBoardProps {
   inicial: FunnelData;
   /** Voltar à lista de funis. */
   onVoltar?: () => void;
-  /** Abrir o editor de uma página (botão "Editar" do nó). */
-  onEditarPagina?: (node: FunnelNode) => void;
   /** Persistir o funil (nome, nós e arestas). */
   onSalvar?: (data: FunnelData) => void;
   onArquivar?: (id: string) => void;
@@ -140,7 +138,6 @@ export interface FunnelBoardProps {
 export function FunnelBoard({
   inicial,
   onVoltar,
-  onEditarPagina,
   onSalvar,
   onArquivar,
   onExcluir,
@@ -594,7 +591,6 @@ export function FunnelBoard({
               }
               onChange={(patch) => atualizar(node.id, patch)}
               onRemover={() => remover(node.id)}
-              onEditar={() => onEditarPagina?.(node)}
             />
           ))}
         </div>
@@ -873,7 +869,6 @@ interface NodeViewProps {
   onToggle: () => void;
   onChange: (patch: Partial<FunnelNode>) => void;
   onRemover: () => void;
-  onEditar: () => void;
 }
 
 /**
@@ -897,7 +892,6 @@ function NodeView({
   onToggle,
   onChange,
   onRemover,
-  onEditar,
 }: NodeViewProps) {
   const ref = React.useRef<HTMLDivElement>(null);
   // Medir antes do paint (layout effect), e só quando o conteúdo muda a
@@ -1066,13 +1060,6 @@ function NodeView({
                         }
                       />
                     </label>
-                    <button
-                      type="button"
-                      className="funnel__cfg-editor"
-                      onClick={onEditar}
-                    >
-                      Editar conteúdo e ZIP
-                    </button>
                   </>
                 ) : (
                   <label>
