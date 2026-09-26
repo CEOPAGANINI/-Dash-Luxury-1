@@ -485,33 +485,43 @@ export function FunnelBoard({
   };
 
   /*
-    Ao abrir o publicador de uma página, o painel lateral (à direita) pode
-    cobrir o card do nó. Aqui o quadro desliza o mínimo necessário para o
-    card caber inteiro na área livre à esquerda do painel — sem mexer no
-    zoom. Se o card for maior que a área livre, alinha o canto superior.
+    Ao abrir o publicador de uma página, o painel lateral (à direita) e o
+    trilho (à esquerda) podem cobrir o card. Aqui, se o card não estiver
+    inteiro na área útil (entre o trilho e o painel), o quadro dá um
+    zoom-out só o necessário para o card caber e o centraliza nessa área.
+    Se já estiver inteiro à vista, nada se move.
   */
   const trazerParaVista = (node: FunnelNode) => {
     const r = rootRef.current?.getBoundingClientRect();
     if (!r) return;
     const s = size(node.id);
     const painelW = Math.min(468, r.width * 0.6, r.width - 12);
-    const livreW = r.width - painelW;
-    const m = 24;
+    const railW = 64; // o trilho de ícones do quadro, à esquerda
+    const m = 28; // respiro em volta do card
+    const dispW = r.width - painelW - railW; // largura útil entre trilho e painel
     setVp((v) => {
       const left = v.x + node.x * v.k;
       const right = left + s.w * v.k;
       const top = v.y + node.y * v.k;
       const bottom = top + s.h * v.k;
-      let dx = 0;
-      if (s.w * v.k > livreW - m * 2) dx = m - left;
-      else if (right > livreW - m) dx = livreW - m - right;
-      else if (left < m) dx = m - left;
-      let dy = 0;
-      if (s.h * v.k > r.height - m * 2) dy = m - top;
-      else if (bottom > r.height - m) dy = r.height - m - bottom;
-      else if (top < m) dy = m - top;
-      if (dx === 0 && dy === 0) return v;
-      return { ...v, x: v.x + dx, y: v.y + dy };
+      const dentro =
+        left >= railW + m &&
+        right <= railW + dispW - m &&
+        top >= m &&
+        bottom <= r.height - m;
+      if (dentro) return v;
+      const kCabe = Math.min(
+        (dispW - m * 2) / s.w,
+        (r.height - m * 2) / s.h,
+      );
+      const k = clamp(Math.min(v.k, kCabe), MIN_ZOOM, MAX_ZOOM);
+      const alvoX = railW + dispW / 2;
+      const alvoY = r.height / 2;
+      return {
+        k,
+        x: alvoX - (node.x + s.w / 2) * k,
+        y: alvoY - (node.y + s.h / 2) * k,
+      };
     });
   };
 
