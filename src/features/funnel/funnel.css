@@ -2082,3 +2082,67 @@
   border-top: 1px dashed var(--fn-line);
   padding-top: 8px;
 }
+
+/* ── Back redirect (aba Voltar) ──────────────────────────────────────────── */
+.pub__br {
+  gap: 10px;
+  border-color: color-mix(in srgb, #f472b6 30%, var(--fn-line));
+}
+.pub__br[data-on] {
+  border-color: color-mix(in srgb, #f472b6 55%, var(--fn-line));
+  background: color-mix(in srgb, #f472b6 5%, transparent);
+}
+.pub__br-ic {
+  font-size: 18px;
+  background: color-mix(in srgb, #f472b6 14%, transparent);
+  border-color: color-mix(in srgb, #f472b6 40%, transparent);
+}
+.pub__br-fluxo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 11px;
+}
+.pub__br-no {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+  padding: 7px 10px;
+  border-radius: 9px;
+  border: 1px solid var(--fn-line-2);
+  background: var(--fn-node-well, #080808);
+  color: var(--fn-text);
+  font-family: var(--fn-mono);
+}
+.pub__br-no--dest {
+  border-color: color-mix(in srgb, #f472b6 55%, var(--fn-line-2));
+  color: #f9a8d4;
+}
+.pub__br-seta {
+  flex: none;
+  font-family: var(--fn-mono);
+  font-size: 10px;
+  color: var(--fn-muted);
+  white-space: nowrap;
+}
+.pub__br[data-on] .pub__br-seta {
+  color: #f472b6;
+}
+.pub__br-num {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--fn-text);
+  padding: 2px 0;
+}
+.pub__br-num .pub__input {
+  width: 84px;
+  flex: none;
+  text-align: center;
+}

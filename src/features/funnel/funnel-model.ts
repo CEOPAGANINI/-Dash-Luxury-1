@@ -234,6 +234,30 @@ export interface IndexacaoPagina {
   bloquearIA?: boolean;
 }
 
+/**
+ * Back redirect (só interface): quando o visitante aperta "voltar" ou
+ * tenta sair, é enviado para outra página — a oferta mais barata.
+ */
+export interface BackRedirect {
+  ligado?: boolean;
+  /** Para onde mandar: uma etapa do funil ou um link manual. */
+  destinoEtapaId?: string;
+  url?: string;
+  /** O que dispara o desvio. */
+  botaoVoltar?: boolean;
+  fecharAba?: boolean;
+  mouseSaindo?: boolean;
+  inatividade?: boolean;
+  /** Segundos parado até contar como inatividade. */
+  inatividadeSeg?: number;
+  /** Segundos na página antes de armar o desvio (evita disparar cedo). */
+  armarApos?: number;
+  /** Só uma vez por visita (não fica preso em loop). */
+  umaVez?: boolean;
+  /** Levar os parâmetros UTM junto para a página de destino. */
+  repassarUtm?: boolean;
+}
+
 export interface DadosPagina {
   /** Domínio da VPS (ex.: loja-suprema.com). */
   dominio?: string;
@@ -254,6 +278,8 @@ export interface DadosPagina {
     velocidade?: VelocidadePagina | false;
     indexacao?: IndexacaoPagina;
   };
+  /** Back redirect: desvio ao voltar/sair para a oferta mais barata. */
+  backRedirect?: BackRedirect;
   /** nome da saída (data-saida no HTML) → próxima etapa ou link manual. */
   saidas: Record<string, PaginaSaida>;
   /** O último ZIP conferido (só nome/tamanho — demonstração). */

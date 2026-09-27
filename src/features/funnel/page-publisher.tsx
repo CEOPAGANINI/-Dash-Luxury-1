@@ -3,6 +3,7 @@
 import * as React from "react";
 
 import {
+  BackRedirect,
   DadosPagina,
   IndexacaoPagina,
   ProtecaoPagina,
@@ -37,7 +38,8 @@ type Aba =
   | "rastreio"
   | "velocidade"
   | "protecao"
-  | "saidas";
+  | "saidas"
+  | "voltar";
 
 const ABAS: { id: Aba; rotulo: string; sub: string; cor: string }[] = [
   {
@@ -82,6 +84,12 @@ const ABAS: { id: Aba; rotulo: string; sub: string; cor: string }[] = [
     sub: "Ligar os botões às próximas etapas",
     cor: "#f87171",
   },
+  {
+    id: "voltar",
+    rotulo: "Voltar",
+    sub: "Quem aperta voltar cai na oferta mais barata",
+    cor: "#f472b6",
+  },
 ];
 
 /** Ícone de cada aba (traço, herda a cor do texto). */
@@ -110,6 +118,12 @@ function IconeAba({ id }: { id: Aba }) {
     rastreio: <path d="M3 12h4l3 8 4-16 3 8h4" />,
     velocidade: <path d="M13 2 4 14h7l-1 8 9-12h-7z" />,
     protecao: <path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z" />,
+    voltar: (
+      <>
+        <path d="M9 14 4 9l5-5" />
+        <path d="M4 9h10a6 6 0 0 1 0 12h-3" />
+      </>
+    ),
     saidas: (
       <>
         <circle cx="6" cy="12" r="2.4" />
@@ -269,6 +283,23 @@ export function PagePublisher({
   const velocidade =
     dados.meta.velocidade === false ? null : dados.meta.velocidade ?? {};
   const protecao = dados.meta.protecao ?? {};
+  const br: BackRedirect = {
+    botaoVoltar: true,
+    fecharAba: true,
+    mouseSaindo: false,
+    inatividade: false,
+    inatividadeSeg: 45,
+    armarApos: 5,
+    umaVez: true,
+    repassarUtm: true,
+    ...dados.backRedirect,
+  };
+  const setBr = (p: Partial<BackRedirect>) =>
+    set({ backRedirect: { ...br, ...p } });
+  const destinoBr = br.destinoEtapaId
+    ? proximasEtapas.find((e) => e.id === br.destinoEtapaId)
+    : undefined;
+  const brPronto = Boolean(br.ligado && (destinoBr || br.url));
   const indexacao: IndexacaoPagina = {
     ...dados.meta.indexacao,
     noindex: dados.meta.indexacao?.noindex ?? dados.meta.esconderDoGoogle,
@@ -850,6 +881,190 @@ export function PagePublisher({
                 + Saída
               </button>
             </div>
+          </>
+        )}
+
+        {aba === "voltar" && (
+          <>
+            <div className="pub__campo pub__br" data-on={br.ligado || undefined}>
+              <button
+                type="button"
+                className="pub__cofre-topo"
+                role="switch"
+                aria-checked={Boolean(br.ligado)}
+                onClick={() => setBr({ ligado: !br.ligado })}
+              >
+                <span className="pub__cofre-ic pub__br-ic" aria-hidden>
+                  ↩
+                </span>
+                <span className="pub__cofre-txt">
+                  <b>Back redirect</b>
+                  <small>
+                    Quem aperta <em>voltar</em> ou tenta sair não vai embora:
+                    cai numa página com a oferta mais barata.
+                  </small>
+                </span>
+                <span
+                  className="pub__toggle-track"
+                  data-on={br.ligado || undefined}
+                >
+                  <span className="pub__toggle-knob" />
+                </span>
+              </button>
+              <div className="pub__br-fluxo" aria-hidden>
+                <span className="pub__br-no">{nome || "Esta página"}</span>
+                <span className="pub__br-seta">
+                  ↩ voltar / sair
+                </span>
+                <span className="pub__br-no pub__br-no--dest">
+                  {destinoBr?.nome ||
+                    (br.url ? br.url.replace(/^https?:\/\//, "") : "Oferta mais barata")}
+                </span>
+              </div>
+            </div>
+
+            <label className="pub__campo">
+              <span>Para onde mandar</span>
+              <select
+                className="pub__input"
+                value={br.destinoEtapaId ?? ""}
+                onChange={(e) =>
+                  setBr({
+                    destinoEtapaId: e.target.value || undefined,
+                    url: e.target.value ? undefined : br.url,
+                  })
+                }
+              >
+                <option value="">— uma etapa do funil (ligada a esta página) —</option>
+                {proximasEtapas.map((et) => (
+                  <option key={et.id} value={et.id}>
+                    {et.nome}
+                    {et.url ? ` · ${et.url.replace(/^https?:\/\//, "")}` : ""}
+                  </option>
+                ))}
+              </select>
+              {!br.destinoEtapaId && (
+                <input
+                  className="pub__input"
+                  value={br.url ?? ""}
+                  placeholder="ou um link: https://…/oferta-mais-barata"
+                  onChange={(e) => setBr({ url: e.target.value })}
+                />
+              )}
+              <small className="pub__hint">
+                Dica: crie um bloco de página “Oferta mais barata” no quadro,
+                ligue esta página a ele, e escolha aqui. Ele aparece na lista.
+              </small>
+            </label>
+
+            <div className="pub__campo">
+              <span>O que dispara o desvio</span>
+              <div className="pub__panel pub__panel--solto">
+                <Toggle
+                  rotulo="Botão voltar do navegador"
+                  dica="O clássico: apertou ← e cai na oferta."
+                  on={Boolean(br.botaoVoltar)}
+                  onToggle={(v) => setBr({ botaoVoltar: v })}
+                />
+                <Toggle
+                  rotulo="Tentar fechar a aba ou a janela"
+                  dica="Segura a saída com a oferta antes de fechar."
+                  on={Boolean(br.fecharAba)}
+                  onToggle={(v) => setBr({ fecharAba: v })}
+                />
+                <Toggle
+                  rotulo="Mouse saindo pela parte de cima (computador)"
+                  dica="Intenção de sair: cursor vai para a barra do navegador."
+                  on={Boolean(br.mouseSaindo)}
+                  onToggle={(v) => setBr({ mouseSaindo: v })}
+                />
+                <Toggle
+                  rotulo={`Parado sem mexer por ${br.inatividadeSeg ?? 45} s`}
+                  dica="Visitante travou na decisão: empurra a oferta."
+                  on={Boolean(br.inatividade)}
+                  onToggle={(v) => setBr({ inatividade: v })}
+                />
+                {br.inatividade && (
+                  <label className="pub__br-num">
+                    <span>Segundos parado</span>
+                    <input
+                      className="pub__input"
+                      type="number"
+                      min={5}
+                      max={600}
+                      value={br.inatividadeSeg ?? 45}
+                      onChange={(e) =>
+                        setBr({ inatividadeSeg: Number(e.target.value) || 45 })
+                      }
+                    />
+                  </label>
+                )}
+              </div>
+            </div>
+
+            <div className="pub__campo">
+              <span>Regras</span>
+              <div className="pub__panel pub__panel--solto">
+                <label className="pub__br-num">
+                  <span>Armar só depois de (segundos na página)</span>
+                  <input
+                    className="pub__input"
+                    type="number"
+                    min={0}
+                    max={300}
+                    value={br.armarApos ?? 5}
+                    onChange={(e) =>
+                      setBr({ armarApos: Number(e.target.value) || 0 })
+                    }
+                  />
+                </label>
+                <Toggle
+                  rotulo="Só uma vez por visita"
+                  dica="Depois do desvio, o voltar funciona normal — sem prender a pessoa."
+                  on={Boolean(br.umaVez)}
+                  onToggle={(v) => setBr({ umaVez: v })}
+                />
+                <Toggle
+                  rotulo="Levar os UTMs junto"
+                  dica="A oferta mais barata continua contando para a mesma campanha."
+                  on={Boolean(br.repassarUtm)}
+                  onToggle={(v) => setBr({ repassarUtm: v })}
+                />
+              </div>
+            </div>
+
+            <ul className="pub__check" aria-label="Checklist do back redirect">
+              <li data-ok={br.ligado || undefined}>
+                <span className="pub__check-mark" aria-hidden>
+                  {br.ligado ? "✓" : "•"}
+                </span>
+                {br.ligado ? "Back redirect ligado" : "Ligue o back redirect"}
+              </li>
+              <li data-ok={destinoBr || br.url ? true : undefined}>
+                <span className="pub__check-mark" aria-hidden>
+                  {destinoBr || br.url ? "✓" : "•"}
+                </span>
+                {destinoBr
+                  ? `Destino: ${destinoBr.nome}`
+                  : br.url
+                    ? "Destino: link manual"
+                    : "Escolha para onde mandar"}
+              </li>
+              <li data-ok={brPronto || undefined}>
+                <span className="pub__check-mark" aria-hidden>
+                  {brPronto ? "✓" : "•"}
+                </span>
+                {brPronto
+                  ? "Pronto: vai para o HTML na publicação (Fase 2)"
+                  : "Falta configurar — nada é injetado ainda"}
+              </li>
+            </ul>
+            <small className="pub__hint">
+              Como funciona por baixo: a página empurra uma entrada no
+              histórico e escuta o voltar/sair; quando dispara, troca para o
+              destino. Só interface por enquanto — o script entra na
+              publicação.
+            </small>
           </>
         )}
         </div>
