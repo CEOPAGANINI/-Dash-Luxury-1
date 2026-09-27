@@ -12,9 +12,12 @@ import {
 import { SpeedTest } from "./speed-test";
 import {
   DOMINIOS_VPS,
+  ITENS_COFRE,
+  cofreDoDominio,
   criarSlug,
   dominioPronto,
   saudeDoDominio,
+  setCofreDoDominio,
   slugsDoDominio,
 } from "@/features/vps/catalogo-demo";
 
@@ -146,7 +149,7 @@ const BLOQUEIOS: { id: keyof IndexacaoPagina; rotulo: string; dica: string }[] =
   { id: "noindex", rotulo: "Esconder do Google (noindex)", dica: "A página não aparece nos resultados de busca." },
   { id: "nofollow", rotulo: "Não seguir os links (nofollow)", dica: "Robôs não passam pelos links desta página." },
   { id: "foraDoSitemap", rotulo: "Fora do sitemap.xml e do sitemap index", dica: "Não listar a página nos mapas do site." },
-  { id: "robotsDisallow", rotulo: "Bloquear no robots.txt (Disallow)", dica: "Robôs bem-comportados nem tentam ler o caminho." },
+  { id: "robotsDisallow", rotulo: "Bloquear no robots.txt (Disallow)", dica: "Atenção: bloqueado, o Google não lê o noindex e o link pode aparecer sem descrição. Para sumir da busca e continuar acessível, use só o noindex." },
   { id: "semCacheTrecho", rotulo: "Sem cache e sem trecho (noarchive, nosnippet)", dica: "Sem cópia salva nem resumo nos resultados." },
   { id: "semImagens", rotulo: "Não indexar imagens (noimageindex)", dica: "As imagens não entram no Google Imagens." },
   { id: "bloquearIA", rotulo: "Bloquear robôs de IA (GPTBot, ClaudeBot, CCBot…)", dica: "Impede que treinem modelos com a página." },
@@ -413,6 +416,83 @@ export function PagePublisher({
                 </div>
               )}
             </label>
+            {dados.dominio && (
+              <div
+                className="pub__campo pub__cofre"
+                data-on={cofreDoDominio(dados.dominio) || undefined}
+              >
+                <button
+                  type="button"
+                  className="pub__cofre-topo"
+                  role="switch"
+                  aria-checked={cofreDoDominio(dados.dominio)}
+                  onClick={() => {
+                    const on = !cofreDoDominio(dados.dominio!);
+                    setCofreDoDominio(dados.dominio!, on);
+                    // Reflete nas abas SEO e Proteção desta página.
+                    setMeta({
+                      esconderDoGoogle: on,
+                      indexacao: on
+                        ? {
+                            noindex: true,
+                            nofollow: true,
+                            foraDoSitemap: true,
+                            // Sem Disallow para o Google: ele precisa ler
+                            // o noindex para tirar a página da busca.
+                            robotsDisallow: false,
+                            semCacheTrecho: true,
+                            semImagens: true,
+                            bloquearIA: true,
+                          }
+                        : {},
+                      protecao: on
+                        ? {
+                            cliqueDireito: true,
+                            atalhos: true,
+                            selecao: true,
+                            imagens: true,
+                            devtools: true,
+                          }
+                        : {},
+                    });
+                    forcar();
+                  }}
+                >
+                  <span className="pub__cofre-ic" aria-hidden>
+                    🔒
+                  </span>
+                  <span className="pub__cofre-txt">
+                    <b>Modo cofre do domínio</b>
+                    <small>
+                      Tranca <em>{dados.dominio}</em> inteiro: quem entra só
+                      vê a página e compra — nada além disso.
+                    </small>
+                  </span>
+                  <span
+                    className="pub__toggle-track"
+                    data-on={cofreDoDominio(dados.dominio) || undefined}
+                  >
+                    <span className="pub__toggle-knob" />
+                  </span>
+                </button>
+                <ul className="pub__cofre-lista">
+                  {ITENS_COFRE.map((it) => (
+                    <li key={it.id} data-grupo={it.grupo}>
+                      <span className="pub__cofre-dot" aria-hidden />
+                      <span className="pub__cofre-item">
+                        {it.rotulo}
+                        <small>{it.dica}</small>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <small className="pub__hint">
+                  {cofreDoDominio(dados.dominio)
+                    ? "Trancado. Vira robots.txt, cabeçalhos e regras do site na publicação (Fase 2) — aqui só fica configurado."
+                    : "Ligue para trancar tudo de uma vez. Dá para afinar item por item nas abas SEO e Proteção."}
+                </small>
+              </div>
+            )}
             <label className="pub__campo">
               <span>Caminho</span>
               <input

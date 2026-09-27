@@ -280,3 +280,45 @@ export function resumoDoDominio(host: string): Record<PaginaTipo, number> {
   for (const p of paginasDoDominio(host)) base[p.tipo] += 1;
   return base;
 }
+
+/*
+  Modo cofre do domínio (demonstração): tranca o domínio inteiro para o
+  visitante só conseguir VER a página e COMPRAR — nada além disso. Fica num
+  store em memória do navegador, por domínio. Nada muda no servidor de
+  verdade; vira robots.txt, cabeçalhos e regras do site na Fase 2.
+*/
+export interface ItemCofre {
+  id: string;
+  rotulo: string;
+  dica: string;
+  /** Grupo para a lista: busca, cópia, acesso, embutir. */
+  grupo: "busca" | "copia" | "acesso" | "embutir";
+}
+
+export const ITENS_COFRE: ItemCofre[] = [
+  { id: "noindex", grupo: "busca", rotulo: "Some da busca, mas abre pelo link", dica: "noindex + nofollow: quem tem o link entra normal; o Google não lista" },
+  { id: "robots", grupo: "busca", rotulo: "robots.txt fecha para scrapers e robôs estranhos", dica: "Google continua lendo só para ver o noindex e sair — senão o link apareceria \"pelado\"" },
+  { id: "sitemap", grupo: "busca", rotulo: "Sem sitemap.xml nem sitemap index", dica: "Não existe mapa do site para ninguém ler" },
+  { id: "ia", grupo: "busca", rotulo: "Robôs de IA bloqueados", dica: "GPTBot, ClaudeBot, CCBot, Google-Extended, Bytespider…" },
+  { id: "cache", grupo: "busca", rotulo: "Sem cache, trecho ou cópia arquivada", dica: "noarchive, nosnippet e sem Wayback" },
+  { id: "copia", grupo: "copia", rotulo: "Sem copiar texto, salvar imagem ou botão direito", dica: "Anti-cópia ligado em tudo" },
+  { id: "devtools", grupo: "copia", rotulo: "Desfoca se abrir o inspecionar (F12, Ctrl+U, Ctrl+S)", dica: "Atalhos de código bloqueados" },
+  { id: "print", grupo: "copia", rotulo: "Dificultar print e seleção", dica: "user-select off, impressão em branco" },
+  { id: "slugs", grupo: "acesso", rotulo: "Só as páginas publicadas respondem", dica: "Qualquer outro caminho do domínio dá 404" },
+  { id: "pastas", grupo: "acesso", rotulo: "Sem listagem de pastas nem arquivos soltos", dica: "/imagens/, /js/, .zip, .env — tudo fechado" },
+  { id: "hotlink", grupo: "acesso", rotulo: "Imagens e vídeos só carregam dentro da sua página", dica: "Anti-hotlink: fora dela, não abrem" },
+  { id: "iframe", grupo: "embutir", rotulo: "Ninguém embute sua página em outro site", dica: "X-Frame-Options: DENY + CSP frame-ancestors" },
+  { id: "referrer", grupo: "embutir", rotulo: "Não vazar a origem ao sair para o checkout", dica: "Referrer-Policy: no-referrer" },
+];
+
+const COFRE: Record<string, boolean> = {};
+
+/** Se o domínio está trancado no modo cofre (demonstração). */
+export function cofreDoDominio(host?: string): boolean {
+  return Boolean(host && COFRE[host]);
+}
+
+/** Liga/desliga o modo cofre do domínio (demonstração). */
+export function setCofreDoDominio(host: string, on: boolean): void {
+  COFRE[host] = on;
+}
