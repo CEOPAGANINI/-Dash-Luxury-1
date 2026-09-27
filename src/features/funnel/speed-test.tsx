@@ -135,12 +135,19 @@ export function SpeedTest({ urlInicial }: { urlInicial?: string }) {
   const [res, setRes] = React.useState<Resultado | null>(null);
   const [animar, setAnimar] = React.useState(false);
 
+  // Campo vazio = usa o endereço da página (domínio + caminho escolhidos).
+  const efetiva = url.trim() || (urlInicial ?? "");
+
   const rodar = async () => {
-    const u = normalizarUrl(url);
+    const u = normalizarUrl(efetiva);
     if (!u) {
       setErro({
-        titulo: "Endereço inválido",
-        texto: "Confira o site digitado. Ex.: minhaloja.com.br ou https://exemplo.com/pagina.",
+        titulo: urlInicial
+          ? "Endereço inválido"
+          : "Escolha um domínio primeiro",
+        texto: urlInicial
+          ? "Confira o site digitado. Ex.: minhaloja.com.br ou https://exemplo.com/pagina."
+          : "Na aba Essencial, escolha o domínio e o caminho da página — ou digite um endereço aqui.",
       });
       return;
     }
@@ -236,7 +243,7 @@ export function SpeedTest({ urlInicial }: { urlInicial?: string }) {
           <input
             className="pub__input"
             value={url}
-            placeholder="minhaloja.com.br ou https://…"
+            placeholder={urlInicial || "minhaloja.com.br ou https://…"}
             onChange={(e) => setUrl(e.target.value)}
             aria-label="Endereço para testar"
           />
@@ -261,14 +268,31 @@ export function SpeedTest({ urlInicial }: { urlInicial?: string }) {
               🖥️ Computador
             </button>
           </div>
-          <button
-            type="button"
-            className="spd__link"
-            onClick={() => setMostrarChave((v) => !v)}
-          >
-            {mostrarChave ? "Ocultar chave" : "Chave de API"}
-          </button>
+          <span className="spd__links">
+            {urlInicial && url.trim() !== urlInicial && (
+              <button
+                type="button"
+                className="spd__link"
+                onClick={() => setUrl(urlInicial)}
+                title={urlInicial}
+              >
+                ↺ desta página
+              </button>
+            )}
+            <button
+              type="button"
+              className="spd__link"
+              onClick={() => setMostrarChave((v) => !v)}
+            >
+              {mostrarChave ? "Ocultar chave" : "Chave de API"}
+            </button>
+          </span>
         </div>
+        {!urlInicial && (
+          <small className="pub__hint">
+            Escolha o domínio na aba Essencial para o endereço vir preenchido.
+          </small>
+        )}
         {mostrarChave && (
           <div className="spd__chave">
             <input
@@ -291,7 +315,7 @@ export function SpeedTest({ urlInicial }: { urlInicial?: string }) {
       {carregando && (
         <div className="spd__status">
           <span className="spd__spinner" aria-hidden />
-          <b>Analisando {url.replace(/^https?:\/\//, "")}</b>
+          <b>Analisando {efetiva.replace(/^https?:\/\//, "")}</b>
           <span>
             Leva de 15 a 40 segundos — o Google carrega e mede a página de
             verdade.
