@@ -230,6 +230,9 @@ export function FunnelBoard({
     const el = rootRef.current;
     if (!el) return;
     const onWheel = (e: WheelEvent) => {
+      // Roda sobre o publicador (painel lateral) rola o painel, não o
+      // quadro: deixa o evento seguir e não dá zoom.
+      if ((e.target as Element | null)?.closest?.(".pub")) return;
       e.preventDefault();
       const r = el.getBoundingClientRect();
       const px = e.clientX - r.left;
