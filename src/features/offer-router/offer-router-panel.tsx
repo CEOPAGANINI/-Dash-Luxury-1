@@ -41,7 +41,17 @@ import {
   ORIGENS_FUNIL,
   ROTULO_CATEGORIA,
   destinosPorCategoria,
+  enderecoDoNo,
 } from "./funnel-link";
+import {
+  listarFunis,
+  listarRedirs,
+  quando,
+  removerRedir,
+  salvarRedir,
+  type FunilSalvo,
+} from "@/features/funnel/funil-store";
+import type { FunnelNodeType } from "@/features/funnel/funnel-model";
 import {
   BlocoPagina,
   BlocoTipo,
@@ -86,6 +96,26 @@ const NAV_QUADRO: { id: string; nome: string; d: string }[] = [
     d: "M5 9h10M12 6l3 3-3 3 M19 15H9M12 18l-3-3 3-3",
   },
 ];
+
+const NAV_FUNIS = {
+  id: "funis",
+  nome: "Meus funis",
+  d: "M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z",
+};
+NAV_QUADRO.push(NAV_FUNIS);
+
+/** Que tipo de bloco do redirecionador cada nó do funil vira. */
+const BLOCO_POR_NO: Partial<Record<FunnelNodeType, BlocoTipo>> = {
+  page_v3: "pagina",
+  quiz: "pagina",
+  pipeline: "loja",
+  pipeline_ticket: "loja",
+  shortcut_url: "pagina",
+  link_whats: "pagina",
+  link_split: "pagina",
+  link_test_ab: "pagina",
+  link_countries: "pagina",
+};
 
 const TIPOS: { id: MatchKind; nome: string }[] = [
   { id: "regiao", nome: "Por região" },
@@ -263,6 +293,127 @@ export function OfferRouterPanel() {
   // O domínio da VPS escolhido na paleta (as páginas vêm dele).
   const [dominioSel, setDominioSel] = React.useState(DOMINIOS_VPS[0].host);
   const bseq = React.useRef(1);
+  // Cofre: nome do fluxo atual do redirecionador e bump para reler listas.
+  const [nomeRedir, setNomeRedir] = React.useState("Meu redirecionador");
+  const [redirId, setRedirId] = React.useState<string | undefined>(undefined);
+  const [avisoCofre, setAvisoCofre] = React.useState<string | null>(null);
+  const [, refrescarCofre] = React.useReducer((x: number) => x + 1, 0);
+  const avisar = (t: string) => {
+    setAvisoCofre(t);
+    window.setTimeout(() => setAvisoCofre(null), 2500);
+  };
+
+  // Traz um funil salvo para o quadro: cada página/loja vira um bloco
+  // (com o endereço do funil) e as ligações viram arestas. Os blocos
+  // ganham ids "f-<nó>" para não bater com os da paleta.
+  const trazerFunil = (f: FunilSalvo) => {
+    const nos = f.data.nodes.filter((n) => BLOCO_POR_NO[n.type]);
+    if (nos.length === 0) {
+      avisar("Esse funil não tem páginas nem lojas para trazer.");
+      return;
+    }
+    const minX = Math.min(...nos.map((n) => n.x));
+    const minY = Math.min(...nos.map((n) => n.y));
+    const ids = new Set<string>();
+    const novos: BlocoPagina[] = nos.map((n) => {
+      const id = `f-${n.id}`;
+      ids.add(id);
+      const dom = n.pagina?.dominio;
+      const url = dom
+        ? `https://${dom}${n.pagina?.caminho || "/"}`
+        : enderecoDoNo(n);
+      return {
+        id,
+        tipo: BLOCO_POR_NO[n.type] ?? "pagina",
+        nome: n.title,
+        url,
+        host: dom,
+      };
+    });
+    setBlocos((bs) => [...bs.filter((b) => !ids.has(b.id)), ...novos]);
+    setPos((ps) => {
+      const p2 = { ...ps };
+      for (const n of nos) {
+        // Chega abaixo dos blocos do quadro (Fonte/regras/Saída), para não
+        // cair em cima deles; dali o dono arrasta como quiser.
+        p2[`f-${n.id}`] = {
+          x: snapF(140 + (n.x - minX) * 0.8),
+          y: snapF(960 + (n.y - minY) * 0.8),
+        };
+      }
+      return p2;
+    });
+    setExtras((es) => [
+      ...es.filter((e) => !e.id.startsWith("xf-")),
+      ...f.data.edges
+        .filter((e) => ids.has(`f-${e.source}`) && ids.has(`f-${e.target}`))
+        .map((e) => ({
+          id: `xf-${e.id}`,
+          source: `f-${e.source}`,
+          target: `f-${e.target}`,
+        })),
+    ]);
+    setNavAtivo("cfg");
+    avisar(`Funil “${f.nome}” trazido: ${novos.length} bloco(s).`);
+    // Depois que a view "Configurar" monta, desliza o quadro até o grupo
+    // recém-chegado, para o dono ver os blocos sem precisar procurar.
+    const maxX = Math.max(...nos.map((n) => n.x));
+    const maxY = Math.max(...nos.map((n) => n.y));
+    const cx = 140 + ((maxX - minX) * 0.8) / 2 + NODE_W / 2;
+    const cy = 960 + ((maxY - minY) * 0.8) / 2 + 70;
+    window.setTimeout(() => {
+      const r = rootRef.current?.getBoundingClientRect();
+      if (!r) return;
+      setVp((v) => ({
+        ...v,
+        x: r.width / 2 - cx * v.k,
+        y: r.height / 2 - cy * v.k,
+      }));
+    }, 60);
+  };
+
+  // Salvar/abrir o fluxo do redirecionador (tudo que precisa para reabrir).
+  const salvarFluxo = () => {
+    const reg = salvarRedir(
+      nomeRedir,
+      { paginas, blocos, pos, extras, dominioSel, vp, selId },
+      redirId,
+    );
+    setRedirId(reg.id);
+    refrescarCofre();
+    avisar(`“${reg.nome}” salvo no cofre.`);
+  };
+  const abrirFluxo = (id: string) => {
+    const r = listarRedirs().find((x) => x.id === id);
+    if (!r) return;
+    const e = r.estado as {
+      paginas?: OfferPage[];
+      blocos?: BlocoPagina[];
+      pos?: Record<string, { x: number; y: number }>;
+      extras?: Aresta[];
+      dominioSel?: string;
+      vp?: Viewport;
+      selId?: string;
+    };
+    if (e.paginas) setPaginas(e.paginas);
+    if (e.blocos) {
+      setBlocos(e.blocos);
+      const maior = Math.max(
+        0,
+        ...e.blocos.map((b) => Number(b.id.replace(/^b/, "")) || 0),
+      );
+      bseq.current = maior + 1;
+    }
+    if (e.pos) setPos(e.pos);
+    if (e.extras) setExtras(e.extras);
+    if (e.dominioSel) setDominioSel(e.dominioSel);
+    if (e.vp) setVp(e.vp);
+    if (e.selId) setSelId(e.selId);
+    setRedirId(r.id);
+    setNomeRedir(r.nome);
+    setNavAtivo("cfg");
+    avisar(`“${r.nome}” aberto.`);
+  };
 
   // Adiciona um bloco novo no quadro (de uma página da VPS, ou em branco
   // para o dono preencher o endereço). Ganha um lugar padrão à direita.
@@ -1301,6 +1452,116 @@ export function OfferRouterPanel() {
                 </div>
               )}
 
+              {navAtivo === "funis" && (
+                <div className="wf__view ofr__funis">
+                  <div className="ofr__card-head">Meus funis</div>
+                  <p className="ofr__funis-hint">
+                    Traga um funil salvo no quadro do funil para cá: cada
+                    página e loja vira um bloco, já ligadas, para você
+                    configurar o redirecionamento do jeito que quiser.
+                  </p>
+                  {avisoCofre && (
+                    <div className="ofr__funis-aviso">{avisoCofre}</div>
+                  )}
+                  <div className="ofr__funis-grid">
+                    <section className="ofr__funis-col">
+                      <h3>Funis do quadro</h3>
+                      {listarFunis().length === 0 ? (
+                        <p className="ofr__empty">
+                          Nenhum funil salvo. No quadro do funil, abra “Meus
+                          funis” (ícone de pasta) e clique em Salvar.
+                        </p>
+                      ) : (
+                        <ul className="ofr__funis-lista">
+                          {listarFunis().map((f) => (
+                            <li key={f.id}>
+                              <div className="ofr__funis-info">
+                                <b>{f.nome}</b>
+                                <span>
+                                  {f.data.nodes.length} bloco(s) ·{" "}
+                                  {quando(f.atualizadoEm)}
+                                </span>
+                              </div>
+                              <button
+                                type="button"
+                                className="ofr__btn ofr__btn--primary"
+                                onClick={() => trazerFunil(f)}
+                              >
+                                Trazer para o quadro →
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </section>
+                    <section className="ofr__funis-col">
+                      <h3>Fluxos do redirecionador</h3>
+                      <div className="ofr__funis-salvar">
+                        <input
+                          className="ofr__input"
+                          value={nomeRedir}
+                          maxLength={120}
+                          aria-label="Nome do fluxo do redirecionador"
+                          onChange={(e) => setNomeRedir(e.target.value)}
+                        />
+                        <button
+                          type="button"
+                          className="ofr__btn ofr__btn--primary"
+                          onClick={salvarFluxo}
+                        >
+                          {redirId ? "Salvar alterações" : "Salvar este fluxo"}
+                        </button>
+                      </div>
+                      {listarRedirs().length === 0 ? (
+                        <p className="ofr__empty">
+                          Nenhum fluxo salvo ainda.
+                        </p>
+                      ) : (
+                        <ul className="ofr__funis-lista">
+                          {listarRedirs().map((r) => (
+                            <li key={r.id} data-atual={r.id === redirId || undefined}>
+                              <div className="ofr__funis-info">
+                                <b>{r.nome}</b>
+                                <span>
+                                  {quando(r.atualizadoEm)}
+                                  {r.id === redirId ? " · aberto" : ""}
+                                </span>
+                              </div>
+                              <div className="ofr__funis-acoes">
+                                {r.id !== redirId && (
+                                  <button
+                                    type="button"
+                                    className="ofr__btn"
+                                    onClick={() => abrirFluxo(r.id)}
+                                  >
+                                    Abrir
+                                  </button>
+                                )}
+                                <button
+                                  type="button"
+                                  className="ofr__btn ofr__btn--danger"
+                                  aria-label={`Apagar ${r.nome}`}
+                                  onClick={() => {
+                                    removerRedir(r.id);
+                                    if (r.id === redirId) setRedirId(undefined);
+                                    refrescarCofre();
+                                  }}
+                                >
+                                  Apagar
+                                </button>
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </section>
+                  </div>
+                  <p className="ofr__funis-hint">
+                    Fica salvo neste navegador (Fase 1). Com o banco ligado,
+                    vale em qualquer aparelho.
+                  </p>
+                </div>
+              )}
               {navAtivo === "pgs" && (
                 <div className="wf__view">
                   <div className="ofr__card-head">

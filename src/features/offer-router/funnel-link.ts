@@ -65,7 +65,7 @@ export const ORDEM_CATEGORIA: FunnelDestKind[] = [
  * → "/checkout"). Assim uma loja cujo nó guarda um rótulo ("negócios")
  * ainda vira um destino apresentável.
  */
-function enderecoDoNo(n: FunnelNode): string {
+export function enderecoDoNo(n: FunnelNode): string {
   const u = (n.url ?? "").trim();
   if (u.startsWith("/") || /^https?:\/\//i.test(u)) return u;
   const slug = n.title

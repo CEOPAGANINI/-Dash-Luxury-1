@@ -2146,3 +2146,83 @@
   flex: none;
   text-align: center;
 }
+
+/* ── Meus funis (painel do trilho) ─────────────────────────────────────── */
+.funnel__panel--funis {
+  width: min(380px, calc(100% - 90px));
+}
+.funnel__funis-salvar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 8px 0 6px;
+}
+.funnel__funis-salvar .funnel__input {
+  flex: 1;
+  min-width: 0;
+}
+.funnel__funis-aviso {
+  font-size: 12px;
+  color: #86efac;
+  background: color-mix(in srgb, #2bd975 12%, transparent);
+  border: 1px solid color-mix(in srgb, #2bd975 40%, transparent);
+  border-radius: 8px;
+  padding: 6px 10px;
+  margin-bottom: 6px;
+}
+.funnel__funis {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 46vh;
+  overflow: auto;
+}
+.funnel__funis-vazio {
+  font-size: 12px;
+  color: var(--fn-muted);
+  padding: 10px;
+  border: 1px dashed var(--fn-line-2);
+  border-radius: 10px;
+}
+.funnel__funil {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+  border: 1px solid var(--fn-line);
+  border-radius: 10px;
+  background: color-mix(in srgb, #ffffff 3%, transparent);
+}
+.funnel__funil[data-atual] {
+  border-color: color-mix(in srgb, #2bd975 50%, var(--fn-line));
+}
+.funnel__funil-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.funnel__funil-info b {
+  font-size: 13px;
+  color: var(--fn-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.funnel__funil-info span {
+  font-size: 11px;
+  color: var(--fn-muted);
+}
+.funnel__funil-acoes {
+  display: flex;
+  gap: 4px;
+  flex: none;
+}
+.funnel__funil-acoes .funnel__btn {
+  padding: 6px 8px;
+  font-size: 12px;
+}

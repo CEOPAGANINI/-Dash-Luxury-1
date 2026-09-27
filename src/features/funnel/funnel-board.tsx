@@ -23,6 +23,8 @@ import {
   MessageCircle,
   MessageSquare,
   MessagesSquare,
+  Copy,
+  FolderOpen,
   Minus,
   Plug,
   Plus,
@@ -62,6 +64,13 @@ import {
   urlDaPagina,
 } from "@/features/vps/catalogo-demo";
 import { PagePublisher, type EtapaDestino } from "./page-publisher";
+import {
+  duplicarFunil,
+  listarFunis,
+  quando,
+  removerFunil,
+  salvarFunil,
+} from "./funil-store";
 
 const ICONES: Record<
   LucideName,
@@ -130,6 +139,8 @@ export interface FunnelBoardProps {
   onSalvar?: (data: FunnelData) => void;
   onArquivar?: (id: string) => void;
   onExcluir?: (id: string) => void;
+  /** Abrir um funil salvo no cofre (troca o quadro inteiro). */
+  onAbrir?: (data: FunnelData) => void;
 }
 
 /**
@@ -144,6 +155,7 @@ export function FunnelBoard({
   onSalvar,
   onArquivar,
   onExcluir,
+  onAbrir,
 }: FunnelBoardProps) {
   const rootRef = React.useRef<HTMLDivElement>(null);
   const [nodes, setNodes] = React.useState<FunnelNode[]>(inicial.nodes);
@@ -154,8 +166,11 @@ export function FunnelBoard({
     id: string;
   } | null>(null);
   const [painel, setPainel] = React.useState<
-    "recursos" | "icones" | "vps" | null
+    "recursos" | "icones" | "vps" | "funis" | null
   >(null);
+  // Bump para reler o cofre de funis depois de salvar/apagar.
+  const [, refrescarFunis] = React.useReducer((x: number) => x + 1, 0);
+  const [avisoFunil, setAvisoFunil] = React.useState<string | null>(null);
   // O domínio da VPS escolhido no painel VPS (as páginas vêm dele).
   const [dominioVps, setDominioVps] = React.useState(DOMINIOS_VPS[0].host);
   const [dialog, setDialog] = React.useState(false);
@@ -533,6 +548,17 @@ export function FunnelBoard({
     setDialog(false);
   };
 
+  // Salvar no cofre: guarda este funil com nome, para reabrir depois e
+  // para o redirecionador poder trazê-lo para o quadro dele.
+  const salvarNoCofre = () => {
+    const data: FunnelData = { ...inicial, nome, nodes, edges };
+    const reg = salvarFunil(data, nome);
+    onSalvar?.(reg.data);
+    refrescarFunis();
+    setAvisoFunil(`“${reg.nome}” salvo no cofre.`);
+    window.setTimeout(() => setAvisoFunil(null), 2500);
+  };
+
   // Edição dos campos dentro do bloco (nome, endereço, título, descrição).
   const atualizar = React.useCallback(
     (id: string, patch: Partial<FunnelNode>) =>
@@ -728,12 +754,115 @@ export function FunnelBoard({
         <button
           type="button"
           className="funnel__rail-btn"
+          aria-label="Meus funis"
+          data-on={painel === "funis"}
+          onClick={() => setPainel((p) => (p === "funis" ? null : "funis"))}
+        >
+          <FolderOpen size={18} strokeWidth={2} />
+        </button>
+        <button
+          type="button"
+          className="funnel__rail-btn"
           aria-label="Configurações"
           onClick={() => setDialog(true)}
         >
           <Settings size={18} strokeWidth={2} />
         </button>
       </nav>
+
+      {painel === "funis" && (
+        <div className="funnel__panel funnel__panel--funis">
+          <div className="funnel__panel-title">Meus funis</div>
+          <div className="funnel__panel-hint">
+            Salve este funil com nome para reabrir depois — e para trazê-lo
+            ao quadro do redirecionador.
+          </div>
+          <div className="funnel__funis-salvar">
+            <input
+              className="funnel__input"
+              value={nome}
+              maxLength={200}
+              placeholder="Nome do funil"
+              aria-label="Nome do funil"
+              onChange={(e) => setNome(e.target.value)}
+            />
+            <button
+              type="button"
+              className={cn("funnel__btn", "funnel__btn--primary")}
+              onClick={salvarNoCofre}
+            >
+              <Save size={15} strokeWidth={2} />
+              Salvar
+            </button>
+          </div>
+          {avisoFunil && <div className="funnel__funis-aviso">{avisoFunil}</div>}
+          <ul className="funnel__funis" aria-label="Funis salvos">
+            {listarFunis().length === 0 && (
+              <li className="funnel__funis-vazio">
+                Nenhum funil salvo ainda. Dê um nome e clique em Salvar.
+              </li>
+            )}
+            {listarFunis().map((f) => (
+              <li
+                key={f.id}
+                className="funnel__funil"
+                data-atual={f.id === inicial.id || undefined}
+              >
+                <div className="funnel__funil-info">
+                  <b>{f.nome}</b>
+                  <span>
+                    {f.data.nodes.length} bloco(s) · {quando(f.atualizadoEm)}
+                    {f.id === inicial.id ? " · aberto" : ""}
+                  </span>
+                </div>
+                <div className="funnel__funil-acoes">
+                  {f.id !== inicial.id && (
+                    <button
+                      type="button"
+                      className="funnel__btn"
+                      onClick={() => {
+                        onAbrir?.(f.data);
+                        setPainel(null);
+                      }}
+                    >
+                      <FolderOpen size={14} strokeWidth={2} />
+                      Abrir
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="funnel__btn"
+                    aria-label={`Duplicar ${f.nome}`}
+                    title="Duplicar"
+                    onClick={() => {
+                      duplicarFunil(f.id);
+                      refrescarFunis();
+                    }}
+                  >
+                    <Copy size={14} strokeWidth={2} />
+                  </button>
+                  <button
+                    type="button"
+                    className={cn("funnel__btn", "funnel__btn--danger")}
+                    aria-label={`Apagar ${f.nome}`}
+                    title="Apagar do cofre"
+                    onClick={() => {
+                      removerFunil(f.id);
+                      refrescarFunis();
+                    }}
+                  >
+                    <Trash2 size={14} strokeWidth={2} />
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+          <div className="funnel__panel-hint">
+            Fica salvo neste navegador (Fase 1). Quando ligarmos o banco, a
+            lista passa a valer em qualquer aparelho.
+          </div>
+        </div>
+      )}
 
       {painel === "recursos" && (
         <div className="funnel__panel">

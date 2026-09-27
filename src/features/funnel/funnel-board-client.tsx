@@ -53,6 +53,10 @@ export function FunnelBoardClient({ inicial }: { inicial?: FunnelData }) {
       inicial={dados}
       onVoltar={() => router.push("/campanhas")}
       onSalvar={salvar}
+      onAbrir={(data) => {
+        salvar(data);
+        setResetSeq((n) => n + 1);
+      }}
       onArquivar={() => router.push("/campanhas")}
       onExcluir={() => {
         try {

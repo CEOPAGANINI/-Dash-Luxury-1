@@ -1336,3 +1336,110 @@
 .wf__top-meta + .wf__status {
   margin-left: 16px;
 }
+
+/* ── Meus funis (view do redirecionador) ───────────────────────────────── */
+.ofr__funis-hint {
+  font-size: 12.5px;
+  color: var(--cl-text-muted, #a1a1aa);
+  margin: 0 0 12px;
+  line-height: 1.5;
+}
+.ofr__funis-aviso {
+  font-size: 12px;
+  color: #86efac;
+  background: color-mix(in srgb, #2bd975 12%, transparent);
+  border: 1px solid color-mix(in srgb, #2bd975 40%, transparent);
+  border-radius: 8px;
+  padding: 7px 10px;
+  margin-bottom: 12px;
+}
+.ofr__funis-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+}
+.ofr__funis-col {
+  border: 1px solid var(--cl-border, #2a2a2e);
+  border-radius: 14px;
+  padding: 14px;
+  background: color-mix(in srgb, #ffffff 3%, transparent);
+}
+.ofr__funis-col h3 {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.ofr__funis-salvar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.ofr__funis-salvar .ofr__input {
+  flex: 1;
+  min-width: 0;
+}
+.ofr__funis-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ofr__funis-lista li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border: 1px solid var(--cl-border, #2a2a2e);
+  border-radius: 10px;
+}
+.ofr__funis-lista li[data-atual] {
+  border-color: color-mix(in srgb, #2bd975 50%, var(--cl-border, #2a2a2e));
+}
+.ofr__funis-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ofr__funis-info b {
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ofr__funis-info span {
+  font-size: 11px;
+  color: var(--cl-text-muted, #a1a1aa);
+}
+.ofr__funis-acoes {
+  display: flex;
+  gap: 6px;
+  flex: none;
+}
+.ofr__btn--primary {
+  color: #06210f !important;
+  background: #2bd975 !important;
+  border-color: #2bd975 !important;
+  font-weight: 700;
+}
+.ofr__btn--danger:hover {
+  color: #fda4af !important;
+  border-color: color-mix(in srgb, #fb7185 60%, transparent) !important;
+}
+.ofr__btn {
+  font-size: 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--cl-border, #3a3a3e);
+  background: transparent;
+  color: var(--cl-text, #f1f1f3);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.ofr__btn:hover {
+  border-color: #2bd975;
+  color: #2bd975;
+}
