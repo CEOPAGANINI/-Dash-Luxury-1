@@ -4,10 +4,12 @@ import * as React from "react";
 
 import {
   DadosPagina,
+  IndexacaoPagina,
   ProtecaoPagina,
   VelocidadePagina,
   paginaVazia,
 } from "./funnel-model";
+import { SpeedTest } from "./speed-test";
 import {
   DOMINIOS_VPS,
   criarSlug,
@@ -140,6 +142,16 @@ const PROTECOES: { id: keyof ProtecaoPagina; rotulo: string }[] = [
   { id: "devtools", rotulo: "Desfocar se abrir o inspecionar" },
 ];
 
+const BLOQUEIOS: { id: keyof IndexacaoPagina; rotulo: string; dica: string }[] = [
+  { id: "noindex", rotulo: "Esconder do Google (noindex)", dica: "A página não aparece nos resultados de busca." },
+  { id: "nofollow", rotulo: "Não seguir os links (nofollow)", dica: "Robôs não passam pelos links desta página." },
+  { id: "foraDoSitemap", rotulo: "Fora do sitemap.xml e do sitemap index", dica: "Não listar a página nos mapas do site." },
+  { id: "robotsDisallow", rotulo: "Bloquear no robots.txt (Disallow)", dica: "Robôs bem-comportados nem tentam ler o caminho." },
+  { id: "semCacheTrecho", rotulo: "Sem cache e sem trecho (noarchive, nosnippet)", dica: "Sem cópia salva nem resumo nos resultados." },
+  { id: "semImagens", rotulo: "Não indexar imagens (noimageindex)", dica: "As imagens não entram no Google Imagens." },
+  { id: "bloquearIA", rotulo: "Bloquear robôs de IA (GPTBot, ClaudeBot, CCBot…)", dica: "Impede que treinem modelos com a página." },
+];
+
 const VELOCIDADES: { id: keyof VelocidadePagina; rotulo: string }[] = [
   { id: "imagens", rotulo: "Imagens WebP + AVIF" },
   { id: "lazy", rotulo: "Carregar imagens sob demanda (lazy)" },
@@ -254,6 +266,10 @@ export function PagePublisher({
   const velocidade =
     dados.meta.velocidade === false ? null : dados.meta.velocidade ?? {};
   const protecao = dados.meta.protecao ?? {};
+  const indexacao: IndexacaoPagina = {
+    ...dados.meta.indexacao,
+    noindex: dados.meta.indexacao?.noindex ?? dados.meta.esconderDoGoogle,
+  };
 
   return (
     <aside
@@ -571,12 +587,30 @@ export function PagePublisher({
                 />
               </div>
             </label>
-            <div className="pub__panel">
-              <Toggle
-                rotulo="Esconder do Google (noindex)"
-                on={Boolean(dados.meta.esconderDoGoogle)}
-                onToggle={(v) => setMeta({ esconderDoGoogle: v })}
-              />
+            <div className="pub__campo">
+              <span>Bloqueios de busca e rastreadores</span>
+              <div className="pub__panel pub__panel--solto">
+                {BLOQUEIOS.map((b) => (
+                  <Toggle
+                    key={b.id}
+                    rotulo={b.rotulo}
+                    dica={b.dica}
+                    on={Boolean(indexacao[b.id])}
+                    onToggle={(on) => {
+                      const nova = { ...indexacao, [b.id]: on };
+                      // noindex continua espelhado no campo antigo.
+                      setMeta({
+                        indexacao: nova,
+                        ...(b.id === "noindex" ? { esconderDoGoogle: on } : {}),
+                      });
+                    }}
+                  />
+                ))}
+              </div>
+              <small className="pub__hint">
+                Vira meta robots, robots.txt e sitemap na publicação (Fase 2).
+                Aqui só fica configurado.
+              </small>
             </div>
           </>
         )}
@@ -614,6 +648,7 @@ export function PagePublisher({
         )}
 
         {aba === "velocidade" && (
+          <>
           <div className="pub__panel">
             <Toggle
               rotulo="Turbo (otimização) ligado"
@@ -632,6 +667,16 @@ export function PagePublisher({
                 />
               ))}
           </div>
+          <div className="pub__campo">
+            <span>Velocímetro — testar a velocidade</span>
+            <small className="pub__hint">
+              Mede site, landing ou loja de verdade com o PageSpeed do Google
+              (15–40 s). Já vem com o endereço desta página; pode testar
+              qualquer outro.
+            </small>
+            <SpeedTest urlInicial={dados.dominio ? urlFinal : ""} />
+          </div>
+          </>
         )}
 
         {aba === "protecao" && (
@@ -771,10 +816,12 @@ function Campo({
 
 function Toggle({
   rotulo,
+  dica,
   on,
   onToggle,
 }: {
   rotulo: string;
+  dica?: string;
   on: boolean;
   onToggle: (v: boolean) => void;
 }) {
@@ -789,7 +836,10 @@ function Toggle({
       <span className="pub__toggle-track" data-on={on || undefined}>
         <span className="pub__toggle-knob" />
       </span>
-      {rotulo}
+      <span className="pub__toggle-txt">
+        {rotulo}
+        {dica && <small>{dica}</small>}
+      </span>
     </button>
   );
 }

@@ -216,6 +216,24 @@ export interface VelocidadePagina {
   cache?: boolean;
 }
 
+/** Bloqueios de busca/rastreamento da página (só interface). */
+export interface IndexacaoPagina {
+  /** noindex — não aparecer no Google. */
+  noindex?: boolean;
+  /** nofollow — robôs não seguem os links da página. */
+  nofollow?: boolean;
+  /** Fora do sitemap.xml e do sitemap index. */
+  foraDoSitemap?: boolean;
+  /** Disallow no robots.txt para este caminho. */
+  robotsDisallow?: boolean;
+  /** noarchive + nosnippet — sem cache e sem trecho nos resultados. */
+  semCacheTrecho?: boolean;
+  /** noimageindex — imagens da página não indexam. */
+  semImagens?: boolean;
+  /** Bloquear robôs de IA (GPTBot, ClaudeBot, CCBot, Google-Extended…). */
+  bloquearIA?: boolean;
+}
+
 export interface DadosPagina {
   /** Domínio da VPS (ex.: loja-suprema.com). */
   dominio?: string;
@@ -234,6 +252,7 @@ export interface DadosPagina {
     repassarUtm?: boolean;
     protecao?: ProtecaoPagina;
     velocidade?: VelocidadePagina | false;
+    indexacao?: IndexacaoPagina;
   };
   /** nome da saída (data-saida no HTML) → próxima etapa ou link manual. */
   saidas: Record<string, PaginaSaida>;
