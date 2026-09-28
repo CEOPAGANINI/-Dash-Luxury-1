@@ -11,6 +11,7 @@ import {
   paginaVazia,
 } from "./funnel-model";
 import { SpeedTest } from "./speed-test";
+import { MetricasAba } from "./page-metrics-tab";
 import {
   DOMINIOS_VPS,
   ITENS_COFRE,
@@ -39,7 +40,8 @@ type Aba =
   | "velocidade"
   | "protecao"
   | "saidas"
-  | "voltar";
+  | "voltar"
+  | "metricas";
 
 const ABAS: { id: Aba; rotulo: string; sub: string; cor: string }[] = [
   {
@@ -47,6 +49,12 @@ const ABAS: { id: Aba; rotulo: string; sub: string; cor: string }[] = [
     rotulo: "Essencial",
     sub: "Domínio, caminho e o que falta para publicar",
     cor: "#34d399",
+  },
+  {
+    id: "metricas",
+    rotulo: "Métricas",
+    sub: "Visitas, cliques no botão de compra e até onde rolam",
+    cor: "#00e559",
   },
   {
     id: "conteudo",
@@ -118,6 +126,14 @@ function IconeAba({ id }: { id: Aba }) {
     rastreio: <path d="M3 12h4l3 8 4-16 3 8h4" />,
     velocidade: <path d="M13 2 4 14h7l-1 8 9-12h-7z" />,
     protecao: <path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z" />,
+    metricas: (
+      <>
+        <path d="M4 20V10" />
+        <path d="M10 20V4" />
+        <path d="M16 20v-7" />
+        <path d="M2 20h20" />
+      </>
+    ),
     voltar: (
       <>
         <path d="M9 14 4 9l5-5" />
@@ -883,6 +899,8 @@ export function PagePublisher({
             </div>
           </>
         )}
+
+        {aba === "metricas" && <MetricasAba seed={dados.dominio ? `${dados.dominio}${dados.caminho}` : nome} />}
 
         {aba === "voltar" && (
           <>

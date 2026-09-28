@@ -78,6 +78,7 @@ import {
 } from "@/features/vps/catalogo-demo";
 import { PagePublisher, type EtapaDestino } from "./page-publisher";
 import { RedirectPanel } from "./redirect-panel";
+import { metricasDemo, num, pctTxt } from "./page-metrics";
 import {
   GLIFO_REGRA,
   nomeDoDestino,
@@ -2021,6 +2022,11 @@ function NodeView({
                 url || "Sem referência"
               )}
             </span>
+                {pagina && (
+                  <MetricasResumo
+                    seed={pag?.dominio ? `${pag.dominio}${pag.caminho}` : node.title}
+                  />
+                )}
               </>
             )}
           </button>
@@ -2133,6 +2139,27 @@ function NodeView({
         aria-hidden
       />
     </div>
+  );
+}
+
+/** Uma linha de métricas no bloco da página (demonstração, 30 dias). */
+function MetricasResumo({ seed }: { seed: string }) {
+  const m = React.useMemo(() => metricasDemo(seed, "30d"), [seed]);
+  return (
+    <span
+      className="funnel__node-metricas"
+      title="Últimos 30 dias (demonstração): visitas · cliques no botão de compra · quem rolou até o fim"
+    >
+      <span>
+        <i aria-hidden>👁</i> {num(m.visitas)}
+      </span>
+      <span>
+        <i aria-hidden>🛒</i> {num(m.cliquesCompra)} ({pctTxt(m.ctrPct)})
+      </span>
+      <span>
+        <i aria-hidden>⤓</i> {m.profundidade[9]}% fim
+      </span>
+    </span>
   );
 }
 
