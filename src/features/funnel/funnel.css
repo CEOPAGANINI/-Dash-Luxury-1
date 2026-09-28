@@ -154,7 +154,9 @@
   stroke: var(--fn-edge);
   stroke-width: 4;
   stroke-linecap: round;
-  pointer-events: stroke;
+  /* A área de clique é a .funnel__edge-hit (mais larga, logo abaixo);
+     a linha visível não pode roubar o clique dela. */
+  pointer-events: none;
   cursor: pointer;
   transition: filter 150ms ease;
 }
@@ -2257,4 +2259,214 @@
 }
 .funnel__multi-chip b {
   color: var(--fn-text);
+}
+
+/* ── Linhas: fluxo animado, tracejada, pontos da forma livre ─────────────── */
+.funnel__edge[data-tracejada] {
+  stroke-dasharray: 8 6;
+}
+.funnel__edge[data-fluxo] {
+  stroke-dasharray: 10 8;
+  animation: fn-fluxo 0.9s linear infinite;
+}
+@keyframes fn-fluxo {
+  to {
+    stroke-dashoffset: -18;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .funnel__edge[data-fluxo] {
+    animation: none;
+  }
+}
+.funnel__ponto {
+  fill: var(--fn-surface-3);
+  stroke: var(--fn-select);
+  stroke-width: 2;
+  cursor: grab;
+  pointer-events: all;
+}
+.funnel__ponto:active {
+  cursor: grabbing;
+}
+
+/* "+" na bolinha de saída: dá para puxar quantas linhas quiser. */
+.funnel__node:hover .funnel__handle--out::after {
+  content: "+";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--fn-node-frame);
+}
+
+/* Fantasma "solte para criar" enquanto arrasta uma linha no vazio. */
+.funnel__ghost {
+  position: absolute;
+  width: 150px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  color: var(--fn-select);
+  border: 1.5px dashed var(--fn-select);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--fn-select) 8%, transparent);
+  pointer-events: none;
+}
+
+/* Barra flutuante da linha selecionada. */
+.funnel__ltb {
+  position: absolute;
+  z-index: 36;
+  transform: translate(-50%, calc(-100% - 14px));
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 12px;
+  background: var(--fn-surface-3);
+  border: 1px solid var(--fn-line-2);
+  box-shadow: var(--fn-shadow-panel);
+  white-space: nowrap;
+}
+.funnel__ltb-grupo {
+  display: flex;
+  gap: 2px;
+  padding: 0 4px;
+  border-right: 1px solid var(--fn-line);
+}
+.funnel__ltb-grupo:last-child {
+  border-right: 0;
+}
+.funnel__ltb-btn {
+  min-width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  padding: 0 6px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--fn-muted);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+.funnel__ltb-btn:hover {
+  color: var(--fn-text);
+  background: var(--fn-hover);
+}
+.funnel__ltb-btn[data-on] {
+  color: var(--fn-select);
+  border-color: color-mix(in srgb, var(--fn-select) 50%, transparent);
+  background: color-mix(in srgb, var(--fn-select) 14%, transparent);
+}
+.funnel__ltb-esp {
+  display: block;
+  width: 16px;
+  background: currentColor;
+  border-radius: 2px;
+}
+.funnel__ltb-cores {
+  gap: 4px;
+}
+.funnel__ltb-cor {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+}
+.funnel__ltb-cor[data-on] {
+  border-color: #fff;
+  box-shadow: 0 0 0 1px var(--fn-line-2);
+}
+
+/* Menu "solte para criar": o que ligar aqui. */
+.funnel__ligar {
+  position: absolute;
+  z-index: 37;
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 14px;
+  background: var(--fn-surface-3);
+  border: 1px solid var(--fn-line-2);
+  box-shadow: var(--fn-shadow-panel);
+}
+.funnel__ligar-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--fn-text);
+}
+.funnel__ligar-x {
+  border: 0;
+  background: transparent;
+  color: var(--fn-muted);
+  cursor: pointer;
+}
+.funnel__ligar-corpo {
+  max-height: 320px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.funnel__ligar-sec {
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fn-muted);
+  padding: 6px 4px 2px;
+}
+.funnel__ligar-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+.funnel__ligar-lista button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 8px;
+  border: 1px solid var(--fn-line);
+  border-radius: 8px;
+  background: var(--fn-surface);
+  color: var(--fn-text);
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+  min-width: 0;
+}
+.funnel__ligar-lista button:hover {
+  border-color: var(--fn-select);
+}
+.funnel__ligar-lista button small {
+  display: block;
+  width: 100%;
+  font-family: var(--fn-mono);
+  font-size: 10px;
+  color: var(--fn-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.funnel__ligar-lista li:has(small) {
+  grid-column: 1 / -1;
+}
+.funnel__ligar-lista li:has(small) button {
+  flex-wrap: wrap;
 }

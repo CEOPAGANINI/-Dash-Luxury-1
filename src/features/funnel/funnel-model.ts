@@ -296,10 +296,26 @@ export function paginaVazia(): DadosPagina {
 }
 
 /** Uma ligação saída → entrada entre dois nós. */
+/** Estilo de uma linha (ligação) do quadro — como no Miro/Funnelytics. */
+export interface EstiloLinha {
+  /** Curva (padrão), reta, cotovelo (90°) ou livre (com pontos para dobrar). */
+  forma?: "curva" | "reta" | "cotovelo" | "livre";
+  /** Seta no fim (padrão), nas duas pontas ou nenhuma. */
+  pontas?: "fim" | "ambas" | "nenhuma";
+  tracejada?: boolean;
+  /** Tracinhos andando na direção do fluxo. */
+  fluxo?: boolean;
+  cor?: string;
+  espessura?: 1 | 2 | 3;
+  /** Pontos de controle (mundo) da forma "livre". */
+  pontos?: { x: number; y: number }[];
+}
+
 export interface FunnelEdge {
   id: string;
   source: string;
   target: string;
+  estilo?: EstiloLinha;
 }
 
 /** Todo o estado persistível de um funil. */

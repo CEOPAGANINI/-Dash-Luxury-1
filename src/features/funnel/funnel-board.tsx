@@ -50,6 +50,7 @@ import {
   enderecoConfigurado,
   paginaVazia,
   type FunnelData,
+  type EstiloLinha,
   type FunnelEdge,
   type FunnelNode,
   type FunnelNodeType,
@@ -116,6 +117,46 @@ interface Viewport {
   k: number;
 }
 
+/** Cores de linha (mesma paleta dos post-its). */
+const CORES_LINHA = [
+  "#b1b1b7",
+  "#2bd975",
+  "#3b82f6",
+  "#a78bfa",
+  "#f472b6",
+  "#fb923c",
+  "#fbbf24",
+  "#fb7185",
+];
+const ESPESSURA: Record<1 | 2 | 3, number> = { 1: 1.5, 2: 2.2, 3: 3.4 };
+
+/** O caminho SVG de uma linha, na forma escolhida. Coordenadas do mundo. */
+function caminhoDaLinha(
+  sx: number,
+  sy: number,
+  tx: number,
+  ty: number,
+  estilo: EstiloLinha | undefined,
+): string {
+  const o = OFF;
+  const forma = estilo?.forma ?? "curva";
+  if (forma === "reta") return `M ${sx + o} ${sy + o} L ${tx + o} ${ty + o}`;
+  if (forma === "cotovelo") {
+    const mx = (sx + tx) / 2;
+    return `M ${sx + o} ${sy + o} H ${mx + o} V ${ty + o} H ${tx + o}`;
+  }
+  if (forma === "livre") {
+    const ps = estilo?.pontos ?? [];
+    if (ps.length === 1)
+      return `M ${sx + o} ${sy + o} Q ${ps[0].x + o} ${ps[0].y + o} ${tx + o} ${ty + o}`;
+    if (ps.length >= 2)
+      return `M ${sx + o} ${sy + o} C ${ps[0].x + o} ${ps[0].y + o}, ${ps[1].x + o} ${ps[1].y + o}, ${tx + o} ${ty + o}`;
+  }
+  const dx = Math.max(40, Math.abs(tx - sx) / 2);
+  return `M ${sx + o} ${sy + o} C ${sx + dx + o} ${sy + o}, ${tx - dx + o} ${ty + o}, ${tx + o} ${ty + o}`;
+}
+const idMarcador = (cor: string) => `fn-seta-${cor.replace("#", "")}`;
+
 type Interacao =
   | { modo: "pan"; px: number; py: number; ox: number; oy: number }
   | {
@@ -129,6 +170,7 @@ type Interacao =
       /** Posição inicial de cada bloco do grupo (arrasto em conjunto). */
       grupo?: Record<string, { x: number; y: number }>;
     }
+  | { modo: "ponto"; edgeId: string; idx: number }
   | {
       modo: "laco";
       px: number;
@@ -176,6 +218,17 @@ export function FunnelBoard({
   } | null>(null);
   // Seleção múltipla (Ctrl+clique / laço), como no Windows.
   const [multi, setMulti] = React.useState<Set<string>>(() => new Set());
+  // Fluxo animado nas linhas (padrão ligado; cada linha pode desligar).
+  const [fluxoGlobal, setFluxoGlobal] = React.useState(true);
+  // Menu "solte para criar": soltou a linha no vazio → escolher o que criar.
+  const [menuLigar, setMenuLigar] = React.useState<{
+    x: number;
+    y: number;
+    wx: number;
+    wy: number;
+    source: string;
+  } | null>(null);
+  const [buscaLigar, setBuscaLigar] = React.useState("");
   // Retângulo do laço, em pixels da tela do quadro.
   const [laco, setLaco] = React.useState<{
     x: number;
@@ -332,6 +385,16 @@ export function FunnelBoard({
             ns.map((n) => (n.id === it.id ? { ...n, x: nx, y: ny } : n)),
           );
         }
+      } else if (it.modo === "ponto") {
+        const w = paraMundoRef.current(e.clientX, e.clientY);
+        setEdges((es) =>
+          es.map((ed) => {
+            if (ed.id !== it.edgeId) return ed;
+            const pontos = [...(ed.estilo?.pontos ?? [])];
+            pontos[it.idx] = { x: w.wx, y: w.wy };
+            return { ...ed, estilo: { ...ed.estilo, forma: "livre", pontos } };
+          }),
+        );
       } else if (it.modo === "laco") {
         const r = rootRef.current?.getBoundingClientRect();
         if (!r) return;
@@ -368,6 +431,21 @@ export function FunnelBoard({
           .elementFromPoint(e.clientX, e.clientY)
           ?.closest<HTMLElement>("[data-in]");
         const destino = alvo?.dataset.in;
+        if (!destino) {
+          // Soltou no vazio: abre o menu "o que criar e ligar aqui?".
+          const r = rootRef.current?.getBoundingClientRect();
+          if (r) {
+            const w = paraMundoRef.current(e.clientX, e.clientY);
+            setMenuLigar({
+              x: e.clientX - r.left,
+              y: e.clientY - r.top,
+              wx: w.wx,
+              wy: w.wy,
+              source: it.source,
+            });
+            setBuscaLigar("");
+          }
+        }
         if (destino && destino !== it.source) {
           setEdges((es) => {
             if (
@@ -540,6 +618,7 @@ export function FunnelBoard({
         setSel(null);
         setMulti(new Set());
         setAberto(null);
+        setMenuLigar(null);
       }
     };
     window.addEventListener("keydown", onKey);
@@ -550,6 +629,7 @@ export function FunnelBoard({
 
   const iniciarPan = (e: React.PointerEvent) => {
     setPainel(null);
+    setMenuLigar(null);
     // Ctrl/Cmd/Shift + arrastar no fundo = laço de seleção (Windows).
     if (e.ctrlKey || e.metaKey || e.shiftKey) {
       const r = rootRef.current?.getBoundingClientRect();
@@ -671,9 +751,44 @@ export function FunnelBoard({
       setNodes((ns) => [...ns, novo]);
       setSel({ tipo: "node", id: novo.id });
       setPainel(null);
+      return novo.id;
     },
     [],
   );
+
+  // Cria o que foi escolhido no menu "solte para criar", já ligado à origem.
+  const criarLigado = (payload: string) => {
+    const m = menuLigar;
+    if (!m) return;
+    const id = adicionar(payload, m.wx + NODE_W / 2, m.wy + 40);
+    if (id) {
+      setEdges((es) => [
+        ...es,
+        { id: `e${idSeq.current++}`, source: m.source, target: id },
+      ]);
+    }
+    setMenuLigar(null);
+  };
+
+  // Estilo da linha selecionada (barra flutuante).
+  const edgeSel = sel?.tipo === "edge" ? edges.find((e) => e.id === sel.id) : undefined;
+  const setEstilo = (id: string, patch: Partial<EstiloLinha>) =>
+    setEdges((es) =>
+      es.map((ed) => (ed.id === id ? { ...ed, estilo: { ...ed.estilo, ...patch } } : ed)),
+    );
+  const pontoMedio = (ed: FunnelEdge) => {
+    const s0 = nodes.find((n) => n.id === ed.source);
+    const t0 = nodes.find((n) => n.id === ed.target);
+    if (!s0 || !t0) return null;
+    const ss = size(s0.id);
+    const ts = size(t0.id);
+    return {
+      sx: s0.x + ss.w,
+      sy: s0.y + ss.h / 2,
+      tx: t0.x,
+      ty: t0.y + ts.h / 2,
+    };
+  };
 
   // Soltar um item dos painéis no canvas.
   const onDrop = (e: React.DragEvent) => {
@@ -846,6 +961,212 @@ export function FunnelBoard({
             style={{ left: laco.x, top: laco.y, width: laco.w, height: laco.h }}
           />
         )}
+        {edgeSel &&
+          (() => {
+            const pm = pontoMedio(edgeSel);
+            if (!pm) return null;
+            const mx = (pm.sx + pm.tx) / 2;
+            const my = (pm.sy + pm.ty) / 2;
+            const left = vp.x + mx * vp.k;
+            const top = vp.y + my * vp.k;
+            const est = edgeSel.estilo ?? {};
+            const forma = est.forma ?? "curva";
+            const pontas = est.pontas ?? "fim";
+            const fluxo = est.fluxo ?? fluxoGlobal;
+            const B = ({
+              on,
+              title,
+              onClick,
+              children,
+            }: {
+              on?: boolean;
+              title: string;
+              onClick: () => void;
+              children: React.ReactNode;
+            }) => (
+              <button
+                type="button"
+                className="funnel__ltb-btn"
+                data-on={on || undefined}
+                title={title}
+                aria-label={title}
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={onClick}
+              >
+                {children}
+              </button>
+            );
+            const mudarForma = (f: EstiloLinha["forma"]) => {
+              if (f === "livre" && !(est.pontos && est.pontos.length)) {
+                setEstilo(edgeSel.id, {
+                  forma: f,
+                  pontos: [{ x: mx, y: my - 80 }],
+                });
+              } else setEstilo(edgeSel.id, { forma: f });
+            };
+            return (
+              <div
+                className="funnel__ltb"
+                style={{ left, top }}
+                onPointerDown={(e) => e.stopPropagation()}
+                role="toolbar"
+                aria-label="Estilo da linha"
+              >
+                <div className="funnel__ltb-grupo">
+                  <B on={forma === "curva"} title="Curva" onClick={() => mudarForma("curva")}>
+                    ⌒
+                  </B>
+                  <B on={forma === "reta"} title="Reta" onClick={() => mudarForma("reta")}>
+                    ／
+                  </B>
+                  <B on={forma === "cotovelo"} title="Cotovelo (90°)" onClick={() => mudarForma("cotovelo")}>
+                    ⌐
+                  </B>
+                  <B on={forma === "livre"} title="Livre (arraste os pontos)" onClick={() => mudarForma("livre")}>
+                    ∿
+                  </B>
+                </div>
+                <div className="funnel__ltb-grupo">
+                  <B on={pontas === "fim"} title="Seta no fim" onClick={() => setEstilo(edgeSel.id, { pontas: "fim" })}>
+                    →
+                  </B>
+                  <B on={pontas === "ambas"} title="Seta nas duas pontas" onClick={() => setEstilo(edgeSel.id, { pontas: "ambas" })}>
+                    ↔
+                  </B>
+                  <B on={pontas === "nenhuma"} title="Sem seta" onClick={() => setEstilo(edgeSel.id, { pontas: "nenhuma" })}>
+                    —
+                  </B>
+                </div>
+                <div className="funnel__ltb-grupo">
+                  <B on={Boolean(est.tracejada)} title="Tracejada" onClick={() => setEstilo(edgeSel.id, { tracejada: !est.tracejada })}>
+                    ┄
+                  </B>
+                  <B on={fluxo} title="Fluxo animado" onClick={() => setEstilo(edgeSel.id, { fluxo: !fluxo })}>
+                    ≫
+                  </B>
+                  <B on={(est.espessura ?? 2) === 1} title="Fina" onClick={() => setEstilo(edgeSel.id, { espessura: 1 })}>
+                    <i className="funnel__ltb-esp" style={{ height: 1 }} />
+                  </B>
+                  <B on={(est.espessura ?? 2) === 2} title="Média" onClick={() => setEstilo(edgeSel.id, { espessura: 2 })}>
+                    <i className="funnel__ltb-esp" style={{ height: 2 }} />
+                  </B>
+                  <B on={(est.espessura ?? 2) === 3} title="Grossa" onClick={() => setEstilo(edgeSel.id, { espessura: 3 })}>
+                    <i className="funnel__ltb-esp" style={{ height: 4 }} />
+                  </B>
+                </div>
+                <div className="funnel__ltb-grupo funnel__ltb-cores">
+                  {CORES_LINHA.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      className="funnel__ltb-cor"
+                      data-on={(est.cor ?? "#b1b1b7") === c || undefined}
+                      style={{ background: c }}
+                      title={`Cor ${c}`}
+                      aria-label={`Cor ${c}`}
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onClick={() => setEstilo(edgeSel.id, { cor: c })}
+                    />
+                  ))}
+                </div>
+                <div className="funnel__ltb-grupo">
+                  <B
+                    on={fluxoGlobal}
+                    title={fluxoGlobal ? "Fluxo ligado em todas — clique para desligar" : "Ligar fluxo em todas"}
+                    onClick={() => setFluxoGlobal((v) => !v)}
+                  >
+                    ⟳
+                  </B>
+                  <B
+                    title="Apagar linha"
+                    onClick={() => {
+                      setEdges((es) => es.filter((x) => x.id !== edgeSel.id));
+                      setSel(null);
+                    }}
+                  >
+                    🗑
+                  </B>
+                </div>
+              </div>
+            );
+          })()}
+        {menuLigar && (
+          <div
+            className="funnel__ligar"
+            style={{ left: menuLigar.x, top: menuLigar.y }}
+            onPointerDown={(e) => e.stopPropagation()}
+            role="menu"
+            aria-label="O que ligar aqui"
+          >
+            <div className="funnel__ligar-topo">
+              <b>Ligar a…</b>
+              <button
+                type="button"
+                className="funnel__ligar-x"
+                aria-label="Fechar"
+                onClick={() => setMenuLigar(null)}
+              >
+                ✕
+              </button>
+            </div>
+            <input
+              className="funnel__input"
+              autoFocus
+              value={buscaLigar}
+              placeholder="Buscar (ex.: checkout, quiz, oferta)"
+              onChange={(e) => setBuscaLigar(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") setMenuLigar(null);
+                if (e.key === "Enter") {
+                  const q = buscaLigar.trim().toLowerCase();
+                  const r = RECURSOS.find((x) => x.label.toLowerCase().includes(q));
+                  if (r) criarLigado(r.type);
+                }
+              }}
+            />
+            {(() => {
+              const q = buscaLigar.trim().toLowerCase();
+              const rec = RECURSOS.filter((r) => !q || r.label.toLowerCase().includes(q));
+              const pags = PAGINAS_VPS.filter(
+                (pg) => !q || pg.nome.toLowerCase().includes(q) || pg.host.includes(q),
+              );
+              return (
+                <div className="funnel__ligar-corpo">
+                  <div className="funnel__ligar-sec">Recursos do funil</div>
+                  <ul className="funnel__ligar-lista">
+                    {rec.map((r) => {
+                      const Ic = ICONES[r.icon] ?? FileText;
+                      return (
+                        <li key={r.type}>
+                          <button type="button" onClick={() => criarLigado(r.type)}>
+                            <Ic size={14} strokeWidth={2} />
+                            {r.label}
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                  {pags.length > 0 && (
+                    <>
+                      <div className="funnel__ligar-sec">Páginas da VPS</div>
+                      <ul className="funnel__ligar-lista">
+                        {pags.slice(0, 8).map((pg) => (
+                          <li key={pg.id}>
+                            <button type="button" onClick={() => criarLigado(`vps:${pg.id}`)}>
+                              <Server size={14} strokeWidth={2} />
+                              {pg.nome}
+                              <small>{pg.host}{pg.caminho}</small>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                </div>
+              );
+            })()}
+          </div>
+        )}
         {multi.size > 1 && (
           <div className="funnel__multi-chip" role="status">
             <b>{multi.size} blocos selecionados</b>
@@ -859,18 +1180,39 @@ export function FunnelBoard({
           <div className="funnel__dots" aria-hidden />
 
           <svg className="funnel__edges" aria-hidden>
+            <defs>
+              {Array.from(
+                new Set([
+                  ...CORES_LINHA,
+                  ...edges.map((e) => e.estilo?.cor ?? "#b1b1b7"),
+                  "#82a2f6",
+                ]),
+              ).map((cor) => (
+                <marker
+                  key={cor}
+                  id={idMarcador(cor)}
+                  viewBox="0 0 10 10"
+                  refX="9"
+                  refY="5"
+                  markerWidth="7"
+                  markerHeight="7"
+                  markerUnits="strokeWidth"
+                  orient="auto-start-reverse"
+                >
+                  <path d="M0,0 L10,5 L0,10 z" fill={cor} />
+                </marker>
+              ))}
+            </defs>
             {edges.map((ed) => {
-              const s = nodes.find((n) => n.id === ed.source);
-              const t = nodes.find((n) => n.id === ed.target);
-              if (!s || !t) return null;
-              const ss = size(s.id);
-              const ts = size(t.id);
-              const sx = s.x + ss.w;
-              const sy = s.y + ss.h / 2;
-              const tx = t.x;
-              const ty = t.y + ts.h / 2;
-              const dx = Math.max(40, Math.abs(tx - sx) / 2);
-              const d = `M ${sx + OFF} ${sy + OFF} C ${sx + dx + OFF} ${sy + OFF}, ${tx - dx + OFF} ${ty + OFF}, ${tx + OFF} ${ty + OFF}`;
+              const pm = pontoMedio(ed);
+              if (!pm) return null;
+              const { sx, sy, tx, ty } = pm;
+              const est = ed.estilo;
+              const d = caminhoDaLinha(sx, sy, tx, ty, est);
+              const selecionada = sel?.tipo === "edge" && sel.id === ed.id;
+              const cor = selecionada ? "#82a2f6" : (est?.cor ?? "#b1b1b7");
+              const pontas = est?.pontas ?? "fim";
+              const fluxo = est?.fluxo ?? fluxoGlobal;
               return (
                 <g key={ed.id}>
                   <path
@@ -879,13 +1221,41 @@ export function FunnelBoard({
                     onPointerDown={(e) => {
                       e.stopPropagation();
                       setSel({ tipo: "edge", id: ed.id });
+                      setMulti(new Set());
                     }}
                   />
                   <path
                     className="funnel__edge"
                     d={d}
-                    data-selected={sel?.tipo === "edge" && sel.id === ed.id}
+                    data-selected={selecionada}
+                    data-fluxo={fluxo || undefined}
+                    data-tracejada={est?.tracejada || undefined}
+                    style={{
+                      stroke: cor,
+                      strokeWidth: ESPESSURA[est?.espessura ?? 2],
+                    }}
+                    markerEnd={
+                      pontas !== "nenhuma" ? `url(#${idMarcador(cor)})` : undefined
+                    }
+                    markerStart={
+                      pontas === "ambas" ? `url(#${idMarcador(cor)})` : undefined
+                    }
                   />
+                  {selecionada &&
+                    est?.forma === "livre" &&
+                    (est.pontos ?? []).map((pt, i) => (
+                      <circle
+                        key={i}
+                        className="funnel__ponto"
+                        cx={pt.x + OFF}
+                        cy={pt.y + OFF}
+                        r={7}
+                        onPointerDown={(e) => {
+                          e.stopPropagation();
+                          inter.current = { modo: "ponto", edgeId: ed.id, idx: i };
+                        }}
+                      />
+                    ))}
                 </g>
               );
             })}
@@ -901,6 +1271,15 @@ export function FunnelBoard({
                 return <path className="funnel__edge--temp" d={d} />;
               })()}
           </svg>
+          {conn && (
+            <div
+              className="funnel__ghost"
+              style={{ left: conn.wx, top: conn.wy - 24 }}
+              aria-hidden
+            >
+              Solte para criar
+            </div>
+          )}
 
           {nodes.map((node) => (
             <NodeView
