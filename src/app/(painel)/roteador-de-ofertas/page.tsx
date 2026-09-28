@@ -1,20 +1,28 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 
-import { OfferRouterPanel } from "@/features/offer-router/offer-router-panel";
+import { getSession } from "@/lib/auth/session";
+import { FunnelBoardClient } from "@/features/funnel/funnel-board-client";
 
-export const metadata: Metadata = { title: "Roteador de ofertas" };
+export const metadata: Metadata = { title: "Roteador de ofertas · Orbit" };
+export const dynamic = "force-dynamic";
 
 /**
- * O Roteador de ofertas — só a interface, a pedido do dono: configura para
- * onde parte dos visitantes de uma página é mandada (por região, aparelho
- * ou fatia), lista só as páginas com redirecionamento, mostra de onde vêm
- * os visitantes e quem foi redirecionado. Nada roteia de verdade.
+ * O Roteador de ofertas vive dentro do quadro do funil: é o bloco
+ * "Redirecionador", que manda parte dos visitantes de uma página para
+ * outra (por região, aparelho, sistema, rede, origem do anúncio ou fatia).
+ * Esta rota abre o mesmo quadro já com o Redirecionador em foco. Só a
+ * interface — nada roteia de verdade.
  */
-export default function RoteadorDeOfertasPage() {
+export default async function RoteadorDeOfertasPage() {
+  const session = await getSession();
+  if (!session) redirect("/login");
   return (
     <>
       <h1 className="sr-only">Roteador de ofertas</h1>
-      <OfferRouterPanel />
+      <div className="funnel-stage">
+        <FunnelBoardClient focoTipo="redirect" />
+      </div>
     </>
   );
 }

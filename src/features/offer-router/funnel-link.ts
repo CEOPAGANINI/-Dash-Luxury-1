@@ -33,9 +33,16 @@ export interface FunnelDestino {
 /** De que tipo de nó do funil sai cada família (os outros são ignorados). */
 const CATEGORIA_POR_TIPO: Partial<Record<FunnelNodeType, FunnelDestKind>> = {
   page_v3: "pagina",
+  optin: "pagina",
+  vsl: "pagina",
+  sales: "pagina",
+  thanks: "pagina",
+  webinar: "pagina",
+  members: "pagina",
   quiz: "quiz",
-  pipeline: "loja",
-  pipeline_ticket: "loja",
+  checkout: "loja",
+  upsell: "loja",
+  downsell: "loja",
   shortcut_url: "link",
   link_whats: "link",
   link_split: "link",
@@ -47,7 +54,7 @@ const CATEGORIA_POR_TIPO: Partial<Record<FunnelNodeType, FunnelDestKind>> = {
 export const ROTULO_CATEGORIA: Record<FunnelDestKind, string> = {
   pagina: "Páginas",
   quiz: "Quizzes",
-  loja: "Lojas / Checkout",
+  loja: "Checkout e ofertas",
   link: "Links / Atalhos",
 };
 
@@ -77,15 +84,20 @@ export function enderecoDoNo(n: FunnelNode): string {
   return "/" + (slug || n.id);
 }
 
-/** Os lugares do funil que dá para escolher no redirecionador. */
-export function destinosDoFunil(data: FunnelData = FUNIL_DEMO): FunnelDestino[] {
+/** Os lugares de uma lista de nós (o quadro aberto) que servem de destino. */
+export function destinosDosNos(nodes: FunnelNode[]): FunnelDestino[] {
   const saida: FunnelDestino[] = [];
-  for (const n of data.nodes) {
+  for (const n of nodes) {
     const categoria = CATEGORIA_POR_TIPO[n.type];
     if (!categoria) continue;
     saida.push({ id: n.id, nome: n.title, url: enderecoDoNo(n), categoria });
   }
   return saida;
+}
+
+/** Os lugares do funil que dá para escolher no redirecionador. */
+export function destinosDoFunil(data: FunnelData = FUNIL_DEMO): FunnelDestino[] {
+  return destinosDosNos(data.nodes);
 }
 
 /** Só os lugares que recebem tráfego (viram origem no redirecionador). */

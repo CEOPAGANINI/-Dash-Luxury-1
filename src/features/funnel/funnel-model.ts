@@ -7,6 +7,8 @@
  * o desenho está em funnel.css e o comportamento em funnel-board.tsx.
  */
 
+import type { RedirectRule } from "@/features/offer-router/offer-router-model";
+
 /** As chaves de tipo de nó registradas no editor (nodeTypes do bundle). */
 export type FunnelNodeType =
   | "page_v3"
@@ -29,7 +31,18 @@ export type FunnelNodeType =
   | "internal_doc"
   | "ad"
   | "comment"
-  | "brand";
+  | "brand"
+  // Blocos do funil de vendas (nomes do dono): páginas e o redirecionador.
+  | "optin"
+  | "vsl"
+  | "sales"
+  | "checkout"
+  | "upsell"
+  | "downsell"
+  | "thanks"
+  | "webinar"
+  | "members"
+  | "redirect";
 
 /** Nome do ícone do lucide-react usado por cada recurso. */
 export type LucideName =
@@ -52,45 +65,85 @@ export type LucideName =
   | "Plug"
   | "BookOpen"
   | "ImageIcon"
-  | "MessageSquare";
+  | "MessageSquare"
+  | "Shuffle"
+  | "UserPlus"
+  | "Video"
+  | "ShoppingBag"
+  | "CreditCard"
+  | "TrendingUp"
+  | "TrendingDown"
+  | "PartyPopper"
+  | "Presentation"
+  | "GraduationCap"
+  | "Mail";
 
 /** Um item do painel "Recursos" — cada um cria um nó ao ser solto no fluxo. */
 export interface RecursoDef {
   type: FunnelNodeType;
   label: string;
   icon: LucideName;
+  /** Família do painel "Recursos" (páginas, tráfego, automação, outros). */
+  familia: FamiliaRecurso;
+  /** Caminho sugerido ao criar (só páginas), ex.: "/checkout". */
+  slug?: string;
 }
+
+export type FamiliaRecurso = "paginas" | "trafego" | "automacao" | "outros";
+
+/** Rótulo de cada família, na ordem do painel. */
+export const FAMILIAS: { id: FamiliaRecurso; nome: string }[] = [
+  { id: "paginas", nome: "Páginas do funil" },
+  { id: "trafego", nome: "Tráfego e links" },
+  { id: "automacao", nome: "Automação e vendas" },
+  { id: "outros", nome: "Outros" },
+];
 
 /**
  * O painel "Recursos": os 20 recursos arrastáveis, na ordem em que o
  * editor os mostra. `type` casa com o registro de nós acima.
  */
 export const RECURSOS: RecursoDef[] = [
-  { type: "page_v3", label: "Página v3", icon: "FileText" },
-  { type: "quiz", label: "Quiz", icon: "ListChecks" },
-  { type: "campaign", label: "Automação Individual", icon: "Clock" },
-  { type: "group_campaign", label: "Automação em Grupos", icon: "Users" },
-  { type: "lead_list", label: "Lista", icon: "List" },
-  { type: "report", label: "Relatório", icon: "BarChart3" },
-  { type: "shortcut_url", label: "Atalho", icon: "ExternalLink" },
-  { type: "link_test_ab", label: "Teste A/B", icon: "FlaskConical" },
-  { type: "link_split", label: "Link Split", icon: "Split" },
-  { type: "link_countries", label: "Link Países", icon: "Globe" },
-  { type: "link_whats", label: "Link WhatsApp", icon: "MessageCircle" },
-  { type: "pipeline", label: "Negócios", icon: "DollarSign" },
-  { type: "pipeline_ticket", label: "Tickets", icon: "Ticket" },
-  {
-    type: "pipeline_attendance",
-    label: "Atendimentos",
-    icon: "MessagesSquare",
-  },
-  { type: "agents", label: "Agentes IA (Agents)", icon: "Bot" },
-  { type: "device", label: "Dispositivo", icon: "Smartphone" },
-  { type: "webhooks", label: "Integração", icon: "Plug" },
-  { type: "internal_doc", label: "Documentos da empresa", icon: "BookOpen" },
-  { type: "ad", label: "Copy e Anúncios", icon: "ImageIcon" },
-  { type: "comment", label: "Comentário", icon: "MessageSquare" },
+  // ── Páginas do funil (nomes do dono) ─────────────────────────────
+  { type: "page_v3", label: "Landing Page", icon: "FileText", familia: "paginas", slug: "/landing-page" },
+  { type: "optin", label: "Página de Captura", icon: "UserPlus", familia: "paginas", slug: "/captura" },
+  { type: "vsl", label: "VSL (vídeo de vendas)", icon: "Video", familia: "paginas", slug: "/vsl" },
+  { type: "sales", label: "Página de Vendas", icon: "ShoppingBag", familia: "paginas", slug: "/vendas" },
+  { type: "checkout", label: "Checkout", icon: "CreditCard", familia: "paginas", slug: "/checkout" },
+  { type: "upsell", label: "Upsell", icon: "TrendingUp", familia: "paginas", slug: "/upsell" },
+  { type: "downsell", label: "Downsell", icon: "TrendingDown", familia: "paginas", slug: "/downsell" },
+  { type: "thanks", label: "Página de Obrigado", icon: "PartyPopper", familia: "paginas", slug: "/obrigado" },
+  { type: "quiz", label: "Quiz", icon: "ListChecks", familia: "paginas", slug: "/quiz" },
+  { type: "webinar", label: "Webinar", icon: "Presentation", familia: "paginas", slug: "/webinar" },
+  { type: "members", label: "Área de Membros", icon: "GraduationCap", familia: "paginas", slug: "/membros" },
+  // ── Tráfego e links ───────────────────────────────────────────────
+  { type: "ad", label: "Anúncio", icon: "ImageIcon", familia: "trafego" },
+  { type: "redirect", label: "Redirecionador", icon: "Shuffle", familia: "trafego" },
+  { type: "shortcut_url", label: "Link / Atalho", icon: "ExternalLink", familia: "trafego" },
+  { type: "link_test_ab", label: "Teste A/B", icon: "FlaskConical", familia: "trafego" },
+  { type: "link_split", label: "Divisor de Tráfego", icon: "Split", familia: "trafego" },
+  { type: "link_countries", label: "Link por País", icon: "Globe", familia: "trafego" },
+  { type: "link_whats", label: "Link do WhatsApp", icon: "MessageCircle", familia: "trafego" },
+  // ── Automação e vendas ────────────────────────────────────────────
+  { type: "campaign", label: "Automação de E-mail", icon: "Mail", familia: "automacao" },
+  { type: "group_campaign", label: "Automação em Grupo", icon: "Users", familia: "automacao" },
+  { type: "lead_list", label: "Lista de Leads", icon: "List", familia: "automacao" },
+  { type: "pipeline", label: "Vendas (CRM)", icon: "DollarSign", familia: "automacao" },
+  { type: "pipeline_ticket", label: "Suporte (Tickets)", icon: "Ticket", familia: "automacao" },
+  { type: "pipeline_attendance", label: "Atendimento", icon: "MessagesSquare", familia: "automacao" },
+  { type: "agents", label: "Agente de IA", icon: "Bot", familia: "automacao" },
+  { type: "webhooks", label: "Integração (Webhook)", icon: "Plug", familia: "automacao" },
+  // ── Outros ────────────────────────────────────────────────────────
+  { type: "report", label: "Relatório", icon: "BarChart3", familia: "outros" },
+  { type: "device", label: "Aparelho", icon: "Smartphone", familia: "outros" },
+  { type: "internal_doc", label: "Documento", icon: "BookOpen", familia: "outros" },
+  { type: "comment", label: "Comentário", icon: "MessageSquare", familia: "outros" },
 ];
+
+/** Os tipos que são páginas (têm endereço e abrem o publicador). */
+export const TIPOS_PAGINA: ReadonlySet<FunnelNodeType> = new Set<FunnelNodeType>(
+  RECURSOS.filter((r) => r.familia === "paginas").map((r) => r.type),
+);
 
 /** Um selo de origem de tráfego do painel "Ícones" — vira um nó `brand`. */
 export interface MarcaDef {
@@ -137,25 +190,35 @@ export const MARCAS: MarcaDef[] = [
 
 /** Rótulo curto por tipo, usado no selo de tipo do nó. */
 export const ROTULO_TIPO: Record<FunnelNodeType, string> = {
-  page_v3: "Página v3",
+  page_v3: "Landing Page",
+  optin: "Captura",
+  vsl: "VSL",
+  sales: "Vendas",
+  checkout: "Checkout",
+  upsell: "Upsell",
+  downsell: "Downsell",
+  thanks: "Obrigado",
   quiz: "Quiz",
-  campaign: "Automação",
-  group_campaign: "Grupos",
-  lead_list: "Lista",
-  report: "Relatório",
-  shortcut_url: "Atalho",
-  link_test_ab: "Teste A/B",
-  link_split: "Link Split",
-  link_countries: "Países",
-  link_whats: "WhatsApp",
-  pipeline: "Negócios",
-  pipeline_ticket: "Tickets",
-  pipeline_attendance: "Atendimentos",
-  agents: "Agente IA",
-  device: "Dispositivo",
-  webhooks: "Integração",
-  internal_doc: "Documento",
+  webinar: "Webinar",
+  members: "Membros",
   ad: "Anúncio",
+  redirect: "Redirecionador",
+  shortcut_url: "Link",
+  link_test_ab: "Teste A/B",
+  link_split: "Divisor",
+  link_countries: "Por país",
+  link_whats: "WhatsApp",
+  campaign: "E-mail",
+  group_campaign: "Grupo",
+  lead_list: "Leads",
+  pipeline: "CRM",
+  pipeline_ticket: "Suporte",
+  pipeline_attendance: "Atendimento",
+  agents: "Agente IA",
+  webhooks: "Integração",
+  report: "Relatório",
+  device: "Aparelho",
+  internal_doc: "Documento",
   comment: "Comentário",
   brand: "Origem",
 };
@@ -164,6 +227,23 @@ export const ROTULO_TIPO: Record<FunnelNodeType, string> = {
 export const RECURSO_POR_TIPO: Record<string, RecursoDef> = Object.fromEntries(
   RECURSOS.map((r) => [r.type, r]),
 );
+
+/**
+ * Uma regra do bloco Redirecionador: a mesma regra do roteador de ofertas
+ * (região, aparelho, sistema, rede, origem ou fatia), mas o destino pode
+ * ser um bloco do próprio quadro — aí a linha até ele é desenhada sozinha.
+ */
+export interface RegraRedir extends RedirectRule {
+  /** Id do bloco de destino no quadro (quando o destino é um bloco). */
+  destinoNoId?: string;
+  /** Estilo da linha desenhada até o destino. */
+  estilo?: EstiloLinha;
+}
+
+/** O que um bloco Redirecionador guarda. */
+export interface RedirNode {
+  regras: RegraRedir[];
+}
 
 /** Um nó posicionado no quadro. */
 export interface FunnelNode {
@@ -184,6 +264,8 @@ export interface FunnelNode {
   sigla?: string;
   /** Dados do publicador (nós de página) — só interface, demonstração. */
   pagina?: DadosPagina;
+  /** As regras do bloco Redirecionador (nós `redirect`). */
+  redir?: RedirNode;
 }
 
 /* ── Publicador da página (só a interface, demonstração) ──────────────────
@@ -316,6 +398,8 @@ export interface FunnelEdge {
   source: string;
   target: string;
   estilo?: EstiloLinha;
+  /** Texto mostrado no meio da linha (ex.: a regra que a desenhou). */
+  rotulo?: string;
 }
 
 /** Todo o estado persistível de um funil. */

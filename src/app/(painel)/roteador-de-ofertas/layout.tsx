@@ -1,4 +1,4 @@
-import "@/features/offer-router/offer-router.css";
+import "@/features/funnel/funnel.css";
 
 export default function RoteadorDeOfertasLayout({
   children,

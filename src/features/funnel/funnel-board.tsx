@@ -8,6 +8,16 @@ import {
   Bot,
   BookOpen,
   Clock,
+  CreditCard,
+  GraduationCap,
+  Mail,
+  PartyPopper,
+  Presentation,
+  ShoppingBag,
+  TrendingDown,
+  TrendingUp,
+  UserPlus,
+  Video,
   DollarSign,
   ExternalLink,
   FileText,
@@ -31,6 +41,7 @@ import {
   Save,
   Server,
   Settings,
+  Shuffle,
   Smartphone,
   Split,
   Ticket,
@@ -47,6 +58,7 @@ import {
   RECURSOS,
   RECURSO_POR_TIPO,
   ROTULO_TIPO,
+  TIPOS_PAGINA,
   enderecoConfigurado,
   paginaVazia,
   type FunnelData,
@@ -65,6 +77,13 @@ import {
   urlDaPagina,
 } from "@/features/vps/catalogo-demo";
 import { PagePublisher, type EtapaDestino } from "./page-publisher";
+import { RedirectPanel } from "./redirect-panel";
+import {
+  GLIFO_REGRA,
+  nomeDoDestino,
+  nomesDosNos,
+  rotuloDaRegra,
+} from "./redirect-rules";
 import {
   duplicarFunil,
   listarFunis,
@@ -97,6 +116,17 @@ const ICONES: Record<
   BookOpen,
   ImageIcon,
   MessageSquare,
+  Shuffle,
+  UserPlus,
+  Video,
+  ShoppingBag,
+  CreditCard,
+  TrendingUp,
+  TrendingDown,
+  PartyPopper,
+  Presentation,
+  GraduationCap,
+  Mail,
 };
 
 const OFF = 8000;
@@ -109,7 +139,8 @@ const clamp = (v: number, lo: number, hi: number) =>
 const snap = (v: number) => Math.round(v / GRID) * GRID;
 
 /** Tipos que mostram o card grande de página (com preview e "Editar"). */
-const isPagina = (t: FunnelNodeType) => t === "page_v3";
+const isPagina = (t: FunnelNodeType) => TIPOS_PAGINA.has(t);
+const isRedir = (t: FunnelNodeType) => t === "redirect";
 
 interface Viewport {
   x: number;
@@ -182,6 +213,8 @@ type Interacao =
   | null;
 
 export interface FunnelBoardProps {
+  /** Abre, ao montar, o primeiro bloco deste tipo (ex.: o Redirecionador). */
+  focoTipo?: FunnelNodeType;
   /** O funil inicial mostrado no quadro. */
   inicial: FunnelData;
   /** Voltar à lista de funis. */
@@ -207,10 +240,39 @@ export function FunnelBoard({
   onArquivar,
   onExcluir,
   onAbrir,
+  focoTipo,
 }: FunnelBoardProps) {
   const rootRef = React.useRef<HTMLDivElement>(null);
   const [nodes, setNodes] = React.useState<FunnelNode[]>(inicial.nodes);
   const [edges, setEdges] = React.useState<FunnelEdge[]>(inicial.edges);
+  // As linhas que as regras do Redirecionador desenham sozinhas até o bloco
+  // de destino. Não ficam em `edges`: nascem das regras (id "rr:nó:regra").
+  const edgesRegra = React.useMemo<FunnelEdge[]>(() => {
+    const out: FunnelEdge[] = [];
+    for (const n of nodes) {
+      if (n.type !== "redirect" || !n.redir) continue;
+      for (const r of n.redir.regras) {
+        if (!r.destinoNoId || !nodes.some((x) => x.id === r.destinoNoId)) continue;
+        out.push({
+          id: `rr:${n.id}:${r.id}`,
+          source: n.id,
+          target: r.destinoNoId,
+          rotulo: rotuloDaRegra(r),
+          estilo: { cor: r.ativo ? "#00e559" : "#6b6b73", ...r.estilo },
+        });
+      }
+    }
+    return out;
+  }, [nodes]);
+  const todasLinhas = React.useMemo(
+    () => [...edges, ...edgesRegra],
+    [edges, edgesRegra],
+  );
+  const tipoPorId = React.useMemo(
+    () => Object.fromEntries(nodes.map((n) => [n.id, n.type])) as Record<string, FunnelNodeType>,
+    [nodes],
+  );
+  const nomesNos = React.useMemo(() => nomesDosNos(nodes), [nodes]);
   const [vp, setVp] = React.useState<Viewport>({ x: 40, y: 40, k: 0.8 });
   const [sel, setSel] = React.useState<{
     tipo: "node" | "edge";
@@ -436,9 +498,10 @@ export function FunnelBoard({
           const r = rootRef.current?.getBoundingClientRect();
           if (r) {
             const w = paraMundoRef.current(e.clientX, e.clientY);
+            // O menu fica dentro do quadro (não corta no canto de baixo).
             setMenuLigar({
-              x: e.clientX - r.left,
-              y: e.clientY - r.top,
+              x: Math.max(8, Math.min(e.clientX - r.left, r.width - 312)),
+              y: Math.max(8, Math.min(e.clientY - r.top, r.height - 424)),
               wx: w.wx,
               wy: w.wy,
               source: it.source,
@@ -745,7 +808,8 @@ export function FunnelBoard({
           x,
           y,
           title: def.label,
-          url: isPagina(def.type) ? "/nova-pagina" : undefined,
+          url: isPagina(def.type) ? (def.slug ?? "/nova-pagina") : undefined,
+          redir: isRedir(def.type) ? { regras: [] } : undefined,
         };
       }
       setNodes((ns) => [...ns, novo]);
@@ -771,11 +835,45 @@ export function FunnelBoard({
   };
 
   // Estilo da linha selecionada (barra flutuante).
-  const edgeSel = sel?.tipo === "edge" ? edges.find((e) => e.id === sel.id) : undefined;
-  const setEstilo = (id: string, patch: Partial<EstiloLinha>) =>
+  const edgeSel = sel?.tipo === "edge" ? todasLinhas.find((e) => e.id === sel.id) : undefined;
+  const setEstilo = (id: string, patch: Partial<EstiloLinha>) => {
+    if (id.startsWith("rr:")) {
+      // Linha de uma regra do Redirecionador: o estilo mora na regra.
+      const [, nid, rid] = id.split(":");
+      setNodes((ns) =>
+        ns.map((n) =>
+          n.id === nid && n.redir
+            ? {
+                ...n,
+                redir: {
+                  regras: n.redir.regras.map((r) =>
+                    r.id === rid ? { ...r, estilo: { ...r.estilo, ...patch } } : r,
+                  ),
+                },
+              }
+            : n,
+        ),
+      );
+      return;
+    }
     setEdges((es) =>
       es.map((ed) => (ed.id === id ? { ...ed, estilo: { ...ed.estilo, ...patch } } : ed)),
     );
+  };
+  // Apagar uma linha: se é de uma regra, some a regra também.
+  const apagarLinha = (id: string) => {
+    if (id.startsWith("rr:")) {
+      const [, nid, rid] = id.split(":");
+      setNodes((ns) =>
+        ns.map((n) =>
+          n.id === nid && n.redir
+            ? { ...n, redir: { regras: n.redir.regras.filter((r) => r.id !== rid) } }
+            : n,
+        ),
+      );
+    } else setEdges((es) => es.filter((x) => x.id !== id));
+    setSel(null);
+  };
   const pontoMedio = (ed: FunnelEdge) => {
     const s0 = nodes.find((n) => n.id === ed.source);
     const t0 = nodes.find((n) => n.id === ed.target);
@@ -925,9 +1023,9 @@ export function FunnelBoard({
   // Quantas ligações saem de cada nó, para o rodapé "N saídas".
   const saidas = React.useMemo(() => {
     const c: Record<string, number> = {};
-    for (const ed of edges) c[ed.source] = (c[ed.source] ?? 0) + 1;
+    for (const ed of todasLinhas) c[ed.source] = (c[ed.source] ?? 0) + 1;
     return c;
-  }, [edges]);
+  }, [todasLinhas]);
 
   const paginaAt = React.useMemo(() => {
     let i = 0;
@@ -935,6 +1033,17 @@ export function FunnelBoard({
     for (const n of nodes) ordem[n.id] = ++i;
     return ordem;
   }, [nodes]);
+
+  // Ao abrir pelo menu "Roteador de ofertas", já mostra o Redirecionador.
+  React.useEffect(() => {
+    if (!focoTipo) return;
+    const n = inicial.nodes.find((x) => x.type === focoTipo);
+    if (!n) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- foco inicial, uma vez
+    setAberto(n.id);
+    trazerParaVista(n);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- só ao montar
+  }, []);
 
   const transform = `translate(${vp.x}px, ${vp.y}px) scale(${vp.k})`;
 
@@ -1080,8 +1189,7 @@ export function FunnelBoard({
                   <B
                     title="Apagar linha"
                     onClick={() => {
-                      setEdges((es) => es.filter((x) => x.id !== edgeSel.id));
-                      setSel(null);
+                      apagarLinha(edgeSel.id);
                     }}
                   >
                     🗑
@@ -1184,7 +1292,7 @@ export function FunnelBoard({
               {Array.from(
                 new Set([
                   ...CORES_LINHA,
-                  ...edges.map((e) => e.estilo?.cor ?? "#b1b1b7"),
+                  ...todasLinhas.map((e) => e.estilo?.cor ?? "#b1b1b7"),
                   "#82a2f6",
                 ]),
               ).map((cor) => (
@@ -1203,7 +1311,7 @@ export function FunnelBoard({
                 </marker>
               ))}
             </defs>
-            {edges.map((ed) => {
+            {todasLinhas.map((ed) => {
               const pm = pontoMedio(ed);
               if (!pm) return null;
               const { sx, sy, tx, ty } = pm;
@@ -1213,6 +1321,9 @@ export function FunnelBoard({
               const cor = selecionada ? "#82a2f6" : (est?.cor ?? "#b1b1b7");
               const pontas = est?.pontas ?? "fim";
               const fluxo = est?.fluxo ?? fluxoGlobal;
+              // Rótulo no meio: o da regra, ou "resto" na saída comum do Redirecionador.
+              const rotulo =
+                ed.rotulo ?? (tipoPorId[ed.source] === "redirect" ? "resto" : undefined);
               return (
                 <g key={ed.id}>
                   <path
@@ -1256,6 +1367,28 @@ export function FunnelBoard({
                         }}
                       />
                     ))}
+                  {rotulo &&
+                    (() => {
+                      const w = Math.round(rotulo.length * 6.6 + 20);
+                      return (
+                        <g
+                          className="funnel__edge-rotulo"
+                          data-selected={selecionada || undefined}
+                          transform={`translate(${(sx + tx) / 2 + OFF}, ${(sy + ty) / 2 + OFF})`}
+                          style={{ "--linha-cor": cor } as React.CSSProperties}
+                          onPointerDown={(e) => {
+                            e.stopPropagation();
+                            setSel({ tipo: "edge", id: ed.id });
+                            setMulti(new Set());
+                          }}
+                        >
+                          <rect x={-w / 2} y={-11} width={w} height={22} rx={11} />
+                          <text textAnchor="middle" dominantBaseline="central">
+                            {rotulo}
+                          </text>
+                        </g>
+                      );
+                    })()}
                 </g>
               );
             })}
@@ -1294,6 +1427,7 @@ export function FunnelBoard({
               locked={locked}
               aberto={aberto === node.id}
               saidas={saidas[node.id] ?? 0}
+              nomes={nomesNos}
               measure={medir}
               onPointerDown={(e) => iniciarArrasto(e, node)}
               onHandleOut={(e) => iniciarConexao(e, node)}
@@ -1304,7 +1438,8 @@ export function FunnelBoard({
                 }
                 const abrindo = aberto !== node.id;
                 setAberto((a) => (a === node.id ? null : node.id));
-                if (abrindo && isPagina(node.type)) trazerParaVista(node);
+                if (abrindo && (isPagina(node.type) || isRedir(node.type)))
+                  trazerParaVista(node);
               }}
               onChange={(patch) => atualizar(node.id, patch)}
               onRemover={() => remover(node.id)}
@@ -1348,6 +1483,27 @@ export function FunnelBoard({
             onChange={(d) => atualizar(n.id, { pagina: d })}
             proximasEtapas={proximas}
             onFechar={() => setAberto(null)}
+          />
+        );
+      })()}
+
+      {/* Redirecionador: painel lateral quando um bloco de redirecionamento
+          está aberto — o roteador de ofertas dentro do quadro. */}
+      {(() => {
+        if (!aberto) return null;
+        const n = nodes.find((x) => x.id === aberto);
+        if (!n || !isRedir(n.type)) return null;
+        return (
+          <RedirectPanel
+            node={n}
+            nodes={nodes}
+            onNome={(nm) => atualizar(n.id, { title: nm })}
+            onChange={(redir) => atualizar(n.id, { redir })}
+            onFechar={() => setAberto(null)}
+            onIrPara={(id) => {
+              const t = nodes.find((x) => x.id === id);
+              if (t) trazerParaVista(t);
+            }}
           />
         );
       })()}
@@ -1712,6 +1868,8 @@ interface NodeViewProps {
   aberto: boolean;
   /** Ligações que saem deste nó. */
   saidas: number;
+  /** id → título dos blocos (nome do destino das regras). */
+  nomes: Record<string, string>;
   measure: (id: string, el: HTMLDivElement | null) => void;
   onPointerDown: (e: React.PointerEvent) => void;
   onHandleOut: (e: React.PointerEvent) => void;
@@ -1735,6 +1893,7 @@ function NodeView({
   locked,
   aberto,
   saidas,
+  nomes,
   measure,
   onPointerDown,
   onHandleOut,
@@ -1755,11 +1914,13 @@ function NodeView({
     node.url,
     node.headline,
     node.descricao,
+    node.redir,
     aberto,
   ]);
 
   const marca = node.type === "brand";
   const pagina = isPagina(node.type);
+  const redir = isRedir(node.type);
   const def = RECURSO_POR_TIPO[node.type];
   const Icone = def ? ICONES[def.icon] : FileText;
   const url = node.url ?? "";
@@ -1785,6 +1946,7 @@ function NodeView({
       data-locked={locked}
       data-aberto={aberto || undefined}
       data-in={node.id}
+      data-tipo={node.type}
       onPointerDown={onPointerDown}
     >
       <span
@@ -1829,6 +1991,10 @@ function NodeView({
             aria-controls={aberto ? configId : undefined}
             aria-label={`Configurar ${node.title || "bloco sem nome"}`}
           >
+            {redir ? (
+              <RedirCorpo node={node} nomes={nomes} />
+            ) : (
+              <>
             <span className="funnel__node-name">
               {node.title || (pagina ? "Página sem nome" : "Sem nome")}
             </span>
@@ -1855,9 +2021,11 @@ function NodeView({
                 url || "Sem referência"
               )}
             </span>
+              </>
+            )}
           </button>
 
-          {aberto && !pagina && (
+          {aberto && !pagina && !redir && (
             <div
               id={configId}
               role="region"
@@ -1965,6 +2133,51 @@ function NodeView({
         aria-hidden
       />
     </div>
+  );
+}
+
+/** O corpo do bloco Redirecionador: as regras, uma por linha, e o "resto". */
+function RedirCorpo({
+  node,
+  nomes,
+}: {
+  node: FunnelNode;
+  nomes: Record<string, string>;
+}) {
+  const regras = node.redir?.regras ?? [];
+  return (
+    <>
+      <span className="funnel__node-name">{node.title || "Redirecionador"}</span>
+      <span className="funnel__redir-lista">
+        {regras.map((r) => (
+          <span
+            key={r.id}
+            className="funnel__redir-regra"
+            data-off={!r.ativo || undefined}
+          >
+            <i aria-hidden>{GLIFO_REGRA[r.tipo]}</i>
+            <span className="funnel__redir-quem">{rotuloDaRegra(r)}</span>
+            <span className="funnel__redir-seta" aria-hidden>
+              →
+            </span>
+            <span className="funnel__redir-dest">{nomeDoDestino(r, nomes)}</span>
+          </span>
+        ))}
+        {regras.length === 0 && (
+          <span className="funnel__redir-vazio">
+            Toque para criar as regras (região, aparelho, fatia…)
+          </span>
+        )}
+        <span className="funnel__redir-regra funnel__redir-resto">
+          <i aria-hidden>↩</i>
+          <span className="funnel__redir-quem">Quem não bate em nenhuma</span>
+          <span className="funnel__redir-seta" aria-hidden>
+            →
+          </span>
+          <span className="funnel__redir-dest">segue a linha de saída</span>
+        </span>
+      </span>
+    </>
   );
 }
 

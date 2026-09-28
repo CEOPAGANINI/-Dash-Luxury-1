@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { FunnelBoard } from "./funnel-board";
 import { FUNIL_DEMO } from "./funnel-demo";
-import type { FunnelData } from "./funnel-model";
+import type { FunnelData, FunnelNodeType } from "./funnel-model";
 
 const STORAGE_KEY = "funnel-board:demo";
 
@@ -14,7 +14,14 @@ const STORAGE_KEY = "funnel-board:demo";
  * navegador, para o "Salvar" ter efeito sem um backend. Enquanto não há
  * persistência de servidor, esta é a fonte da verdade do quadro de exemplo.
  */
-export function FunnelBoardClient({ inicial }: { inicial?: FunnelData }) {
+export function FunnelBoardClient({
+  inicial,
+  focoTipo,
+}: {
+  inicial?: FunnelData;
+  /** Abre, ao montar, o primeiro bloco deste tipo (ex.: "redirect"). */
+  focoTipo?: FunnelNodeType;
+}) {
   const router = useRouter();
   const [pronto, setPronto] = React.useState(false);
   const [dados, setDados] = React.useState<FunnelData>(inicial ?? FUNIL_DEMO);
@@ -51,6 +58,7 @@ export function FunnelBoardClient({ inicial }: { inicial?: FunnelData }) {
     <FunnelBoard
       key={`${dados.id}:${resetSeq}`}
       inicial={dados}
+      focoTipo={focoTipo}
       onVoltar={() => router.push("/campanhas")}
       onSalvar={salvar}
       onAbrir={(data) => {
