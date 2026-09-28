@@ -2226,3 +2226,35 @@
   padding: 6px 8px;
   font-size: 12px;
 }
+
+/* ── Seleção múltipla: laço (Ctrl/Shift + arrastar) e chip de contagem ─── */
+.funnel__laco {
+  position: absolute;
+  z-index: 30;
+  pointer-events: none;
+  border: 1px solid var(--fn-select);
+  background: color-mix(in srgb, var(--fn-select) 14%, transparent);
+  border-radius: 3px;
+}
+.funnel__multi-chip {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  z-index: 35;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--fn-surface-3);
+  border: 1px solid color-mix(in srgb, var(--fn-select) 55%, var(--fn-line));
+  box-shadow: var(--fn-shadow-panel);
+  font-size: 12px;
+  color: var(--fn-muted);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.funnel__multi-chip b {
+  color: var(--fn-text);
+}

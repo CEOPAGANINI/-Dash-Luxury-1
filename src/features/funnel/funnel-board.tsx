@@ -126,6 +126,15 @@ type Interacao =
       nx: number;
       ny: number;
       moveu: boolean;
+      /** Posição inicial de cada bloco do grupo (arrasto em conjunto). */
+      grupo?: Record<string, { x: number; y: number }>;
+    }
+  | {
+      modo: "laco";
+      px: number;
+      py: number;
+      /** Seleção que já existia (Ctrl: soma; senão, começa vazia). */
+      base: string[];
     }
   | { modo: "connect"; source: string }
   | null;
@@ -165,6 +174,19 @@ export function FunnelBoard({
     tipo: "node" | "edge";
     id: string;
   } | null>(null);
+  // Seleção múltipla (Ctrl+clique / laço), como no Windows.
+  const [multi, setMulti] = React.useState<Set<string>>(() => new Set());
+  // Retângulo do laço, em pixels da tela do quadro.
+  const [laco, setLaco] = React.useState<{
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+  } | null>(null);
+  // Ctrl+clique num bloco só marca/desmarca — não abre o painel dele.
+  const ctrlClick = React.useRef(false);
+  const nodesRef = React.useRef(nodes);
+  nodesRef.current = nodes;
   const [painel, setPainel] = React.useState<
     "recursos" | "icones" | "vps" | "funis" | null
   >(null);
@@ -179,6 +201,8 @@ export function FunnelBoard({
   const [sizes, setSizes] = React.useState<
     Record<string, { w: number; h: number }>
   >({});
+  const sizesRef = React.useRef(sizes);
+  sizesRef.current = sizes;
   const [conn, setConn] = React.useState<{
     wx: number;
     wy: number;
@@ -278,11 +302,42 @@ export function FunnelBoard({
         const dx = (e.clientX - it.px) / vp.k;
         const dy = (e.clientY - it.py) / vp.k;
         if (Math.abs(dx) > 2 || Math.abs(dy) > 2) it.moveu = true;
-        const nx = snap(it.nx + dx);
-        const ny = snap(it.ny + dy);
-        setNodes((ns) =>
-          ns.map((n) => (n.id === it.id ? { ...n, x: nx, y: ny } : n)),
-        );
+        if (it.grupo) {
+          // Move o grupo inteiro mantendo as distâncias entre os blocos.
+          const g = it.grupo;
+          setNodes((ns) =>
+            ns.map((n) =>
+              g[n.id]
+                ? { ...n, x: snap(g[n.id].x + dx), y: snap(g[n.id].y + dy) }
+                : n,
+            ),
+          );
+        } else {
+          const nx = snap(it.nx + dx);
+          const ny = snap(it.ny + dy);
+          setNodes((ns) =>
+            ns.map((n) => (n.id === it.id ? { ...n, x: nx, y: ny } : n)),
+          );
+        }
+      } else if (it.modo === "laco") {
+        const r = rootRef.current?.getBoundingClientRect();
+        if (!r) return;
+        const x0 = Math.min(it.px, e.clientX) - r.left;
+        const y0 = Math.min(it.py, e.clientY) - r.top;
+        const w = Math.abs(e.clientX - it.px);
+        const h = Math.abs(e.clientY - it.py);
+        setLaco({ x: x0, y: y0, w, h });
+        // Blocos que encostam no laço (em coordenadas do mundo).
+        const a = paraMundoRef.current(Math.min(it.px, e.clientX), Math.min(it.py, e.clientY));
+        const b = paraMundoRef.current(Math.max(it.px, e.clientX), Math.max(it.py, e.clientY));
+        const dentro = new Set(it.base);
+        for (const n of nodesRef.current) {
+          const sz = sizesRef.current[n.id] ?? { w: NODE_W, h: 90 };
+          const cruza =
+            n.x < b.wx && n.x + sz.w > a.wx && n.y < b.wy && n.y + sz.h > a.wy;
+          if (cruza) dentro.add(n.id);
+        }
+        setMulti(dentro);
       } else if (it.modo === "connect") {
         setConn({
           ...paraMundoRef.current(e.clientX, e.clientY),
@@ -314,6 +369,7 @@ export function FunnelBoard({
         }
         setConn(null);
       }
+      if (it.modo === "laco") setLaco(null);
       inter.current = null;
       setPanning(false);
       setDragId(null);
@@ -333,6 +389,23 @@ export function FunnelBoard({
       const alvo = e.target as HTMLElement | null;
       if (alvo && (alvo.tagName === "INPUT" || alvo.tagName === "TEXTAREA"))
         return;
+      if ((e.key === "a" || e.key === "A") && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        setMulti(new Set(nodesRef.current.map((n) => n.id)));
+        return;
+      }
+      if ((e.key === "Delete" || e.key === "Backspace") && multi.size > 0) {
+        e.preventDefault();
+        const ids = multi;
+        setNodes((ns) => ns.filter((n) => !ids.has(n.id)));
+        setEdges((es) =>
+          es.filter((ed) => !ids.has(ed.source) && !ids.has(ed.target)),
+        );
+        setMulti(new Set());
+        setSel(null);
+        setAberto(null);
+        return;
+      }
       if ((e.key === "Delete" || e.key === "Backspace") && sel) {
         e.preventDefault();
         if (sel.tipo === "node") {
@@ -348,17 +421,35 @@ export function FunnelBoard({
       if (e.key === "Escape") {
         setPainel(null);
         setSel(null);
+        setMulti(new Set());
         setAberto(null);
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [sel, dialog]);
+  }, [sel, dialog, multi]);
 
   const iniciarPan = (e: React.PointerEvent) => {
+    setPainel(null);
+    // Ctrl/Cmd/Shift + arrastar no fundo = laço de seleção (Windows).
+    if (e.ctrlKey || e.metaKey || e.shiftKey) {
+      const r = rootRef.current?.getBoundingClientRect();
+      if (!r) return;
+      const soma = e.ctrlKey || e.metaKey;
+      inter.current = {
+        modo: "laco",
+        px: e.clientX,
+        py: e.clientY,
+        base: soma ? Array.from(multi) : [],
+      };
+      if (!soma) setMulti(new Set());
+      setSel(null);
+      setLaco({ x: e.clientX - r.left, y: e.clientY - r.top, w: 0, h: 0 });
+      return;
+    }
     // Travado ou não, o pan da mesa funciona; só a seleção é limpa aqui.
     setSel(null);
-    setPainel(null);
+    setMulti(new Set());
     inter.current = {
       modo: "pan",
       px: e.clientX,
@@ -371,9 +462,32 @@ export function FunnelBoard({
 
   const iniciarArrasto = (e: React.PointerEvent, node: FunnelNode) => {
     e.stopPropagation();
+    // Ctrl/Cmd + clique: marca ou desmarca este bloco na seleção múltipla.
+    if (e.ctrlKey || e.metaKey) {
+      ctrlClick.current = true;
+      setMulti((m) => {
+        const n = new Set(m);
+        if (n.has(node.id)) n.delete(node.id);
+        else n.add(node.id);
+        return n;
+      });
+      setSel({ tipo: "node", id: node.id });
+      return;
+    }
     setSel({ tipo: "node", id: node.id });
+    // Clicou num bloco fora do grupo: a seleção múltipla se desfaz.
+    const noGrupo = multi.has(node.id);
+    if (!noGrupo && multi.size > 0) setMulti(new Set());
     if (locked) return;
     setDragId(node.id);
+    const grupo =
+      noGrupo && multi.size > 1
+        ? Object.fromEntries(
+            nodes
+              .filter((n) => multi.has(n.id))
+              .map((n) => [n.id, { x: n.x, y: n.y }]),
+          )
+        : undefined;
     inter.current = {
       modo: "node",
       id: node.id,
@@ -382,6 +496,7 @@ export function FunnelBoard({
       nx: node.x,
       ny: node.y,
       moveu: false,
+      grupo,
     };
   };
 
@@ -599,6 +714,19 @@ export function FunnelBoard({
         onDragOver={(e) => e.preventDefault()}
         onDrop={onDrop}
       >
+        {laco && (
+          <div
+            className="funnel__laco"
+            aria-hidden
+            style={{ left: laco.x, top: laco.y, width: laco.w, height: laco.h }}
+          />
+        )}
+        {multi.size > 1 && (
+          <div className="funnel__multi-chip" role="status">
+            <b>{multi.size} blocos selecionados</b>
+            <span>arraste para mover juntos · Delete apaga · Esc limpa</span>
+          </div>
+        )}
         <div className="funnel__world" style={{ transform }}>
           <div className="funnel__dots" aria-hidden />
 
@@ -651,7 +779,10 @@ export function FunnelBoard({
               key={node.id}
               node={node}
               ord={paginaAt[node.id]}
-              selected={sel?.tipo === "node" && sel.id === node.id}
+              selected={
+                (sel?.tipo === "node" && sel.id === node.id) ||
+                multi.has(node.id)
+              }
               dragging={dragId === node.id}
               locked={locked}
               aberto={aberto === node.id}
@@ -660,6 +791,10 @@ export function FunnelBoard({
               onPointerDown={(e) => iniciarArrasto(e, node)}
               onHandleOut={(e) => iniciarConexao(e, node)}
               onToggle={() => {
+                if (ctrlClick.current) {
+                  ctrlClick.current = false;
+                  return;
+                }
                 const abrindo = aberto !== node.id;
                 setAberto((a) => (a === node.id ? null : node.id));
                 if (abrindo && isPagina(node.type)) trazerParaVista(node);
