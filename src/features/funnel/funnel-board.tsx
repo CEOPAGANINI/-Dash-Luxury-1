@@ -185,8 +185,16 @@ export function FunnelBoard({
   } | null>(null);
   // Ctrl+clique num bloco só marca/desmarca — não abre o painel dele.
   const ctrlClick = React.useRef(false);
+  // Onde o mouse está (para colar no lugar certo) e quantas colagens
+  // seguidas (cada Ctrl+V desloca um pouco mais).
+  const mouse = React.useRef<{ x: number; y: number; dentro: boolean }>({
+    x: 0,
+    y: 0,
+    dentro: false,
+  });
+  const colagens = React.useRef(0);
+  const edgesRef = React.useRef(edges);
   const nodesRef = React.useRef(nodes);
-  nodesRef.current = nodes;
   const [painel, setPainel] = React.useState<
     "recursos" | "icones" | "vps" | "funis" | null
   >(null);
@@ -202,7 +210,12 @@ export function FunnelBoard({
     Record<string, { w: number; h: number }>
   >({});
   const sizesRef = React.useRef(sizes);
-  sizesRef.current = sizes;
+  // Espelhos para os handlers globais (que vivem fora do render).
+  React.useEffect(() => {
+    nodesRef.current = nodes;
+    edgesRef.current = edges;
+    sizesRef.current = sizes;
+  }, [nodes, edges, sizes]);
   const [conn, setConn] = React.useState<{
     wx: number;
     wy: number;
@@ -382,6 +395,89 @@ export function FunnelBoard({
     };
   }, [vp.k]);
 
+  /*
+    Área de transferência do quadro (Ctrl+C / Ctrl+X / Ctrl+V / Ctrl+D).
+    Guarda no navegador, então dá para copiar num funil e colar em outro.
+    Copia os blocos selecionados e as ligações entre eles; ao colar, ganha
+    ids novos, cai onde o mouse está (ou um pouco deslocado) e a cópia já
+    vem selecionada para arrastar.
+  */
+  const CLIP_KEY = "dash:funil-clipboard";
+  const idsSelecionados = (): string[] => {
+    if (multi.size > 0) return Array.from(multi);
+    if (sel?.tipo === "node") return [sel.id];
+    return [];
+  };
+  const copiar = (): number => {
+    const ids = new Set(idsSelecionados());
+    if (ids.size === 0) return 0;
+    const ns = nodesRef.current.filter((n) => ids.has(n.id));
+    const es = edgesRef.current.filter(
+      (e) => ids.has(e.source) && ids.has(e.target),
+    );
+    try {
+      window.localStorage.setItem(CLIP_KEY, JSON.stringify({ nodes: ns, edges: es }));
+    } catch {
+      /* sem storage */
+    }
+    colagens.current = 0;
+    return ns.length;
+  };
+  const colar = (deslocar = false) => {
+    type Clip = { nodes: FunnelNode[]; edges: FunnelEdge[] };
+    let clip: Clip | null = null;
+    try {
+      const bruto = window.localStorage.getItem(CLIP_KEY);
+      clip = bruto ? (JSON.parse(bruto) as Clip) : null;
+    } catch {
+      clip = null;
+    }
+    if (!clip || clip.nodes.length === 0) return;
+    colagens.current += 1;
+    const minX = Math.min(...clip.nodes.map((n) => n.x));
+    const minY = Math.min(...clip.nodes.map((n) => n.y));
+    let dx: number;
+    let dy: number;
+    if (!deslocar && mouse.current.dentro) {
+      // Cola com o canto do grupo onde o mouse está.
+      const m = paraMundoRef.current(mouse.current.x, mouse.current.y);
+      dx = snap(m.wx) - minX;
+      dy = snap(m.wy) - minY;
+    } else {
+      dx = 40 * colagens.current;
+      dy = 40 * colagens.current;
+    }
+    const mapa: Record<string, string> = {};
+    const novos: FunnelNode[] = clip.nodes.map((n) => {
+      const id = `n${idSeq.current++}`;
+      mapa[n.id] = id;
+      return { ...n, id, x: snap(n.x + dx), y: snap(n.y + dy) };
+    });
+    const novasEdges: FunnelEdge[] = clip.edges.map((e) => ({
+      id: `e${idSeq.current++}`,
+      source: mapa[e.source],
+      target: mapa[e.target],
+    }));
+    setNodes((ns) => [...ns, ...novos]);
+    setEdges((es) => [...es, ...novasEdges]);
+    setMulti(new Set(novos.map((n) => n.id)));
+    setSel(novos.length === 1 ? { tipo: "node", id: novos[0].id } : null);
+    setAberto(null);
+  };
+  const recortar = () => {
+    const ids = new Set(idsSelecionados());
+    if (copiar() === 0) return;
+    setNodes((ns) => ns.filter((n) => !ids.has(n.id)));
+    setEdges((es) => es.filter((e) => !ids.has(e.source) && !ids.has(e.target)));
+    setMulti(new Set());
+    setSel(null);
+    setAberto(null);
+  };
+  const duplicar = () => {
+    if (copiar() === 0) return;
+    colar(true);
+  };
+
   // Delete remove o que estiver selecionado (fora de inputs).
   React.useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -389,6 +485,27 @@ export function FunnelBoard({
       const alvo = e.target as HTMLElement | null;
       if (alvo && (alvo.tagName === "INPUT" || alvo.tagName === "TEXTAREA"))
         return;
+      const mod = e.ctrlKey || e.metaKey;
+      const k = e.key.toLowerCase();
+      if (mod && k === "c") {
+        if (copiar() > 0) e.preventDefault();
+        return;
+      }
+      if (mod && k === "x") {
+        e.preventDefault();
+        recortar();
+        return;
+      }
+      if (mod && k === "v") {
+        e.preventDefault();
+        colar();
+        return;
+      }
+      if (mod && k === "d") {
+        e.preventDefault();
+        duplicar();
+        return;
+      }
       if ((e.key === "a" || e.key === "A") && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
         setMulti(new Set(nodesRef.current.map((n) => n.id)));
@@ -427,6 +544,8 @@ export function FunnelBoard({
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
+    // copiar/colar/recortar/duplicar leem refs e o estado atual via closure.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sel, dialog, multi]);
 
   const iniciarPan = (e: React.PointerEvent) => {
@@ -711,6 +830,12 @@ export function FunnelBoard({
         data-panning={panning}
         data-locked={locked}
         onPointerDown={iniciarPan}
+        onPointerMove={(e) => {
+          mouse.current = { x: e.clientX, y: e.clientY, dentro: true };
+        }}
+        onPointerLeave={() => {
+          mouse.current.dentro = false;
+        }}
         onDragOver={(e) => e.preventDefault()}
         onDrop={onDrop}
       >
@@ -724,7 +849,10 @@ export function FunnelBoard({
         {multi.size > 1 && (
           <div className="funnel__multi-chip" role="status">
             <b>{multi.size} blocos selecionados</b>
-            <span>arraste para mover juntos · Delete apaga · Esc limpa</span>
+            <span>
+              arraste para mover juntos · Ctrl+C copia · Ctrl+D duplica ·
+              Delete apaga · Esc limpa
+            </span>
           </div>
         )}
         <div className="funnel__world" style={{ transform }}>
