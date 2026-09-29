@@ -4059,3 +4059,12 @@
 .funnel table tbody tr:nth-child(odd) {
   background: transparent;
 }
+
+/* O cabeçalho e o rodapé do bloco usam os tokens do quadro (a pele antiga
+   pintava "article > header" de preto, o que quebrava o tema Papel). */
+.funnel .funnel__node-head {
+  background: var(--fn-node-top);
+}
+.funnel .funnel__node-foot {
+  background: transparent;
+}
