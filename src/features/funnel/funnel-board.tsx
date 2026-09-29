@@ -62,6 +62,8 @@ import {
   paginaVazia,
   type FunnelData,
   type EstiloLinha,
+  type EstiloMapa,
+  type EstiloNo,
   type FunnelEdge,
   type FunnelNode,
   type FunnelNodeType,
@@ -78,6 +80,7 @@ import {
 import { PagePublisher, type EtapaDestino } from "./page-publisher";
 import { RedirectPanel } from "./redirect-panel";
 import { BlockPanel } from "./block-panel";
+import { CORES_NO, StylePanel } from "./style-panel";
 import { metricasDemo, num, pctTxt } from "./page-metrics";
 import {
   GLIFO_REGRA,
@@ -187,6 +190,8 @@ function caminhoDaLinha(
   const dx = Math.max(40, Math.abs(tx - sx) / 2);
   return `M ${sx + o} ${sy + o} C ${sx + dx + o} ${sy + o}, ${tx - dx + o} ${ty + o}, ${tx + o} ${ty + o}`;
 }
+type Snap = { nodes: FunnelNode[]; edges: FunnelEdge[] };
+
 const idMarcador = (cor: string) => `fn-seta-${cor.replace("#", "")}`;
 
 type Interacao =
@@ -282,7 +287,7 @@ export function FunnelBoard({
   // Seleção múltipla (Ctrl+clique / laço), como no Windows.
   const [multi, setMulti] = React.useState<Set<string>>(() => new Set());
   // Fluxo animado nas linhas (padrão ligado; cada linha pode desligar).
-  const [fluxoGlobal, setFluxoGlobal] = React.useState(true);
+  const [fluxoGlobal, setFluxoGlobal] = React.useState(inicial.mapa?.fluxo ?? true);
   // Menu "solte para criar": soltou a linha no vazio → escolher o que criar.
   const [menuLigar, setMenuLigar] = React.useState<{
     x: number;
@@ -343,6 +348,19 @@ export function FunnelBoard({
   const [dragId, setDragId] = React.useState<string | null>(null);
   // O nó cuja configuração está aberta dentro do próprio bloco.
   const [aberto, setAberto] = React.useState<string | null>(null);
+  // Parte 2: estilo do mapa, inspetor de estilo, menu do botão direito e
+  // histórico de desfazer/refazer.
+  const [mapa, setMapa] = React.useState<EstiloMapa>(inicial.mapa ?? {});
+  const [estiloAberto, setEstiloAberto] = React.useState(false);
+  const [menuCtx, setMenuCtx] = React.useState<{
+    x: number;
+    y: number;
+    alvo: { tipo: "node" | "edge" | "canvas"; id?: string };
+  } | null>(null);
+  const [histTick, setHistTick] = React.useState(0);
+  const hist = React.useRef<{ past: Snap[]; future: Snap[] }>({ past: [], future: [] });
+  const ultimo = React.useRef<Snap>({ nodes: inicial.nodes, edges: inicial.edges });
+  const ignorarHist = React.useRef(false);
 
   const inter = React.useRef<Interacao>(null);
   // Semeia o contador a partir do maior id já existente, para novos nós e
@@ -528,6 +546,7 @@ export function FunnelBoard({
       inter.current = null;
       setPanning(false);
       setDragId(null);
+      setHistTick((t) => t + 1);
     };
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
@@ -621,77 +640,91 @@ export function FunnelBoard({
   };
 
   // Delete remove o que estiver selecionado (fora de inputs).
+
+  // Histórico (desfazer/refazer): guarda o estado anterior sempre que nós ou
+  // linhas mudam de verdade — não no meio de um arrasto (só quando solta).
   React.useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (dialog) return;
-      const alvo = e.target as HTMLElement | null;
-      if (alvo && (alvo.tagName === "INPUT" || alvo.tagName === "TEXTAREA"))
-        return;
-      const mod = e.ctrlKey || e.metaKey;
-      const k = e.key.toLowerCase();
-      if (mod && k === "c") {
-        if (copiar() > 0) e.preventDefault();
-        return;
-      }
-      if (mod && k === "x") {
-        e.preventDefault();
-        recortar();
-        return;
-      }
-      if (mod && k === "v") {
-        e.preventDefault();
-        colar();
-        return;
-      }
-      if (mod && k === "d") {
-        e.preventDefault();
-        duplicar();
-        return;
-      }
-      if ((e.key === "a" || e.key === "A") && (e.ctrlKey || e.metaKey)) {
-        e.preventDefault();
-        setMulti(new Set(nodesRef.current.map((n) => n.id)));
-        return;
-      }
-      if ((e.key === "Delete" || e.key === "Backspace") && multi.size > 0) {
-        e.preventDefault();
-        const ids = multi;
-        setNodes((ns) => ns.filter((n) => !ids.has(n.id)));
-        setEdges((es) =>
-          es.filter((ed) => !ids.has(ed.source) && !ids.has(ed.target)),
-        );
-        setMulti(new Set());
-        setSel(null);
-        setAberto(null);
-        return;
-      }
-      if ((e.key === "Delete" || e.key === "Backspace") && sel) {
-        e.preventDefault();
-        if (sel.tipo === "node") {
-          setNodes((ns) => ns.filter((n) => n.id !== sel.id));
-          setEdges((es) =>
-            es.filter((ed) => ed.source !== sel.id && ed.target !== sel.id),
-          );
-        } else {
-          setEdges((es) => es.filter((ed) => ed.id !== sel.id));
-        }
-        setSel(null);
-      }
-      if (e.key === "Escape") {
-        setPainel(null);
-        setSel(null);
-        setMulti(new Set());
-        setAberto(null);
-        setMenuLigar(null);
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-    // copiar/colar/recortar/duplicar leem refs e o estado atual via closure.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sel, dialog, multi]);
+    if (ignorarHist.current) {
+      ignorarHist.current = false;
+      ultimo.current = { nodes, edges };
+      return;
+    }
+    if (inter.current) return;
+    const u = ultimo.current;
+    if (u.nodes === nodes && u.edges === edges) return;
+    hist.current.past.push(u);
+    if (hist.current.past.length > 100) hist.current.past.shift();
+    hist.current.future = [];
+    ultimo.current = { nodes, edges };
+  }, [nodes, edges, histTick]);
+  const desfazer = () => {
+    const p = hist.current.past.pop();
+    if (!p) return;
+    hist.current.future.push({ nodes: nodesRef.current, edges: edgesRef.current });
+    ignorarHist.current = true;
+    setNodes(p.nodes);
+    setEdges(p.edges);
+    setSel(null);
+    setMulti(new Set());
+  };
+  const refazer = () => {
+    const f = hist.current.future.pop();
+    if (!f) return;
+    hist.current.past.push({ nodes: nodesRef.current, edges: edgesRef.current });
+    ignorarHist.current = true;
+    setNodes(f.nodes);
+    setEdges(f.edges);
+    setSel(null);
+    setMulti(new Set());
+  };
+  // Ordem de empilhamento: o último da lista fica por cima.
+  const paraFrente = (id: string) =>
+    setNodes((ns) => {
+      const n = ns.find((x) => x.id === id);
+      return n ? [...ns.filter((x) => x.id !== id), n] : ns;
+    });
+  const paraTras = (id: string) =>
+    setNodes((ns) => {
+      const n = ns.find((x) => x.id === id);
+      return n ? [n, ...ns.filter((x) => x.id !== id)] : ns;
+    });
+  const setEstiloNo = (id: string, patch: Partial<EstiloNo> | null) =>
+    setNodes((ns) =>
+      ns.map((n) =>
+        n.id === id
+          ? { ...n, estilo: patch === null ? undefined : { ...n.estilo, ...patch } }
+          : n,
+      ),
+    );
+  // Menu do botão direito (bloco, linha ou fundo), sempre dentro do quadro.
+  const abrirMenu = (
+    e: React.MouseEvent,
+    alvo: { tipo: "node" | "edge" | "canvas"; id?: string },
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const r = rootRef.current?.getBoundingClientRect();
+    if (!r) return;
+    mouse.current = { x: e.clientX, y: e.clientY, dentro: true };
+    if (alvo.tipo === "node" && alvo.id) {
+      setSel({ tipo: "node", id: alvo.id });
+      if (!multi.has(alvo.id)) setMulti(new Set());
+    }
+    if (alvo.tipo === "edge" && alvo.id) {
+      setSel({ tipo: "edge", id: alvo.id });
+      setMulti(new Set());
+    }
+    setMenuLigar(null);
+    setMenuCtx({
+      x: Math.max(8, Math.min(e.clientX - r.left, r.width - 236)),
+      y: Math.max(8, Math.min(e.clientY - r.top, r.height - 340)),
+      alvo,
+    });
+  };
 
   const iniciarPan = (e: React.PointerEvent) => {
+    if (e.button === 2) return;
+    setMenuCtx(null);
     setPainel(null);
     setMenuLigar(null);
     // Ctrl/Cmd/Shift + arrastar no fundo = laço de seleção (Windows).
@@ -725,6 +758,8 @@ export function FunnelBoard({
 
   const iniciarArrasto = (e: React.PointerEvent, node: FunnelNode) => {
     e.stopPropagation();
+    if (e.button === 2) return;
+    setMenuCtx(null);
     // Ctrl/Cmd + clique: marca ou desmarca este bloco na seleção múltipla.
     if (e.ctrlKey || e.metaKey) {
       ctrlClick.current = true;
@@ -861,6 +896,19 @@ export function FunnelBoard({
       es.map((ed) => (ed.id === id ? { ...ed, estilo: { ...ed.estilo, ...patch } } : ed)),
     );
   };
+  // Volta uma linha ao estilo padrão (regra ou linha comum).
+  const resetLinha = (id: string) => {
+    if (id.startsWith("rr:")) {
+      const [, nid, rid] = id.split(":");
+      setNodes((ns) =>
+        ns.map((n) =>
+          n.id === nid && n.redir
+            ? { ...n, redir: { regras: n.redir.regras.map((r) => (r.id === rid ? { ...r, estilo: undefined } : r)) } }
+            : n,
+        ),
+      );
+    } else setEdges((es) => es.map((ed) => (ed.id === id ? { ...ed, estilo: undefined } : ed)));
+  };
   // Apagar uma linha: se é de uma regra, some a regra também.
   const apagarLinha = (id: string) => {
     if (id.startsWith("rr:")) {
@@ -991,15 +1039,116 @@ export function FunnelBoard({
     });
   };
 
+  // Atalhos do teclado (depois de tudo que eles chamam estar declarado).
+  React.useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (dialog) return;
+      const alvo = e.target as HTMLElement | null;
+      if (alvo && (alvo.tagName === "INPUT" || alvo.tagName === "TEXTAREA"))
+        return;
+      const mod = e.ctrlKey || e.metaKey;
+      const k = e.key.toLowerCase();
+      if (mod && k === "z") {
+        e.preventDefault();
+        if (e.shiftKey) refazer();
+        else desfazer();
+        return;
+      }
+      if (mod && k === "y") {
+        e.preventDefault();
+        refazer();
+        return;
+      }
+      if (!mod && sel?.tipo === "node" && e.key === "]") {
+        e.preventDefault();
+        paraFrente(sel.id);
+        return;
+      }
+      if (!mod && sel?.tipo === "node" && e.key === "[") {
+        e.preventDefault();
+        paraTras(sel.id);
+        return;
+      }
+      if (!mod && sel?.tipo === "node" && e.key === "Enter") {
+        e.preventDefault();
+        setAberto(sel.id);
+        const n = nodesRef.current.find((x) => x.id === sel.id);
+        if (n) trazerParaVista(n);
+        return;
+      }
+      if (mod && k === "c") {
+        if (copiar() > 0) e.preventDefault();
+        return;
+      }
+      if (mod && k === "x") {
+        e.preventDefault();
+        recortar();
+        return;
+      }
+      if (mod && k === "v") {
+        e.preventDefault();
+        colar();
+        return;
+      }
+      if (mod && k === "d") {
+        e.preventDefault();
+        duplicar();
+        return;
+      }
+      if ((e.key === "a" || e.key === "A") && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        setMulti(new Set(nodesRef.current.map((n) => n.id)));
+        return;
+      }
+      if ((e.key === "Delete" || e.key === "Backspace") && multi.size > 0) {
+        e.preventDefault();
+        const ids = multi;
+        setNodes((ns) => ns.filter((n) => !ids.has(n.id)));
+        setEdges((es) =>
+          es.filter((ed) => !ids.has(ed.source) && !ids.has(ed.target)),
+        );
+        setMulti(new Set());
+        setSel(null);
+        setAberto(null);
+        return;
+      }
+      if ((e.key === "Delete" || e.key === "Backspace") && sel) {
+        e.preventDefault();
+        if (sel.tipo === "node") {
+          setNodes((ns) => ns.filter((n) => n.id !== sel.id));
+          setEdges((es) =>
+            es.filter((ed) => ed.source !== sel.id && ed.target !== sel.id),
+          );
+        } else {
+          setEdges((es) => es.filter((ed) => ed.id !== sel.id));
+        }
+        setSel(null);
+      }
+      if (e.key === "Escape") {
+        setMenuCtx(null);
+        setEstiloAberto(false);
+        setPainel(null);
+        setSel(null);
+        setMulti(new Set());
+        setAberto(null);
+        setMenuLigar(null);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // copiar/colar/recortar/duplicar leem refs e o estado atual via closure.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sel, dialog, multi]);
+
   const salvar = () => {
-    onSalvar?.({ ...inicial, nome, nodes, edges });
+    onSalvar?.({ ...inicial, nome, nodes, edges, mapa });
     setDialog(false);
   };
 
   // Salvar no cofre: guarda este funil com nome, para reabrir depois e
   // para o redirecionador poder trazê-lo para o quadro dele.
   const salvarNoCofre = () => {
-    const data: FunnelData = { ...inicial, nome, nodes, edges };
+    const data: FunnelData = { ...inicial, nome, nodes, edges, mapa };
     const reg = salvarFunil(data, nome);
     onSalvar?.(reg.data);
     refrescarFunis();
@@ -1046,6 +1195,12 @@ export function FunnelBoard({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- só ao montar
   }, []);
 
+  // Alvos do menu do botão direito e o "clique e fecha".
+  const ctxNo =
+    menuCtx?.alvo.tipo === "node" ? nodes.find((x) => x.id === menuCtx.alvo.id) : undefined;
+  const ctxLinha = menuCtx?.alvo.tipo === "edge" ? menuCtx.alvo.id : undefined;
+  const fecharMenu = () => setMenuCtx(null);
+
   const transform = `translate(${vp.x}px, ${vp.y}px) scale(${vp.k})`;
 
   return (
@@ -1054,7 +1209,9 @@ export function FunnelBoard({
         className="funnel__viewport"
         data-panning={panning}
         data-locked={locked}
+        data-fundo={mapa.fundo ?? "pontos"}
         onPointerDown={iniciarPan}
+        onContextMenu={(e) => abrirMenu(e, { tipo: "canvas" })}
         onPointerMove={(e) => {
           mouse.current = { x: e.clientX, y: e.clientY, dentro: true };
         }}
@@ -1293,7 +1450,8 @@ export function FunnelBoard({
               {Array.from(
                 new Set([
                   ...CORES_LINHA,
-                  ...todasLinhas.map((e) => e.estilo?.cor ?? "#b1b1b7"),
+                  ...todasLinhas.map((e) => e.estilo?.cor ?? mapa.corLinha ?? "#b1b1b7"),
+                  mapa.corLinha ?? "#b1b1b7",
                   "#82a2f6",
                 ]),
               ).map((cor) => (
@@ -1319,7 +1477,7 @@ export function FunnelBoard({
               const est = ed.estilo;
               const d = caminhoDaLinha(sx, sy, tx, ty, est);
               const selecionada = sel?.tipo === "edge" && sel.id === ed.id;
-              const cor = selecionada ? "#82a2f6" : (est?.cor ?? "#b1b1b7");
+              const cor = selecionada ? "#82a2f6" : (est?.cor ?? mapa.corLinha ?? "#b1b1b7");
               const pontas = est?.pontas ?? "fim";
               const fluxo = est?.fluxo ?? fluxoGlobal;
               // Rótulo no meio: o da regra, ou "resto" na saída comum do Redirecionador.
@@ -1330,6 +1488,7 @@ export function FunnelBoard({
                   <path
                     className="funnel__edge-hit"
                     d={d}
+                    onContextMenu={(e) => abrirMenu(e, { tipo: "edge", id: ed.id })}
                     onPointerDown={(e) => {
                       e.stopPropagation();
                       setSel({ tipo: "edge", id: ed.id });
@@ -1432,6 +1591,7 @@ export function FunnelBoard({
               measure={medir}
               onPointerDown={(e) => iniciarArrasto(e, node)}
               onHandleOut={(e) => iniciarConexao(e, node)}
+              onMenu={(e) => abrirMenu(e, { tipo: "node", id: node.id })}
               onToggle={() => {
                 if (ctrlClick.current) {
                   ctrlClick.current = false;
@@ -1459,7 +1619,7 @@ export function FunnelBoard({
       {/* Publicador da página: painel lateral quando um nó de página está
           aberto. Só a interface — nada publica de verdade. */}
       {(() => {
-        if (!aberto) return null;
+        if (!aberto || estiloAberto) return null;
         const n = nodes.find((x) => x.id === aberto);
         if (!n || !isPagina(n.type)) return null;
         const dados = n.pagina ?? paginaVazia();
@@ -1488,7 +1648,7 @@ export function FunnelBoard({
       {/* Redirecionador: painel lateral quando um bloco de redirecionamento
           está aberto — o roteador de ofertas dentro do quadro. */}
       {(() => {
-        if (!aberto) return null;
+        if (!aberto || estiloAberto) return null;
         const n = nodes.find((x) => x.id === aberto);
         if (!n || !isRedir(n.type)) return null;
         return (
@@ -1509,7 +1669,7 @@ export function FunnelBoard({
       {/* Qualquer outro bloco (anúncio, automação, CRM, link…): painel
           lateral igual ao da página, em vez de abrir dentro do bloco. */}
       {(() => {
-        if (!aberto) return null;
+        if (!aberto || estiloAberto) return null;
         const n = nodes.find((x) => x.id === aberto);
         if (!n || isPagina(n.type) || isRedir(n.type) || n.type === "brand") return null;
         return (
@@ -1527,6 +1687,109 @@ export function FunnelBoard({
           />
         );
       })()}
+
+      {/* Inspetor de estilo (NÓ / LINHA / TEXTO / MAPA + Reset). */}
+      {estiloAberto && (
+        <StylePanel
+          node={sel?.tipo === "node" ? nodes.find((n) => n.id === sel.id) : undefined}
+          edge={edgeSel}
+          mapa={mapa}
+          fluxoGlobal={fluxoGlobal}
+          onNode={setEstiloNo}
+          onEdge={setEstilo}
+          onEdgeReset={resetLinha}
+          onMapa={(patch) => setMapa((m) => (patch === null ? {} : { ...m, ...patch }))}
+          onFluxoGlobal={(v) => {
+            setFluxoGlobal(v);
+            setMapa((m) => ({ ...m, fluxo: v }));
+          }}
+          onEnquadrar={enquadrar}
+          onFechar={() => setEstiloAberto(false)}
+        />
+      )}
+
+      {/* Menu do botão direito: bloco, linha ou fundo, com os atalhos. */}
+      {menuCtx && (
+        <div
+          className="funnel__ctx"
+          role="menu"
+          style={{ left: menuCtx.x, top: menuCtx.y }}
+          onPointerDown={(e) => e.stopPropagation()}
+          onContextMenu={(e) => e.preventDefault()}
+        >
+          {menuCtx.alvo.tipo === "node" && ctxNo && (
+            <>
+              <ItemMenu rotulo="Configurar" atalho="Enter" onClick={() => { setAberto(ctxNo.id); trazerParaVista(ctxNo); }} onFechar={fecharMenu} />
+              <ItemMenu rotulo="Estilo do bloco…" onClick={() => setEstiloAberto(true)} onFechar={fecharMenu} />
+              <hr />
+              <ItemMenu rotulo="Duplicar" atalho="Ctrl+D" onClick={duplicar} onFechar={fecharMenu} />
+              <ItemMenu rotulo="Copiar" atalho="Ctrl+C" onClick={() => void copiar()} onFechar={fecharMenu} />
+              <ItemMenu rotulo="Recortar" atalho="Ctrl+X" onClick={recortar} onFechar={fecharMenu} />
+              <hr />
+              <ItemMenu rotulo="Trazer para frente" atalho="]" onClick={() => paraFrente(ctxNo.id)} onFechar={fecharMenu} />
+              <ItemMenu rotulo="Enviar para trás" atalho="[" onClick={() => paraTras(ctxNo.id)} onFechar={fecharMenu} />
+              <hr />
+              <ItemMenu rotulo="Apagar" atalho="Del" perigo onClick={() => remover(ctxNo.id)} onFechar={fecharMenu} />
+            </>
+          )}
+          {menuCtx.alvo.tipo === "edge" && ctxLinha && (
+            <>
+              <ItemMenu rotulo="Estilo da linha…" onClick={() => setEstiloAberto(true)} onFechar={fecharMenu} />
+              <ItemMenu rotulo="Curva" onClick={() => setEstilo(ctxLinha, { forma: "curva" })} onFechar={fecharMenu} />
+              <ItemMenu rotulo="Reta" onClick={() => setEstilo(ctxLinha, { forma: "reta" })} onFechar={fecharMenu} />
+              <ItemMenu rotulo="Cotovelo (90°)" onClick={() => setEstilo(ctxLinha, { forma: "cotovelo" })} onFechar={fecharMenu} />
+              <hr />
+              <ItemMenu rotulo="Apagar linha" atalho="Del" perigo onClick={() => apagarLinha(ctxLinha)} onFechar={fecharMenu} />
+            </>
+          )}
+          {menuCtx.alvo.tipo === "canvas" && (
+            <>
+              <ItemMenu rotulo="Colar" atalho="Ctrl+V" onClick={() => colar()} onFechar={fecharMenu} />
+              <ItemMenu rotulo="Selecionar tudo" atalho="Ctrl+A" onClick={() => setMulti(new Set(nodes.map((x) => x.id)))} onFechar={fecharMenu} />
+              <ItemMenu rotulo="Ajustar à tela" onClick={enquadrar} onFechar={fecharMenu} />
+              <ItemMenu rotulo="Estilo do mapa…" onClick={() => setEstiloAberto(true)} onFechar={fecharMenu} />
+              <hr />
+              <ItemMenu rotulo="Desfazer" atalho="Ctrl+Z" onClick={desfazer} onFechar={fecharMenu} />
+              <ItemMenu rotulo="Refazer" atalho="Ctrl+Y" onClick={refazer} onFechar={fecharMenu} />
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Barra de formatação flutuante em cima do bloco selecionado. */}
+      {sel?.tipo === "node" &&
+        !dragId &&
+        !panning &&
+        multi.size <= 1 &&
+        (() => {
+          const n = nodes.find((x) => x.id === sel.id);
+          if (!n || n.type === "brand") return null;
+          const w = size(n.id).w * vp.k;
+          const left = vp.x + n.x * vp.k + w / 2;
+          const top = vp.y + n.y * vp.k - 10;
+          return (
+            <div
+              className="funnel__fbar"
+              style={{ left, top }}
+              role="toolbar"
+              aria-label="Formatação do bloco"
+              onPointerDown={(e) => e.stopPropagation()}
+            >
+              <button type="button" className="funnel__fbar-cor funnel__fbar-cor--nenhuma" data-on={!n.estilo?.cor || undefined} title="Sem cor" aria-label="Sem cor" onClick={() => setEstiloNo(n.id, { cor: undefined })}>∅</button>
+              {CORES_NO.map((c) => (
+                <button key={c} type="button" className="funnel__fbar-cor" style={{ background: c }} data-on={n.estilo?.cor === c || undefined} title={`Cor ${c}`} aria-label={`Cor ${c}`} onClick={() => setEstiloNo(n.id, { cor: c })} />
+              ))}
+              <i className="funnel__fbar-sep" aria-hidden />
+              <button type="button" className="funnel__fbar-btn" title="Negrito" aria-label="Negrito" data-on={n.estilo?.negrito || undefined} onClick={() => setEstiloNo(n.id, { negrito: !n.estilo?.negrito })}><b>B</b></button>
+              <button type="button" className="funnel__fbar-btn" title="Configurar (Enter)" aria-label="Configurar" onClick={() => { setAberto(n.id); trazerParaVista(n); }}>⚙</button>
+              <button type="button" className="funnel__fbar-btn" title="Estilo" aria-label="Estilo" onClick={() => setEstiloAberto(true)}>🎨</button>
+              <button type="button" className="funnel__fbar-btn" title="Duplicar (Ctrl+D)" aria-label="Duplicar" onClick={duplicar}>⧉</button>
+              <button type="button" className="funnel__fbar-btn" title="Trazer para frente ( ] )" aria-label="Trazer para frente" onClick={() => paraFrente(n.id)}>⬆</button>
+              <button type="button" className="funnel__fbar-btn" title="Enviar para trás ( [ )" aria-label="Enviar para trás" onClick={() => paraTras(n.id)}>⬇</button>
+              <button type="button" className="funnel__fbar-btn funnel__fbar-btn--perigo" title="Apagar (Del)" aria-label="Apagar" onClick={() => remover(n.id)}>🗑</button>
+            </div>
+          );
+        })()}
 
       {/* Menu do quadro — trilho vertical à esquerda, igual ao do
           redirecionador: ícones num trilho escuro, o ativo em verde. */}
@@ -1893,6 +2156,8 @@ interface NodeViewProps {
   measure: (id: string, el: HTMLDivElement | null) => void;
   onPointerDown: (e: React.PointerEvent) => void;
   onHandleOut: (e: React.PointerEvent) => void;
+  /** Botão direito no bloco: abre o menu de contexto. */
+  onMenu: (e: React.MouseEvent) => void;
   onToggle: () => void;
 }
 
@@ -1915,6 +2180,7 @@ function NodeView({
   measure,
   onPointerDown,
   onHandleOut,
+  onMenu,
   onToggle,
 }: NodeViewProps) {
   const ref = React.useRef<HTMLDivElement>(null);
@@ -1954,14 +2220,26 @@ function NodeView({
         marca && "funnel__node--brand",
         !pagina && !marca && "funnel__node--plain",
       )}
-      style={{ left: node.x, top: node.y, width: marca ? "auto" : NODE_W }}
+      style={
+        {
+          left: node.x,
+          top: node.y,
+          width: marca ? "auto" : NODE_W,
+          "--node-cor": node.estilo?.cor,
+        } as React.CSSProperties
+      }
       data-selected={selected}
       data-dragging={dragging}
       data-locked={locked}
       data-aberto={aberto || undefined}
       data-in={node.id}
       data-tipo={node.type}
+      data-cor={node.estilo?.cor ? "" : undefined}
+      data-borda={node.estilo?.borda}
+      data-texto={node.estilo?.texto}
+      data-negrito={node.estilo?.negrito || undefined}
       onPointerDown={onPointerDown}
+      onContextMenu={onMenu}
     >
       <span
         className="funnel__handle funnel__handle--in"
@@ -2130,6 +2408,38 @@ function RedirCorpo({
         </span>
       </span>
     </>
+  );
+}
+
+/** Um item do menu do botão direito, com o atalho à direita. */
+function ItemMenu({
+  rotulo,
+  atalho,
+  perigo,
+  onClick,
+  onFechar,
+}: {
+  rotulo: string;
+  atalho?: string;
+  perigo?: boolean;
+  onClick: () => void;
+  /** Fecha o menu depois da ação. */
+  onFechar: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      role="menuitem"
+      className="funnel__ctx-item"
+      data-perigo={perigo || undefined}
+      onClick={() => {
+        onClick();
+        onFechar();
+      }}
+    >
+      <span>{rotulo}</span>
+      {atalho && <kbd>{atalho}</kbd>}
+    </button>
   );
 }
 

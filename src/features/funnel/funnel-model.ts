@@ -240,6 +240,26 @@ export interface RegraRedir extends RedirectRule {
   estilo?: EstiloLinha;
 }
 
+/** Aparência de um bloco (inspetor de estilo). */
+export interface EstiloNo {
+  /** Cor de destaque do bloco (ícone e borda). */
+  cor?: string;
+  /** Espessura da borda (1 = fina, 3 = grossa). */
+  borda?: 1 | 2 | 3;
+  /** Tamanho do nome. */
+  texto?: "normal" | "grande";
+  negrito?: boolean;
+}
+
+/** Aparência do mapa inteiro (fundo, linhas). */
+export interface EstiloMapa {
+  fundo?: "pontos" | "grade" | "liso";
+  /** Cor padrão das linhas sem cor própria. */
+  corLinha?: string;
+  /** Fluxo animado em todas as linhas. */
+  fluxo?: boolean;
+}
+
 /** O que um bloco Redirecionador guarda. */
 export interface RedirNode {
   regras: RegraRedir[];
@@ -266,6 +286,8 @@ export interface FunnelNode {
   pagina?: DadosPagina;
   /** As regras do bloco Redirecionador (nós `redirect`). */
   redir?: RedirNode;
+  /** Aparência do bloco (cor, borda, texto). */
+  estilo?: EstiloNo;
 }
 
 /* ── Publicador da página (só a interface, demonstração) ──────────────────
@@ -409,6 +431,8 @@ export interface FunnelData {
   projeto: string;
   nodes: FunnelNode[];
   edges: FunnelEdge[];
+  /** Aparência do mapa (fundo, cor das linhas, fluxo). */
+  mapa?: EstiloMapa;
 }
 
 /** Passo do grid do canvas (snap 20×20), igual ao editor de origem. */
