@@ -14,6 +14,12 @@ import type { EstiloLinha, EstiloMapa, EstiloNo, FunnelEdge, FunnelNode } from "
 type Aba = "no" | "linha" | "texto" | "mapa";
 
 export const CORES_NO = ["#00e559", "#38bdf8", "#a78bfa", "#f472b6", "#f59e0b", "#f87171", "#ffffff"];
+const TEMAS: { id: NonNullable<EstiloMapa["tema"]>; nome: string }[] = [
+  { id: "padrao", nome: "Escuro (padrão)" },
+  { id: "azul", nome: "Meia-noite azul" },
+  { id: "grafite", nome: "Grafite" },
+  { id: "papel", nome: "Papel (claro)" },
+];
 const CORES_LINHA = ["#b1b1b7", "#00e559", "#38bdf8", "#a78bfa", "#f472b6", "#f59e0b", "#f87171", "#ffffff"];
 
 const ABAS: { id: Aba; rotulo: string; sub: string; cor: string; Icone: React.ComponentType<{ size?: number; strokeWidth?: number }> }[] = [
@@ -32,6 +38,7 @@ function Chip({ on, children, onClick, title }: { on: boolean; children: React.R
 }
 
 export function StylePanel({
+  abaInicial,
   node,
   edge,
   mapa,
@@ -45,6 +52,8 @@ export function StylePanel({
   onEnquadrar,
   onFechar,
 }: {
+  /** Aba com que o painel abre. */
+  abaInicial?: Aba;
   node?: FunnelNode;
   edge?: FunnelEdge;
   mapa: EstiloMapa;
@@ -59,7 +68,7 @@ export function StylePanel({
   onEnquadrar: () => void;
   onFechar: () => void;
 }) {
-  const [aba, setAba] = React.useState<Aba>(edge ? "linha" : "no");
+  const [aba, setAba] = React.useState<Aba>(abaInicial ?? (edge ? "linha" : "no"));
   const abaAtual = ABAS.find((a) => a.id === aba) ?? ABAS[0];
   const e = edge?.estilo ?? {};
   const n = node?.estilo ?? {};
@@ -202,6 +211,14 @@ export function StylePanel({
 
           {aba === "mapa" && (
             <>
+              <div className="pub__campo">
+                <span>Tema do quadro</span>
+                <div className="pub__chips">
+                  {TEMAS.map((t) => (
+                    <Chip key={t.id} on={(mapa.tema ?? "padrao") === t.id} onClick={() => onMapa({ tema: t.id })}>{t.nome}</Chip>
+                  ))}
+                </div>
+              </div>
               <div className="pub__campo">
                 <span>Fundo do quadro</span>
                 <div className="pub__chips">

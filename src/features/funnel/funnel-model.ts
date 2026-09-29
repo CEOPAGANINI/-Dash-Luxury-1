@@ -8,6 +8,7 @@
  */
 
 import type { RedirectRule } from "@/features/offer-router/offer-router-model";
+import type { PrevisaoCfg, PrevisaoNo } from "./funnel-forecast";
 
 /** As chaves de tipo de nó registradas no editor (nodeTypes do bundle). */
 export type FunnelNodeType =
@@ -286,6 +287,8 @@ export interface EstiloMapa {
   corLinha?: string;
   /** Fluxo animado em todas as linhas. */
   fluxo?: boolean;
+  /** Tema de cores do quadro. */
+  tema?: "padrao" | "azul" | "grafite" | "papel";
 }
 
 /** O que um bloco Redirecionador guarda. */
@@ -323,6 +326,8 @@ export interface FunnelNode {
   forma?: "retangulo" | "circulo" | "losango";
   /** A conversa de um comentário. */
   mensagens?: Mensagem[];
+  /** Números da previsão (visitas, conversão, preço). */
+  previsao?: PrevisaoNo;
 }
 
 /** Uma mensagem na conversa de um comentário. */
@@ -476,6 +481,8 @@ export interface FunnelData {
   edges: FunnelEdge[];
   /** Aparência do mapa (fundo, cor das linhas, fluxo). */
   mapa?: EstiloMapa;
+  /** Cenário e custo por visita da previsão. */
+  previsao?: PrevisaoCfg;
 }
 
 /** Passo do grid do canvas (snap 20×20), igual ao editor de origem. */

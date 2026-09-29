@@ -3512,3 +3512,223 @@
   color: var(--fn-text);
   white-space: pre-wrap;
 }
+
+/* ── Parte 5: previsão no bloco, painel da calculadora, modelos e temas ── */
+.funnel__node-prev {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-family: var(--fn-mono);
+  font-size: 10px;
+  color: var(--fn-node-sub);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.funnel__node-prev b {
+  color: #00e559;
+  font-weight: 600;
+}
+.funnel__node-prev i,
+.funnel__sem {
+  flex: none;
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 4px;
+  background: var(--fn-muted);
+}
+[data-sem="verde"] > i,
+.funnel__sem[data-sem="verde"] {
+  background: #00e559;
+}
+[data-sem="amarelo"] > i,
+.funnel__sem[data-sem="amarelo"] {
+  background: #f59e0b;
+}
+[data-sem="vermelho"] > i,
+.funnel__sem[data-sem="vermelho"] {
+  background: #f87171;
+}
+.funnel__panel--largo {
+  width: min(780px, calc(100% - 88px));
+}
+.funnel__prev-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 8px 0;
+}
+.funnel__prev-topo .pub__chip[data-on] {
+  color: var(--aba-cor, #00e559);
+  border-color: color-mix(in srgb, var(--aba-cor, #00e559) 55%, transparent);
+  background: color-mix(in srgb, var(--aba-cor, #00e559) 10%, transparent);
+}
+.funnel__prev-topo .pub__chip small {
+  color: var(--fn-muted);
+}
+.funnel__prev-cpc {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--fn-muted);
+}
+.funnel__prev-cpc input,
+.funnel__prev-tab input {
+  width: 84px;
+  font-family: var(--fn-mono);
+  font-size: 12px;
+  color: var(--fn-text);
+  background: var(--fn-node-well, #080808);
+  border: 1px solid var(--fn-line-2);
+  padding: 5px 7px;
+}
+.funnel__prev-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin: 6px 0 10px;
+}
+.funnel__prev-kpis div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border: 1px solid var(--fn-line);
+  background: color-mix(in srgb, #ffffff 3.5%, transparent);
+}
+.funnel__prev-kpis span {
+  font-size: 10.5px;
+  color: var(--fn-muted);
+}
+.funnel__prev-kpis b {
+  font-family: var(--fn-mono);
+  font-size: 15px;
+  color: var(--fn-text);
+}
+.funnel__prev-kpis div[data-neg] b {
+  color: #f87171;
+}
+.funnel__prev-tab {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  color: var(--fn-text);
+}
+.funnel__prev-tab th,
+.funnel__prev-tab td {
+  text-align: left;
+  padding: 6px 6px;
+  border-bottom: 1px solid var(--fn-line);
+  white-space: nowrap;
+}
+.funnel__prev-tab th {
+  font-family: var(--fn-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fn-muted);
+}
+.funnel__prev-tab td small {
+  margin-left: 6px;
+  font-family: var(--fn-mono);
+  font-size: 10px;
+  color: var(--fn-muted);
+}
+.funnel__modelos {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.funnel__modelos button {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--fn-line);
+  background: color-mix(in srgb, #ffffff 3.5%, transparent);
+  color: var(--fn-text);
+  text-align: left;
+  cursor: pointer;
+}
+.funnel__modelos button:hover {
+  border-color: #00e559;
+  background: color-mix(in srgb, #00e559 8%, transparent);
+}
+.funnel__modelos b {
+  font-size: 14px;
+}
+.funnel__modelos span {
+  font-size: 12px;
+  color: var(--fn-muted);
+  line-height: 1.45;
+}
+.funnel__modelos small {
+  font-family: var(--fn-mono);
+  font-size: 10px;
+  color: #00e559;
+}
+
+/* Temas do quadro: trocam só os tokens do fundo e dos blocos. */
+.funnel[data-tema="azul"] {
+  --fn-canvas: #070b16;
+  --fn-dot: rgb(120 160 255 / 16%);
+  --fn-surface: #141c33;
+  --fn-surface-2: #182140;
+  --fn-surface-3: #0f1526;
+  --fn-hover: #1f2a4d;
+  --fn-line: #24305a;
+  --fn-line-2: #33427a;
+  --fn-node-frame: #0b1020;
+  --fn-node-top: #101a33;
+  --fn-node-raised: #0e172d;
+  --fn-node-well: #080d1a;
+  --fn-node-line: #223060;
+  --fn-edge: #8fa4e6;
+}
+.funnel[data-tema="grafite"] {
+  --fn-canvas: #1b1b1b;
+  --fn-dot: rgb(255 255 255 / 13%);
+  --fn-surface: #2a2a2a;
+  --fn-surface-2: #303030;
+  --fn-surface-3: #232323;
+  --fn-hover: #383838;
+  --fn-line: #3d3d3d;
+  --fn-line-2: #4c4c4c;
+  --fn-node-frame: #202020;
+  --fn-node-top: #2b2b2b;
+  --fn-node-raised: #262626;
+  --fn-node-well: #1a1a1a;
+  --fn-node-line: #3c3c3c;
+}
+.funnel[data-tema="papel"] {
+  --fn-canvas: #f3f1ea;
+  --fn-dot: rgb(0 0 0 / 16%);
+  --fn-surface: #ffffff;
+  --fn-surface-2: #faf9f5;
+  --fn-surface-3: #ffffff;
+  --fn-hover: #eeebe2;
+  --fn-line: #d8d5cc;
+  --fn-line-2: #bdb9ad;
+  --fn-text: #1a1a1a;
+  --fn-muted: #5a5a5a;
+  --fn-node-frame: #ffffff;
+  --fn-node-top: #f5f3ec;
+  --fn-node-raised: #ffffff;
+  --fn-node-well: #f0eee6;
+  --fn-node-line: #d0ccc0;
+  --fn-node-title: #111111;
+  --fn-node-sub: #555555;
+  --fn-handle: #222222;
+  --fn-edge: #6b6b6b;
+  --fn-shadow-node: 0 6px 18px rgb(0 0 0 / 14%);
+  --fn-shadow-panel: 0 20px 25px -5px rgb(0 0 0 / 15%), 0 8px 10px -6px rgb(0 0 0 / 10%);
+}

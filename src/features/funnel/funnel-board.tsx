@@ -25,6 +25,7 @@ import {
   Frame,
   Globe,
   Grid2x2,
+  LayoutTemplate,
   Image as ImageIcon,
   List,
   ListChecks,
@@ -88,6 +89,19 @@ import { PagePublisher, type EtapaDestino } from "./page-publisher";
 import { RedirectPanel } from "./redirect-panel";
 import { BlockPanel } from "./block-panel";
 import { CORES_NO, StylePanel } from "./style-panel";
+import {
+  CENARIOS,
+  PADRAO_TIPO,
+  PREVISAO_PADRAO,
+  VISITAS_PADRAO,
+  calcularPrevisao,
+  inteiro,
+  reais,
+  type PrevisaoCfg,
+  type PrevisaoNo,
+  type ResultadoNo,
+} from "./funnel-forecast";
+import { MODELOS, montarModelo } from "./funnel-templates";
 import { metricasDemo, num, pctTxt } from "./page-metrics";
 import {
   GLIFO_REGRA,
@@ -332,7 +346,7 @@ export function FunnelBoard({
   const edgesRef = React.useRef(edges);
   const nodesRef = React.useRef(nodes);
   const [painel, setPainel] = React.useState<
-    "recursos" | "icones" | "vps" | "funis" | "lista" | null
+    "recursos" | "icones" | "vps" | "funis" | "lista" | "previsao" | "modelos" | null
   >(null);
   // Bump para reler o cofre de funis depois de salvar/apagar.
   const [, refrescarFunis] = React.useReducer((x: number) => x + 1, 0);
@@ -366,7 +380,15 @@ export function FunnelBoard({
   // Parte 2: estilo do mapa, inspetor de estilo, menu do botão direito e
   // histórico de desfazer/refazer.
   const [mapa, setMapa] = React.useState<EstiloMapa>(inicial.mapa ?? {});
-  const [estiloAberto, setEstiloAberto] = React.useState(false);
+  const [estiloAberto, setEstiloAberto] = React.useState<"no" | "linha" | "texto" | "mapa" | false>(false);
+  // Parte 5: previsão (calculadora do funil).
+  const [previsaoCfg, setPrevisaoCfg] = React.useState<PrevisaoCfg>(inicial.previsao ?? PREVISAO_PADRAO);
+  const previsao = React.useMemo(
+    () => calcularPrevisao(nodes, todasLinhas, previsaoCfg),
+    [nodes, todasLinhas, previsaoCfg],
+  );
+  const setPrevisaoNo = (id: string, patch: Partial<PrevisaoNo>) =>
+    setNodes((ns) => ns.map((n) => (n.id === id ? { ...n, previsao: { ...n.previsao, ...patch } } : n)));
   const [menuCtx, setMenuCtx] = React.useState<{
     x: number;
     y: number;
@@ -1234,14 +1256,14 @@ export function FunnelBoard({
   }, [sel, dialog, multi]);
 
   const salvar = () => {
-    onSalvar?.({ ...inicial, nome, nodes, edges, mapa });
+    onSalvar?.({ ...inicial, nome, nodes, edges, mapa, previsao: previsaoCfg });
     setDialog(false);
   };
 
   // Salvar no cofre: guarda este funil com nome, para reabrir depois e
   // para o redirecionador poder trazê-lo para o quadro dele.
   const salvarNoCofre = () => {
-    const data: FunnelData = { ...inicial, nome, nodes, edges, mapa };
+    const data: FunnelData = { ...inicial, nome, nodes, edges, mapa, previsao: previsaoCfg };
     const reg = salvarFunil(data, nome);
     onSalvar?.(reg.data);
     refrescarFunis();
@@ -1297,7 +1319,7 @@ export function FunnelBoard({
   const transform = `translate(${vp.x}px, ${vp.y}px) scale(${vp.k})`;
 
   return (
-    <div className="funnel" ref={rootRef} data-design-system="orbit">
+    <div className="funnel" ref={rootRef} data-design-system="orbit" data-tema={mapa.tema ?? "padrao"}>
       <div
         className="funnel__viewport"
         data-panning={panning}
@@ -1714,6 +1736,7 @@ export function FunnelBoard({
               onMenu={(e) => abrirMenu(e, { tipo: "node", id: node.id })}
               onResize={(e) => iniciarResize(e, node)}
               onChange={(patch) => atualizar(node.id, patch)}
+              prev={previsao.porNo[node.id]}
               onToggle={() => {
                 if (ctrlClick.current) {
                   ctrlClick.current = false;
@@ -1814,6 +1837,8 @@ export function FunnelBoard({
       {/* Inspetor de estilo (NÓ / LINHA / TEXTO / MAPA + Reset). */}
       {estiloAberto && (
         <StylePanel
+          key={estiloAberto}
+          abaInicial={estiloAberto}
           node={sel?.tipo === "node" ? nodes.find((n) => n.id === sel.id) : undefined}
           edge={edgeSel}
           mapa={mapa}
@@ -1844,7 +1869,7 @@ export function FunnelBoard({
           {menuCtx.alvo.tipo === "node" && ctxNo && (
             <>
               <ItemMenu rotulo="Configurar" atalho="Enter" onClick={() => { setAberto(ctxNo.id); trazerParaVista(ctxNo); }} onFechar={fecharMenu} />
-              <ItemMenu rotulo="Estilo do bloco…" onClick={() => setEstiloAberto(true)} onFechar={fecharMenu} />
+              <ItemMenu rotulo="Estilo do bloco…" onClick={() => setEstiloAberto("no")} onFechar={fecharMenu} />
               <hr />
               <ItemMenu rotulo="Duplicar" atalho="Ctrl+D" onClick={duplicar} onFechar={fecharMenu} />
               <ItemMenu rotulo="Copiar" atalho="Ctrl+C" onClick={() => void copiar()} onFechar={fecharMenu} />
@@ -1858,7 +1883,7 @@ export function FunnelBoard({
           )}
           {menuCtx.alvo.tipo === "edge" && ctxLinha && (
             <>
-              <ItemMenu rotulo="Estilo da linha…" onClick={() => setEstiloAberto(true)} onFechar={fecharMenu} />
+              <ItemMenu rotulo="Estilo da linha…" onClick={() => setEstiloAberto("linha")} onFechar={fecharMenu} />
               <ItemMenu rotulo="Curva" onClick={() => setEstilo(ctxLinha, { forma: "curva" })} onFechar={fecharMenu} />
               <ItemMenu rotulo="Reta" onClick={() => setEstilo(ctxLinha, { forma: "reta" })} onFechar={fecharMenu} />
               <ItemMenu rotulo="Cotovelo (90°)" onClick={() => setEstilo(ctxLinha, { forma: "cotovelo" })} onFechar={fecharMenu} />
@@ -1871,7 +1896,7 @@ export function FunnelBoard({
               <ItemMenu rotulo="Colar" atalho="Ctrl+V" onClick={() => colar()} onFechar={fecharMenu} />
               <ItemMenu rotulo="Selecionar tudo" atalho="Ctrl+A" onClick={() => setMulti(new Set(nodes.map((x) => x.id)))} onFechar={fecharMenu} />
               <ItemMenu rotulo="Ajustar à tela" onClick={enquadrar} onFechar={fecharMenu} />
-              <ItemMenu rotulo="Estilo do mapa…" onClick={() => setEstiloAberto(true)} onFechar={fecharMenu} />
+              <ItemMenu rotulo="Estilo do mapa…" onClick={() => setEstiloAberto("mapa")} onFechar={fecharMenu} />
               <hr />
               <ItemMenu rotulo="Desfazer" atalho="Ctrl+Z" onClick={desfazer} onFechar={fecharMenu} />
               <ItemMenu rotulo="Refazer" atalho="Ctrl+Y" onClick={refazer} onFechar={fecharMenu} />
@@ -1914,7 +1939,7 @@ export function FunnelBoard({
               )}
               <button type="button" className="funnel__fbar-btn" title="Negrito" aria-label="Negrito" data-on={n.estilo?.negrito || undefined} onClick={() => setEstiloNo(n.id, { negrito: !n.estilo?.negrito })}><b>B</b></button>
               <button type="button" className="funnel__fbar-btn" title="Configurar (Enter)" aria-label="Configurar" onClick={() => { setAberto(n.id); trazerParaVista(n); }}>⚙</button>
-              <button type="button" className="funnel__fbar-btn" title="Estilo" aria-label="Estilo" onClick={() => setEstiloAberto(true)}>🎨</button>
+              <button type="button" className="funnel__fbar-btn" title="Estilo" aria-label="Estilo" onClick={() => setEstiloAberto("no")}>🎨</button>
               <button type="button" className="funnel__fbar-btn" title="Duplicar (Ctrl+D)" aria-label="Duplicar" onClick={duplicar}>⧉</button>
               <button type="button" className="funnel__fbar-btn" title="Trazer para frente ( ] )" aria-label="Trazer para frente" onClick={() => paraFrente(n.id)}>⬆</button>
               <button type="button" className="funnel__fbar-btn" title="Enviar para trás ( [ )" aria-label="Enviar para trás" onClick={() => paraTras(n.id)}>⬇</button>
@@ -1963,6 +1988,24 @@ export function FunnelBoard({
           onClick={() => setPainel((p) => (p === "lista" ? null : "lista"))}
         >
           <ListTree size={18} strokeWidth={2} />
+        </button>
+        <button
+          type="button"
+          className="funnel__rail-btn"
+          aria-label="Previsão"
+          data-on={painel === "previsao"}
+          onClick={() => setPainel((p) => (p === "previsao" ? null : "previsao"))}
+        >
+          <TrendingUp size={18} strokeWidth={2} />
+        </button>
+        <button
+          type="button"
+          className="funnel__rail-btn"
+          aria-label="Modelos"
+          data-on={painel === "modelos"}
+          onClick={() => setPainel((p) => (p === "modelos" ? null : "modelos"))}
+        >
+          <LayoutTemplate size={18} strokeWidth={2} />
         </button>
         <button
           type="button"
@@ -2185,6 +2228,157 @@ export function FunnelBoard({
         </div>
       )}
 
+      {painel === "previsao" && (
+        <div className="funnel__panel funnel__panel--largo">
+          <div className="funnel__panel-title">Previsão do funil</div>
+          <div className="funnel__panel-hint">
+            Calculadora: digite as visitas que entram e a conversão de cada bloco. São
+            contas, não medições.
+          </div>
+          <div className="funnel__prev-topo">
+            <div className="pub__chips" role="radiogroup" aria-label="Cenário">
+              {CENARIOS.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={previsaoCfg.cenario === c.id}
+                  className="pub__chip"
+                  data-on={previsaoCfg.cenario === c.id || undefined}
+                  style={{ "--aba-cor": c.cor } as React.CSSProperties}
+                  onClick={() => setPrevisaoCfg((p) => ({ ...p, cenario: c.id }))}
+                >
+                  {c.nome} <small>×{c.fator}</small>
+                </button>
+              ))}
+            </div>
+            <label className="funnel__prev-cpc">
+              Custo por visita (R$)
+              <input
+                type="number"
+                min={0}
+                step={0.1}
+                value={previsaoCfg.cpc}
+                onChange={(e) => setPrevisaoCfg((p) => ({ ...p, cpc: Number(e.target.value) || 0 }))}
+              />
+            </label>
+          </div>
+          <div className="funnel__prev-kpis">
+            <div><span>Visitas</span><b>{inteiro(previsao.total.visitas)}</b></div>
+            <div><span>Leads</span><b>{inteiro(previsao.total.leads)}</b></div>
+            <div><span>Vendas</span><b>{inteiro(previsao.total.vendas)}</b></div>
+            <div><span>Receita</span><b>{reais(previsao.total.receita)}</b></div>
+            <div><span>Custo do tráfego</span><b>{reais(previsao.total.custo)}</b></div>
+            <div data-neg={previsao.total.lucro < 0 || undefined}><span>Lucro</span><b>{reais(previsao.total.lucro)}</b></div>
+            <div data-neg={previsao.total.roi < 0 || undefined}><span>ROI</span><b>{previsao.total.roi.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}×</b></div>
+            <div><span>Custo por venda</span><b>{previsao.total.vendas ? reais(previsao.total.custoPorVenda) : "—"}</b></div>
+          </div>
+          <table className="funnel__prev-tab">
+            <thead>
+              <tr>
+                <th>Bloco</th>
+                <th>Entram</th>
+                <th>Conversão %</th>
+                <th>Seguem</th>
+                <th>Preço</th>
+                <th>Receita</th>
+              </tr>
+            </thead>
+            <tbody>
+              {previsao.ordem.map((id) => {
+                const n = nodes.find((x) => x.id === id);
+                const r = previsao.porNo[id];
+                if (!n || !r) return null;
+                const pad = PADRAO_TIPO[n.type];
+                const editaConv = Boolean(pad?.faixa || pad?.vende);
+                return (
+                  <tr key={id}>
+                    <td>
+                      <i className="funnel__sem" data-sem={r.semaforo} aria-hidden />
+                      {n.title || "(sem nome)"} <small>{ROTULO_TIPO[n.type]}</small>
+                    </td>
+                    <td>
+                      {r.origem ? (
+                        <input
+                          type="number"
+                          min={0}
+                          value={n.previsao?.visitas ?? VISITAS_PADRAO}
+                          aria-label={`Visitas por mês de ${n.title}`}
+                          onChange={(e) => setPrevisaoNo(id, { visitas: Number(e.target.value) || 0 })}
+                        />
+                      ) : (
+                        inteiro(r.entram)
+                      )}
+                    </td>
+                    <td>
+                      {editaConv ? (
+                        <input
+                          type="number"
+                          min={0}
+                          max={100}
+                          step={0.5}
+                          value={n.previsao?.conversao ?? pad?.conv ?? 100}
+                          aria-label={`Conversão de ${n.title}`}
+                          onChange={(e) => setPrevisaoNo(id, { conversao: Number(e.target.value) || 0 })}
+                        />
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                    <td>{inteiro(r.saem)}</td>
+                    <td>
+                      {pad?.vende ? (
+                        <input
+                          type="number"
+                          min={0}
+                          value={n.previsao?.preco ?? pad.preco ?? 0}
+                          aria-label={`Preço em ${n.title}`}
+                          onChange={(e) => setPrevisaoNo(id, { preco: Number(e.target.value) || 0 })}
+                        />
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                    <td>{r.receita ? reais(r.receita) : "—"}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          <div className="funnel__panel-hint">
+            Semáforo: 🟢 conversão boa para o tipo do bloco · 🟡 mediana · 🔴 abaixo do
+            comum. Os cenários multiplicam as conversões (×0,7 / ×1 / ×1,3).
+          </div>
+        </div>
+      )}
+
+      {painel === "modelos" && (
+        <div className="funnel__panel">
+          <div className="funnel__panel-title">Modelos prontos</div>
+          <div className="funnel__panel-hint">
+            Um clique monta o funil inteiro com os blocos ligados. O quadro atual é
+            trocado — salve antes no cofre se quiser guardá-lo.
+          </div>
+          <ul className="funnel__modelos">
+            {MODELOS.map((m) => (
+              <li key={m.id}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onAbrir?.(montarModelo(m));
+                    setPainel(null);
+                  }}
+                >
+                  <b>{m.nome}</b>
+                  <span>{m.para}</span>
+                  <small>{m.passos.length + (m.extras?.length ?? 0)} blocos</small>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {painel === "icones" && (
         <div className="funnel__panel">
           <div className="funnel__panel-title">Ícones</div>
@@ -2374,6 +2568,8 @@ interface NodeViewProps {
   /** Puxar o canto inferior direito (anotações). */
   onResize: (e: React.PointerEvent) => void;
   onChange: (patch: Partial<FunnelNode>) => void;
+  /** Números da previsão deste bloco. */
+  prev?: ResultadoNo;
   onToggle: () => void;
 }
 
@@ -2399,6 +2595,7 @@ function NodeView({
   onMenu,
   onResize,
   onChange,
+  prev,
   onToggle,
 }: NodeViewProps) {
   const ref = React.useRef<HTMLDivElement>(null);
@@ -2481,7 +2678,9 @@ function NodeView({
             </span>
             <div className="funnel__node-titles">
               <span className="funnel__node-title">{node.title}</span>
-              <span className="funnel__node-sub">Origem de tráfego</span>
+              <span className="funnel__node-sub">
+                {prev ? `${inteiro(prev.entram)} visitas/mês` : "Origem de tráfego"}
+              </span>
             </div>
           </div>
         </div>
@@ -2547,6 +2746,19 @@ function NodeView({
                   <MetricasResumo
                     seed={pag?.dominio ? `${pag.dominio}${pag.caminho}` : node.title}
                   />
+                )}
+                {prev && (
+                  <span
+                    className="funnel__node-prev"
+                    data-sem={prev.semaforo}
+                    title="Previsão (calculadora): entram · conversão · seguem"
+                  >
+                    <i aria-hidden />
+                    {prev.origem
+                      ? `${inteiro(prev.entram)} visitas/mês`
+                      : `${inteiro(prev.entram)} entram · ${prev.conversao.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}% · ${inteiro(prev.saem)} seguem`}
+                    {prev.receita > 0 && <b> · {reais(prev.receita)}</b>}
+                  </span>
                 )}
               </>
             )}
