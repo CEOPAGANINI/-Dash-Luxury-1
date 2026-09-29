@@ -42,7 +42,12 @@ export type FunnelNodeType =
   | "thanks"
   | "webinar"
   | "members"
-  | "redirect";
+  | "redirect"
+  // Anotações do quadro (mapa mental): post-it, texto, forma, moldura.
+  | "note"
+  | "text"
+  | "shape"
+  | "frame";
 
 /** Nome do ícone do lucide-react usado por cada recurso. */
 export type LucideName =
@@ -76,7 +81,11 @@ export type LucideName =
   | "PartyPopper"
   | "Presentation"
   | "GraduationCap"
-  | "Mail";
+  | "Mail"
+  | "StickyNote"
+  | "Type"
+  | "Shapes"
+  | "Frame";
 
 /** Um item do painel "Recursos" — cada um cria um nó ao ser solto no fluxo. */
 export interface RecursoDef {
@@ -89,13 +98,14 @@ export interface RecursoDef {
   slug?: string;
 }
 
-export type FamiliaRecurso = "paginas" | "trafego" | "automacao" | "outros";
+export type FamiliaRecurso = "paginas" | "trafego" | "automacao" | "anotacoes" | "outros";
 
 /** Rótulo de cada família, na ordem do painel. */
 export const FAMILIAS: { id: FamiliaRecurso; nome: string }[] = [
   { id: "paginas", nome: "Páginas do funil" },
   { id: "trafego", nome: "Tráfego e links" },
   { id: "automacao", nome: "Automação e vendas" },
+  { id: "anotacoes", nome: "Anotações" },
   { id: "outros", nome: "Outros" },
 ];
 
@@ -133,12 +143,26 @@ export const RECURSOS: RecursoDef[] = [
   { type: "pipeline_attendance", label: "Atendimento", icon: "MessagesSquare", familia: "automacao" },
   { type: "agents", label: "Agente de IA", icon: "Bot", familia: "automacao" },
   { type: "webhooks", label: "Integração (Webhook)", icon: "Plug", familia: "automacao" },
+  // ── Anotações (mapa mental) ───────────────────────────────────────
+  { type: "note", label: "Post-it", icon: "StickyNote", familia: "anotacoes" },
+  { type: "text", label: "Texto", icon: "Type", familia: "anotacoes" },
+  { type: "shape", label: "Forma", icon: "Shapes", familia: "anotacoes" },
+  { type: "frame", label: "Moldura", icon: "Frame", familia: "anotacoes" },
+  { type: "comment", label: "Comentário", icon: "MessageSquare", familia: "anotacoes" },
   // ── Outros ────────────────────────────────────────────────────────
   { type: "report", label: "Relatório", icon: "BarChart3", familia: "outros" },
   { type: "device", label: "Aparelho", icon: "Smartphone", familia: "outros" },
   { type: "internal_doc", label: "Documento", icon: "BookOpen", familia: "outros" },
-  { type: "comment", label: "Comentário", icon: "MessageSquare", familia: "outros" },
 ];
+
+/** Os tipos que são anotações do quadro (sem alças, com redimensionar). */
+export const TIPOS_ANOTACAO: ReadonlySet<FunnelNodeType> = new Set<FunnelNodeType>([
+  "note",
+  "text",
+  "shape",
+  "frame",
+  "comment",
+]);
 
 /** Os tipos que são páginas (têm endereço e abrem o publicador). */
 export const TIPOS_PAGINA: ReadonlySet<FunnelNodeType> = new Set<FunnelNodeType>(
@@ -220,6 +244,10 @@ export const ROTULO_TIPO: Record<FunnelNodeType, string> = {
   device: "Aparelho",
   internal_doc: "Documento",
   comment: "Comentário",
+  note: "Post-it",
+  text: "Texto",
+  shape: "Forma",
+  frame: "Moldura",
   brand: "Origem",
 };
 
@@ -288,6 +316,21 @@ export interface FunnelNode {
   redir?: RedirNode;
   /** Aparência do bloco (cor, borda, texto). */
   estilo?: EstiloNo;
+  /** Largura/altura (anotações redimensionáveis). */
+  w?: number;
+  h?: number;
+  /** Forma geométrica (nós `shape`). */
+  forma?: "retangulo" | "circulo" | "losango";
+  /** A conversa de um comentário. */
+  mensagens?: Mensagem[];
+}
+
+/** Uma mensagem na conversa de um comentário. */
+export interface Mensagem {
+  autor: string;
+  texto: string;
+  /** Data/hora já formatada (pt-BR). */
+  quando: string;
 }
 
 /* ── Publicador da página (só a interface, demonstração) ──────────────────

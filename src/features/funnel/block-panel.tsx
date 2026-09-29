@@ -8,7 +8,7 @@
 */
 
 import * as React from "react";
-import { ArrowRightLeft, Info, SlidersHorizontal, Trash2 } from "lucide-react";
+import { ArrowRightLeft, Info, MessageSquare, SlidersHorizontal, Trash2 } from "lucide-react";
 
 import {
   ROTULO_TIPO,
@@ -18,7 +18,7 @@ import {
   type FunnelNodeType,
 } from "./funnel-model";
 
-type Aba = "geral" | "ligacoes" | "sobre";
+type Aba = "geral" | "ligacoes" | "sobre" | "conversa";
 
 const ABAS: {
   id: Aba;
@@ -27,6 +27,7 @@ const ABAS: {
   cor: string;
   Icone: React.ComponentType<{ size?: number; strokeWidth?: number }>;
 }[] = [
+  { id: "conversa", rotulo: "Conversa", sub: "Recados do time neste ponto do funil", cor: "#f59e0b", Icone: MessageSquare },
   { id: "geral", rotulo: "Geral", sub: "Nome, referência e observação", cor: "#60a5fa", Icone: SlidersHorizontal },
   { id: "ligacoes", rotulo: "Ligações", sub: "De onde vem e para onde vai", cor: "#00e559", Icone: ArrowRightLeft },
   { id: "sobre", rotulo: "Sobre", sub: "O que este bloco faz no funil", cor: "#a78bfa", Icone: Info },
@@ -71,8 +72,22 @@ export function BlockPanel({
   onRemover: () => void;
   onIrPara?: (nodeId: string) => void;
 }) {
-  const [aba, setAba] = React.useState<Aba>("geral");
-  const abaAtual = ABAS.find((a) => a.id === aba) ?? ABAS[0];
+  const comentario = node.type === "comment";
+  const [aba, setAba] = React.useState<Aba>(comentario ? "conversa" : "geral");
+  const [novaMsg, setNovaMsg] = React.useState("");
+  const abas = ABAS.filter((a) => a.id !== "conversa" || comentario);
+  const abaAtual = abas.find((a) => a.id === aba) ?? abas[0];
+  const enviar = () => {
+    const t = novaMsg.trim();
+    if (!t) return;
+    onChange({
+      mensagens: [
+        ...(node.mensagens ?? []),
+        { autor: "Você", texto: t, quando: new Date().toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }) },
+      ],
+    });
+    setNovaMsg("");
+  };
   const nome = (id: string) => nodes.find((n) => n.id === id);
   const entradas = edges.filter((e) => e.target === node.id).map((e) => nome(e.source)).filter(Boolean) as FunnelNode[];
   const saidas = edges.filter((e) => e.source === node.id).map((e) => nome(e.target)).filter(Boolean) as FunnelNode[];
@@ -109,7 +124,7 @@ export function BlockPanel({
 
       <div className="pub__body">
         <nav className="pub__rail" aria-label="Abas do bloco">
-          {ABAS.map((a) => (
+          {abas.map((a) => (
             <button
               key={a.id}
               type="button"
@@ -138,6 +153,42 @@ export function BlockPanel({
               <span className="pub__sec-sub">{abaAtual.sub}</span>
             </span>
           </div>
+
+          {aba === "conversa" && comentario && (
+            <>
+              <div className="pub__campo blk__conversa">
+                <span>{(node.mensagens ?? []).length === 0 ? "Nenhum recado ainda" : `${(node.mensagens ?? []).length} ${(node.mensagens ?? []).length === 1 ? "recado" : "recados"}`}</span>
+                {(node.mensagens ?? []).map((m, i) => (
+                  <div key={i} className="blk__msg">
+                    <div className="blk__msg-topo">
+                      <b>{m.autor}</b>
+                      <small>{m.quando}</small>
+                      <button type="button" aria-label="Apagar recado" onClick={() => onChange({ mensagens: (node.mensagens ?? []).filter((_, j) => j !== i) })}>✕</button>
+                    </div>
+                    <p>{m.texto}</p>
+                  </div>
+                ))}
+              </div>
+              <label className="pub__campo">
+                <span>Novo recado</span>
+                <textarea
+                  className="pub__input"
+                  rows={3}
+                  value={novaMsg}
+                  maxLength={1000}
+                  placeholder="Escreva para o time… (Ctrl+Enter envia)"
+                  onChange={(e) => setNovaMsg(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) enviar();
+                  }}
+                />
+                <div className="pub__linha">
+                  <button type="button" className="pub__btn rdp__add" onClick={enviar}>Enviar</button>
+                </div>
+              </label>
+              <small className="pub__hint">Fica salvo junto com o funil (Fase 1). Com o banco, cada pessoa do time aparece com o nome dela.</small>
+            </>
+          )}
 
           {aba === "geral" && (
             <>

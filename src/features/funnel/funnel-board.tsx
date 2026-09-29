@@ -22,11 +22,13 @@ import {
   ExternalLink,
   FileText,
   FlaskConical,
+  Frame,
   Globe,
   Grid2x2,
   Image as ImageIcon,
   List,
   ListChecks,
+  ListTree,
   Lock,
   LockOpen,
   Maximize,
@@ -43,9 +45,12 @@ import {
   Settings,
   Shuffle,
   Smartphone,
+  Shapes,
   Split,
+  StickyNote,
   Ticket,
   Trash2,
+  Type,
   Users,
   X,
 } from "lucide-react";
@@ -59,6 +64,7 @@ import {
   RECURSOS,
   RECURSO_POR_TIPO,
   ROTULO_TIPO,
+  TIPOS_ANOTACAO,
   TIPOS_PAGINA,
   paginaVazia,
   type FunnelData,
@@ -132,6 +138,10 @@ const ICONES: Record<
   Presentation,
   GraduationCap,
   Mail,
+  StickyNote,
+  Type,
+  Shapes,
+  Frame,
 };
 
 const OFF = 8000;
@@ -146,6 +156,9 @@ const snap = (v: number) => Math.round(v / GRID) * GRID;
 /** Tipos que mostram o card grande de página (com preview e "Editar"). */
 const isPagina = (t: FunnelNodeType) => TIPOS_PAGINA.has(t);
 const isRedir = (t: FunnelNodeType) => t === "redirect";
+const isAnotacao = (t: FunnelNodeType) => TIPOS_ANOTACAO.has(t);
+/** Anotações que se editam no próprio quadro, sem painel lateral. */
+const SEM_PAINEL = new Set<FunnelNodeType>(["note", "text", "frame"]);
 
 interface Viewport {
   x: number;
@@ -209,6 +222,7 @@ type Interacao =
       grupo?: Record<string, { x: number; y: number }>;
     }
   | { modo: "ponto"; edgeId: string; idx: number }
+  | { modo: "resize"; id: string; px: number; py: number; w: number; h: number }
   | {
       modo: "laco";
       px: number;
@@ -318,7 +332,7 @@ export function FunnelBoard({
   const edgesRef = React.useRef(edges);
   const nodesRef = React.useRef(nodes);
   const [painel, setPainel] = React.useState<
-    "recursos" | "icones" | "vps" | "funis" | null
+    "recursos" | "icones" | "vps" | "funis" | "lista" | null
   >(null);
   // Bump para reler o cofre de funis depois de salvar/apagar.
   const [, refrescarFunis] = React.useReducer((x: number) => x + 1, 0);
@@ -361,6 +375,7 @@ export function FunnelBoard({
   const [histTick, setHistTick] = React.useState(0);
   // Parte 3: busca da biblioteca de blocos e linhas-guia de alinhamento.
   const [buscaRec, setBuscaRec] = React.useState("");
+  const [buscaLista, setBuscaLista] = React.useState("");
   const [guias, setGuias] = React.useState<{ x: number[]; y: number[] } | null>(null);
   const hist = React.useRef<{ past: Snap[]; future: Snap[] }>({ past: [], future: [] });
   const ultimo = React.useRef<Snap>({ nodes: inicial.nodes, edges: inicial.edges });
@@ -507,6 +522,12 @@ export function FunnelBoard({
             ns.map((n) => (n.id === it.id ? { ...n, x: nx, y: ny } : n)),
           );
         }
+      } else if (it.modo === "resize") {
+        const dx = (e.clientX - it.px) / vp.k;
+        const dy = (e.clientY - it.py) / vp.k;
+        const w = Math.max(80, snap(it.w + dx));
+        const h = Math.max(40, snap(it.h + dy));
+        setNodes((ns) => ns.map((n) => (n.id === it.id ? { ...n, w, h } : n)));
       } else if (it.modo === "ponto") {
         const w = paraMundoRef.current(e.clientX, e.clientY);
         setEdges((es) =>
@@ -840,6 +861,20 @@ export function FunnelBoard({
     };
   };
 
+  // Redimensionar uma anotação pelo canto inferior direito.
+  const iniciarResize = (e: React.PointerEvent, node: FunnelNode) => {
+    e.stopPropagation();
+    if (locked) return;
+    inter.current = {
+      modo: "resize",
+      id: node.id,
+      px: e.clientX,
+      py: e.clientY,
+      w: node.w ?? NODE_W,
+      h: node.h ?? sizesRef.current[node.id]?.h ?? 90,
+    };
+  };
+
   const iniciarConexao = (e: React.PointerEvent, node: FunnelNode) => {
     e.stopPropagation();
     if (locked) return;
@@ -889,8 +924,19 @@ export function FunnelBoard({
           url: isPagina(def.type) ? (def.slug ?? "/nova-pagina") : undefined,
           redir: isRedir(def.type) ? { regras: [] } : undefined,
         };
+        // Anotações nascem com tamanho e cor próprios.
+        if (def.type === "note")
+          Object.assign(novo, { w: 200, h: 160, title: "", descricao: "", estilo: { cor: "#fde68a" } });
+        if (def.type === "text")
+          Object.assign(novo, { w: 240, h: 60, title: "", descricao: "Escreva aqui" });
+        if (def.type === "shape")
+          Object.assign(novo, { w: 200, h: 120, title: "Forma", forma: "retangulo", estilo: { cor: "#38bdf8" } });
+        if (def.type === "frame")
+          Object.assign(novo, { w: 640, h: 420, title: "Moldura", estilo: { cor: "#a78bfa" } });
+        if (def.type === "comment") Object.assign(novo, { title: "Comentário", mensagens: [] });
       }
-      setNodes((ns) => [...ns, novo]);
+      // Molduras vão para o fundo da pilha (ficam atrás dos blocos).
+      setNodes((ns) => (novo.type === "frame" ? [novo, ...ns] : [...ns, novo]));
       setSel({ tipo: "node", id: novo.id });
       setPainel(null);
       return novo.id;
@@ -1666,6 +1712,8 @@ export function FunnelBoard({
               onPointerDown={(e) => iniciarArrasto(e, node)}
               onHandleOut={(e) => iniciarConexao(e, node)}
               onMenu={(e) => abrirMenu(e, { tipo: "node", id: node.id })}
+              onResize={(e) => iniciarResize(e, node)}
+              onChange={(patch) => atualizar(node.id, patch)}
               onToggle={() => {
                 if (ctrlClick.current) {
                   ctrlClick.current = false;
@@ -1745,7 +1793,8 @@ export function FunnelBoard({
       {(() => {
         if (!aberto || estiloAberto) return null;
         const n = nodes.find((x) => x.id === aberto);
-        if (!n || isPagina(n.type) || isRedir(n.type) || n.type === "brand") return null;
+        if (!n || isPagina(n.type) || isRedir(n.type) || n.type === "brand" || SEM_PAINEL.has(n.type))
+          return null;
         return (
           <BlockPanel
             node={n}
@@ -1855,6 +1904,14 @@ export function FunnelBoard({
                 <button key={c} type="button" className="funnel__fbar-cor" style={{ background: c }} data-on={n.estilo?.cor === c || undefined} title={`Cor ${c}`} aria-label={`Cor ${c}`} onClick={() => setEstiloNo(n.id, { cor: c })} />
               ))}
               <i className="funnel__fbar-sep" aria-hidden />
+              {n.type === "shape" && (
+                <>
+                  <button type="button" className="funnel__fbar-btn" title="Retângulo" aria-label="Retângulo" data-on={(n.forma ?? "retangulo") === "retangulo" || undefined} onClick={() => atualizar(n.id, { forma: "retangulo" })}>▭</button>
+                  <button type="button" className="funnel__fbar-btn" title="Círculo" aria-label="Círculo" data-on={n.forma === "circulo" || undefined} onClick={() => atualizar(n.id, { forma: "circulo" })}>◯</button>
+                  <button type="button" className="funnel__fbar-btn" title="Losango" aria-label="Losango" data-on={n.forma === "losango" || undefined} onClick={() => atualizar(n.id, { forma: "losango" })}>◇</button>
+                  <i className="funnel__fbar-sep" aria-hidden />
+                </>
+              )}
               <button type="button" className="funnel__fbar-btn" title="Negrito" aria-label="Negrito" data-on={n.estilo?.negrito || undefined} onClick={() => setEstiloNo(n.id, { negrito: !n.estilo?.negrito })}><b>B</b></button>
               <button type="button" className="funnel__fbar-btn" title="Configurar (Enter)" aria-label="Configurar" onClick={() => { setAberto(n.id); trazerParaVista(n); }}>⚙</button>
               <button type="button" className="funnel__fbar-btn" title="Estilo" aria-label="Estilo" onClick={() => setEstiloAberto(true)}>🎨</button>
@@ -1897,6 +1954,15 @@ export function FunnelBoard({
           }
         >
           <Grid2x2 size={18} strokeWidth={2} />
+        </button>
+        <button
+          type="button"
+          className="funnel__rail-btn"
+          aria-label="Lista de blocos"
+          data-on={painel === "lista"}
+          onClick={() => setPainel((p) => (p === "lista" ? null : "lista"))}
+        >
+          <ListTree size={18} strokeWidth={2} />
         </button>
         <button
           type="button"
@@ -2060,6 +2126,59 @@ export function FunnelBoard({
                     );
                   })}
                 </div>
+              </React.Fragment>
+            );
+          })}
+        </div>
+      )}
+
+      {painel === "lista" && (
+        <div className="funnel__panel">
+          <div className="funnel__panel-title">Lista de blocos</div>
+          <input
+            className="funnel__input funnel__panel-busca"
+            value={buscaLista}
+            placeholder="Buscar bloco pelo nome"
+            aria-label="Buscar na lista"
+            onChange={(e) => setBuscaLista(e.target.value)}
+          />
+          <div className="funnel__panel-hint">
+            {nodes.length} {nodes.length === 1 ? "bloco" : "blocos"} · {todasLinhas.length}{" "}
+            {todasLinhas.length === 1 ? "linha" : "linhas"}. Clique para ir até o bloco.
+          </div>
+          {FAMILIAS.map((fam) => {
+            const q = buscaLista.trim().toLowerCase();
+            const itens = nodes.filter((n) => {
+              const f = RECURSO_POR_TIPO[n.type]?.familia ?? (n.type === "brand" ? "trafego" : "outros");
+              return f === fam.id && (!q || (n.title || "").toLowerCase().includes(q));
+            });
+            if (itens.length === 0) return null;
+            return (
+              <React.Fragment key={fam.id}>
+                <div className="funnel__panel-sec">{fam.nome}</div>
+                <ul className="funnel__lista">
+                  {itens.map((n) => {
+                    const def = RECURSO_POR_TIPO[n.type];
+                    const Ic = def ? ICONES[def.icon] : Globe;
+                    return (
+                      <li key={n.id}>
+                        <button
+                          type="button"
+                          data-on={(sel?.tipo === "node" && sel.id === n.id) || undefined}
+                          onClick={() => {
+                            setSel({ tipo: "node", id: n.id });
+                            setMulti(new Set());
+                            trazerParaVista(n);
+                          }}
+                        >
+                          <Ic size={14} strokeWidth={2} />
+                          <span>{n.title || n.descricao?.slice(0, 30) || "(sem nome)"}</span>
+                          <small>{ROTULO_TIPO[n.type]}</small>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
               </React.Fragment>
             );
           })}
@@ -2252,6 +2371,9 @@ interface NodeViewProps {
   onHandleOut: (e: React.PointerEvent) => void;
   /** Botão direito no bloco: abre o menu de contexto. */
   onMenu: (e: React.MouseEvent) => void;
+  /** Puxar o canto inferior direito (anotações). */
+  onResize: (e: React.PointerEvent) => void;
+  onChange: (patch: Partial<FunnelNode>) => void;
   onToggle: () => void;
 }
 
@@ -2275,6 +2397,8 @@ function NodeView({
   onPointerDown,
   onHandleOut,
   onMenu,
+  onResize,
+  onChange,
   onToggle,
 }: NodeViewProps) {
   const ref = React.useRef<HTMLDivElement>(null);
@@ -2297,6 +2421,8 @@ function NodeView({
   const marca = node.type === "brand";
   const pagina = isPagina(node.type);
   const redir = isRedir(node.type);
+  const anot = isAnotacao(node.type);
+  const semAlca = anot && node.type !== "shape";
   const def = RECURSO_POR_TIPO[node.type];
   const Icone = def ? ICONES[def.icon] : FileText;
   const url = node.url ?? "";
@@ -2318,7 +2444,8 @@ function NodeView({
         {
           left: node.x,
           top: node.y,
-          width: marca ? "auto" : NODE_W,
+          width: marca || node.type === "comment" ? "auto" : (node.w ?? NODE_W),
+          height: anot && node.type !== "comment" ? node.h : undefined,
           "--node-cor": node.estilo?.cor,
         } as React.CSSProperties
       }
@@ -2335,11 +2462,13 @@ function NodeView({
       onPointerDown={onPointerDown}
       onContextMenu={onMenu}
     >
-      <span
-        className="funnel__handle funnel__handle--in"
-        data-in={node.id}
-        aria-hidden
-      />
+      {!semAlca && (
+        <span
+          className="funnel__handle funnel__handle--in"
+          data-in={node.id}
+          aria-hidden
+        />
+      )}
 
       {marca ? (
         <div className="funnel__node-shell">
@@ -2356,6 +2485,14 @@ function NodeView({
             </div>
           </div>
         </div>
+      ) : anot ? (
+        <AnotacaoView
+          node={node}
+          aberto={aberto}
+          onChange={onChange}
+          onToggle={onToggle}
+          onResize={onResize}
+        />
       ) : (
         <article
           className="funnel__node-shell"
@@ -2429,10 +2566,99 @@ function NodeView({
         </article>
       )}
 
+      {!semAlca && (
+        <span
+          className="funnel__handle funnel__handle--out"
+          data-out={node.id}
+          onPointerDown={onHandleOut}
+          aria-hidden
+        />
+      )}
+    </div>
+  );
+}
+
+/**
+ * Uma anotação do quadro: post-it, texto, forma, moldura ou o pino de um
+ * comentário. Edita-se no próprio quadro (menos o comentário, que abre a
+ * conversa no painel).
+ */
+function AnotacaoView({
+  node,
+  aberto,
+  onChange,
+  onToggle,
+  onResize,
+}: {
+  node: FunnelNode;
+  aberto: boolean;
+  onChange: (patch: Partial<FunnelNode>) => void;
+  onToggle: () => void;
+  onResize: (e: React.PointerEvent) => void;
+}) {
+  const parar = (e: React.PointerEvent) => e.stopPropagation();
+  if (node.type === "comment") {
+    const n = node.mensagens?.length ?? 0;
+    const ultima = node.mensagens?.[n - 1];
+    return (
+      <button
+        type="button"
+        className="funnel__pin"
+        onClick={onToggle}
+        aria-expanded={aberto}
+        aria-label={`Comentário: ${ultima?.texto ?? node.title}`}
+      >
+        <span className="funnel__pin-ic" aria-hidden>
+          💬
+        </span>
+        <span className="funnel__pin-txt">{ultima ? ultima.texto : node.title || "Comentário"}</span>
+        {n > 0 && <span className="funnel__pin-n">{n}</span>}
+      </button>
+    );
+  }
+  return (
+    <div
+      className={cn("funnel__anot", `funnel__anot--${node.type}`)}
+      data-forma={node.forma}
+      style={{ "--anot-cor": node.estilo?.cor } as React.CSSProperties}
+    >
+      {node.type === "frame" && (
+        <input
+          className="funnel__anot-titulo"
+          value={node.title}
+          placeholder="Nome da moldura"
+          aria-label="Nome da moldura"
+          maxLength={80}
+          onPointerDown={parar}
+          onChange={(e) => onChange({ title: e.target.value })}
+        />
+      )}
+      {node.type === "shape" && (
+        <textarea
+          className="funnel__anot-texto funnel__anot-texto--centro"
+          value={node.title}
+          placeholder="Texto"
+          aria-label="Texto da forma"
+          maxLength={200}
+          onPointerDown={parar}
+          onChange={(e) => onChange({ title: e.target.value })}
+        />
+      )}
+      {(node.type === "note" || node.type === "text") && (
+        <textarea
+          className="funnel__anot-texto"
+          value={node.descricao ?? ""}
+          placeholder={node.type === "note" ? "Escreva no post-it…" : "Escreva aqui…"}
+          aria-label={node.type === "note" ? "Texto do post-it" : "Texto"}
+          maxLength={2000}
+          onPointerDown={parar}
+          onChange={(e) => onChange({ descricao: e.target.value })}
+        />
+      )}
       <span
-        className="funnel__handle funnel__handle--out"
-        data-out={node.id}
-        onPointerDown={onHandleOut}
+        className="funnel__resize"
+        title="Arraste para redimensionar"
+        onPointerDown={onResize}
         aria-hidden
       />
     </div>

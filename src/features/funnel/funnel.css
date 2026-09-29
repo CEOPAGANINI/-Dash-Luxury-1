@@ -583,6 +583,10 @@
   border-radius: var(--fn-r-xl);
   box-shadow: var(--fn-shadow-panel);
   padding: 20px;
+  /* Cabe na tela e rola por dentro (a biblioteca é comprida). */
+  max-height: calc(100% - 32px);
+  overflow-y: auto;
+  scrollbar-width: thin;
 }
 .funnel__panel-title {
   font-size: 18px;
@@ -3309,4 +3313,202 @@
   border: 1px solid var(--fn-line-2);
   padding: 5px 8px;
   font-family: inherit;
+}
+
+/* ── Parte 4: post-it, texto, forma, moldura, redimensionar, lista, comentários ── */
+.funnel__anot {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 40px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+.funnel__anot--note {
+  background: var(--anot-cor, #fde68a);
+  color: #1a1a1a;
+  box-shadow: 0 8px 20px rgb(0 0 0 / 45%);
+  padding: 12px 12px 16px;
+}
+.funnel__anot--text {
+  background: transparent;
+  color: var(--fn-text);
+  padding: 4px 6px;
+}
+.funnel__node[data-selected="true"] .funnel__anot--text {
+  outline: 1px dashed var(--fn-select);
+}
+.funnel__anot--shape {
+  background: color-mix(in srgb, var(--anot-cor, #38bdf8) 28%, transparent);
+  border: 2px solid var(--anot-cor, #38bdf8);
+  color: var(--fn-text);
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+}
+.funnel__anot--shape[data-forma="circulo"] {
+  clip-path: ellipse(50% 50% at 50% 50%);
+  border: 0;
+  background: color-mix(in srgb, var(--anot-cor, #38bdf8) 45%, transparent);
+}
+.funnel__anot--shape[data-forma="losango"] {
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+  border: 0;
+  background: color-mix(in srgb, var(--anot-cor, #38bdf8) 45%, transparent);
+}
+.funnel__anot--frame {
+  background: color-mix(in srgb, var(--anot-cor, #a78bfa) 7%, transparent);
+  border: 2px dashed color-mix(in srgb, var(--anot-cor, #a78bfa) 70%, transparent);
+  padding: 8px;
+}
+.funnel__node[data-tipo="frame"] {
+  cursor: grab;
+}
+.funnel__anot-titulo {
+  align-self: flex-start;
+  max-width: 100%;
+  font-family: var(--fn-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--anot-cor, #a78bfa);
+  background: var(--fn-canvas);
+  border: 1px solid color-mix(in srgb, var(--anot-cor, #a78bfa) 50%, transparent);
+  padding: 4px 8px;
+}
+.funnel__anot-texto {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  resize: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.45;
+  outline: none;
+}
+.funnel__anot--note .funnel__anot-texto {
+  font-family: var(--cl-sans, system-ui, sans-serif);
+}
+.funnel__anot-texto--centro {
+  text-align: center;
+  align-self: center;
+  font-weight: 600;
+}
+.funnel__anot-texto::placeholder {
+  color: color-mix(in srgb, currentColor 55%, transparent);
+}
+.funnel__resize {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 14px;
+  height: 14px;
+  cursor: nwse-resize;
+  background: linear-gradient(135deg, transparent 50%, var(--fn-select) 50%);
+  opacity: 0;
+}
+.funnel__node:hover .funnel__resize,
+.funnel__node[data-selected="true"] .funnel__resize {
+  opacity: 1;
+}
+.funnel__pin {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 260px;
+  padding: 7px 10px;
+  border: 1px solid #f59e0b;
+  background: color-mix(in srgb, #f59e0b 14%, var(--fn-surface-3));
+  color: var(--fn-text);
+  font-size: 12px;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgb(0 0 0 / 45%);
+}
+.funnel__pin-txt {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.funnel__pin-n {
+  font-family: var(--fn-mono);
+  font-size: 10px;
+  color: #04110a;
+  background: #f59e0b;
+  padding: 1px 6px;
+}
+.funnel__lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.funnel__lista button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--fn-text);
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+.funnel__lista button:hover,
+.funnel__lista button[data-on] {
+  background: var(--fn-hover);
+  border-color: var(--fn-line-2);
+}
+.funnel__lista button span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.funnel__lista button small {
+  font-family: var(--fn-mono);
+  font-size: 10px;
+  color: var(--fn-muted);
+}
+.blk__conversa {
+  gap: 8px;
+}
+.blk__msg {
+  padding: 8px 10px;
+  border: 1px solid var(--fn-line);
+  background: var(--fn-node-well, #080808);
+}
+.blk__msg-topo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--fn-text);
+}
+.blk__msg-topo small {
+  flex: 1;
+  color: var(--fn-muted);
+  font-family: var(--fn-mono);
+  font-size: 10px;
+}
+.blk__msg-topo button {
+  border: 0;
+  background: transparent;
+  color: var(--fn-muted);
+  cursor: pointer;
+}
+.blk__msg p {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--fn-text);
+  white-space: pre-wrap;
 }
