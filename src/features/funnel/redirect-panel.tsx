@@ -91,8 +91,8 @@ const ABAS: {
   },
   {
     id: "redirecionados",
-    rotulo: "Redirecionados",
-    sub: "Quem foi mandado para outra página (demonstração)",
+    rotulo: "Registro",
+    sub: "Quem foi redirecionado para outra página (demonstração)",
     cor: "#f59e0b",
     Icone: ArrowRightLeft,
   },

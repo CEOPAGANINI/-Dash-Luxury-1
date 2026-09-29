@@ -3876,8 +3876,12 @@
   text-transform: uppercase;
 }
 .pub__rail-lbl {
-  font-size: 9px;
-  letter-spacing: 0.04em;
+  font-size: 8.5px;
+  letter-spacing: 0.03em;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+  line-height: 1.15;
 }
 .funnel__node-foot {
   text-transform: none;
