@@ -59,7 +59,6 @@ import {
   RECURSO_POR_TIPO,
   ROTULO_TIPO,
   TIPOS_PAGINA,
-  enderecoConfigurado,
   paginaVazia,
   type FunnelData,
   type EstiloLinha,
@@ -78,6 +77,7 @@ import {
 } from "@/features/vps/catalogo-demo";
 import { PagePublisher, type EtapaDestino } from "./page-publisher";
 import { RedirectPanel } from "./redirect-panel";
+import { BlockPanel } from "./block-panel";
 import { metricasDemo, num, pctTxt } from "./page-metrics";
 import {
   GLIFO_REGRA,
@@ -1439,11 +1439,8 @@ export function FunnelBoard({
                 }
                 const abrindo = aberto !== node.id;
                 setAberto((a) => (a === node.id ? null : node.id));
-                if (abrindo && (isPagina(node.type) || isRedir(node.type)))
-                  trazerParaVista(node);
+                if (abrindo) trazerParaVista(node);
               }}
-              onChange={(patch) => atualizar(node.id, patch)}
-              onRemover={() => remover(node.id)}
             />
           ))}
         </div>
@@ -1501,6 +1498,28 @@ export function FunnelBoard({
             onNome={(nm) => atualizar(n.id, { title: nm })}
             onChange={(redir) => atualizar(n.id, { redir })}
             onFechar={() => setAberto(null)}
+            onIrPara={(id) => {
+              const t = nodes.find((x) => x.id === id);
+              if (t) trazerParaVista(t);
+            }}
+          />
+        );
+      })()}
+
+      {/* Qualquer outro bloco (anúncio, automação, CRM, link…): painel
+          lateral igual ao da página, em vez de abrir dentro do bloco. */}
+      {(() => {
+        if (!aberto) return null;
+        const n = nodes.find((x) => x.id === aberto);
+        if (!n || isPagina(n.type) || isRedir(n.type) || n.type === "brand") return null;
+        return (
+          <BlockPanel
+            node={n}
+            nodes={nodes}
+            edges={todasLinhas}
+            onChange={(patch) => atualizar(n.id, patch)}
+            onFechar={() => setAberto(null)}
+            onRemover={() => remover(n.id)}
             onIrPara={(id) => {
               const t = nodes.find((x) => x.id === id);
               if (t) trazerParaVista(t);
@@ -1875,8 +1894,6 @@ interface NodeViewProps {
   onPointerDown: (e: React.PointerEvent) => void;
   onHandleOut: (e: React.PointerEvent) => void;
   onToggle: () => void;
-  onChange: (patch: Partial<FunnelNode>) => void;
-  onRemover: () => void;
 }
 
 /**
@@ -1899,8 +1916,6 @@ function NodeView({
   onPointerDown,
   onHandleOut,
   onToggle,
-  onChange,
-  onRemover,
 }: NodeViewProps) {
   const ref = React.useRef<HTMLDivElement>(null);
   // Medir antes do paint (layout effect), e só quando o conteúdo muda a
@@ -1925,12 +1940,10 @@ function NodeView({
   const def = RECURSO_POR_TIPO[node.type];
   const Icone = def ? ICONES[def.icon] : FileText;
   const url = node.url ?? "";
-  const urlOk = enderecoConfigurado(url);
   // Publicador (nós de página): estado do "crachá".
   const pag = node.pagina;
   const paginaPronta = Boolean(pag?.dominio && pag?.zip?.ok);
   const enderecoPub = pag?.dominio ? `${pag.dominio}${pag.caminho}` : "";
-  const configId = `funnel-cfg-${node.id}`;
   const rotuloSaidas = `${saidas} ${saidas === 1 ? "saída" : "saídas"}`;
 
   return (
@@ -1989,7 +2002,6 @@ function NodeView({
             className="funnel__node-body"
             onClick={onToggle}
             aria-expanded={aberto}
-            aria-controls={aberto ? configId : undefined}
             aria-label={`Configurar ${node.title || "bloco sem nome"}`}
           >
             {redir ? (
@@ -2030,93 +2042,6 @@ function NodeView({
               </>
             )}
           </button>
-
-          {aberto && !pagina && !redir && (
-            <div
-              id={configId}
-              role="region"
-              aria-label={`Configuração de ${node.title || "bloco sem nome"}`}
-              className="funnel__cfg"
-              // Digitar nos campos não pode começar a arrastar o bloco.
-              onPointerDown={(e) => e.stopPropagation()}
-            >
-              <header className="funnel__cfg-head">
-                <h3>{pagina ? "Configurar página" : "Configurar bloco"}</h3>
-                <button
-                  type="button"
-                  className="funnel__cfg-remove"
-                  aria-label={`Remover ${node.title || "bloco"}`}
-                  onClick={onRemover}
-                >
-                  <Trash2 size={16} />
-                </button>
-              </header>
-              <div className="funnel__fields">
-                <label>
-                  {pagina ? "Nome da página" : "Nome"}
-                  <input
-                    value={node.title}
-                    maxLength={120}
-                    onChange={(e) => onChange({ title: e.target.value })}
-                  />
-                </label>
-                <label>
-                  {pagina ? "Endereço da página" : "Referência"}
-                  <input
-                    value={url}
-                    maxLength={2048}
-                    placeholder={
-                      pagina ? "https://sualoja.com/oferta" : "ex.: lista-vip"
-                    }
-                    aria-invalid={pagina && Boolean(url) && !urlOk}
-                    onChange={(e) => onChange({ url: e.target.value })}
-                  />
-                  {pagina && (
-                    <small>
-                      {url && !urlOk
-                        ? "Use https:// ou um caminho interno iniciado por /."
-                        : "Isso não publica nem cria a rota."}
-                    </small>
-                  )}
-                </label>
-                {pagina ? (
-                  <>
-                    <label>
-                      Título da landing page
-                      <input
-                        value={node.headline ?? ""}
-                        maxLength={240}
-                        onChange={(e) =>
-                          onChange({ headline: e.target.value })
-                        }
-                      />
-                    </label>
-                    <label>
-                      Descrição
-                      <textarea
-                        rows={3}
-                        value={node.descricao ?? ""}
-                        maxLength={2000}
-                        onChange={(e) =>
-                          onChange({ descricao: e.target.value })
-                        }
-                      />
-                    </label>
-                  </>
-                ) : (
-                  <label>
-                    Observação
-                    <textarea
-                      rows={3}
-                      value={node.descricao ?? ""}
-                      maxLength={2000}
-                      onChange={(e) => onChange({ descricao: e.target.value })}
-                    />
-                  </label>
-                )}
-              </div>
-            </div>
-          )}
 
           <footer className="funnel__node-foot">
             <span data-ok={pagina ? paginaPronta : true}>
