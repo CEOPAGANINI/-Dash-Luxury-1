@@ -4053,3 +4053,9 @@
   font-family: var(--fn-sans);
   font-weight: 600;
 }
+
+/* Tabelas do quadro sem as listras da pele geral (apareciam no tema Papel). */
+.funnel table tbody tr:nth-child(even),
+.funnel table tbody tr:nth-child(odd) {
+  background: transparent;
+}
