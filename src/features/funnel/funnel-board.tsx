@@ -52,6 +52,7 @@ import {
 
 import { cn } from "@/lib/utils";
 import {
+  FAMILIAS,
   GRID,
   MARCAS,
   NODE_W,
@@ -358,6 +359,9 @@ export function FunnelBoard({
     alvo: { tipo: "node" | "edge" | "canvas"; id?: string };
   } | null>(null);
   const [histTick, setHistTick] = React.useState(0);
+  // Parte 3: busca da biblioteca de blocos e linhas-guia de alinhamento.
+  const [buscaRec, setBuscaRec] = React.useState("");
+  const [guias, setGuias] = React.useState<{ x: number[]; y: number[] } | null>(null);
   const hist = React.useRef<{ past: Snap[]; future: Snap[] }>({ past: [], future: [] });
   const ultimo = React.useRef<Snap>({ nodes: inicial.nodes, edges: inicial.edges });
   const ignorarHist = React.useRef(false);
@@ -460,8 +464,45 @@ export function FunnelBoard({
             ),
           );
         } else {
-          const nx = snap(it.nx + dx);
-          const ny = snap(it.ny + dy);
+          let nx = snap(it.nx + dx);
+          let ny = snap(it.ny + dy);
+          // Linhas-guia: se a borda ou o centro do bloco chega perto do de
+          // outro bloco, gruda nele e mostra a linha (como no Miro/Figma).
+          const tol = 8 / vp.k;
+          const meu = sizesRef.current[it.id] ?? { w: NODE_W, h: 90 };
+          const gx: number[] = [];
+          const gy: number[] = [];
+          let melhorX: { d: number; nx: number; g: number } | null = null;
+          let melhorY: { d: number; ny: number; g: number } | null = null;
+          for (const o of nodesRef.current) {
+            if (o.id === it.id) continue;
+            const so = sizesRef.current[o.id] ?? { w: NODE_W, h: 90 };
+            const ax = [o.x, o.x + so.w / 2, o.x + so.w];
+            const ay = [o.y, o.y + so.h / 2, o.y + so.h];
+            const mx = [nx, nx + meu.w / 2, nx + meu.w];
+            const my = [ny, ny + meu.h / 2, ny + meu.h];
+            for (const a of ax)
+              for (let i = 0; i < 3; i++) {
+                const d = Math.abs(a - mx[i]);
+                if (d <= tol && (!melhorX || d < melhorX.d))
+                  melhorX = { d, nx: nx + (a - mx[i]), g: a };
+              }
+            for (const a of ay)
+              for (let i = 0; i < 3; i++) {
+                const d = Math.abs(a - my[i]);
+                if (d <= tol && (!melhorY || d < melhorY.d))
+                  melhorY = { d, ny: ny + (a - my[i]), g: a };
+              }
+          }
+          if (melhorX) {
+            nx = melhorX.nx;
+            gx.push(melhorX.g);
+          }
+          if (melhorY) {
+            ny = melhorY.ny;
+            gy.push(melhorY.g);
+          }
+          setGuias(gx.length || gy.length ? { x: gx, y: gy } : null);
           setNodes((ns) =>
             ns.map((n) => (n.id === it.id ? { ...n, x: nx, y: ny } : n)),
           );
@@ -546,6 +587,7 @@ export function FunnelBoard({
       inter.current = null;
       setPanning(false);
       setDragId(null);
+      setGuias(null);
       setHistTick((t) => t + 1);
     };
     window.addEventListener("pointermove", onMove);
@@ -896,6 +938,11 @@ export function FunnelBoard({
       es.map((ed) => (ed.id === id ? { ...ed, estilo: { ...ed.estilo, ...patch } } : ed)),
     );
   };
+  // Nome da saída (o texto no meio da linha), só nas linhas comuns.
+  const setRotulo = (id: string, rotulo: string) =>
+    setEdges((es) =>
+      es.map((ed) => (ed.id === id ? { ...ed, rotulo: rotulo || undefined } : ed)),
+    );
   // Volta uma linha ao estilo padrão (regra ou linha comum).
   const resetLinha = (id: string) => {
     if (id.startsWith("rr:")) {
@@ -1279,6 +1326,19 @@ export function FunnelBoard({
                 role="toolbar"
                 aria-label="Estilo da linha"
               >
+                {!edgeSel.id.startsWith("rr:") && (
+                  <div className="funnel__ltb-grupo">
+                    <input
+                      className="funnel__ltb-nome"
+                      value={edgeSel.rotulo ?? ""}
+                      placeholder="Nome da saída (ex.: Comprou)"
+                      aria-label="Nome da saída"
+                      maxLength={40}
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onChange={(e) => setRotulo(edgeSel.id, e.target.value)}
+                    />
+                  </div>
+                )}
                 <div className="funnel__ltb-grupo">
                   <B on={forma === "curva"} title="Curva" onClick={() => mudarForma("curva")}>
                     ⌒
@@ -1398,20 +1458,28 @@ export function FunnelBoard({
               );
               return (
                 <div className="funnel__ligar-corpo">
-                  <div className="funnel__ligar-sec">Recursos do funil</div>
-                  <ul className="funnel__ligar-lista">
-                    {rec.map((r) => {
-                      const Ic = ICONES[r.icon] ?? FileText;
-                      return (
-                        <li key={r.type}>
-                          <button type="button" onClick={() => criarLigado(r.type)}>
-                            <Ic size={14} strokeWidth={2} />
-                            {r.label}
-                          </button>
-                        </li>
-                      );
-                    })}
-                  </ul>
+                  {FAMILIAS.map((fam) => {
+                    const itens = rec.filter((r) => r.familia === fam.id);
+                    if (itens.length === 0) return null;
+                    return (
+                      <React.Fragment key={fam.id}>
+                        <div className="funnel__ligar-sec">{fam.nome}</div>
+                        <ul className="funnel__ligar-lista">
+                          {itens.map((r) => {
+                            const Ic = ICONES[r.icon] ?? FileText;
+                            return (
+                              <li key={r.type}>
+                                <button type="button" onClick={() => criarLigado(r.type)}>
+                                  <Ic size={14} strokeWidth={2} />
+                                  {r.label}
+                                </button>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </React.Fragment>
+                    );
+                  })}
                   {pags.length > 0 && (
                     <>
                       <div className="funnel__ligar-sec">Páginas da VPS</div>
@@ -1444,6 +1512,12 @@ export function FunnelBoard({
         )}
         <div className="funnel__world" style={{ transform }}>
           <div className="funnel__dots" aria-hidden />
+          {guias?.x.map((x) => (
+            <div key={`gx${x}`} className="funnel__guia funnel__guia--v" style={{ left: x }} aria-hidden />
+          ))}
+          {guias?.y.map((y) => (
+            <div key={`gy${y}`} className="funnel__guia funnel__guia--h" style={{ top: y }} aria-hidden />
+          ))}
 
           <svg className="funnel__edges" aria-hidden>
             <defs>
@@ -1698,6 +1772,7 @@ export function FunnelBoard({
           onNode={setEstiloNo}
           onEdge={setEstilo}
           onEdgeReset={resetLinha}
+          onRotulo={setRotulo}
           onMapa={(patch) => setMapa((m) => (patch === null ? {} : { ...m, ...patch }))}
           onFluxoGlobal={(v) => {
             setFluxoGlobal(v);
@@ -1947,28 +2022,47 @@ export function FunnelBoard({
 
       {painel === "recursos" && (
         <div className="funnel__panel">
-          <div className="funnel__panel-title">Recursos</div>
+          <div className="funnel__panel-title">Biblioteca de blocos</div>
+          <input
+            className="funnel__input funnel__panel-busca"
+            value={buscaRec}
+            placeholder="Buscar (ex.: checkout, upsell, e-mail)"
+            aria-label="Buscar bloco"
+            onChange={(e) => setBuscaRec(e.target.value)}
+          />
           <div className="funnel__panel-hint">
-            Arraste um destes recursos para o fluxo!
+            Arraste para o quadro ou clique para adicionar no centro.
           </div>
-          <div className="funnel__grid">
-            {RECURSOS.map((r) => {
-              const Icone = ICONES[r.icon];
-              return (
-                <button
-                  type="button"
-                  key={r.type}
-                  className="funnel__item"
-                  draggable
-                  onDragStart={(e) => e.dataTransfer.setData(DATA_KEY, r.type)}
-                  onClick={() => adicionarNoCentro(r.type)}
-                >
-                  <Icone size={24} strokeWidth={1.8} />
-                  <span className="funnel__item-label">{r.label}</span>
-                </button>
-              );
-            })}
-          </div>
+          {FAMILIAS.map((fam) => {
+            const q = buscaRec.trim().toLowerCase();
+            const itens = RECURSOS.filter(
+              (r) => r.familia === fam.id && (!q || r.label.toLowerCase().includes(q)),
+            );
+            if (itens.length === 0) return null;
+            return (
+              <React.Fragment key={fam.id}>
+                <div className="funnel__panel-sec">{fam.nome}</div>
+                <div className="funnel__grid">
+                  {itens.map((r) => {
+                    const Icone = ICONES[r.icon];
+                    return (
+                      <button
+                        type="button"
+                        key={r.type}
+                        className="funnel__item"
+                        draggable
+                        onDragStart={(e) => e.dataTransfer.setData(DATA_KEY, r.type)}
+                        onClick={() => adicionarNoCentro(r.type)}
+                      >
+                        <Icone size={24} strokeWidth={1.8} />
+                        <span className="funnel__item-label">{r.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </React.Fragment>
+            );
+          })}
         </div>
       )}
 

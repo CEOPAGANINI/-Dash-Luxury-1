@@ -3270,3 +3270,43 @@
 .stp__reset {
   color: var(--fn-text);
 }
+
+/* ── Parte 3: biblioteca em famílias, linhas-guia e nome da saída ───── */
+.funnel__panel-busca {
+  width: 100%;
+  margin-bottom: 4px;
+}
+.funnel__panel-sec {
+  margin: 10px 0 6px;
+  font-family: var(--fn-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fn-muted);
+}
+.funnel__guia {
+  position: absolute;
+  pointer-events: none;
+  z-index: 3;
+}
+.funnel__guia--v {
+  top: -8000px;
+  height: 16000px;
+  width: 0;
+  border-left: 1px dashed #f472b6;
+}
+.funnel__guia--h {
+  left: -8000px;
+  width: 16000px;
+  height: 0;
+  border-top: 1px dashed #f472b6;
+}
+.funnel__ltb-nome {
+  width: 170px;
+  font-size: 12px;
+  color: var(--fn-text);
+  background: var(--fn-node-well, #080808);
+  border: 1px solid var(--fn-line-2);
+  padding: 5px 8px;
+  font-family: inherit;
+}

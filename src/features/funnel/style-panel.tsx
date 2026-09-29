@@ -39,6 +39,7 @@ export function StylePanel({
   onNode,
   onEdge,
   onEdgeReset,
+  onRotulo,
   onMapa,
   onFluxoGlobal,
   onEnquadrar,
@@ -51,6 +52,8 @@ export function StylePanel({
   onNode: (id: string, patch: Partial<EstiloNo> | null) => void;
   onEdge: (id: string, patch: Partial<EstiloLinha>) => void;
   onEdgeReset: (id: string) => void;
+  /** Nome da saída (texto no meio da linha). */
+  onRotulo: (id: string, rotulo: string) => void;
   onMapa: (patch: EstiloMapa | null) => void;
   onFluxoGlobal: (v: boolean) => void;
   onEnquadrar: () => void;
@@ -125,6 +128,19 @@ export function StylePanel({
 
           {aba === "linha" && (edge ? (
             <>
+              {!edge.id.startsWith("rr:") && (
+                <label className="pub__campo">
+                  <span>Nome da saída</span>
+                  <input
+                    className="pub__input"
+                    value={edge.rotulo ?? ""}
+                    maxLength={40}
+                    placeholder="ex.: Comprou, Não comprou, Abandonou"
+                    onChange={(ev) => onRotulo(edge.id, ev.target.value)}
+                  />
+                  <small className="pub__hint">Aparece no meio da linha. Numa linha de regra do Redirecionador, o nome é a própria regra.</small>
+                </label>
+              )}
               <div className="pub__campo">
                 <span>Forma</span>
                 <div className="pub__chips">
