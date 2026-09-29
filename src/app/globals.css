@@ -8235,3 +8235,20 @@
     opacity: 0.7;
   }
 }
+
+/* ── Cantos retos em todo o painel, de ponta a ponta (pedido do dono).
+      Uma regra global vence qualquer border-radius: classes do Tailwind,
+      estilos inline e os retângulos de SVG (gráficos, rótulos de linha). ── */
+/* Fica na PRIMEIRA camada (theme): entre declarações !important, a
+   camada mais antiga ganha de todas as outras e do CSS fora de camadas. */
+@layer theme {
+  *,
+  *::before,
+  *::after {
+    border-radius: 0 !important;
+  }
+  rect {
+    rx: 0 !important;
+    ry: 0 !important;
+  }
+}
