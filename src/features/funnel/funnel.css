@@ -3732,3 +3732,320 @@
   --fn-shadow-node: 0 6px 18px rgb(0 0 0 / 14%);
   --fn-shadow-panel: 0 20px 25px -5px rgb(0 0 0 / 15%), 0 8px 10px -6px rgb(0 0 0 / 10%);
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   TIPOGRAFIA DO QUADRO DO FUNIL — sistema único (pedido do dono).
+   Três papéis, dois tipos:
+   · Inter (sans)     → títulos em negrito, nomes, texto, chips, botões, campos.
+   · JetBrains Mono   → "etiquetas" (tipo do bloco, seções, selos) e tudo que é
+                        número, endereço ou id (alinhamento tabular).
+   Escala: 10 etiqueta · 12 pequeno · 13 corpo · 15 nome do bloco ·
+           16 título de seção · 18 título de painel · 20+ números-destaque.
+   Este bloco vem por último de propósito: vence o que está acima.
+   ═══════════════════════════════════════════════════════════════════════ */
+.funnel {
+  --fn-sans: var(--cl-sans, var(--font-inter), "Inter", system-ui, sans-serif);
+  --fn-mono: var(--cl-mono, var(--font-jetbrains-mono), "JetBrains Mono", ui-monospace, monospace);
+  font-family: var(--fn-sans);
+  font-size: 13px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+/* Controles e rótulos em Inter (a pele CommandLayer põe mono em button,
+   label e th; aqui isso vale só para etiquetas e números, mais abaixo). */
+.funnel button,
+.funnel input,
+.funnel textarea,
+.funnel select,
+.funnel label,
+.funnel th {
+  font-family: var(--fn-sans);
+  font-size: inherit;
+  letter-spacing: inherit;
+}
+
+/* ── Títulos: sempre negrito, Inter, tracking fechado ─────────────────── */
+.funnel__panel-title {
+  font-family: var(--fn-sans);
+  font-size: 18px;
+  line-height: 1.25;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: var(--fn-text);
+}
+.pub__sec-titulo {
+  font-family: var(--fn-sans);
+  font-size: 16px;
+  line-height: 1.25;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.pub__sec-sub,
+.funnel__panel-hint {
+  font-family: var(--fn-sans);
+  font-size: 12.5px;
+  line-height: 1.45;
+  font-weight: 400;
+  color: var(--fn-muted);
+}
+.pub__nome {
+  font-family: var(--fn-sans);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.funnel__node-name {
+  font-family: var(--fn-sans);
+  font-size: 15px;
+  line-height: 1.3;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--fn-node-title);
+}
+.funnel__node[data-texto="grande"] .funnel__node-name {
+  font-size: 18px;
+}
+.funnel__node-headline {
+  font-family: var(--fn-sans);
+  font-size: 12.5px;
+  line-height: 1.4;
+  font-weight: 400;
+}
+.funnel__node-title {
+  font-family: var(--fn-sans);
+  font-size: 13px;
+  font-weight: 700;
+}
+/* Rótulo de cada campo dos painéis: negrito, sans. */
+.pub__campo > span,
+.pub__campo > label > span,
+.rdp__sim > span,
+.blk__sobre > span,
+.blk__dica > span,
+.pmt__grafico-titulo,
+.pmt__rolagem > span,
+.pmt__funil > span,
+.pmt__fatias > span,
+.rdp__barras > span {
+  font-family: var(--fn-sans);
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  color: var(--fn-text);
+}
+.funnel__cfg-head h3,
+.funnel__ligar-topo b,
+.funnel__modelos b,
+.blk__msg-topo b,
+.rdp__veredito-body b,
+.pub__cofre-txt b,
+.pub__saude-topo,
+.funnel__funis b {
+  font-family: var(--fn-sans);
+  font-weight: 700;
+  letter-spacing: -0.005em;
+}
+.pmt__frase b,
+.rdp__quem b {
+  font-weight: 700;
+}
+
+/* ── Etiquetas: mono, maiúsculas, pequenas, com tracking aberto ───────── */
+.funnel__node-kind,
+.pub__badge,
+.pmt__demo,
+.funnel__panel-sec,
+.funnel__ligar-sec,
+.rdp__lbl,
+.rdp__grupo-nome,
+.rdp__tabela th,
+.funnel__prev-tab th,
+.pmt__kpi-rotulo,
+.funnel__prev-kpis span,
+.funnel__anot-titulo,
+.pub__rail-lbl,
+.pub__saude-tag,
+.funnel__node-foot,
+.pub__foot-vps {
+  font-family: var(--fn-mono);
+  font-size: 10px;
+  line-height: 1.3;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.pub__rail-lbl {
+  font-size: 9px;
+  letter-spacing: 0.04em;
+}
+.funnel__node-foot {
+  text-transform: none;
+  letter-spacing: 0.02em;
+  font-weight: 500;
+}
+.pub__foot-vps {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 500;
+  font-size: 11px;
+}
+.funnel__node-badge {
+  font-family: var(--fn-mono);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+/* ── Números, endereços e ids: mono com dígitos tabulares ─────────────── */
+.funnel__node-url,
+.funnel__node-metricas,
+.funnel__node-prev,
+.funnel__node-sub,
+.pub__url,
+.pub__slug-path,
+.pub__br-no,
+.pmt__kpi-valor,
+.funnel__prev-kpis b,
+.pmt__marco b,
+.pmt__etapa-qtd,
+.pmt__botao-qtd,
+.pmt__fatia,
+.pmt__rotulo,
+.pmt__eixo,
+.pmt__grafico-titulo small,
+.rdp__barra-pct,
+.rdp__veredito-dest,
+.rdp__num,
+.rdp__tabela td:last-child,
+.funnel__edge-rotulo text,
+.funnel__ctx-item kbd,
+.funnel__pin-n,
+.blk__lig-lado,
+.funnel__lista button small,
+.blk__lig-nome small,
+.funnel__ligar-lista button small,
+.blk__msg-topo small,
+.funnel__modelos small,
+.funnel__prev-tab td small,
+.funnel .funnel__prev-tab input,
+.funnel .funnel__prev-cpc input,
+.pub__hint code {
+  font-family: var(--fn-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+.pmt__kpi-valor {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.funnel__prev-kpis b {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.funnel__node-url,
+.funnel__node-metricas,
+.funnel__node-prev,
+.funnel__node-sub {
+  font-size: 10.5px;
+  font-weight: 500;
+}
+
+/* ── Corpo: chips, botões, campos, listas e menus em Inter ────────────── */
+.pub__chip,
+.pub__btn,
+.pub__publicar,
+.pub__toggle-txt,
+.pub__input,
+.pub__nome,
+.funnel__btn,
+.funnel__input,
+.funnel__item-label,
+.funnel__ligar-lista button,
+.funnel__lista button,
+.funnel__ctx-item,
+.funnel__modelos button,
+.funnel__fields label,
+.funnel__fields input,
+.funnel__fields textarea,
+.funnel__ltb-nome,
+.funnel__redir-regra,
+.funnel__redir-vazio,
+.blk__lig,
+.blk__msg p,
+.rdp__quem,
+.rdp__sim-grid label,
+.rdp__slider,
+.pmt__frase,
+.pmt__etapa,
+.pmt__botao,
+.rdp__barra,
+.funnel__anot-texto {
+  font-family: var(--fn-sans);
+}
+.pub__chip {
+  font-size: 12.5px;
+  font-weight: 500;
+}
+.pub__btn,
+.funnel__btn {
+  font-weight: 600;
+}
+.pub__publicar {
+  font-weight: 700;
+}
+.pub__input,
+.funnel__fields input,
+.funnel__fields textarea,
+.funnel__ltb-nome {
+  font-size: 13px;
+  font-weight: 500;
+}
+.funnel__input {
+  font-size: 14px;
+  line-height: 1.4;
+}
+.funnel__item-label {
+  font-size: 12.5px;
+  line-height: 1.3;
+  font-weight: 600;
+}
+.funnel__ligar-lista button,
+.funnel__lista button,
+.funnel__ctx-item {
+  font-size: 12.5px;
+  font-weight: 500;
+}
+.funnel__redir-regra {
+  font-size: 11px;
+  font-weight: 500;
+}
+.funnel__redir-dest {
+  font-weight: 700;
+}
+.pub__toggle-txt {
+  font-weight: 600;
+}
+.pub__toggle-txt small,
+.pub__hint {
+  font-family: var(--fn-sans);
+  font-size: 11.5px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+.funnel__anot--note .funnel__anot-texto {
+  font-size: 14px;
+  font-weight: 500;
+}
+.funnel__anot--text .funnel__anot-texto {
+  font-size: 16px;
+  font-weight: 600;
+}
+.funnel__anot-texto--centro {
+  font-weight: 700;
+}
+.funnel__pin {
+  font-family: var(--fn-sans);
+  font-weight: 600;
+}
