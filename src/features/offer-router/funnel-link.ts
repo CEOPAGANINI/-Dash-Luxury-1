@@ -40,6 +40,7 @@ const CATEGORIA_POR_TIPO: Partial<Record<FunnelNodeType, FunnelDestKind>> = {
   webinar: "pagina",
   members: "pagina",
   quiz: "quiz",
+  store: "loja",
   checkout: "loja",
   upsell: "loja",
   downsell: "loja",

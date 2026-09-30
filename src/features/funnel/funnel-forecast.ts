@@ -43,6 +43,7 @@ export const PADRAO_TIPO: Partial<
   optin: { conv: 30, faixa: [20, 40] },
   vsl: { conv: 8, faixa: [3, 10] },
   sales: { conv: 4, faixa: [2, 5] },
+  store: { conv: 3, faixa: [1.5, 4] },
   checkout: { conv: 55, faixa: [40, 70], vende: true, preco: 197 },
   upsell: { conv: 20, faixa: [10, 30], vende: true, preco: 97 },
   downsell: { conv: 15, faixa: [8, 25], vende: true, preco: 47 },

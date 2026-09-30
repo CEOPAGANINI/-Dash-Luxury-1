@@ -49,6 +49,7 @@ import {
   Shapes,
   Split,
   StickyNote,
+  Store,
   Ticket,
   Trash2,
   Type,
@@ -102,6 +103,8 @@ import {
   type ResultadoNo,
 } from "./funnel-forecast";
 import { MODELOS, montarModelo } from "./funnel-templates";
+import { StorePanel } from "./store-panel";
+import { lojaVazia, nomeDaPlataforma, resumoDaLoja } from "./store-model";
 import { metricasDemo, num, pctTxt } from "./page-metrics";
 import {
   GLIFO_REGRA,
@@ -156,6 +159,7 @@ const ICONES: Record<
   Type,
   Shapes,
   Frame,
+  Store,
 };
 
 const OFF = 8000;
@@ -956,6 +960,7 @@ export function FunnelBoard({
         if (def.type === "frame")
           Object.assign(novo, { w: 640, h: 420, title: "Moldura", estilo: { cor: "#a78bfa" } });
         if (def.type === "comment") Object.assign(novo, { title: "Comentário", mensagens: [] });
+        if (def.type === "store") Object.assign(novo, { title: "Minha loja", loja: lojaVazia() });
       }
       // Molduras vão para o fundo da pilha (ficam atrás dos blocos).
       setNodes((ns) => (novo.type === "frame" ? [novo, ...ns] : [...ns, novo]));
@@ -978,6 +983,14 @@ export function FunnelBoard({
       ]);
     }
     setMenuLigar(null);
+  };
+
+  // Cria um bloco à direita de outro, já ligado a ele (ex.: Checkout da loja).
+  const criarAoLado = (sourceId: string, tipo: FunnelNodeType) => {
+    const src = nodesRef.current.find((n) => n.id === sourceId);
+    if (!src) return;
+    const id = adicionar(tipo, src.x + NODE_W * 1.5 + 100, src.y + 40);
+    if (id) setEdges((es) => [...es, { id: `e${idSeq.current++}`, source: sourceId, target: id }]);
   };
 
   // Estilo da linha selecionada (barra flutuante).
@@ -1537,7 +1550,7 @@ export function FunnelBoard({
                             const Ic = ICONES[r.icon] ?? FileText;
                             return (
                               <li key={r.type}>
-                                <button type="button" onClick={() => criarLigado(r.type)}>
+                                <button type="button" title={r.desc ?? r.label} onClick={() => criarLigado(r.type)}>
                                   <Ic size={14} strokeWidth={2} />
                                   {r.label}
                                 </button>
@@ -1766,7 +1779,7 @@ export function FunnelBoard({
       {(() => {
         if (!aberto || estiloAberto) return null;
         const n = nodes.find((x) => x.id === aberto);
-        if (!n || !isPagina(n.type)) return null;
+        if (!n || !isPagina(n.type) || n.type === "store") return null;
         const dados = n.pagina ?? paginaVazia();
         const proximas: EtapaDestino[] = [];
         for (const e of edges) {
@@ -1807,6 +1820,28 @@ export function FunnelBoard({
               const t = nodes.find((x) => x.id === id);
               if (t) trazerParaVista(t);
             }}
+          />
+        );
+      })()}
+
+      {/* Loja: plataforma, produtos, checkout ligado e métricas. */}
+      {(() => {
+        if (!aberto || estiloAberto) return null;
+        const n = nodes.find((x) => x.id === aberto);
+        if (!n || n.type !== "store") return null;
+        return (
+          <StorePanel
+            node={n}
+            nodes={nodes}
+            edges={todasLinhas}
+            onNome={(nm) => atualizar(n.id, { title: nm })}
+            onChange={(loja) => atualizar(n.id, { loja })}
+            onFechar={() => setAberto(null)}
+            onIrPara={(id) => {
+              const t = nodes.find((x) => x.id === id);
+              if (t) trazerParaVista(t);
+            }}
+            onCriarCheckout={() => criarAoLado(n.id, "checkout")}
           />
         );
       })()}
@@ -2161,6 +2196,7 @@ export function FunnelBoard({
                         className="funnel__item"
                         draggable
                         onDragStart={(e) => e.dataTransfer.setData(DATA_KEY, r.type)}
+                        title={r.desc ?? r.label}
                         onClick={() => adicionarNoCentro(r.type)}
                       >
                         <Icone size={24} strokeWidth={1.8} />
@@ -2616,7 +2652,8 @@ function NodeView({
   ]);
 
   const marca = node.type === "brand";
-  const pagina = isPagina(node.type);
+  const loja = node.type === "store";
+  const pagina = isPagina(node.type) && !loja;
   const redir = isRedir(node.type);
   const anot = isAnotacao(node.type);
   const semAlca = anot && node.type !== "shape";
@@ -2716,6 +2753,10 @@ function NodeView({
               <RedirCorpo node={node} nomes={nomes} />
             ) : (
               <>
+                {loja ? (
+                  <LojaCorpo node={node} />
+                ) : (
+                  <>
             <span className="funnel__node-name">
               {node.title || (pagina ? "Página sem nome" : "Sem nome")}
             </span>
@@ -2742,6 +2783,8 @@ function NodeView({
                 url || "Sem referência"
               )}
             </span>
+                  </>
+                )}
                 {pagina && (
                   <MetricasResumo
                     seed={pag?.dominio ? `${pag.dominio}${pag.caminho}` : node.title}
@@ -2895,6 +2938,21 @@ function MetricasResumo({ seed }: { seed: string }) {
         <i aria-hidden>⤓</i> {m.profundidade[9]}% fim
       </span>
     </span>
+  );
+}
+
+/** O corpo do bloco Loja: plataforma, domínio, produtos e métricas. */
+function LojaCorpo({ node }: { node: FunnelNode }) {
+  const l = node.loja;
+  return (
+    <>
+      <span className="funnel__node-name">{node.title || "Minha loja"}</span>
+      <span className="funnel__node-headline">
+        {l ? nomeDaPlataforma(l.plataforma) : "Loja"} · {l?.dominio ?? "sem domínio"}
+      </span>
+      <span className="funnel__node-url">🛍 {resumoDaLoja(l)}</span>
+      <MetricasResumo seed={l?.dominio ?? node.title} />
+    </>
   );
 }
 

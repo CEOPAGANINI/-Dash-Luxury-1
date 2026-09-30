@@ -4,6 +4,7 @@
 */
 
 import type { FunnelData, FunnelEdge, FunnelNode, FunnelNodeType } from "./funnel-model";
+import { lojaDemo } from "./store-model";
 
 export interface ModeloFunil {
   id: string;
@@ -54,7 +55,7 @@ export const MODELOS: ModeloFunil[] = [
     para: "Anúncio → página do produto → checkout → obrigado, com WhatsApp de apoio.",
     passos: [
       { type: "ad", title: "Anúncio do produto", url: "campanha-produto" },
-      { type: "sales", title: "Página do produto", url: "/produto" },
+      { type: "store", title: "Loja", url: "/" },
       { type: "checkout", title: "Checkout", url: "/checkout" },
       { type: "thanks", title: "Pedido confirmado", url: "/obrigado" },
     ],
@@ -113,6 +114,7 @@ export function montarModelo(m: ModeloFunil): FunnelData {
       url: p.url,
     };
     if (p.type === "redirect") n.redir = { regras: [] };
+    if (p.type === "store") n.loja = lojaDemo();
     nodes.push(n);
     if (i > 0) edges.push({ id: `e${i}`, source: nodes[i - 1].id, target: n.id });
   });

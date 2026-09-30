@@ -9,6 +9,7 @@
 
 import type { RedirectRule } from "@/features/offer-router/offer-router-model";
 import type { PrevisaoCfg, PrevisaoNo } from "./funnel-forecast";
+import type { DadosLoja } from "./store-model";
 
 /** As chaves de tipo de nó registradas no editor (nodeTypes do bundle). */
 export type FunnelNodeType =
@@ -43,6 +44,7 @@ export type FunnelNodeType =
   | "thanks"
   | "webinar"
   | "members"
+  | "store"
   | "redirect"
   // Anotações do quadro (mapa mental): post-it, texto, forma, moldura.
   | "note"
@@ -86,7 +88,8 @@ export type LucideName =
   | "StickyNote"
   | "Type"
   | "Shapes"
-  | "Frame";
+  | "Frame"
+  | "Store";
 
 /** Um item do painel "Recursos" — cada um cria um nó ao ser solto no fluxo. */
 export interface RecursoDef {
@@ -97,6 +100,8 @@ export interface RecursoDef {
   familia: FamiliaRecurso;
   /** Caminho sugerido ao criar (só páginas), ex.: "/checkout". */
   slug?: string;
+  /** Nome completo, para a dica ao passar o mouse (o rótulo é curto). */
+  desc?: string;
 }
 
 export type FamiliaRecurso = "paginas" | "trafego" | "automacao" | "anotacoes" | "outros";
@@ -115,35 +120,36 @@ export const FAMILIAS: { id: FamiliaRecurso; nome: string }[] = [
  * editor os mostra. `type` casa com o registro de nós acima.
  */
 export const RECURSOS: RecursoDef[] = [
-  // ── Páginas do funil (nomes do dono) ─────────────────────────────
+  // ── Páginas do funil (rótulos curtos: uma linha só) ──────────────
   { type: "page_v3", label: "Landing Page", icon: "FileText", familia: "paginas", slug: "/landing-page" },
-  { type: "optin", label: "Página de Captura", icon: "UserPlus", familia: "paginas", slug: "/captura" },
-  { type: "vsl", label: "VSL (vídeo de vendas)", icon: "Video", familia: "paginas", slug: "/vsl" },
-  { type: "sales", label: "Página de Vendas", icon: "ShoppingBag", familia: "paginas", slug: "/vendas" },
+  { type: "optin", label: "Captura", desc: "Página de Captura", icon: "UserPlus", familia: "paginas", slug: "/captura" },
+  { type: "vsl", label: "VSL", desc: "VSL (vídeo de vendas)", icon: "Video", familia: "paginas", slug: "/vsl" },
+  { type: "sales", label: "Vendas", desc: "Página de Vendas", icon: "ShoppingBag", familia: "paginas", slug: "/vendas" },
+  { type: "store", label: "Loja", desc: "Loja (e-commerce)", icon: "Store", familia: "paginas", slug: "/" },
   { type: "checkout", label: "Checkout", icon: "CreditCard", familia: "paginas", slug: "/checkout" },
   { type: "upsell", label: "Upsell", icon: "TrendingUp", familia: "paginas", slug: "/upsell" },
   { type: "downsell", label: "Downsell", icon: "TrendingDown", familia: "paginas", slug: "/downsell" },
-  { type: "thanks", label: "Página de Obrigado", icon: "PartyPopper", familia: "paginas", slug: "/obrigado" },
+  { type: "thanks", label: "Obrigado", desc: "Página de Obrigado", icon: "PartyPopper", familia: "paginas", slug: "/obrigado" },
   { type: "quiz", label: "Quiz", icon: "ListChecks", familia: "paginas", slug: "/quiz" },
   { type: "webinar", label: "Webinar", icon: "Presentation", familia: "paginas", slug: "/webinar" },
-  { type: "members", label: "Área de Membros", icon: "GraduationCap", familia: "paginas", slug: "/membros" },
+  { type: "members", label: "Membros", desc: "Área de Membros", icon: "GraduationCap", familia: "paginas", slug: "/membros" },
   // ── Tráfego e links ───────────────────────────────────────────────
   { type: "ad", label: "Anúncio", icon: "ImageIcon", familia: "trafego" },
   { type: "redirect", label: "Redirecionador", icon: "Shuffle", familia: "trafego" },
-  { type: "shortcut_url", label: "Link / Atalho", icon: "ExternalLink", familia: "trafego" },
+  { type: "shortcut_url", label: "Atalho", desc: "Link / Atalho", icon: "ExternalLink", familia: "trafego" },
   { type: "link_test_ab", label: "Teste A/B", icon: "FlaskConical", familia: "trafego" },
-  { type: "link_split", label: "Divisor de Tráfego", icon: "Split", familia: "trafego" },
-  { type: "link_countries", label: "Link por País", icon: "Globe", familia: "trafego" },
-  { type: "link_whats", label: "Link do WhatsApp", icon: "MessageCircle", familia: "trafego" },
+  { type: "link_split", label: "Divisor", desc: "Divisor de Tráfego", icon: "Split", familia: "trafego" },
+  { type: "link_countries", label: "Link país", desc: "Link por País", icon: "Globe", familia: "trafego" },
+  { type: "link_whats", label: "WhatsApp", desc: "Link do WhatsApp", icon: "MessageCircle", familia: "trafego" },
   // ── Automação e vendas ────────────────────────────────────────────
-  { type: "campaign", label: "Automação de E-mail", icon: "Mail", familia: "automacao" },
-  { type: "group_campaign", label: "Automação em Grupo", icon: "Users", familia: "automacao" },
-  { type: "lead_list", label: "Lista de Leads", icon: "List", familia: "automacao" },
-  { type: "pipeline", label: "Vendas (CRM)", icon: "DollarSign", familia: "automacao" },
-  { type: "pipeline_ticket", label: "Suporte (Tickets)", icon: "Ticket", familia: "automacao" },
+  { type: "campaign", label: "E-mail", desc: "Automação de E-mail", icon: "Mail", familia: "automacao" },
+  { type: "group_campaign", label: "Grupo", desc: "Automação em Grupo", icon: "Users", familia: "automacao" },
+  { type: "lead_list", label: "Leads", desc: "Lista de Leads", icon: "List", familia: "automacao" },
+  { type: "pipeline", label: "CRM", desc: "Vendas (CRM)", icon: "DollarSign", familia: "automacao" },
+  { type: "pipeline_ticket", label: "Suporte", desc: "Suporte (Tickets)", icon: "Ticket", familia: "automacao" },
   { type: "pipeline_attendance", label: "Atendimento", icon: "MessagesSquare", familia: "automacao" },
-  { type: "agents", label: "Agente de IA", icon: "Bot", familia: "automacao" },
-  { type: "webhooks", label: "Integração (Webhook)", icon: "Plug", familia: "automacao" },
+  { type: "agents", label: "Agente IA", desc: "Agente de IA", icon: "Bot", familia: "automacao" },
+  { type: "webhooks", label: "Webhook", desc: "Integração (Webhook)", icon: "Plug", familia: "automacao" },
   // ── Anotações (mapa mental) ───────────────────────────────────────
   { type: "note", label: "Post-it", icon: "StickyNote", familia: "anotacoes" },
   { type: "text", label: "Texto", icon: "Type", familia: "anotacoes" },
@@ -220,6 +226,7 @@ export const ROTULO_TIPO: Record<FunnelNodeType, string> = {
   vsl: "VSL",
   sales: "Vendas",
   checkout: "Checkout",
+  store: "Loja",
   upsell: "Upsell",
   downsell: "Downsell",
   thanks: "Obrigado",
@@ -328,6 +335,8 @@ export interface FunnelNode {
   mensagens?: Mensagem[];
   /** Números da previsão (visitas, conversão, preço). */
   previsao?: PrevisaoNo;
+  /** A loja e os produtos (nós `store`). */
+  loja?: DadosLoja;
 }
 
 /** Uma mensagem na conversa de um comentário. */

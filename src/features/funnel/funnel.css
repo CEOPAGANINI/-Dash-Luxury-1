@@ -4068,3 +4068,212 @@
 .funnel .funnel__node-foot {
   background: transparent;
 }
+
+/* ── Bloco Loja ──────────────────────────────────────────────────────── */
+.funnel__node[data-tipo="store"] .funnel__node-icon {
+  color: #f59e0b;
+  background: color-mix(in srgb, #f59e0b 14%, transparent);
+  border-color: color-mix(in srgb, #f59e0b 40%, transparent);
+}
+.pub--loja .pub__badge[data-on] {
+  color: #04110a;
+  background: #f59e0b;
+  border-color: #f59e0b;
+}
+.stp__produto {
+  gap: 8px;
+}
+.stp__produto[data-destaque] {
+  border-color: color-mix(in srgb, #f59e0b 55%, var(--fn-line));
+}
+.stp__produto[data-off] {
+  opacity: 0.6;
+}
+.stp__produto-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.stp__destaque {
+  border: 1px solid var(--fn-line-2);
+  background: transparent;
+  color: var(--fn-muted);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+.stp__destaque[aria-pressed="true"] {
+  color: #04110a;
+  background: #f59e0b;
+  border-color: #f59e0b;
+}
+.stp__produto-x {
+  border: 0;
+  background: transparent;
+  color: var(--fn-muted);
+  cursor: pointer;
+}
+.stp__produto-grid {
+  display: grid;
+  grid-template-columns: 1fr 110px;
+  gap: 8px;
+}
+.stp__produto-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--fn-muted);
+}
+.stp__produto-caminho {
+  grid-column: 1 / -1;
+}
+.blk__sobre-p {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--fn-text);
+}
+
+/* ══ UMA LINHA SÓ (pedido do dono): nenhum texto de interface quebra em
+      duas linhas; o que não cabe termina em reticências e mostra o texto
+      completo ao passar o mouse (title). Textos escritos pelo dono
+      (post-it, texto livre, recados) continuam livres. ═══════════════════ */
+.funnel__panel-title,
+.funnel__panel-hint,
+.funnel__panel-sec,
+.funnel__item-label,
+.funnel__ligar-topo,
+.funnel__ligar-sec,
+.funnel__ligar-lista button,
+.funnel__ligar-lista button small,
+.funnel__lista button span,
+.funnel__lista button small,
+.funnel__ctx-item span,
+.funnel__modelos b,
+.funnel__modelos span,
+.funnel__modelos small,
+.funnel__prev-tab td,
+.funnel__prev-tab th,
+.funnel__prev-kpis span,
+.funnel__prev-kpis b,
+.funnel__prev-cpc,
+.funnel__node-name,
+.funnel__node-headline,
+.funnel__node-url,
+.funnel__node-kind,
+.funnel__node-sub,
+.funnel__node-title,
+.funnel__node-metricas,
+.funnel__node-prev,
+.funnel__node-foot span,
+.funnel__redir-regra,
+.funnel__redir-vazio,
+.funnel__pin-txt,
+.funnel__anot-titulo,
+.pub__nome,
+.pub__url,
+.pub__badge,
+.pub__sec-titulo,
+.pub__sec-sub,
+.pub__campo > span,
+.pub__campo > label > span,
+.pub__chip,
+.pub__btn,
+.pub__hint,
+.pub__toggle-txt,
+.pub__toggle-txt small,
+.pub__foot-vps,
+.pub__vazio,
+.pub__saude-txt,
+.pub__slug-nome,
+.pub__slug-path,
+.pub__rail-lbl,
+.rdp__quem,
+.rdp__lbl,
+.rdp__grupo-nome,
+.rdp__barra-rotulo,
+.rdp__veredito-body span,
+.rdp__veredito-body b,
+.rdp__tabela td,
+.rdp__tabela th,
+.pmt__kpi-rotulo,
+.pmt__kpi-sub,
+.pmt__kpi-valor,
+.pmt__frase,
+.pmt__grafico-titulo,
+.pmt__etapa-nome,
+.pmt__etapa-pct,
+.pmt__botao-nome,
+.pmt__marco,
+.pmt__marco small,
+.pmt__fatia-tag,
+.blk__lig-nome,
+.blk__sobre p,
+.blk__dica p,
+.blk__sobre-p,
+.blk__msg-topo small,
+.stp__produto-grid label > span,
+.funnel__prev-topo .pub__chip {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  overflow-wrap: normal;
+}
+/* Flex/grid: o filho precisa poder encolher para a reticência aparecer. */
+.funnel__ligar-lista button,
+.funnel__lista button,
+.funnel__ctx-item,
+.funnel__modelos button,
+.pub__toggle-txt,
+.rdp__veredito-body,
+.pmt__kpi,
+.blk__lig-nome {
+  min-width: 0;
+}
+.funnel__ligar-lista button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.funnel__ligar-lista button small {
+  flex: 1;
+  min-width: 0;
+  text-align: right;
+}
+.funnel__item {
+  min-width: 0;
+}
+.funnel__item-label {
+  display: block;
+  max-width: 100%;
+}
+.pub__rail-lbl {
+  white-space: nowrap;
+  overflow: visible;
+  overflow-wrap: normal;
+}
+.pub__toggle-txt {
+  display: flex;
+  flex-direction: column;
+}
+.funnel__modelos button > * {
+  min-width: 0;
+  max-width: 100%;
+}
+.pmt__frase {
+  display: block;
+}
+
+/* Ajustes da regra de uma linha: o subtítulo do bloco não reserva mais
+   duas linhas, e os títulos de seção do menu "Ligar a…" não encolhem. */
+.funnel__node-headline {
+  display: block;
+  min-height: 0;
+  -webkit-line-clamp: unset;
+}
+.funnel__ligar-sec,
+.funnel__ligar-lista {
+  flex: none;
+}
