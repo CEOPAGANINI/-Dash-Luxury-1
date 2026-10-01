@@ -2583,6 +2583,12 @@
   border-color: #00e559;
   font-weight: 700;
 }
+/* Ao passar o mouse continua legível (o .pub__btn geral fica verde no texto). */
+.rdp__add:hover {
+  color: #04110a;
+  background: #33ff80;
+  border-color: #33ff80;
+}
 .rdp__regra {
   gap: 10px;
   border-color: color-mix(in srgb, #00e559 28%, var(--fn-line));
@@ -4080,19 +4086,158 @@
   background: #f59e0b;
   border-color: #f59e0b;
 }
-.stp__produto {
-  gap: 8px;
+/* Faixas de produto (desenho das faixas de campanha): uma linha com
+   ícone, nome, três quadradinhos de estado, a ordem e a seta; abre para
+   baixo com só o slug e o ZIP da landing page. */
+.stp__faixas {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
-.stp__produto[data-destaque] {
-  border-color: color-mix(in srgb, #f59e0b 55%, var(--fn-line));
+.stp__faixa {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--fn-line);
+  background: color-mix(in srgb, #ffffff 3.5%, transparent);
 }
-.stp__produto[data-off] {
+.stp__faixa:hover {
+  border-color: var(--fn-line-2);
+}
+.stp__faixa[data-aberta] {
+  border-color: color-mix(in srgb, #00e559 45%, var(--fn-line));
+}
+.stp__faixa[data-destaque] .stp__faixa-conta {
+  color: #04110a;
+  background: #f59e0b;
+  border-color: #f59e0b;
+}
+.stp__faixa[data-off] .stp__faixa-topo {
   opacity: 0.6;
 }
-.stp__produto-topo {
+.stp__faixa-topo {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  min-height: 40px;
+  padding: 0 10px 0 12px;
+  text-align: left;
+  color: var(--fn-text);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+.stp__faixa-ic {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  color: #00e559;
+  background: color-mix(in srgb, #00e559 12%, transparent);
+  border: 1px solid color-mix(in srgb, #00e559 30%, transparent);
+}
+.stp__faixa-nome {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 700;
+}
+.stp__faixa-estados {
+  flex: none;
+  display: inline-flex;
+  gap: 4px;
+}
+.stp__faixa-estado {
+  display: block;
+  width: 10px;
+  height: 10px;
+  background: color-mix(in srgb, var(--fn-muted) 25%, transparent);
+  border: 1px solid var(--fn-line-2);
+}
+.stp__faixa-estado[data-on] {
+  background: var(--cor);
+  border-color: var(--cor);
+}
+.stp__faixa-conta {
+  flex: none;
+  min-width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  font-family: var(--fn-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--fn-text);
+  border: 1px solid var(--fn-line-2);
+}
+.stp__faixa-seta {
+  flex: none;
+  font-family: var(--fn-mono);
+  color: var(--fn-muted);
+  transition: transform 0.15s ease;
+}
+.stp__faixa[data-aberta] .stp__faixa-seta {
+  transform: rotate(90deg);
+  color: #00e559;
+}
+.stp__faixa-corpo {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 12px 12px;
+  border-top: 1px solid var(--fn-line);
+}
+.stp__faixa-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--fn-muted);
+}
+.stp__faixa-campo > span {
+  font-weight: 600;
+}
+.stp__slug {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--fn-line-2);
+}
+.stp__slug-pre {
+  flex: none;
+  max-width: 45%;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 8px;
+  font-family: var(--fn-mono);
+  font-size: 11px;
+  color: var(--fn-muted);
+  background: color-mix(in srgb, #ffffff 4%, transparent);
+  border-right: 1px solid var(--fn-line-2);
+}
+.stp__slug .pub__input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  font-family: var(--fn-mono);
+}
+.stp__drop {
+  padding: 14px 12px;
+}
+.stp__drop[data-ok] {
+  border-style: solid;
+  border-color: color-mix(in srgb, #2bd975 45%, var(--fn-line-2));
+}
+.stp__drop b,
+.stp__drop span {
+  max-width: 100%;
+}
+.stp__faixa-acoes {
+  display: flex;
+  gap: 6px;
 }
 .stp__destaque {
   border: 1px solid var(--fn-line-2);
@@ -4108,26 +4253,9 @@
   background: #f59e0b;
   border-color: #f59e0b;
 }
-.stp__produto-x {
-  border: 0;
-  background: transparent;
-  color: var(--fn-muted);
-  cursor: pointer;
-}
-.stp__produto-grid {
-  display: grid;
-  grid-template-columns: 1fr 110px;
-  gap: 8px;
-}
-.stp__produto-grid label {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 11px;
-  color: var(--fn-muted);
-}
-.stp__produto-caminho {
-  grid-column: 1 / -1;
+.stp__remover {
+  margin-left: auto;
+  color: #f87171;
 }
 .blk__sobre-p {
   margin: 0;
@@ -4214,7 +4342,12 @@
 .blk__dica p,
 .blk__sobre-p,
 .blk__msg-topo small,
-.stp__produto-grid label > span,
+.stp__faixa-nome,
+.stp__faixa-campo > span,
+.stp__slug-pre,
+.stp__drop b,
+.stp__drop span,
+.stp__destaque,
 .funnel__prev-topo .pub__chip {
   white-space: nowrap;
   overflow: hidden;

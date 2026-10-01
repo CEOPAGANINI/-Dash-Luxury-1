@@ -17,14 +17,52 @@ export const PLATAFORMAS: { id: PlataformaLoja; nome: string; dica: string; exem
   { id: "outra", nome: "Outra plataforma", dica: "Qualquer loja com um endereço.", exemplo: "minhaloja.com" },
 ];
 
+/** O ZIP da landing page do produto (só o nome e o tamanho: Fase 1). */
+export interface ZipProduto {
+  nome: string;
+  tamanho: number;
+  ok: boolean;
+}
+
 export interface ProdutoLoja {
   id: string;
+  /** Nome; vazio = derivado do ZIP ou do slug (veja nomeDoProduto). */
   nome: string;
   /** Preço em reais (ou na moeda da loja). */
   preco: number;
-  /** Caminho na loja (ex.: /produto/relogio). */
+  /** Slug/caminho na loja (ex.: /relogio-aviator). */
   caminho: string;
   ativo: boolean;
+  /** A landing page do produto, enviada como ZIP. */
+  zip?: ZipProduto;
+}
+
+/** "/Relógio Aviator!" → "/relogio-aviator" (vazio quando não sobra nada). */
+export function normalizarSlug(txt: string): string {
+  const s = txt
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/^\/+/, "")
+    .replace(/[^a-z0-9/_-]+/g, "-")
+    .replace(/-{2,}/g, "-")
+    .replace(/\/{2,}/g, "/");
+  return s ? `/${s}` : "";
+}
+
+/** Nome para mostrar: o dado, senão o do slug, senão o do ZIP, senão "Produto". */
+export function nomeDoProduto(p: ProdutoLoja): string {
+  if (p.nome.trim()) return p.nome.trim();
+  const base = p.caminho.split("/").filter(Boolean).pop() || p.zip?.nome.replace(/\.zip$/i, "") || "";
+  const limpo = base.replace(/[-_]+/g, " ").trim();
+  return limpo ? limpo.charAt(0).toUpperCase() + limpo.slice(1) : "Produto";
+}
+
+/** "1.2 MB" / "480 KB". */
+export function tamanhoTxt(n: number): string {
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(0)} KB`;
+  return `${(n / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 export interface DadosLoja {
@@ -79,5 +117,5 @@ export function resumoDaLoja(l: DadosLoja | undefined): string {
   if (!l || l.produtos.length === 0) return "Sem produtos ainda";
   const ativos = l.produtos.filter((p) => p.ativo).length;
   const d = l.produtos.find((p) => p.id === l.destaqueId);
-  return `${ativos} ${ativos === 1 ? "produto" : "produtos"}${d ? ` · destaque: ${d.nome}` : ""}`;
+  return `${ativos} ${ativos === 1 ? "produto" : "produtos"}${d ? ` · destaque: ${nomeDoProduto(d)}` : ""}`;
 }

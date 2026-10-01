@@ -16,8 +16,11 @@ import { MetricasAba } from "./page-metrics-tab";
 import {
   PLATAFORMAS,
   nomeDaPlataforma,
+  nomeDoProduto,
+  normalizarSlug,
   precoTxt,
   produtosDaVps,
+  tamanhoTxt,
   type DadosLoja,
   type ProdutoLoja,
 } from "./store-model";
@@ -26,7 +29,7 @@ type Aba = "loja" | "produtos" | "checkout" | "metricas";
 
 const ABAS: { id: Aba; rotulo: string; sub: string; cor: string; Icone: React.ComponentType<{ size?: number; strokeWidth?: number }> }[] = [
   { id: "loja", rotulo: "Loja", sub: "Plataforma, domínio e moeda", cor: "#f59e0b", Icone: Store },
-  { id: "produtos", rotulo: "Produtos", sub: "O que a loja vende e qual produto este funil empurra", cor: "#00e559", Icone: Package },
+  { id: "produtos", rotulo: "Produtos", sub: "Uma faixa por produto: só o slug e o ZIP da landing page", cor: "#00e559", Icone: Package },
   { id: "checkout", rotulo: "Checkout", sub: "Para onde vai quem clica em comprar", cor: "#38bdf8", Icone: CreditCard },
   { id: "metricas", rotulo: "Métricas", sub: "Visitas, cliques em comprar e até onde rolam", cor: "#a78bfa", Icone: BarChart3 },
 ];
@@ -52,6 +55,7 @@ export function StorePanel({
   onCriarCheckout: () => void;
 }) {
   const [aba, setAba] = React.useState<Aba>("loja");
+  const [faixaAberta, setFaixaAberta] = React.useState<string | null>(null);
   const seq = React.useRef(1);
   const loja: DadosLoja = node.loja ?? { plataforma: "vps", moeda: "BRL", produtos: [] };
   const set = (p: Partial<DadosLoja>) => onChange({ ...loja, ...p });
@@ -61,8 +65,11 @@ export function StorePanel({
     let id = "";
     do id = `p${seq.current++}`;
     while (loja.produtos.some((x) => x.id === id));
-    set({ produtos: [...loja.produtos, { id, nome: "Novo produto", preco: 97, caminho: `/produto/${id}`, ativo: true }], destaqueId: loja.destaqueId ?? id });
+    set({ produtos: [...loja.produtos, { id, nome: "", preco: 97, caminho: "", ativo: true }], destaqueId: loja.destaqueId ?? id });
+    setFaixaAberta(id);
   };
+  const removerProduto = (id: string) =>
+    set({ produtos: loja.produtos.filter((x) => x.id !== id), destaqueId: loja.destaqueId === id ? undefined : loja.destaqueId });
   const importarDaVps = () => {
     if (!loja.dominio) return;
     const novos = produtosDaVps(loja.dominio).filter((p) => !loja.produtos.some((x) => x.id === p.id));
@@ -161,7 +168,7 @@ export function StorePanel({
             <>
               <div className="rdp__topo">
                 <span className="pub__hint">
-                  {loja.produtos.length === 0 ? "Nenhum produto ainda." : `${loja.produtos.length} ${loja.produtos.length === 1 ? "produto" : "produtos"}. Marque o destaque: é o que este funil empurra.`}
+                  {loja.produtos.length === 0 ? "Nenhuma faixa ainda. Cada faixa é um produto." : `${loja.produtos.length} ${loja.produtos.length === 1 ? "faixa" : "faixas"}. Abra uma (→) para pôr o slug e o ZIP.`}
                 </span>
                 <button type="button" className="pub__btn rdp__add" onClick={novoProduto}>
                   <Plus size={14} strokeWidth={2.4} /> Produto
@@ -170,34 +177,22 @@ export function StorePanel({
               {loja.plataforma === "vps" && loja.dominio && loja.produtos.length === 0 && produtosDaVps(loja.dominio).length > 0 && (
                 <button type="button" className="pub__btn" onClick={importarDaVps}>Importar os produtos de {loja.dominio}</button>
               )}
-              {loja.produtos.map((p) => (
-                <section key={p.id} className="pub__campo stp__produto" data-off={!p.ativo || undefined} data-destaque={p.id === loja.destaqueId || undefined}>
-                  <div className="stp__produto-topo">
-                    <button type="button" className="stp__destaque" aria-pressed={p.id === loja.destaqueId} title="Produto em destaque deste funil" onClick={() => set({ destaqueId: p.id })}>
-                      {p.id === loja.destaqueId ? "★ Destaque" : "☆ Destacar"}
-                    </button>
-                    <button type="button" className="stp__produto-x" aria-label={`Remover ${p.nome}`} onClick={() => set({ produtos: loja.produtos.filter((x) => x.id !== p.id), destaqueId: loja.destaqueId === p.id ? undefined : loja.destaqueId })}>✕</button>
-                  </div>
-                  <div className="stp__produto-grid">
-                    <label>
-                      <span>Nome</span>
-                      <input className="pub__input" value={p.nome} maxLength={120} onChange={(e) => setProduto(p.id, { nome: e.target.value })} />
-                    </label>
-                    <label>
-                      <span>Preço ({loja.moeda === "USD" ? "US$" : "R$"})</span>
-                      <input className="pub__input" type="number" min={0} value={p.preco} onChange={(e) => setProduto(p.id, { preco: Number(e.target.value) || 0 })} />
-                    </label>
-                    <label className="stp__produto-caminho">
-                      <span>Caminho na loja</span>
-                      <input className="pub__input" value={p.caminho} maxLength={300} onChange={(e) => setProduto(p.id, { caminho: e.target.value })} />
-                    </label>
-                  </div>
-                  <button type="button" className="pub__toggle" role="switch" aria-checked={p.ativo} onClick={() => setProduto(p.id, { ativo: !p.ativo })}>
-                    <span className="pub__toggle-track" data-on={p.ativo || undefined}><span className="pub__toggle-knob" /></span>
-                    <span className="pub__toggle-txt">{p.ativo ? "À venda" : "Pausado"}<small>Pausado: continua na lista, mas fora da loja.</small></span>
-                  </button>
-                </section>
-              ))}
+              <div className="stp__faixas">
+                {loja.produtos.map((p, i) => (
+                  <FaixaProduto
+                    key={p.id}
+                    p={p}
+                    ordem={i + 1}
+                    dominio={loja.dominio}
+                    destaque={p.id === loja.destaqueId}
+                    aberta={faixaAberta === p.id}
+                    onAbrir={() => setFaixaAberta(faixaAberta === p.id ? null : p.id)}
+                    onPatch={(patch) => setProduto(p.id, patch)}
+                    onDestacar={() => set({ destaqueId: p.id })}
+                    onRemover={() => removerProduto(p.id)}
+                  />
+                ))}
+              </div>
             </>
           )}
 
@@ -224,7 +219,7 @@ export function StorePanel({
               <div className="pub__campo">
                 <span>O que o checkout vende</span>
                 <p className="blk__sobre-p">
-                  {destaque ? <>O produto em destaque é <b>{destaque.nome}</b> por <b>{precoTxt(destaque.preco, loja.moeda)}</b>. Na aba Previsão, use esse preço no bloco Checkout ligado.</> : "Marque um produto em destaque na aba Produtos para o funil saber o que empurra."}
+                  {destaque ? <>O produto em destaque é <b>{nomeDoProduto(destaque)}</b> por <b>{precoTxt(destaque.preco, loja.moeda)}</b>. Na aba Previsão, use esse preço no bloco Checkout ligado.</> : "Marque um produto em destaque na aba Produtos para o funil saber o que empurra."}
                 </p>
               </div>
               <small className="pub__hint">A ligação real com o checkout (carrinho, pagamento) entra na Fase 2, junto com a plataforma escolhida.</small>
@@ -240,5 +235,119 @@ export function StorePanel({
         <button type="button" className="pub__publicar" disabled>🛍 Conectar</button>
       </footer>
     </aside>
+  );
+}
+
+/*
+  Uma faixa de produto, no desenho das faixas de campanha: ícone, nome
+  numa linha só, três quadradinhos de estado (à venda · slug · landing
+  page), a ordem e a seta. Abre para baixo com só duas coisas: o slug e o
+  ZIP da landing page.
+*/
+function FaixaProduto({
+  p,
+  ordem,
+  dominio,
+  destaque,
+  aberta,
+  onAbrir,
+  onPatch,
+  onDestacar,
+  onRemover,
+}: {
+  p: ProdutoLoja;
+  ordem: number;
+  dominio?: string;
+  destaque: boolean;
+  aberta: boolean;
+  onAbrir: () => void;
+  onPatch: (patch: Partial<ProdutoLoja>) => void;
+  onDestacar: () => void;
+  onRemover: () => void;
+}) {
+  const [arrastando, setArrastando] = React.useState(false);
+  const inputZip = React.useRef<HTMLInputElement>(null);
+  const nome = nomeDoProduto(p);
+  const temSlug = p.caminho.length > 1;
+  const temZip = Boolean(p.zip?.ok);
+  const receberZip = (f?: File) => {
+    if (!f) return;
+    onPatch({ zip: { nome: f.name, tamanho: f.size, ok: f.name.toLowerCase().endsWith(".zip") } });
+  };
+  const estados: { id: string; on: boolean; cor: string; txt: string }[] = [
+    { id: "venda", on: p.ativo, cor: "#00e559", txt: p.ativo ? "À venda" : "Pausado" },
+    { id: "slug", on: temSlug, cor: "#38bdf8", txt: temSlug ? `Slug ${p.caminho}` : "Sem slug" },
+    { id: "zip", on: temZip, cor: "#f59e0b", txt: temZip ? `Landing page: ${p.zip?.nome}` : "Sem landing page" },
+  ];
+  return (
+    <section className="stp__faixa" data-aberta={aberta || undefined} data-off={!p.ativo || undefined} data-destaque={destaque || undefined}>
+      <button type="button" className="stp__faixa-topo" aria-expanded={aberta} onClick={onAbrir} title={nome}>
+        <span className="stp__faixa-ic" aria-hidden><Package size={14} strokeWidth={2} /></span>
+        <b className="stp__faixa-nome">{nome}</b>
+        <span className="stp__faixa-estados" aria-label={estados.map((e) => e.txt).join(" · ")}>
+          {estados.map((e) => (
+            <i key={e.id} className="stp__faixa-estado" data-on={e.on || undefined} style={{ "--cor": e.cor } as React.CSSProperties} title={e.txt} />
+          ))}
+        </span>
+        <span className="stp__faixa-conta" title={destaque ? "Destaque deste funil" : `Produto ${ordem}`}>{destaque ? "★" : ordem}</span>
+        <span className="stp__faixa-seta" aria-hidden>→</span>
+      </button>
+      {aberta && (
+        <div className="stp__faixa-corpo">
+          <label className="stp__faixa-campo">
+            <span>Slug (caminho na loja)</span>
+            <div className="stp__slug">
+              <span className="stp__slug-pre">{dominio ?? "loja"}/</span>
+              <input
+                className="pub__input"
+                value={p.caminho.replace(/^\//, "")}
+                placeholder="relogio-aviator"
+                maxLength={120}
+                spellCheck={false}
+                aria-label="Slug do produto"
+                onChange={(e) => onPatch({ caminho: normalizarSlug(e.target.value) })}
+                onBlur={() => {
+                  const limpo = normalizarSlug(p.caminho.replace(/[-/]+$/, ""));
+                  if (limpo !== p.caminho) onPatch({ caminho: limpo });
+                }}
+              />
+            </div>
+          </label>
+          <div className="stp__faixa-campo">
+            <span>Landing page (ZIP)</span>
+            <div
+              className="pub__drop stp__drop"
+              data-drag={arrastando || undefined}
+              data-ok={temZip || undefined}
+              role="button"
+              tabIndex={0}
+              onDragOver={(e) => { e.preventDefault(); setArrastando(true); }}
+              onDragLeave={() => setArrastando(false)}
+              onDrop={(e) => { e.preventDefault(); setArrastando(false); receberZip(e.dataTransfer.files?.[0]); }}
+              onClick={() => inputZip.current?.click()}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); inputZip.current?.click(); } }}
+            >
+              {p.zip ? (
+                <>
+                  <b>{p.zip.nome}</b>
+                  <span>{tamanhoTxt(p.zip.tamanho)} · {p.zip.ok ? "ZIP conferido ✓ — solte outro para trocar" : "não é um .zip — solte outro"}</span>
+                </>
+              ) : (
+                <>
+                  <b>Arraste o ZIP da landing page</b>
+                  <span>ou clique para escolher — index.html na raiz</span>
+                </>
+              )}
+              <input ref={inputZip} type="file" accept=".zip" hidden onChange={(e) => receberZip(e.target.files?.[0] ?? undefined)} />
+            </div>
+          </div>
+          <div className="stp__faixa-acoes">
+            <button type="button" className="stp__destaque" aria-pressed={destaque} onClick={onDestacar}>{destaque ? "★ Destaque" : "☆ Destacar"}</button>
+            <button type="button" className="stp__destaque" onClick={() => onPatch({ ativo: !p.ativo })}>{p.ativo ? "Pausar" : "Pôr à venda"}</button>
+            <button type="button" className="stp__destaque stp__remover" onClick={onRemover}>Remover</button>
+          </div>
+        </div>
+      )}
+    </section>
   );
 }
