@@ -1,8 +1,17 @@
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 
 import { getDb, isDatabaseConfigured } from "@/database/client";
-import { analyticsEvents, visitorSessions } from "@/database/schema";
-import { getOrCreateDefaultWorkspace } from "@/lib/workspace";
+import {
+  analyticsEvents,
+  checkouts,
+  visitorSessions,
+  vpsSiteDomains,
+  vpsSites,
+} from "@/database/schema";
+import {
+  getOrCreateDefaultWorkspace,
+  getPublicWorkspaceId,
+} from "@/lib/workspace";
 
 /** Eventos aceitos pelo endpoint público de rastreamento. */
 export const TRACK_EVENTS = [
@@ -25,6 +34,7 @@ export interface TrackInput {
   referrer?: string;
   utm?: Record<string, string>;
   productSlug?: string;
+  checkoutId?: string;
   valueCents?: number;
   currency?: string;
   properties?: Record<string, unknown>;
@@ -35,7 +45,11 @@ export interface RequestContext {
   ip: string | null;
   country: string | null;
   city: string | null;
+  /** Definida pelo servidor após validar a origem CORS, nunca pelo corpo. */
+  siteOrigin?: string | null;
 }
+
+export class InvalidTrackTarget extends Error {}
 
 /** Mascara o IP: mantém só os 2 primeiros octetos (RGPD). */
 export function maskIp(ip: string | null): string | null {
@@ -99,7 +113,41 @@ export async function recordTrackEvent(
   if (!isDatabaseConfigured()) return;
 
   const db = getDb();
-  const workspaceId = await getOrCreateDefaultWorkspace();
+  let workspaceId: string | undefined;
+  if (input.checkoutId) {
+    const [checkout] = await db
+      .select({ workspaceId: checkouts.workspaceId })
+      .from(checkouts)
+      .where(
+        and(
+          eq(checkouts.id, input.checkoutId),
+          eq(checkouts.status, "published"),
+          isNull(checkouts.deletedAt),
+        ),
+      )
+      .limit(1);
+    if (!checkout) throw new InvalidTrackTarget();
+    workspaceId = checkout.workspaceId;
+  }
+  if (ctx.siteOrigin) {
+    const hostname = new URL(ctx.siteOrigin).hostname;
+    const [site] = await db
+      .select({ workspaceId: vpsSites.workspaceId })
+      .from(vpsSiteDomains)
+      .innerJoin(vpsSites, eq(vpsSites.id, vpsSiteDomains.siteId))
+      .where(
+        and(
+          eq(vpsSiteDomains.hostname, hostname),
+          eq(vpsSiteDomains.dnsStatus, "ok"),
+          isNull(vpsSites.deletedAt),
+        ),
+      )
+      .limit(1);
+    if (!site || (workspaceId && workspaceId !== site.workspaceId))
+      throw new InvalidTrackTarget();
+    workspaceId = site.workspaceId;
+  }
+  workspaceId ??= await getPublicWorkspaceId();
   const { deviceType, browser, os } = parseUserAgent(ctx.userAgent);
   const now = new Date();
 
@@ -145,8 +193,9 @@ export async function recordTrackEvent(
   await db.insert(analyticsEvents).values({
     workspaceId,
     sessionId: session.id,
+    checkoutId: input.checkoutId,
     eventName: input.event,
-    eventId: `${input.anonymousId}_${input.event}_${now.getTime()}`,
+    eventId: crypto.randomUUID(),
     page: input.page,
     valueCents: input.valueCents,
     currency: input.currency,

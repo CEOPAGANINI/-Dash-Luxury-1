@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import type { FunnelSyncStatus } from "./cloud-client";
 import {
   Archive,
   ArrowLeft,
@@ -68,7 +69,6 @@ import {
   ROTULO_TIPO,
   TIPOS_ANOTACAO,
   TIPOS_PAGINA,
-  paginaVazia,
   type FunnelData,
   type EstiloLinha,
   type EstiloMapa,
@@ -105,20 +105,38 @@ import {
 import { MODELOS, montarModelo } from "./funnel-templates";
 import { StorePanel } from "./store-panel";
 import { lojaVazia, nomeDaPlataforma, resumoDaLoja } from "./store-model";
-import { metricasDemo, num, pctTxt } from "./page-metrics";
+import { FunnelSitePublisher } from "./funnel-site-publisher";
+import { FunnelCloudHistory } from "./cloud-history";
 import {
   GLIFO_REGRA,
   nomeDoDestino,
   nomesDosNos,
   rotuloDaRegra,
 } from "./redirect-rules";
+import { quando, type CofreFunil } from "./funil-store";
 import {
-  duplicarFunil,
-  listarFunis,
-  quando,
-  removerFunil,
-  salvarFunil,
-} from "./funil-store";
+  cloneFunnelGraph,
+  parseFunnelClipboard,
+  removeFunnelNodesGraph,
+} from "./funnel-graph";
+import {
+  funnelNodeAddress,
+  pageAddress,
+  pageSettingsForNode,
+} from "./funnel-address";
+import { FunnelContentEditor } from "./content-editor";
+import {
+  forgetOtherUsersPageZips,
+  forgetPreparedPageZip,
+  getPreparedPageZip,
+  preparePageZip,
+  hasPreparedPageZips,
+  type PageZipScope,
+} from "./page-zip";
+import { usePageZip } from "./use-page-zip";
+import { contentFlowForPage } from "./content-flow";
+import { funilSemArquivosTemporarios } from "./funnel-validation";
+import type { SitePackage } from "@/features/landing-editor/site-package";
 
 const ICONES: Record<
   LucideName,
@@ -252,6 +270,8 @@ type Interacao =
   | null;
 
 export interface FunnelBoardProps {
+  storageId: string;
+  cofre: CofreFunil;
   /** Abre, ao montar, o primeiro bloco deste tipo (ex.: o Redirecionador). */
   focoTipo?: FunnelNodeType;
   /** O funil inicial mostrado no quadro. */
@@ -260,7 +280,11 @@ export interface FunnelBoardProps {
   onVoltar?: () => void;
   /** Persistir o funil (nome, nós e arestas). */
   onSalvar?: (data: FunnelData) => void;
-  onArquivar?: (id: string) => void;
+  onRascunho?: (data: FunnelData) => void;
+  onArquivar?: (data: FunnelData) => void;
+  syncStatus?: FunnelSyncStatus;
+  onSyncRetry?: () => void;
+  initialPanel?: "recursos" | "funis" | "lista";
   onExcluir?: (id: string) => void;
   /** Abrir um funil salvo no cofre (troca o quadro inteiro). */
   onAbrir?: (data: FunnelData) => void;
@@ -273,6 +297,8 @@ export interface FunnelBoardProps {
  * canvas — só React e ponteiro.
  */
 export function FunnelBoard({
+  storageId,
+  cofre,
   inicial,
   onVoltar,
   onSalvar,
@@ -280,6 +306,10 @@ export function FunnelBoard({
   onExcluir,
   onAbrir,
   focoTipo,
+  onRascunho,
+  syncStatus,
+  onSyncRetry,
+  initialPanel,
 }: FunnelBoardProps) {
   const rootRef = React.useRef<HTMLDivElement>(null);
   const [nodes, setNodes] = React.useState<FunnelNode[]>(inicial.nodes);
@@ -291,7 +321,8 @@ export function FunnelBoard({
     for (const n of nodes) {
       if (n.type !== "redirect" || !n.redir) continue;
       for (const r of n.redir.regras) {
-        if (!r.destinoNoId || !nodes.some((x) => x.id === r.destinoNoId)) continue;
+        if (!r.destinoNoId || !nodes.some((x) => x.id === r.destinoNoId))
+          continue;
         out.push({
           id: `rr:${n.id}:${r.id}`,
           source: n.id,
@@ -308,11 +339,21 @@ export function FunnelBoard({
     [edges, edgesRegra],
   );
   const tipoPorId = React.useMemo(
-    () => Object.fromEntries(nodes.map((n) => [n.id, n.type])) as Record<string, FunnelNodeType>,
+    () =>
+      Object.fromEntries(nodes.map((n) => [n.id, n.type])) as Record<
+        string,
+        FunnelNodeType
+      >,
     [nodes],
   );
   const nomesNos = React.useMemo(() => nomesDosNos(nodes), [nodes]);
+  const nodeById = React.useMemo(
+    () => new Map(nodes.map((node) => [node.id, node])),
+    [nodes],
+  );
   const [vp, setVp] = React.useState<Viewport>({ x: 40, y: 40, k: 0.8 });
+  const initialFitFunnelId = React.useRef<string | null>(null);
+  const [canvasBox, setCanvasBox] = React.useState({ width: 0, height: 0 });
   const [sel, setSel] = React.useState<{
     tipo: "node" | "edge";
     id: string;
@@ -320,7 +361,9 @@ export function FunnelBoard({
   // Seleção múltipla (Ctrl+clique / laço), como no Windows.
   const [multi, setMulti] = React.useState<Set<string>>(() => new Set());
   // Fluxo animado nas linhas (padrão ligado; cada linha pode desligar).
-  const [fluxoGlobal, setFluxoGlobal] = React.useState(inicial.mapa?.fluxo ?? true);
+  const [fluxoGlobal, setFluxoGlobal] = React.useState(
+    inicial.mapa?.fluxo ?? true,
+  );
   // Menu "solte para criar": soltou a linha no vazio → escolher o que criar.
   const [menuLigar, setMenuLigar] = React.useState<{
     x: number;
@@ -350,15 +393,76 @@ export function FunnelBoard({
   const edgesRef = React.useRef(edges);
   const nodesRef = React.useRef(nodes);
   const [painel, setPainel] = React.useState<
-    "recursos" | "icones" | "vps" | "funis" | "lista" | "previsao" | "modelos" | null
-  >(null);
+    | "recursos"
+    | "icones"
+    | "vps"
+    | "funis"
+    | "lista"
+    | "previsao"
+    | "modelos"
+    | null
+  >(initialPanel ?? null);
   // Bump para reler o cofre de funis depois de salvar/apagar.
-  const [, refrescarFunis] = React.useReducer((x: number) => x + 1, 0);
+  const [cofreRevision, refrescarFunis] = React.useReducer(
+    (x: number) => x + 1,
+    0,
+  );
   const [avisoFunil, setAvisoFunil] = React.useState<string | null>(null);
+  const listaFunis = React.useMemo(() => {
+    try {
+      return { itens: cofre.listarFunis(), erro: "" };
+    } catch (cause) {
+      return {
+        itens: [],
+        erro:
+          cause instanceof Error
+            ? cause.message
+            : "Não foi possível ler os funis salvos.",
+      };
+    }
+    // The revision changes after explicit vault mutations.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cofre, cofre.revisao, cofreRevision]);
+  const [conteudoId, setConteudoId] = React.useState<string | null>(null);
+  const [pacotes, setPacotes] = React.useState<
+    Record<string, SitePackage | null>
+  >({});
+  const preparedContent = React.useRef(new Map<string, string>());
+  const [ultimoSalvo, setUltimoSalvo] = React.useState(() =>
+    JSON.stringify({
+      ...inicial,
+      mapa: inicial.mapa ?? {},
+      previsao: inicial.previsao ?? PREVISAO_PADRAO,
+    }),
+  );
+  const importInput = React.useRef<HTMLInputElement>(null);
+  React.useEffect(() => {
+    forgetOtherUsersPageZips(storageId);
+  }, [storageId]);
   // O domínio da VPS escolhido no painel VPS (as páginas vêm dele).
   const [dominioVps, setDominioVps] = React.useState(DOMINIOS_VPS[0].host);
   const [dialog, setDialog] = React.useState(false);
   const [nome, setNome] = React.useState(inicial.nome);
+  const draftRef = React.useRef<FunnelData>(inicial);
+  const saveDraftRef = React.useRef(onRascunho);
+  React.useEffect(() => {
+    // The prepared archive is a snapshot. Editing any of its outgoing URLs
+    // must invalidate it, so we cannot send navigation from an older graph.
+    for (const [nodeId, signature] of preparedContent.current) {
+      let current = "";
+      try {
+        current = JSON.stringify(
+          contentFlowForPage({ ...inicial, nome, nodes, edges }, nodeId),
+        );
+      } catch {
+        /* Removed/invalid destinations invalidate the snapshot too. */
+      }
+      if (signature !== current) {
+        forgetPreparedPageZip({ storageId, funnelId: inicial.id, nodeId });
+        preparedContent.current.delete(nodeId);
+      }
+    }
+  }, [inicial, nome, nodes, edges, storageId]);
   const [locked, setLocked] = React.useState(false);
   const [sizes, setSizes] = React.useState<
     Record<string, { w: number; h: number }>
@@ -384,15 +488,78 @@ export function FunnelBoard({
   // Parte 2: estilo do mapa, inspetor de estilo, menu do botão direito e
   // histórico de desfazer/refazer.
   const [mapa, setMapa] = React.useState<EstiloMapa>(inicial.mapa ?? {});
-  const [estiloAberto, setEstiloAberto] = React.useState<"no" | "linha" | "texto" | "mapa" | false>(false);
+  const [estiloAberto, setEstiloAberto] = React.useState<
+    "no" | "linha" | "texto" | "mapa" | false
+  >(false);
   // Parte 5: previsão (calculadora do funil).
-  const [previsaoCfg, setPrevisaoCfg] = React.useState<PrevisaoCfg>(inicial.previsao ?? PREVISAO_PADRAO);
+  const [previsaoCfg, setPrevisaoCfg] = React.useState<PrevisaoCfg>(
+    inicial.previsao ?? PREVISAO_PADRAO,
+  );
+  const [publishSite, setPublishSite] = React.useState(false);
+  React.useEffect(() => {
+    const element = rootRef.current;
+    if (!element) return;
+    const measure = () => {
+      const bounds = element.getBoundingClientRect();
+      setCanvasBox({ width: bounds.width, height: bounds.height });
+    };
+    if (typeof ResizeObserver === "undefined") {
+      measure();
+      window.addEventListener("resize", measure);
+      return () => window.removeEventListener("resize", measure);
+    }
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    measure();
+    return () => observer.disconnect();
+  }, []);
+
+  React.useEffect(() => {
+    if (!conteudoId || pacotes[conteudoId]) return;
+    const node = nodes.find((node) => node.id === conteudoId);
+    if (!node?.pagina?.zip) return;
+    let active = true;
+    void (async () => {
+      const scope = {
+        storageId,
+        funnelId: node.pagina?.zip?.sourceFunnelId ?? inicial.id,
+        nodeId: node.id,
+      };
+      const { restorePackages } = await import("./package-cloud");
+      await restorePackages(storageId, scope.funnelId);
+      const prepared = getPreparedPageZip(scope);
+      if (!prepared)
+        throw new Error(
+          "Reanexe o ZIP original para editar seus arquivos. O rascunho está preservado.",
+        );
+      const { importSiteFiles } =
+        await import("@/features/landing-editor/site-package");
+      const site = await importSiteFiles([prepared.file]);
+      if (active) setPacotes((current) => ({ ...current, [node.id]: site }));
+    })().catch((cause) => {
+      if (active)
+        setAvisoFunil(
+          cause instanceof Error
+            ? cause.message
+            : "Não foi possível recuperar o conteúdo importado.",
+        );
+    });
+    return () => {
+      active = false;
+    };
+    // Load once per content dialog; text typing must not restart a download.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conteudoId, storageId, inicial.id]);
   const previsao = React.useMemo(
     () => calcularPrevisao(nodes, todasLinhas, previsaoCfg),
     [nodes, todasLinhas, previsaoCfg],
   );
   const setPrevisaoNo = (id: string, patch: Partial<PrevisaoNo>) =>
-    setNodes((ns) => ns.map((n) => (n.id === id ? { ...n, previsao: { ...n.previsao, ...patch } } : n)));
+    setNodes((ns) =>
+      ns.map((n) =>
+        n.id === id ? { ...n, previsao: { ...n.previsao, ...patch } } : n,
+      ),
+    );
   const [menuCtx, setMenuCtx] = React.useState<{
     x: number;
     y: number;
@@ -402,9 +569,17 @@ export function FunnelBoard({
   // Parte 3: busca da biblioteca de blocos e linhas-guia de alinhamento.
   const [buscaRec, setBuscaRec] = React.useState("");
   const [buscaLista, setBuscaLista] = React.useState("");
-  const [guias, setGuias] = React.useState<{ x: number[]; y: number[] } | null>(null);
-  const hist = React.useRef<{ past: Snap[]; future: Snap[] }>({ past: [], future: [] });
-  const ultimo = React.useRef<Snap>({ nodes: inicial.nodes, edges: inicial.edges });
+  const [guias, setGuias] = React.useState<{ x: number[]; y: number[] } | null>(
+    null,
+  );
+  const hist = React.useRef<{ past: Snap[]; future: Snap[] }>({
+    past: [],
+    future: [],
+  });
+  const ultimo = React.useRef<Snap>({
+    nodes: inicial.nodes,
+    edges: inicial.edges,
+  });
   const ignorarHist = React.useRef(false);
 
   const inter = React.useRef<Interacao>(null);
@@ -573,8 +748,14 @@ export function FunnelBoard({
         const h = Math.abs(e.clientY - it.py);
         setLaco({ x: x0, y: y0, w, h });
         // Blocos que encostam no laço (em coordenadas do mundo).
-        const a = paraMundoRef.current(Math.min(it.px, e.clientX), Math.min(it.py, e.clientY));
-        const b = paraMundoRef.current(Math.max(it.px, e.clientX), Math.max(it.py, e.clientY));
+        const a = paraMundoRef.current(
+          Math.min(it.px, e.clientX),
+          Math.min(it.py, e.clientY),
+        );
+        const b = paraMundoRef.current(
+          Math.max(it.px, e.clientX),
+          Math.max(it.py, e.clientY),
+        );
         const dentro = new Set(it.base);
         for (const n of nodesRef.current) {
           const sz = sizesRef.current[n.id] ?? { w: NODE_W, h: 90 };
@@ -652,7 +833,7 @@ export function FunnelBoard({
     ids novos, cai onde o mouse está (ou um pouco deslocado) e a cópia já
     vem selecionada para arrastar.
   */
-  const CLIP_KEY = "dash:funil-clipboard";
+  const CLIP_KEY = cofre.clipboardKey;
   const idsSelecionados = (): string[] => {
     if (multi.size > 0) return Array.from(multi);
     if (sel?.tipo === "node") return [sel.id];
@@ -666,23 +847,39 @@ export function FunnelBoard({
       (e) => ids.has(e.source) && ids.has(e.target),
     );
     try {
-      window.localStorage.setItem(CLIP_KEY, JSON.stringify({ nodes: ns, edges: es }));
+      window.localStorage.setItem(
+        CLIP_KEY,
+        JSON.stringify({ nodes: ns, edges: es, originFunnelId: inicial.id }),
+      );
     } catch {
-      /* sem storage */
+      setAvisoFunil(
+        "Não foi possível copiar os blocos. O armazenamento deste navegador está indisponível.",
+      );
+      return 0;
     }
     colagens.current = 0;
     return ns.length;
   };
   const colar = (deslocar = false) => {
-    type Clip = { nodes: FunnelNode[]; edges: FunnelEdge[] };
+    type Clip = {
+      nodes: FunnelNode[];
+      edges: FunnelEdge[];
+      originFunnelId?: string;
+    };
     let clip: Clip | null = null;
     try {
       const bruto = window.localStorage.getItem(CLIP_KEY);
-      clip = bruto ? (JSON.parse(bruto) as Clip) : null;
+      clip = bruto ? parseFunnelClipboard(JSON.parse(bruto)) : null;
     } catch {
       clip = null;
     }
-    if (!clip || clip.nodes.length === 0) return;
+    if (
+      !clip ||
+      !Array.isArray(clip.nodes) ||
+      !Array.isArray(clip.edges) ||
+      clip.nodes.length === 0
+    )
+      return;
     colagens.current += 1;
     const minX = Math.min(...clip.nodes.map((n) => n.x));
     const minY = Math.min(...clip.nodes.map((n) => n.y));
@@ -697,17 +894,26 @@ export function FunnelBoard({
       dx = 40 * colagens.current;
       dy = 40 * colagens.current;
     }
-    const mapa: Record<string, string> = {};
-    const novos: FunnelNode[] = clip.nodes.map((n) => {
-      const id = `n${idSeq.current++}`;
-      mapa[n.id] = id;
-      return { ...n, id, x: snap(n.x + dx), y: snap(n.y + dy) };
-    });
-    const novasEdges: FunnelEdge[] = clip.edges.map((e) => ({
-      id: `e${idSeq.current++}`,
-      source: mapa[e.source],
-      target: mapa[e.target],
-    }));
+    let copia;
+    try {
+      copia = cloneFunnelGraph({
+        nodes: clip.nodes,
+        edges: clip.edges,
+        createId: (kind) => `${kind === "node" ? "n" : "e"}${idSeq.current++}`,
+        offset: { x: dx, y: dy },
+        existingNodeIds:
+          clip.originFunnelId === inicial.id
+            ? nodesRef.current.map((n) => n.id)
+            : [],
+      });
+    } catch {
+      setAvisoFunil(
+        "A cópia dos blocos é inválida. Copie os blocos novamente.",
+      );
+      return;
+    }
+    const novos = copia.nodes;
+    const novasEdges = copia.edges;
     setNodes((ns) => [...ns, ...novos]);
     setEdges((es) => [...es, ...novasEdges]);
     setMulti(new Set(novos.map((n) => n.id)));
@@ -717,8 +923,12 @@ export function FunnelBoard({
   const recortar = () => {
     const ids = new Set(idsSelecionados());
     if (copiar() === 0) return;
-    setNodes((ns) => ns.filter((n) => !ids.has(n.id)));
-    setEdges((es) => es.filter((e) => !ids.has(e.source) && !ids.has(e.target)));
+    const next = removeFunnelNodesGraph(
+      { nodes: nodesRef.current, edges: edgesRef.current },
+      ids,
+    );
+    setNodes(next.nodes);
+    setEdges(next.edges);
     setMulti(new Set());
     setSel(null);
     setAberto(null);
@@ -749,7 +959,10 @@ export function FunnelBoard({
   const desfazer = () => {
     const p = hist.current.past.pop();
     if (!p) return;
-    hist.current.future.push({ nodes: nodesRef.current, edges: edgesRef.current });
+    hist.current.future.push({
+      nodes: nodesRef.current,
+      edges: edgesRef.current,
+    });
     ignorarHist.current = true;
     setNodes(p.nodes);
     setEdges(p.edges);
@@ -759,7 +972,10 @@ export function FunnelBoard({
   const refazer = () => {
     const f = hist.current.future.pop();
     if (!f) return;
-    hist.current.past.push({ nodes: nodesRef.current, edges: edgesRef.current });
+    hist.current.past.push({
+      nodes: nodesRef.current,
+      edges: edgesRef.current,
+    });
     ignorarHist.current = true;
     setNodes(f.nodes);
     setEdges(f.edges);
@@ -781,7 +997,10 @@ export function FunnelBoard({
     setNodes((ns) =>
       ns.map((n) =>
         n.id === id
-          ? { ...n, estilo: patch === null ? undefined : { ...n.estilo, ...patch } }
+          ? {
+              ...n,
+              estilo: patch === null ? undefined : { ...n.estilo, ...patch },
+            }
           : n,
       ),
     );
@@ -952,15 +1171,39 @@ export function FunnelBoard({
         };
         // Anotações nascem com tamanho e cor próprios.
         if (def.type === "note")
-          Object.assign(novo, { w: 200, h: 160, title: "", descricao: "", estilo: { cor: "#fde68a" } });
+          Object.assign(novo, {
+            w: 200,
+            h: 160,
+            title: "",
+            descricao: "",
+            estilo: { cor: "#fde68a" },
+          });
         if (def.type === "text")
-          Object.assign(novo, { w: 240, h: 60, title: "", descricao: "Escreva aqui" });
+          Object.assign(novo, {
+            w: 240,
+            h: 60,
+            title: "",
+            descricao: "Escreva aqui",
+          });
         if (def.type === "shape")
-          Object.assign(novo, { w: 200, h: 120, title: "Forma", forma: "retangulo", estilo: { cor: "#38bdf8" } });
+          Object.assign(novo, {
+            w: 200,
+            h: 120,
+            title: "Forma",
+            forma: "retangulo",
+            estilo: { cor: "#38bdf8" },
+          });
         if (def.type === "frame")
-          Object.assign(novo, { w: 640, h: 420, title: "Moldura", estilo: { cor: "#a78bfa" } });
-        if (def.type === "comment") Object.assign(novo, { title: "Comentário", mensagens: [] });
-        if (def.type === "store") Object.assign(novo, { title: "Minha loja", loja: lojaVazia() });
+          Object.assign(novo, {
+            w: 640,
+            h: 420,
+            title: "Moldura",
+            estilo: { cor: "#a78bfa" },
+          });
+        if (def.type === "comment")
+          Object.assign(novo, { title: "Comentário", mensagens: [] });
+        if (def.type === "store")
+          Object.assign(novo, { title: "Minha loja", loja: lojaVazia() });
       }
       // Molduras vão para o fundo da pilha (ficam atrás dos blocos).
       setNodes((ns) => (novo.type === "frame" ? [novo, ...ns] : [...ns, novo]));
@@ -990,11 +1233,16 @@ export function FunnelBoard({
     const src = nodesRef.current.find((n) => n.id === sourceId);
     if (!src) return;
     const id = adicionar(tipo, src.x + NODE_W * 1.5 + 100, src.y + 40);
-    if (id) setEdges((es) => [...es, { id: `e${idSeq.current++}`, source: sourceId, target: id }]);
+    if (id)
+      setEdges((es) => [
+        ...es,
+        { id: `e${idSeq.current++}`, source: sourceId, target: id },
+      ]);
   };
 
   // Estilo da linha selecionada (barra flutuante).
-  const edgeSel = sel?.tipo === "edge" ? todasLinhas.find((e) => e.id === sel.id) : undefined;
+  const edgeSel =
+    sel?.tipo === "edge" ? todasLinhas.find((e) => e.id === sel.id) : undefined;
   const setEstilo = (id: string, patch: Partial<EstiloLinha>) => {
     if (id.startsWith("rr:")) {
       // Linha de uma regra do Redirecionador: o estilo mora na regra.
@@ -1006,7 +1254,9 @@ export function FunnelBoard({
                 ...n,
                 redir: {
                   regras: n.redir.regras.map((r) =>
-                    r.id === rid ? { ...r, estilo: { ...r.estilo, ...patch } } : r,
+                    r.id === rid
+                      ? { ...r, estilo: { ...r.estilo, ...patch } }
+                      : r,
                   ),
                 },
               }
@@ -1016,13 +1266,17 @@ export function FunnelBoard({
       return;
     }
     setEdges((es) =>
-      es.map((ed) => (ed.id === id ? { ...ed, estilo: { ...ed.estilo, ...patch } } : ed)),
+      es.map((ed) =>
+        ed.id === id ? { ...ed, estilo: { ...ed.estilo, ...patch } } : ed,
+      ),
     );
   };
   // Nome da saída (o texto no meio da linha), só nas linhas comuns.
   const setRotulo = (id: string, rotulo: string) =>
     setEdges((es) =>
-      es.map((ed) => (ed.id === id ? { ...ed, rotulo: rotulo || undefined } : ed)),
+      es.map((ed) =>
+        ed.id === id ? { ...ed, rotulo: rotulo || undefined } : ed,
+      ),
     );
   // Volta uma linha ao estilo padrão (regra ou linha comum).
   const resetLinha = (id: string) => {
@@ -1031,11 +1285,21 @@ export function FunnelBoard({
       setNodes((ns) =>
         ns.map((n) =>
           n.id === nid && n.redir
-            ? { ...n, redir: { regras: n.redir.regras.map((r) => (r.id === rid ? { ...r, estilo: undefined } : r)) } }
+            ? {
+                ...n,
+                redir: {
+                  regras: n.redir.regras.map((r) =>
+                    r.id === rid ? { ...r, estilo: undefined } : r,
+                  ),
+                },
+              }
             : n,
         ),
       );
-    } else setEdges((es) => es.map((ed) => (ed.id === id ? { ...ed, estilo: undefined } : ed)));
+    } else
+      setEdges((es) =>
+        es.map((ed) => (ed.id === id ? { ...ed, estilo: undefined } : ed)),
+      );
   };
   // Apagar uma linha: se é de uma regra, some a regra também.
   const apagarLinha = (id: string) => {
@@ -1044,7 +1308,10 @@ export function FunnelBoard({
       setNodes((ns) =>
         ns.map((n) =>
           n.id === nid && n.redir
-            ? { ...n, redir: { regras: n.redir.regras.filter((r) => r.id !== rid) } }
+            ? {
+                ...n,
+                redir: { regras: n.redir.regras.filter((r) => r.id !== rid) },
+              }
             : n,
         ),
       );
@@ -1052,8 +1319,8 @@ export function FunnelBoard({
     setSel(null);
   };
   const pontoMedio = (ed: FunnelEdge) => {
-    const s0 = nodes.find((n) => n.id === ed.source);
-    const t0 = nodes.find((n) => n.id === ed.target);
+    const s0 = nodeById.get(ed.source);
+    const t0 = nodeById.get(ed.target);
     if (!s0 || !t0) return null;
     const ss = size(s0.id);
     const ts = size(t0.id);
@@ -1094,7 +1361,7 @@ export function FunnelBoard({
     });
   };
 
-  const enquadrar = () => {
+  const enquadrar = React.useCallback(() => {
     const r = rootRef.current?.getBoundingClientRect();
     if (!r || nodes.length === 0) {
       setVp({ x: 40, y: 40, k: 0.8 });
@@ -1105,7 +1372,22 @@ export function FunnelBoard({
     let maxX = -Infinity;
     let maxY = -Infinity;
     for (const n of nodes) {
-      const s = size(n.id);
+      const measured = sizes[n.id];
+      // Cards virtualizados não têm medidas DOM. Seus limites continuam
+      // participando do enquadramento, sem precisar montá-los todos.
+      const s =
+        measured?.w > 0 && measured.h > 0
+          ? measured
+          : {
+              w: n.w ?? NODE_W,
+              h:
+                n.h ??
+                (n.type === "store"
+                  ? 600
+                  : n.type === "redirect"
+                    ? 240 + (n.redir?.regras.length ?? 0) * 44
+                    : 400),
+            };
       minX = Math.min(minX, n.x);
       minY = Math.min(minY, n.y);
       maxX = Math.max(maxX, n.x + s.w);
@@ -1114,17 +1396,68 @@ export function FunnelBoard({
     const pad = 80;
     const largura = maxX - minX + pad * 2;
     const altura = maxY - minY + pad * 2;
-    const k = clamp(
-      Math.min(r.width / largura, r.height / altura),
-      MIN_ZOOM,
-      MAX_ZOOM,
-    );
+    const panelWidth =
+      rootRef.current?.querySelector(".funnel__panel")?.getBoundingClientRect()
+        .width ?? 0;
+    const leftReserved = 68 + panelWidth;
+    const rightReserved =
+      rootRef.current?.querySelector("aside.pub")?.getBoundingClientRect()
+        .width ?? 0;
+    const usable = Math.max(180, r.width - leftReserved - rightReserved);
+    const k = clamp(Math.min(usable / largura, r.height / altura), 0.05, 1.2);
     setVp({
       k,
-      x: r.width / 2 - ((minX + maxX) / 2) * k,
+      x: leftReserved + usable / 2 - ((minX + maxX) / 2) * k,
       y: r.height / 2 - ((minY + maxY) / 2) * k,
     });
-  };
+  }, [nodes, sizes]);
+
+  // Enquadra só na primeira abertura e depois das medidas reais. Rascunhos,
+  // mudanças de tamanho e edições não desfazem o pan/zoom escolhido pelo dono.
+  React.useEffect(() => {
+    if (initialFitFunnelId.current === inicial.id) return;
+    // Rotas com foco explícito continuam usando trazerParaVista abaixo.
+    if (focoTipo && nodes.some((node) => node.type === focoTipo)) {
+      initialFitFunnelId.current = inicial.id;
+      return;
+    }
+    if (canvasBox.width <= 0 || canvasBox.height <= 0) return;
+    if (nodes.length === 0) {
+      initialFitFunnelId.current = inicial.id;
+      return;
+    }
+    const mounted =
+      rootRef.current?.querySelectorAll<HTMLDivElement>(".funnel__node") ?? [];
+    // Acima de 200, esperar pelos IDs fora do DOM impediria justamente o
+    // zoom-out que os traria para a tela. Aguarda só os cards montados.
+    const needsMeasurement =
+      nodes.length > 200
+        ? Array.from(mounted).some((element) => {
+            const id = element.dataset.in;
+            return id && (!sizes[id]?.w || !sizes[id]?.h);
+          })
+        : nodes.some((node) => !sizes[node.id]?.w || !sizes[node.id]?.h);
+    if (needsMeasurement) {
+      // Um quadro inicialmente oculto pode medir cards como zero. Quando
+      // aparece, relê o DOM uma vez; medir ignora dimensões sem alterações.
+      for (const element of mounted) {
+        const id = element.dataset.in;
+        if (id) medir(id, element);
+      }
+      return;
+    }
+    initialFitFunnelId.current = inicial.id;
+    enquadrar();
+  }, [
+    canvasBox.width,
+    canvasBox.height,
+    nodes,
+    sizes,
+    inicial.id,
+    focoTipo,
+    enquadrar,
+    medir,
+  ]);
 
   /*
     Ao abrir o publicador de uma página, o painel lateral (à direita) e o
@@ -1152,10 +1485,7 @@ export function FunnelBoard({
         top >= m &&
         bottom <= r.height - m;
       if (dentro) return v;
-      const kCabe = Math.min(
-        (dispW - m * 2) / s.w,
-        (r.height - m * 2) / s.h,
-      );
+      const kCabe = Math.min((dispW - m * 2) / s.w, (r.height - m * 2) / s.h);
       const k = clamp(Math.min(v.k, kCabe), MIN_ZOOM, MAX_ZOOM);
       const alvoX = railW + dispW / 2;
       const alvoY = r.height / 2;
@@ -1170,9 +1500,16 @@ export function FunnelBoard({
   // Atalhos do teclado (depois de tudo que eles chamam estar declarado).
   React.useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (dialog) return;
+      if (dialog || conteudoId) return;
       const alvo = e.target as HTMLElement | null;
-      if (alvo && (alvo.tagName === "INPUT" || alvo.tagName === "TEXTAREA"))
+      if (
+        alvo &&
+        (alvo.isContentEditable ||
+          alvo.tagName === "INPUT" ||
+          alvo.tagName === "TEXTAREA" ||
+          alvo.tagName === "SELECT" ||
+          alvo.closest('[role="dialog"]'))
+      )
         return;
       const mod = e.ctrlKey || e.metaKey;
       const k = e.key.toLowerCase();
@@ -1231,10 +1568,12 @@ export function FunnelBoard({
       if ((e.key === "Delete" || e.key === "Backspace") && multi.size > 0) {
         e.preventDefault();
         const ids = multi;
-        setNodes((ns) => ns.filter((n) => !ids.has(n.id)));
-        setEdges((es) =>
-          es.filter((ed) => !ids.has(ed.source) && !ids.has(ed.target)),
+        const next = removeFunnelNodesGraph(
+          { nodes: nodesRef.current, edges: edgesRef.current },
+          ids,
         );
+        setNodes(next.nodes);
+        setEdges(next.edges);
         setMulti(new Set());
         setSel(null);
         setAberto(null);
@@ -1243,12 +1582,14 @@ export function FunnelBoard({
       if ((e.key === "Delete" || e.key === "Backspace") && sel) {
         e.preventDefault();
         if (sel.tipo === "node") {
-          setNodes((ns) => ns.filter((n) => n.id !== sel.id));
-          setEdges((es) =>
-            es.filter((ed) => ed.source !== sel.id && ed.target !== sel.id),
+          const next = removeFunnelNodesGraph(
+            { nodes: nodesRef.current, edges: edgesRef.current },
+            [sel.id],
           );
+          setNodes(next.nodes);
+          setEdges(next.edges);
         } else {
-          setEdges((es) => es.filter((ed) => ed.id !== sel.id));
+          apagarLinha(sel.id);
         }
         setSel(null);
       }
@@ -1266,22 +1607,54 @@ export function FunnelBoard({
     return () => window.removeEventListener("keydown", onKey);
     // copiar/colar/recortar/duplicar leem refs e o estado atual via closure.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sel, dialog, multi]);
+  }, [sel, dialog, multi, conteudoId]);
 
   const salvar = () => {
-    onSalvar?.({ ...inicial, nome, nodes, edges, mapa, previsao: previsaoCfg });
-    setDialog(false);
+    try {
+      const data = {
+        ...inicial,
+        nome,
+        nodes,
+        edges,
+        mapa,
+        previsao: previsaoCfg,
+      };
+      onSalvar?.(data);
+      setUltimoSalvo(JSON.stringify(data));
+      setDialog(false);
+      setAvisoFunil("Rascunho salvo neste navegador, separado por conta.");
+    } catch (cause) {
+      setAvisoFunil(
+        cause instanceof Error
+          ? cause.message
+          : "Não foi possível salvar. Mantenha esta aba aberta.",
+      );
+    }
   };
 
   // Salvar no cofre: guarda este funil com nome, para reabrir depois e
   // para o redirecionador poder trazê-lo para o quadro dele.
   const salvarNoCofre = () => {
-    const data: FunnelData = { ...inicial, nome, nodes, edges, mapa, previsao: previsaoCfg };
-    const reg = salvarFunil(data, nome);
-    onSalvar?.(reg.data);
-    refrescarFunis();
-    setAvisoFunil(`“${reg.nome}” salvo no cofre.`);
-    window.setTimeout(() => setAvisoFunil(null), 2500);
+    const data: FunnelData = {
+      ...inicial,
+      nome,
+      nodes,
+      edges,
+      mapa,
+      previsao: previsaoCfg,
+    };
+    try {
+      const reg = cofre.salvarFunil(data, nome);
+      setUltimoSalvo(JSON.stringify(reg.data));
+      refrescarFunis();
+      setAvisoFunil(`“${reg.nome}” salvo no cofre deste navegador.`);
+    } catch (cause) {
+      setAvisoFunil(
+        cause instanceof Error
+          ? cause.message
+          : "Não foi possível salvar. Mantenha esta aba aberta.",
+      );
+    }
   };
 
   // Edição dos campos dentro do bloco (nome, endereço, título, descrição).
@@ -1292,11 +1665,154 @@ export function FunnelBoard({
   );
 
   const remover = React.useCallback((id: string) => {
-    setNodes((ns) => ns.filter((n) => n.id !== id));
-    setEdges((es) => es.filter((ed) => ed.source !== id && ed.target !== id));
+    const next = removeFunnelNodesGraph(
+      { nodes: nodesRef.current, edges: edgesRef.current },
+      [id],
+    );
+    setNodes(next.nodes);
+    setEdges(next.edges);
     setSel(null);
     setAberto(null);
   }, []);
+
+  React.useEffect(() => {
+    const preventLoss = (event: BeforeUnloadEvent) => {
+      const current = JSON.stringify({
+        ...inicial,
+        nome,
+        nodes,
+        edges,
+        mapa,
+        previsao: previsaoCfg,
+      });
+      if (
+        current !== ultimoSalvo ||
+        hasPreparedPageZips(storageId) ||
+        Object.values(pacotes).some(Boolean)
+      ) {
+        event.preventDefault();
+        event.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", preventLoss);
+    return () => window.removeEventListener("beforeunload", preventLoss);
+  }, [
+    inicial,
+    nome,
+    nodes,
+    edges,
+    mapa,
+    previsaoCfg,
+    ultimoSalvo,
+    storageId,
+    pacotes,
+  ]);
+
+  const exportarCopia = () => {
+    const data = {
+      ...inicial,
+      nome,
+      nodes,
+      edges,
+      mapa,
+      previsao: previsaoCfg,
+    };
+    const url = URL.createObjectURL(
+      new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }),
+    );
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "meu-funil.json";
+    link.click();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    setAvisoFunil(
+      "Cópia JSON solicitada. Ela contém as configurações do funil, não os arquivos ZIP.",
+    );
+  };
+
+  // Text/structure writes are immediate. A drag commits once at pointer-up,
+  // avoiding large JSON writes on every pointer frame. Internal navigation
+  // also flushes synchronously before Next can unmount the editor.
+  React.useLayoutEffect(() => {
+    const data = {
+      ...inicial,
+      nome,
+      nodes,
+      edges,
+      mapa,
+      previsao: previsaoCfg,
+    };
+    draftRef.current = data;
+    saveDraftRef.current = onRascunho;
+    if (!onRascunho || inter.current || JSON.stringify(data) === ultimoSalvo)
+      return;
+    try {
+      onRascunho(data);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- acknowledge an atomic local write
+      setUltimoSalvo(JSON.stringify(data));
+    } catch (cause) {
+      setAvisoFunil(
+        cause instanceof Error
+          ? cause.message
+          : "Não foi possível guardar o rascunho.",
+      );
+    }
+  }, [
+    inicial,
+    nome,
+    nodes,
+    edges,
+    mapa,
+    previsaoCfg,
+    histTick,
+    onRascunho,
+    ultimoSalvo,
+  ]);
+  React.useEffect(() => {
+    const flushNavigation = (event: MouseEvent) => {
+      const anchor = (event.target as Element | null)?.closest?.(
+        "a[href]",
+      ) as HTMLAnchorElement | null;
+      if (!anchor || anchor.target === "_blank" || !saveDraftRef.current)
+        return;
+      try {
+        saveDraftRef.current(draftRef.current);
+      } catch (cause) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        setAvisoFunil(
+          cause instanceof Error
+            ? cause.message
+            : "Guarde ou exporte o funil antes de sair.",
+        );
+      }
+    };
+    document.addEventListener("click", flushNavigation, true);
+    return () => document.removeEventListener("click", flushNavigation, true);
+  }, []);
+
+  const importarCopia = async (file?: File) => {
+    if (!file) return;
+    try {
+      if (file.size > 5_000_000) throw new Error("A cópia JSON excede 5 MB.");
+      const data = funilSemArquivosTemporarios(JSON.parse(await file.text()));
+      if (
+        !window.confirm(
+          "Abrir esta cópia no lugar do quadro atual? Baixe uma cópia das alterações ainda não salvas antes de continuar. O conteúdo salvo no cofre não será apagado.",
+        )
+      )
+        return;
+      onAbrir?.(data);
+    } catch (cause) {
+      setAvisoFunil(
+        cause instanceof Error
+          ? cause.message
+          : "Não foi possível importar o JSON. O quadro foi preservado.",
+      );
+    } finally {
+      if (importInput.current) importInput.current.value = "";
+    }
+  };
 
   // Quantas ligações saem de cada nó, para o rodapé "N saídas".
   const saidas = React.useMemo(() => {
@@ -1325,14 +1841,47 @@ export function FunnelBoard({
 
   // Alvos do menu do botão direito e o "clique e fecha".
   const ctxNo =
-    menuCtx?.alvo.tipo === "node" ? nodes.find((x) => x.id === menuCtx.alvo.id) : undefined;
+    menuCtx?.alvo.tipo === "node"
+      ? nodes.find((x) => x.id === menuCtx.alvo.id)
+      : undefined;
   const ctxLinha = menuCtx?.alvo.tipo === "edge" ? menuCtx.alvo.id : undefined;
   const fecharMenu = () => setMenuCtx(null);
 
   const transform = `translate(${vp.x}px, ${vp.y}px) scale(${vp.k})`;
 
   return (
-    <div className="funnel" ref={rootRef} data-design-system="orbit" data-tema={mapa.tema ?? "padrao"}>
+    <div
+      className="funnel"
+      ref={rootRef}
+      data-design-system="orbit"
+      data-tema={mapa.tema ?? "padrao"}
+    >
+      {syncStatus && (
+        <div
+          className="funnel__sync"
+          role="status"
+          data-state={syncStatus.state}
+        >
+          {syncStatus.message}
+          {syncStatus.state === "error" && onSyncRetry && (
+            <button type="button" onClick={onSyncRetry}>
+              Sincronizar novamente
+            </button>
+          )}
+        </div>
+      )}
+      {avisoFunil && (
+        <div className="funnel__save-notice" role="status">
+          {avisoFunil}
+          <button
+            type="button"
+            onClick={() => setAvisoFunil(null)}
+            aria-label="Fechar aviso"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      )}
       <div
         className="funnel__viewport"
         data-panning={panning}
@@ -1421,44 +1970,94 @@ export function FunnelBoard({
                   </div>
                 )}
                 <div className="funnel__ltb-grupo">
-                  <B on={forma === "curva"} title="Curva" onClick={() => mudarForma("curva")}>
+                  <B
+                    on={forma === "curva"}
+                    title="Curva"
+                    onClick={() => mudarForma("curva")}
+                  >
                     ⌒
                   </B>
-                  <B on={forma === "reta"} title="Reta" onClick={() => mudarForma("reta")}>
+                  <B
+                    on={forma === "reta"}
+                    title="Reta"
+                    onClick={() => mudarForma("reta")}
+                  >
                     ／
                   </B>
-                  <B on={forma === "cotovelo"} title="Cotovelo (90°)" onClick={() => mudarForma("cotovelo")}>
+                  <B
+                    on={forma === "cotovelo"}
+                    title="Cotovelo (90°)"
+                    onClick={() => mudarForma("cotovelo")}
+                  >
                     ⌐
                   </B>
-                  <B on={forma === "livre"} title="Livre (arraste os pontos)" onClick={() => mudarForma("livre")}>
+                  <B
+                    on={forma === "livre"}
+                    title="Livre (arraste os pontos)"
+                    onClick={() => mudarForma("livre")}
+                  >
                     ∿
                   </B>
                 </div>
                 <div className="funnel__ltb-grupo">
-                  <B on={pontas === "fim"} title="Seta no fim" onClick={() => setEstilo(edgeSel.id, { pontas: "fim" })}>
+                  <B
+                    on={pontas === "fim"}
+                    title="Seta no fim"
+                    onClick={() => setEstilo(edgeSel.id, { pontas: "fim" })}
+                  >
                     →
                   </B>
-                  <B on={pontas === "ambas"} title="Seta nas duas pontas" onClick={() => setEstilo(edgeSel.id, { pontas: "ambas" })}>
+                  <B
+                    on={pontas === "ambas"}
+                    title="Seta nas duas pontas"
+                    onClick={() => setEstilo(edgeSel.id, { pontas: "ambas" })}
+                  >
                     ↔
                   </B>
-                  <B on={pontas === "nenhuma"} title="Sem seta" onClick={() => setEstilo(edgeSel.id, { pontas: "nenhuma" })}>
+                  <B
+                    on={pontas === "nenhuma"}
+                    title="Sem seta"
+                    onClick={() => setEstilo(edgeSel.id, { pontas: "nenhuma" })}
+                  >
                     —
                   </B>
                 </div>
                 <div className="funnel__ltb-grupo">
-                  <B on={Boolean(est.tracejada)} title="Tracejada" onClick={() => setEstilo(edgeSel.id, { tracejada: !est.tracejada })}>
+                  <B
+                    on={Boolean(est.tracejada)}
+                    title="Tracejada"
+                    onClick={() =>
+                      setEstilo(edgeSel.id, { tracejada: !est.tracejada })
+                    }
+                  >
                     ┄
                   </B>
-                  <B on={fluxo} title="Fluxo animado" onClick={() => setEstilo(edgeSel.id, { fluxo: !fluxo })}>
+                  <B
+                    on={fluxo}
+                    title="Fluxo animado"
+                    onClick={() => setEstilo(edgeSel.id, { fluxo: !fluxo })}
+                  >
                     ≫
                   </B>
-                  <B on={(est.espessura ?? 2) === 1} title="Fina" onClick={() => setEstilo(edgeSel.id, { espessura: 1 })}>
+                  <B
+                    on={(est.espessura ?? 2) === 1}
+                    title="Fina"
+                    onClick={() => setEstilo(edgeSel.id, { espessura: 1 })}
+                  >
                     <i className="funnel__ltb-esp" style={{ height: 1 }} />
                   </B>
-                  <B on={(est.espessura ?? 2) === 2} title="Média" onClick={() => setEstilo(edgeSel.id, { espessura: 2 })}>
+                  <B
+                    on={(est.espessura ?? 2) === 2}
+                    title="Média"
+                    onClick={() => setEstilo(edgeSel.id, { espessura: 2 })}
+                  >
                     <i className="funnel__ltb-esp" style={{ height: 2 }} />
                   </B>
-                  <B on={(est.espessura ?? 2) === 3} title="Grossa" onClick={() => setEstilo(edgeSel.id, { espessura: 3 })}>
+                  <B
+                    on={(est.espessura ?? 2) === 3}
+                    title="Grossa"
+                    onClick={() => setEstilo(edgeSel.id, { espessura: 3 })}
+                  >
                     <i className="funnel__ltb-esp" style={{ height: 4 }} />
                   </B>
                 </div>
@@ -1480,8 +2079,16 @@ export function FunnelBoard({
                 <div className="funnel__ltb-grupo">
                   <B
                     on={fluxoGlobal}
-                    title={fluxoGlobal ? "Fluxo ligado em todas — clique para desligar" : "Ligar fluxo em todas"}
-                    onClick={() => setFluxoGlobal((v) => !v)}
+                    title={
+                      fluxoGlobal
+                        ? "Fluxo ligado em todas — clique para desligar"
+                        : "Ligar fluxo em todas"
+                    }
+                    onClick={() => {
+                      const next = !fluxoGlobal;
+                      setFluxoGlobal(next);
+                      setMapa((m) => ({ ...m, fluxo: next }));
+                    }}
                   >
                     ⟳
                   </B>
@@ -1526,16 +2133,23 @@ export function FunnelBoard({
                 if (e.key === "Escape") setMenuLigar(null);
                 if (e.key === "Enter") {
                   const q = buscaLigar.trim().toLowerCase();
-                  const r = RECURSOS.find((x) => x.label.toLowerCase().includes(q));
+                  const r = RECURSOS.find((x) =>
+                    x.label.toLowerCase().includes(q),
+                  );
                   if (r) criarLigado(r.type);
                 }
               }}
             />
             {(() => {
               const q = buscaLigar.trim().toLowerCase();
-              const rec = RECURSOS.filter((r) => !q || r.label.toLowerCase().includes(q));
+              const rec = RECURSOS.filter(
+                (r) => !q || r.label.toLowerCase().includes(q),
+              );
               const pags = PAGINAS_VPS.filter(
-                (pg) => !q || pg.nome.toLowerCase().includes(q) || pg.host.includes(q),
+                (pg) =>
+                  !q ||
+                  pg.nome.toLowerCase().includes(q) ||
+                  pg.host.includes(q),
               );
               return (
                 <div className="funnel__ligar-corpo">
@@ -1550,7 +2164,11 @@ export function FunnelBoard({
                             const Ic = ICONES[r.icon] ?? FileText;
                             return (
                               <li key={r.type}>
-                                <button type="button" title={r.desc ?? r.label} onClick={() => criarLigado(r.type)}>
+                                <button
+                                  type="button"
+                                  title={r.desc ?? r.label}
+                                  onClick={() => criarLigado(r.type)}
+                                >
                                   <Ic size={14} strokeWidth={2} />
                                   {r.label}
                                 </button>
@@ -1567,10 +2185,16 @@ export function FunnelBoard({
                       <ul className="funnel__ligar-lista">
                         {pags.slice(0, 8).map((pg) => (
                           <li key={pg.id}>
-                            <button type="button" onClick={() => criarLigado(`vps:${pg.id}`)}>
+                            <button
+                              type="button"
+                              onClick={() => criarLigado(`vps:${pg.id}`)}
+                            >
                               <Server size={14} strokeWidth={2} />
                               {pg.nome}
-                              <small>{pg.host}{pg.caminho}</small>
+                              <small>
+                                {pg.host}
+                                {pg.caminho}
+                              </small>
                             </button>
                           </li>
                         ))}
@@ -1586,18 +2210,28 @@ export function FunnelBoard({
           <div className="funnel__multi-chip" role="status">
             <b>{multi.size} blocos selecionados</b>
             <span>
-              arraste para mover juntos · Ctrl+C copia · Ctrl+D duplica ·
-              Delete apaga · Esc limpa
+              arraste para mover juntos · Ctrl+C copia · Ctrl+D duplica · Delete
+              apaga · Esc limpa
             </span>
           </div>
         )}
         <div className="funnel__world" style={{ transform }}>
           <div className="funnel__dots" aria-hidden />
           {guias?.x.map((x) => (
-            <div key={`gx${x}`} className="funnel__guia funnel__guia--v" style={{ left: x }} aria-hidden />
+            <div
+              key={`gx${x}`}
+              className="funnel__guia funnel__guia--v"
+              style={{ left: x }}
+              aria-hidden
+            />
           ))}
           {guias?.y.map((y) => (
-            <div key={`gy${y}`} className="funnel__guia funnel__guia--h" style={{ top: y }} aria-hidden />
+            <div
+              key={`gy${y}`}
+              className="funnel__guia funnel__guia--h"
+              style={{ top: y }}
+              aria-hidden
+            />
           ))}
 
           <svg className="funnel__edges" aria-hidden>
@@ -1605,7 +2239,9 @@ export function FunnelBoard({
               {Array.from(
                 new Set([
                   ...CORES_LINHA,
-                  ...todasLinhas.map((e) => e.estilo?.cor ?? mapa.corLinha ?? "#b1b1b7"),
+                  ...todasLinhas.map(
+                    (e) => e.estilo?.cor ?? mapa.corLinha ?? "#b1b1b7",
+                  ),
                   mapa.corLinha ?? "#b1b1b7",
                   "#82a2f6",
                 ]),
@@ -1632,18 +2268,23 @@ export function FunnelBoard({
               const est = ed.estilo;
               const d = caminhoDaLinha(sx, sy, tx, ty, est);
               const selecionada = sel?.tipo === "edge" && sel.id === ed.id;
-              const cor = selecionada ? "#82a2f6" : (est?.cor ?? mapa.corLinha ?? "#b1b1b7");
+              const cor = selecionada
+                ? "#82a2f6"
+                : (est?.cor ?? mapa.corLinha ?? "#b1b1b7");
               const pontas = est?.pontas ?? "fim";
               const fluxo = est?.fluxo ?? fluxoGlobal;
               // Rótulo no meio: o da regra, ou "resto" na saída comum do Redirecionador.
               const rotulo =
-                ed.rotulo ?? (tipoPorId[ed.source] === "redirect" ? "resto" : undefined);
+                ed.rotulo ??
+                (tipoPorId[ed.source] === "redirect" ? "resto" : undefined);
               return (
                 <g key={ed.id}>
                   <path
                     className="funnel__edge-hit"
                     d={d}
-                    onContextMenu={(e) => abrirMenu(e, { tipo: "edge", id: ed.id })}
+                    onContextMenu={(e) =>
+                      abrirMenu(e, { tipo: "edge", id: ed.id })
+                    }
                     onPointerDown={(e) => {
                       e.stopPropagation();
                       setSel({ tipo: "edge", id: ed.id });
@@ -1661,10 +2302,14 @@ export function FunnelBoard({
                       strokeWidth: ESPESSURA[est?.espessura ?? 2],
                     }}
                     markerEnd={
-                      pontas !== "nenhuma" ? `url(#${idMarcador(cor)})` : undefined
+                      pontas !== "nenhuma"
+                        ? `url(#${idMarcador(cor)})`
+                        : undefined
                     }
                     markerStart={
-                      pontas === "ambas" ? `url(#${idMarcador(cor)})` : undefined
+                      pontas === "ambas"
+                        ? `url(#${idMarcador(cor)})`
+                        : undefined
                     }
                   />
                   {selecionada &&
@@ -1678,7 +2323,11 @@ export function FunnelBoard({
                         r={7}
                         onPointerDown={(e) => {
                           e.stopPropagation();
-                          inter.current = { modo: "ponto", edgeId: ed.id, idx: i };
+                          inter.current = {
+                            modo: "ponto",
+                            edgeId: ed.id,
+                            idx: i,
+                          };
                         }}
                       />
                     ))}
@@ -1697,7 +2346,13 @@ export function FunnelBoard({
                             setMulti(new Set());
                           }}
                         >
-                          <rect x={-w / 2} y={-11} width={w} height={22} rx={11} />
+                          <rect
+                            x={-w / 2}
+                            y={-11}
+                            width={w}
+                            height={22}
+                            rx={11}
+                          />
                           <text textAnchor="middle" dominantBaseline="central">
                             {rotulo}
                           </text>
@@ -1729,38 +2384,64 @@ export function FunnelBoard({
             </div>
           )}
 
-          {nodes.map((node) => (
-            <NodeView
-              key={node.id}
-              node={node}
-              ord={paginaAt[node.id]}
-              selected={
+          {nodes
+            .filter((node) => {
+              if (
+                nodes.length <= 200 ||
+                !canvasBox.width ||
+                aberto === node.id ||
+                dragId === node.id ||
                 (sel?.tipo === "node" && sel.id === node.id) ||
                 multi.has(node.id)
-              }
-              dragging={dragId === node.id}
-              locked={locked}
-              aberto={aberto === node.id}
-              saidas={saidas[node.id] ?? 0}
-              nomes={nomesNos}
-              measure={medir}
-              onPointerDown={(e) => iniciarArrasto(e, node)}
-              onHandleOut={(e) => iniciarConexao(e, node)}
-              onMenu={(e) => abrirMenu(e, { tipo: "node", id: node.id })}
-              onResize={(e) => iniciarResize(e, node)}
-              onChange={(patch) => atualizar(node.id, patch)}
-              prev={previsao.porNo[node.id]}
-              onToggle={() => {
-                if (ctrlClick.current) {
-                  ctrlClick.current = false;
-                  return;
+              )
+                return true;
+              const dimensions = size(node.id);
+              const x = vp.x + node.x * vp.k,
+                y = vp.y + node.y * vp.k;
+              return (
+                x + dimensions.w * vp.k >= -400 &&
+                y + dimensions.h * vp.k >= -400 &&
+                x <= canvasBox.width + 400 &&
+                y <= canvasBox.height + 400
+              );
+            })
+            .map((node) => (
+              <NodeView
+                key={node.id}
+                node={node}
+                zipScope={{
+                  storageId,
+                  funnelId: node.pagina?.zip?.sourceFunnelId ?? inicial.id,
+                  nodeId: node.id,
+                }}
+                ord={paginaAt[node.id]}
+                selected={
+                  (sel?.tipo === "node" && sel.id === node.id) ||
+                  multi.has(node.id)
                 }
-                const abrindo = aberto !== node.id;
-                setAberto((a) => (a === node.id ? null : node.id));
-                if (abrindo) trazerParaVista(node);
-              }}
-            />
-          ))}
+                dragging={dragId === node.id}
+                locked={locked}
+                aberto={aberto === node.id}
+                saidas={saidas[node.id] ?? 0}
+                nomes={nomesNos}
+                measure={medir}
+                onPointerDown={(e) => iniciarArrasto(e, node)}
+                onHandleOut={(e) => iniciarConexao(e, node)}
+                onMenu={(e) => abrirMenu(e, { tipo: "node", id: node.id })}
+                onResize={(e) => iniciarResize(e, node)}
+                onChange={(patch) => atualizar(node.id, patch)}
+                prev={previsao.porNo[node.id]}
+                onToggle={() => {
+                  if (ctrlClick.current) {
+                    ctrlClick.current = false;
+                    return;
+                  }
+                  const abrindo = aberto !== node.id;
+                  setAberto((a) => (a === node.id ? null : node.id));
+                  if (abrindo) trazerParaVista(node);
+                }}
+              />
+            ))}
         </div>
       </div>
 
@@ -1774,25 +2455,129 @@ export function FunnelBoard({
         </div>
       )}
 
-      {/* Publicador da página: painel lateral quando um nó de página está
-          aberto. Só a interface — nada publica de verdade. */}
+      {conteudoId && nodes.some((n) => n.id === conteudoId) && (
+        <FunnelContentEditor
+          key={`content:${conteudoId}`}
+          data={{ ...inicial, nome, nodes, edges }}
+          nodeId={conteudoId}
+          site={pacotes[conteudoId] ?? null}
+          onSiteChange={(site) => {
+            setPacotes((current) => ({ ...current, [conteudoId]: site }));
+            forgetPreparedPageZip({
+              storageId,
+              funnelId: inicial.id,
+              nodeId: conteudoId,
+            });
+            const node = nodesRef.current.find(
+              (item) => item.id === conteudoId,
+            );
+            if (node)
+              atualizar(node.id, {
+                pagina: { ...pageSettingsForNode(node), zip: undefined },
+              });
+          }}
+          onChange={(patch) => {
+            forgetPreparedPageZip({
+              storageId,
+              funnelId: inicial.id,
+              nodeId: conteudoId,
+            });
+            const node = nodesRef.current.find(
+              (item) => item.id === conteudoId,
+            );
+            if (node)
+              atualizar(node.id, {
+                ...patch,
+                pagina: { ...pageSettingsForNode(node), zip: undefined },
+              });
+          }}
+          onPrepareZip={async (file) => {
+            const nodeId = conteudoId;
+            const scope = { storageId, funnelId: inicial.id, nodeId };
+            const signature = JSON.stringify(
+              contentFlowForPage({ ...inicial, nome, nodes, edges }, nodeId),
+            );
+            const result = await preparePageZip(scope, file, { persist: true });
+            const node = nodesRef.current.find((item) => item.id === nodeId);
+            if (!node) {
+              forgetPreparedPageZip(scope);
+              throw new Error(
+                "A página foi removida durante a preparação do ZIP.",
+              );
+            }
+            let latest: string;
+            try {
+              latest = JSON.stringify(
+                contentFlowForPage(
+                  {
+                    ...inicial,
+                    nome,
+                    nodes: nodesRef.current,
+                    edges: edgesRef.current,
+                  },
+                  nodeId,
+                ),
+              );
+            } catch (cause) {
+              forgetPreparedPageZip(scope);
+              throw cause;
+            }
+            if (signature !== latest) {
+              forgetPreparedPageZip(scope);
+              throw new Error(
+                "O conteúdo ou as ligações mudaram durante a preparação. Prepare o ZIP novamente.",
+              );
+            }
+            preparedContent.current.set(nodeId, signature);
+            atualizar(node.id, {
+              pagina: {
+                ...pageSettingsForNode(node),
+                zip: result.metadata,
+              },
+            });
+            setConteudoId(null);
+            setAberto(node.id);
+            setAvisoFunil(
+              "ZIP conferido. No painel da página, escolha o site real e confirme a publicação. Nada foi enviado ainda.",
+            );
+          }}
+          onClose={() => setConteudoId(null)}
+        />
+      )}
+
+      {publishSite && (
+        <FunnelSitePublisher
+          data={{ ...inicial, nome, nodes, edges, mapa, previsao: previsaoCfg }}
+          storageId={storageId}
+          onClose={() => setPublishSite(false)}
+        />
+      )}
+
+      {/* O conteúdo e o pacote compartilham o mesmo identificador do nó. */}
       {(() => {
         if (!aberto || estiloAberto) return null;
         const n = nodes.find((x) => x.id === aberto);
         if (!n || !isPagina(n.type) || n.type === "store") return null;
-        const dados = n.pagina ?? paginaVazia();
+        const dados = pageSettingsForNode(n);
         const proximas: EtapaDestino[] = [];
         for (const e of edges) {
           if (e.source !== n.id) continue;
           const t = nodes.find((x) => x.id === e.target);
           if (!t) continue;
-          const url = t.pagina?.dominio
-            ? `https://${t.pagina.dominio}${t.pagina.caminho}`
-            : t.url;
+          const url = funnelNodeAddress(t);
           proximas.push({ id: t.id, nome: t.title, url });
         }
         return (
           <PagePublisher
+            key={`publisher:${n.id}`}
+            storageId={storageId}
+            funnelId={inicial.id}
+            nodeId={n.id}
+            onEditarConteudo={() => setConteudoId(n.id)}
+            onPublicarSite={() => {
+              setAberto(null);
+              setPublishSite(true);
+            }}
             nome={n.title}
             dados={dados}
             onNome={(nm) => atualizar(n.id, { title: nm })}
@@ -1815,6 +2600,11 @@ export function FunnelBoard({
             nodes={nodes}
             onNome={(nm) => atualizar(n.id, { title: nm })}
             onChange={(redir) => atualizar(n.id, { redir })}
+            onAddress={(url) => atualizar(n.id, { url })}
+            onPublicarSite={() => {
+              setAberto(null);
+              setPublishSite(true);
+            }}
             onFechar={() => setAberto(null)}
             onIrPara={(id) => {
               const t = nodes.find((x) => x.id === id);
@@ -1831,6 +2621,9 @@ export function FunnelBoard({
         if (!n || n.type !== "store") return null;
         return (
           <StorePanel
+            key={n.id}
+            storageId={storageId}
+            funnelId={inicial.id}
             node={n}
             nodes={nodes}
             edges={todasLinhas}
@@ -1842,6 +2635,14 @@ export function FunnelBoard({
               if (t) trazerParaVista(t);
             }}
             onCriarCheckout={() => criarAoLado(n.id, "checkout")}
+            onEditarConteudo={() => {
+              setAberto(null);
+              setConteudoId(n.id);
+            }}
+            onPublicarSite={() => {
+              setAberto(null);
+              setPublishSite(true);
+            }}
           />
         );
       })()}
@@ -1851,7 +2652,13 @@ export function FunnelBoard({
       {(() => {
         if (!aberto || estiloAberto) return null;
         const n = nodes.find((x) => x.id === aberto);
-        if (!n || isPagina(n.type) || isRedir(n.type) || n.type === "brand" || SEM_PAINEL.has(n.type))
+        if (
+          !n ||
+          isPagina(n.type) ||
+          isRedir(n.type) ||
+          n.type === "brand" ||
+          SEM_PAINEL.has(n.type)
+        )
           return null;
         return (
           <BlockPanel
@@ -1874,7 +2681,11 @@ export function FunnelBoard({
         <StylePanel
           key={estiloAberto}
           abaInicial={estiloAberto}
-          node={sel?.tipo === "node" ? nodes.find((n) => n.id === sel.id) : undefined}
+          node={
+            sel?.tipo === "node"
+              ? nodes.find((n) => n.id === sel.id)
+              : undefined
+          }
           edge={edgeSel}
           mapa={mapa}
           fluxoGlobal={fluxoGlobal}
@@ -1882,7 +2693,9 @@ export function FunnelBoard({
           onEdge={setEstilo}
           onEdgeReset={resetLinha}
           onRotulo={setRotulo}
-          onMapa={(patch) => setMapa((m) => (patch === null ? {} : { ...m, ...patch }))}
+          onMapa={(patch) =>
+            setMapa((m) => (patch === null ? {} : { ...m, ...patch }))
+          }
           onFluxoGlobal={(v) => {
             setFluxoGlobal(v);
             setMapa((m) => ({ ...m, fluxo: v }));
@@ -1903,38 +2716,131 @@ export function FunnelBoard({
         >
           {menuCtx.alvo.tipo === "node" && ctxNo && (
             <>
-              <ItemMenu rotulo="Configurar" atalho="Enter" onClick={() => { setAberto(ctxNo.id); trazerParaVista(ctxNo); }} onFechar={fecharMenu} />
-              <ItemMenu rotulo="Estilo do bloco…" onClick={() => setEstiloAberto("no")} onFechar={fecharMenu} />
+              <ItemMenu
+                rotulo="Configurar"
+                atalho="Enter"
+                onClick={() => {
+                  setAberto(ctxNo.id);
+                  trazerParaVista(ctxNo);
+                }}
+                onFechar={fecharMenu}
+              />
+              <ItemMenu
+                rotulo="Estilo do bloco…"
+                onClick={() => setEstiloAberto("no")}
+                onFechar={fecharMenu}
+              />
               <hr />
-              <ItemMenu rotulo="Duplicar" atalho="Ctrl+D" onClick={duplicar} onFechar={fecharMenu} />
-              <ItemMenu rotulo="Copiar" atalho="Ctrl+C" onClick={() => void copiar()} onFechar={fecharMenu} />
-              <ItemMenu rotulo="Recortar" atalho="Ctrl+X" onClick={recortar} onFechar={fecharMenu} />
+              <ItemMenu
+                rotulo="Duplicar"
+                atalho="Ctrl+D"
+                onClick={duplicar}
+                onFechar={fecharMenu}
+              />
+              <ItemMenu
+                rotulo="Copiar"
+                atalho="Ctrl+C"
+                onClick={() => void copiar()}
+                onFechar={fecharMenu}
+              />
+              <ItemMenu
+                rotulo="Recortar"
+                atalho="Ctrl+X"
+                onClick={recortar}
+                onFechar={fecharMenu}
+              />
               <hr />
-              <ItemMenu rotulo="Trazer para frente" atalho="]" onClick={() => paraFrente(ctxNo.id)} onFechar={fecharMenu} />
-              <ItemMenu rotulo="Enviar para trás" atalho="[" onClick={() => paraTras(ctxNo.id)} onFechar={fecharMenu} />
+              <ItemMenu
+                rotulo="Trazer para frente"
+                atalho="]"
+                onClick={() => paraFrente(ctxNo.id)}
+                onFechar={fecharMenu}
+              />
+              <ItemMenu
+                rotulo="Enviar para trás"
+                atalho="["
+                onClick={() => paraTras(ctxNo.id)}
+                onFechar={fecharMenu}
+              />
               <hr />
-              <ItemMenu rotulo="Apagar" atalho="Del" perigo onClick={() => remover(ctxNo.id)} onFechar={fecharMenu} />
+              <ItemMenu
+                rotulo="Apagar"
+                atalho="Del"
+                perigo
+                onClick={() => remover(ctxNo.id)}
+                onFechar={fecharMenu}
+              />
             </>
           )}
           {menuCtx.alvo.tipo === "edge" && ctxLinha && (
             <>
-              <ItemMenu rotulo="Estilo da linha…" onClick={() => setEstiloAberto("linha")} onFechar={fecharMenu} />
-              <ItemMenu rotulo="Curva" onClick={() => setEstilo(ctxLinha, { forma: "curva" })} onFechar={fecharMenu} />
-              <ItemMenu rotulo="Reta" onClick={() => setEstilo(ctxLinha, { forma: "reta" })} onFechar={fecharMenu} />
-              <ItemMenu rotulo="Cotovelo (90°)" onClick={() => setEstilo(ctxLinha, { forma: "cotovelo" })} onFechar={fecharMenu} />
+              <ItemMenu
+                rotulo="Estilo da linha…"
+                onClick={() => setEstiloAberto("linha")}
+                onFechar={fecharMenu}
+              />
+              <ItemMenu
+                rotulo="Curva"
+                onClick={() => setEstilo(ctxLinha, { forma: "curva" })}
+                onFechar={fecharMenu}
+              />
+              <ItemMenu
+                rotulo="Reta"
+                onClick={() => setEstilo(ctxLinha, { forma: "reta" })}
+                onFechar={fecharMenu}
+              />
+              <ItemMenu
+                rotulo="Cotovelo (90°)"
+                onClick={() => setEstilo(ctxLinha, { forma: "cotovelo" })}
+                onFechar={fecharMenu}
+              />
               <hr />
-              <ItemMenu rotulo="Apagar linha" atalho="Del" perigo onClick={() => apagarLinha(ctxLinha)} onFechar={fecharMenu} />
+              <ItemMenu
+                rotulo="Apagar linha"
+                atalho="Del"
+                perigo
+                onClick={() => apagarLinha(ctxLinha)}
+                onFechar={fecharMenu}
+              />
             </>
           )}
           {menuCtx.alvo.tipo === "canvas" && (
             <>
-              <ItemMenu rotulo="Colar" atalho="Ctrl+V" onClick={() => colar()} onFechar={fecharMenu} />
-              <ItemMenu rotulo="Selecionar tudo" atalho="Ctrl+A" onClick={() => setMulti(new Set(nodes.map((x) => x.id)))} onFechar={fecharMenu} />
-              <ItemMenu rotulo="Ajustar à tela" onClick={enquadrar} onFechar={fecharMenu} />
-              <ItemMenu rotulo="Estilo do mapa…" onClick={() => setEstiloAberto("mapa")} onFechar={fecharMenu} />
+              <ItemMenu
+                rotulo="Colar"
+                atalho="Ctrl+V"
+                onClick={() => colar()}
+                onFechar={fecharMenu}
+              />
+              <ItemMenu
+                rotulo="Selecionar tudo"
+                atalho="Ctrl+A"
+                onClick={() => setMulti(new Set(nodes.map((x) => x.id)))}
+                onFechar={fecharMenu}
+              />
+              <ItemMenu
+                rotulo="Ajustar à tela"
+                onClick={enquadrar}
+                onFechar={fecharMenu}
+              />
+              <ItemMenu
+                rotulo="Estilo do mapa…"
+                onClick={() => setEstiloAberto("mapa")}
+                onFechar={fecharMenu}
+              />
               <hr />
-              <ItemMenu rotulo="Desfazer" atalho="Ctrl+Z" onClick={desfazer} onFechar={fecharMenu} />
-              <ItemMenu rotulo="Refazer" atalho="Ctrl+Y" onClick={refazer} onFechar={fecharMenu} />
+              <ItemMenu
+                rotulo="Desfazer"
+                atalho="Ctrl+Z"
+                onClick={desfazer}
+                onFechar={fecharMenu}
+              />
+              <ItemMenu
+                rotulo="Refazer"
+                atalho="Ctrl+Y"
+                onClick={refazer}
+                onFechar={fecharMenu}
+              />
             </>
           )}
         </div>
@@ -1959,26 +2865,135 @@ export function FunnelBoard({
               aria-label="Formatação do bloco"
               onPointerDown={(e) => e.stopPropagation()}
             >
-              <button type="button" className="funnel__fbar-cor funnel__fbar-cor--nenhuma" data-on={!n.estilo?.cor || undefined} title="Sem cor" aria-label="Sem cor" onClick={() => setEstiloNo(n.id, { cor: undefined })}>∅</button>
+              <button
+                type="button"
+                className="funnel__fbar-cor funnel__fbar-cor--nenhuma"
+                data-on={!n.estilo?.cor || undefined}
+                title="Sem cor"
+                aria-label="Sem cor"
+                onClick={() => setEstiloNo(n.id, { cor: undefined })}
+              >
+                ∅
+              </button>
               {CORES_NO.map((c) => (
-                <button key={c} type="button" className="funnel__fbar-cor" style={{ background: c }} data-on={n.estilo?.cor === c || undefined} title={`Cor ${c}`} aria-label={`Cor ${c}`} onClick={() => setEstiloNo(n.id, { cor: c })} />
+                <button
+                  key={c}
+                  type="button"
+                  className="funnel__fbar-cor"
+                  style={{ background: c }}
+                  data-on={n.estilo?.cor === c || undefined}
+                  title={`Cor ${c}`}
+                  aria-label={`Cor ${c}`}
+                  onClick={() => setEstiloNo(n.id, { cor: c })}
+                />
               ))}
               <i className="funnel__fbar-sep" aria-hidden />
               {n.type === "shape" && (
                 <>
-                  <button type="button" className="funnel__fbar-btn" title="Retângulo" aria-label="Retângulo" data-on={(n.forma ?? "retangulo") === "retangulo" || undefined} onClick={() => atualizar(n.id, { forma: "retangulo" })}>▭</button>
-                  <button type="button" className="funnel__fbar-btn" title="Círculo" aria-label="Círculo" data-on={n.forma === "circulo" || undefined} onClick={() => atualizar(n.id, { forma: "circulo" })}>◯</button>
-                  <button type="button" className="funnel__fbar-btn" title="Losango" aria-label="Losango" data-on={n.forma === "losango" || undefined} onClick={() => atualizar(n.id, { forma: "losango" })}>◇</button>
+                  <button
+                    type="button"
+                    className="funnel__fbar-btn"
+                    title="Retângulo"
+                    aria-label="Retângulo"
+                    data-on={
+                      (n.forma ?? "retangulo") === "retangulo" || undefined
+                    }
+                    onClick={() => atualizar(n.id, { forma: "retangulo" })}
+                  >
+                    ▭
+                  </button>
+                  <button
+                    type="button"
+                    className="funnel__fbar-btn"
+                    title="Círculo"
+                    aria-label="Círculo"
+                    data-on={n.forma === "circulo" || undefined}
+                    onClick={() => atualizar(n.id, { forma: "circulo" })}
+                  >
+                    ◯
+                  </button>
+                  <button
+                    type="button"
+                    className="funnel__fbar-btn"
+                    title="Losango"
+                    aria-label="Losango"
+                    data-on={n.forma === "losango" || undefined}
+                    onClick={() => atualizar(n.id, { forma: "losango" })}
+                  >
+                    ◇
+                  </button>
                   <i className="funnel__fbar-sep" aria-hidden />
                 </>
               )}
-              <button type="button" className="funnel__fbar-btn" title="Negrito" aria-label="Negrito" data-on={n.estilo?.negrito || undefined} onClick={() => setEstiloNo(n.id, { negrito: !n.estilo?.negrito })}><b>B</b></button>
-              <button type="button" className="funnel__fbar-btn" title="Configurar (Enter)" aria-label="Configurar" onClick={() => { setAberto(n.id); trazerParaVista(n); }}>⚙</button>
-              <button type="button" className="funnel__fbar-btn" title="Estilo" aria-label="Estilo" onClick={() => setEstiloAberto("no")}>🎨</button>
-              <button type="button" className="funnel__fbar-btn" title="Duplicar (Ctrl+D)" aria-label="Duplicar" onClick={duplicar}>⧉</button>
-              <button type="button" className="funnel__fbar-btn" title="Trazer para frente ( ] )" aria-label="Trazer para frente" onClick={() => paraFrente(n.id)}>⬆</button>
-              <button type="button" className="funnel__fbar-btn" title="Enviar para trás ( [ )" aria-label="Enviar para trás" onClick={() => paraTras(n.id)}>⬇</button>
-              <button type="button" className="funnel__fbar-btn funnel__fbar-btn--perigo" title="Apagar (Del)" aria-label="Apagar" onClick={() => remover(n.id)}>🗑</button>
+              <button
+                type="button"
+                className="funnel__fbar-btn"
+                title="Negrito"
+                aria-label="Negrito"
+                data-on={n.estilo?.negrito || undefined}
+                onClick={() =>
+                  setEstiloNo(n.id, { negrito: !n.estilo?.negrito })
+                }
+              >
+                <b>B</b>
+              </button>
+              <button
+                type="button"
+                className="funnel__fbar-btn"
+                title="Configurar (Enter)"
+                aria-label="Configurar"
+                onClick={() => {
+                  setAberto(n.id);
+                  trazerParaVista(n);
+                }}
+              >
+                ⚙
+              </button>
+              <button
+                type="button"
+                className="funnel__fbar-btn"
+                title="Estilo"
+                aria-label="Estilo"
+                onClick={() => setEstiloAberto("no")}
+              >
+                🎨
+              </button>
+              <button
+                type="button"
+                className="funnel__fbar-btn"
+                title="Duplicar (Ctrl+D)"
+                aria-label="Duplicar"
+                onClick={duplicar}
+              >
+                ⧉
+              </button>
+              <button
+                type="button"
+                className="funnel__fbar-btn"
+                title="Trazer para frente ( ] )"
+                aria-label="Trazer para frente"
+                onClick={() => paraFrente(n.id)}
+              >
+                ⬆
+              </button>
+              <button
+                type="button"
+                className="funnel__fbar-btn"
+                title="Enviar para trás ( [ )"
+                aria-label="Enviar para trás"
+                onClick={() => paraTras(n.id)}
+              >
+                ⬇
+              </button>
+              <button
+                type="button"
+                className="funnel__fbar-btn funnel__fbar-btn--perigo"
+                title="Apagar (Del)"
+                aria-label="Apagar"
+                onClick={() => remover(n.id)}
+              >
+                🗑
+              </button>
             </div>
           );
         })()}
@@ -1990,11 +3005,31 @@ export function FunnelBoard({
           type="button"
           className="funnel__rail-btn"
           aria-label="Voltar"
-          onClick={onVoltar}
+          onClick={() => {
+            try {
+              onRascunho?.(draftRef.current);
+              onVoltar?.();
+            } catch (cause) {
+              setAvisoFunil(
+                cause instanceof Error
+                  ? cause.message
+                  : "Guarde o rascunho antes de sair.",
+              );
+            }
+          }}
         >
           <ArrowLeft size={18} strokeWidth={2.2} />
         </button>
         <span className="funnel__rail-sep" aria-hidden />
+        <button
+          type="button"
+          className="funnel__rail-btn"
+          aria-label="Publicar site completo"
+          title="Publicar site completo"
+          onClick={() => setPublishSite(true)}
+        >
+          <ExternalLink size={18} />
+        </button>
         <button
           type="button"
           className="funnel__rail-btn"
@@ -2029,7 +3064,9 @@ export function FunnelBoard({
           className="funnel__rail-btn"
           aria-label="Previsão"
           data-on={painel === "previsao"}
-          onClick={() => setPainel((p) => (p === "previsao" ? null : "previsao"))}
+          onClick={() =>
+            setPainel((p) => (p === "previsao" ? null : "previsao"))
+          }
         >
           <TrendingUp size={18} strokeWidth={2} />
         </button>
@@ -2056,7 +3093,10 @@ export function FunnelBoard({
           className="funnel__rail-btn"
           aria-label="Meus funis"
           data-on={painel === "funis"}
-          onClick={() => setPainel((p) => (p === "funis" ? null : "funis"))}
+          onClick={() => {
+            refrescarFunis();
+            setPainel((p) => (p === "funis" ? null : "funis"));
+          }}
         >
           <FolderOpen size={18} strokeWidth={2} />
         </button>
@@ -2074,9 +3114,17 @@ export function FunnelBoard({
         <div className="funnel__panel funnel__panel--funis">
           <div className="funnel__panel-title">Meus funis</div>
           <div className="funnel__panel-hint">
-            Salve este funil com nome para reabrir depois — e para trazê-lo
-            ao quadro do redirecionador.
+            Salve este funil com nome para reabrir depois — e para trazê-lo ao
+            quadro do redirecionador.
           </div>
+          <FunnelCloudHistory
+            storageId={storageId}
+            cofre={cofre}
+            onRestored={(data) => {
+              refrescarFunis();
+              if (data) onAbrir?.(data);
+            }}
+          />
           <div className="funnel__funis-salvar">
             <input
               className="funnel__input"
@@ -2094,15 +3142,41 @@ export function FunnelBoard({
               <Save size={15} strokeWidth={2} />
               Salvar
             </button>
+            <button
+              type="button"
+              className="funnel__btn"
+              onClick={exportarCopia}
+            >
+              Baixar cópia JSON
+            </button>
+            <button
+              type="button"
+              className="funnel__btn"
+              onClick={() => importInput.current?.click()}
+            >
+              Importar cópia JSON
+            </button>
+            <input
+              ref={importInput}
+              type="file"
+              accept=".json,application/json"
+              hidden
+              aria-label="Cópia JSON do funil"
+              onChange={(event) => void importarCopia(event.target.files?.[0])}
+            />
           </div>
-          {avisoFunil && <div className="funnel__funis-aviso">{avisoFunil}</div>}
+          {listaFunis.erro && (
+            <div className="funnel__funis-aviso" role="alert">
+              {listaFunis.erro}
+            </div>
+          )}
           <ul className="funnel__funis" aria-label="Funis salvos">
-            {listarFunis().length === 0 && (
+            {listaFunis.itens.length === 0 && (
               <li className="funnel__funis-vazio">
                 Nenhum funil salvo ainda. Dê um nome e clique em Salvar.
               </li>
             )}
-            {listarFunis().map((f) => (
+            {listaFunis.itens.map((f) => (
               <li
                 key={f.id}
                 className="funnel__funil"
@@ -2112,6 +3186,7 @@ export function FunnelBoard({
                   <b>{f.nome}</b>
                   <span>
                     {f.data.nodes.length} bloco(s) · {quando(f.atualizadoEm)}
+                    {f.arquivado ? " · arquivado" : ""}
                     {f.id === inicial.id ? " · aberto" : ""}
                   </span>
                 </div>
@@ -2121,12 +3196,21 @@ export function FunnelBoard({
                       type="button"
                       className="funnel__btn"
                       onClick={() => {
-                        onAbrir?.(f.data);
-                        setPainel(null);
+                        try {
+                          if (f.arquivado) cofre.restaurarFunil(f.id);
+                          onAbrir?.(f.data);
+                          setPainel(null);
+                        } catch (cause) {
+                          setAvisoFunil(
+                            cause instanceof Error
+                              ? cause.message
+                              : "Não foi possível abrir o funil.",
+                          );
+                        }
                       }}
                     >
                       <FolderOpen size={14} strokeWidth={2} />
-                      Abrir
+                      {f.arquivado ? "Restaurar e abrir" : "Abrir"}
                     </button>
                   )}
                   <button
@@ -2135,8 +3219,16 @@ export function FunnelBoard({
                     aria-label={`Duplicar ${f.nome}`}
                     title="Duplicar"
                     onClick={() => {
-                      duplicarFunil(f.id);
-                      refrescarFunis();
+                      try {
+                        cofre.duplicarFunil(f.id);
+                        refrescarFunis();
+                      } catch (cause) {
+                        setAvisoFunil(
+                          cause instanceof Error
+                            ? cause.message
+                            : "Não foi possível duplicar.",
+                        );
+                      }
                     }}
                   >
                     <Copy size={14} strokeWidth={2} />
@@ -2147,8 +3239,16 @@ export function FunnelBoard({
                     aria-label={`Apagar ${f.nome}`}
                     title="Apagar do cofre"
                     onClick={() => {
-                      removerFunil(f.id);
-                      refrescarFunis();
+                      try {
+                        cofre.removerFunil(f.id);
+                        refrescarFunis();
+                      } catch (cause) {
+                        setAvisoFunil(
+                          cause instanceof Error
+                            ? cause.message
+                            : "Não foi possível apagar.",
+                        );
+                      }
                     }}
                   >
                     <Trash2 size={14} strokeWidth={2} />
@@ -2180,7 +3280,9 @@ export function FunnelBoard({
           {FAMILIAS.map((fam) => {
             const q = buscaRec.trim().toLowerCase();
             const itens = RECURSOS.filter(
-              (r) => r.familia === fam.id && (!q || r.label.toLowerCase().includes(q)),
+              (r) =>
+                r.familia === fam.id &&
+                (!q || r.label.toLowerCase().includes(q)),
             );
             if (itens.length === 0) return null;
             return (
@@ -2195,7 +3297,9 @@ export function FunnelBoard({
                         key={r.type}
                         className="funnel__item"
                         draggable
-                        onDragStart={(e) => e.dataTransfer.setData(DATA_KEY, r.type)}
+                        onDragStart={(e) =>
+                          e.dataTransfer.setData(DATA_KEY, r.type)
+                        }
                         title={r.desc ?? r.label}
                         onClick={() => adicionarNoCentro(r.type)}
                       >
@@ -2222,14 +3326,20 @@ export function FunnelBoard({
             onChange={(e) => setBuscaLista(e.target.value)}
           />
           <div className="funnel__panel-hint">
-            {nodes.length} {nodes.length === 1 ? "bloco" : "blocos"} · {todasLinhas.length}{" "}
-            {todasLinhas.length === 1 ? "linha" : "linhas"}. Clique para ir até o bloco.
+            {nodes.length} {nodes.length === 1 ? "bloco" : "blocos"} ·{" "}
+            {todasLinhas.length} {todasLinhas.length === 1 ? "linha" : "linhas"}
+            . Clique para ir até o bloco.
           </div>
           {FAMILIAS.map((fam) => {
             const q = buscaLista.trim().toLowerCase();
             const itens = nodes.filter((n) => {
-              const f = RECURSO_POR_TIPO[n.type]?.familia ?? (n.type === "brand" ? "trafego" : "outros");
-              return f === fam.id && (!q || (n.title || "").toLowerCase().includes(q));
+              const f =
+                RECURSO_POR_TIPO[n.type]?.familia ??
+                (n.type === "brand" ? "trafego" : "outros");
+              return (
+                f === fam.id &&
+                (!q || (n.title || "").toLowerCase().includes(q))
+              );
             });
             if (itens.length === 0) return null;
             return (
@@ -2243,7 +3353,10 @@ export function FunnelBoard({
                       <li key={n.id}>
                         <button
                           type="button"
-                          data-on={(sel?.tipo === "node" && sel.id === n.id) || undefined}
+                          data-on={
+                            (sel?.tipo === "node" && sel.id === n.id) ||
+                            undefined
+                          }
                           onClick={() => {
                             setSel({ tipo: "node", id: n.id });
                             setMulti(new Set());
@@ -2251,7 +3364,11 @@ export function FunnelBoard({
                           }}
                         >
                           <Ic size={14} strokeWidth={2} />
-                          <span>{n.title || n.descricao?.slice(0, 30) || "(sem nome)"}</span>
+                          <span>
+                            {n.title ||
+                              n.descricao?.slice(0, 30) ||
+                              "(sem nome)"}
+                          </span>
                           <small>{ROTULO_TIPO[n.type]}</small>
                         </button>
                       </li>
@@ -2268,9 +3385,14 @@ export function FunnelBoard({
         <div className="funnel__panel funnel__panel--largo">
           <div className="funnel__panel-title">Previsão do funil</div>
           <div className="funnel__panel-hint">
-            Calculadora: digite as visitas que entram e a conversão de cada bloco. São
-            contas, não medições.
+            Calculadora: digite as visitas que entram e a conversão de cada
+            bloco. São contas, não medições.
           </div>
+          {previsao.avisos.map((aviso) => (
+            <p key={aviso} className="funnel__panel-hint" role="status">
+              {aviso}
+            </p>
+          ))}
           <div className="funnel__prev-topo">
             <div className="pub__chips" role="radiogroup" aria-label="Cenário">
               {CENARIOS.map((c) => (
@@ -2282,7 +3404,9 @@ export function FunnelBoard({
                   className="pub__chip"
                   data-on={previsaoCfg.cenario === c.id || undefined}
                   style={{ "--aba-cor": c.cor } as React.CSSProperties}
-                  onClick={() => setPrevisaoCfg((p) => ({ ...p, cenario: c.id }))}
+                  onClick={() =>
+                    setPrevisaoCfg((p) => ({ ...p, cenario: c.id }))
+                  }
                 >
                   {c.nome} <small>×{c.fator}</small>
                 </button>
@@ -2295,19 +3419,57 @@ export function FunnelBoard({
                 min={0}
                 step={0.1}
                 value={previsaoCfg.cpc}
-                onChange={(e) => setPrevisaoCfg((p) => ({ ...p, cpc: Number(e.target.value) || 0 }))}
+                onChange={(e) =>
+                  setPrevisaoCfg((p) => ({
+                    ...p,
+                    cpc: Number(e.target.value) || 0,
+                  }))
+                }
               />
             </label>
           </div>
           <div className="funnel__prev-kpis">
-            <div><span>Visitas</span><b>{inteiro(previsao.total.visitas)}</b></div>
-            <div><span>Leads</span><b>{inteiro(previsao.total.leads)}</b></div>
-            <div><span>Vendas</span><b>{inteiro(previsao.total.vendas)}</b></div>
-            <div><span>Receita</span><b>{reais(previsao.total.receita)}</b></div>
-            <div><span>Custo do tráfego</span><b>{reais(previsao.total.custo)}</b></div>
-            <div data-neg={previsao.total.lucro < 0 || undefined}><span>Lucro</span><b>{reais(previsao.total.lucro)}</b></div>
-            <div data-neg={previsao.total.roi < 0 || undefined}><span>ROI</span><b>{previsao.total.roi.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}×</b></div>
-            <div><span>Custo por venda</span><b>{previsao.total.vendas ? reais(previsao.total.custoPorVenda) : "—"}</b></div>
+            <div>
+              <span>Visitas</span>
+              <b>{inteiro(previsao.total.visitas)}</b>
+            </div>
+            <div>
+              <span>Leads</span>
+              <b>{inteiro(previsao.total.leads)}</b>
+            </div>
+            <div>
+              <span>Vendas</span>
+              <b>{inteiro(previsao.total.vendas)}</b>
+            </div>
+            <div>
+              <span>Receita</span>
+              <b>{reais(previsao.total.receita)}</b>
+            </div>
+            <div>
+              <span>Custo do tráfego</span>
+              <b>{reais(previsao.total.custo)}</b>
+            </div>
+            <div data-neg={previsao.total.lucro < 0 || undefined}>
+              <span>Lucro</span>
+              <b>{reais(previsao.total.lucro)}</b>
+            </div>
+            <div data-neg={previsao.total.roi < 0 || undefined}>
+              <span>ROI</span>
+              <b>
+                {previsao.total.roi.toLocaleString("pt-BR", {
+                  maximumFractionDigits: 1,
+                })}
+                ×
+              </b>
+            </div>
+            <div>
+              <span>Custo por venda</span>
+              <b>
+                {previsao.total.vendas
+                  ? reais(previsao.total.custoPorVenda)
+                  : "—"}
+              </b>
+            </div>
           </div>
           <table className="funnel__prev-tab">
             <thead>
@@ -2330,8 +3492,13 @@ export function FunnelBoard({
                 return (
                   <tr key={id}>
                     <td>
-                      <i className="funnel__sem" data-sem={r.semaforo} aria-hidden />
-                      {n.title || "(sem nome)"} <small>{ROTULO_TIPO[n.type]}</small>
+                      <i
+                        className="funnel__sem"
+                        data-sem={r.semaforo}
+                        aria-hidden
+                      />
+                      {n.title || "(sem nome)"}{" "}
+                      <small>{ROTULO_TIPO[n.type]}</small>
                     </td>
                     <td>
                       {r.origem ? (
@@ -2340,7 +3507,11 @@ export function FunnelBoard({
                           min={0}
                           value={n.previsao?.visitas ?? VISITAS_PADRAO}
                           aria-label={`Visitas por mês de ${n.title}`}
-                          onChange={(e) => setPrevisaoNo(id, { visitas: Number(e.target.value) || 0 })}
+                          onChange={(e) =>
+                            setPrevisaoNo(id, {
+                              visitas: Number(e.target.value) || 0,
+                            })
+                          }
                         />
                       ) : (
                         inteiro(r.entram)
@@ -2355,7 +3526,11 @@ export function FunnelBoard({
                           step={0.5}
                           value={n.previsao?.conversao ?? pad?.conv ?? 100}
                           aria-label={`Conversão de ${n.title}`}
-                          onChange={(e) => setPrevisaoNo(id, { conversao: Number(e.target.value) || 0 })}
+                          onChange={(e) =>
+                            setPrevisaoNo(id, {
+                              conversao: Number(e.target.value) || 0,
+                            })
+                          }
                         />
                       ) : (
                         "—"
@@ -2369,7 +3544,11 @@ export function FunnelBoard({
                           min={0}
                           value={n.previsao?.preco ?? pad.preco ?? 0}
                           aria-label={`Preço em ${n.title}`}
-                          onChange={(e) => setPrevisaoNo(id, { preco: Number(e.target.value) || 0 })}
+                          onChange={(e) =>
+                            setPrevisaoNo(id, {
+                              preco: Number(e.target.value) || 0,
+                            })
+                          }
                         />
                       ) : (
                         "—"
@@ -2382,8 +3561,9 @@ export function FunnelBoard({
             </tbody>
           </table>
           <div className="funnel__panel-hint">
-            Semáforo: 🟢 conversão boa para o tipo do bloco · 🟡 mediana · 🔴 abaixo do
-            comum. Os cenários multiplicam as conversões (×0,7 / ×1 / ×1,3).
+            Semáforo: 🟢 conversão boa para o tipo do bloco · 🟡 mediana · 🔴
+            abaixo do comum. Os cenários multiplicam as conversões (×0,7 / ×1 /
+            ×1,3).
           </div>
         </div>
       )}
@@ -2392,8 +3572,8 @@ export function FunnelBoard({
         <div className="funnel__panel">
           <div className="funnel__panel-title">Modelos prontos</div>
           <div className="funnel__panel-hint">
-            Um clique monta o funil inteiro com os blocos ligados. O quadro atual é
-            trocado — salve antes no cofre se quiser guardá-lo.
+            Um clique monta o funil inteiro com os blocos ligados. O quadro
+            atual é trocado — salve antes no cofre se quiser guardá-lo.
           </div>
           <ul className="funnel__modelos">
             {MODELOS.map((m) => (
@@ -2407,7 +3587,9 @@ export function FunnelBoard({
                 >
                   <b>{m.nome}</b>
                   <span>{m.para}</span>
-                  <small>{m.passos.length + (m.extras?.length ?? 0)} blocos</small>
+                  <small>
+                    {m.passos.length + (m.extras?.length ?? 0)} blocos
+                  </small>
                 </button>
               </li>
             ))}
@@ -2552,16 +3734,43 @@ export function FunnelBoard({
                 <button
                   type="button"
                   className="funnel__btn"
-                  onClick={() => onArquivar?.(inicial.id)}
+                  onClick={() => {
+                    try {
+                      onArquivar?.({
+                        ...inicial,
+                        nome,
+                        nodes,
+                        edges,
+                        mapa,
+                        previsao: previsaoCfg,
+                      });
+                    } catch (cause) {
+                      setAvisoFunil(
+                        cause instanceof Error
+                          ? cause.message
+                          : "Não foi possível arquivar.",
+                      );
+                    }
+                  }}
                 >
                   <Archive size={15} strokeWidth={2} />
-                  Arquivar
+                  Arquivar com as alterações
                 </button>
                 <div className="funnel__foot-right">
                   <button
                     type="button"
                     className={cn("funnel__btn", "funnel__btn--danger")}
-                    onClick={() => onExcluir?.(inicial.id)}
+                    onClick={() => {
+                      try {
+                        onExcluir?.(inicial.id);
+                      } catch (cause) {
+                        setAvisoFunil(
+                          cause instanceof Error
+                            ? cause.message
+                            : "Não foi possível excluir o rascunho.",
+                        );
+                      }
+                    }}
                   >
                     <Trash2 size={15} strokeWidth={2} />
                     Excluir
@@ -2585,6 +3794,7 @@ export function FunnelBoard({
 }
 
 interface NodeViewProps {
+  zipScope: PageZipScope;
   node: FunnelNode;
   ord: number;
   selected: boolean;
@@ -2617,6 +3827,7 @@ interface NodeViewProps {
  * quadro. O nó de origem (marca) é só o cabeçalho.
  */
 function NodeView({
+  zipScope,
   node,
   ord,
   selected,
@@ -2634,6 +3845,7 @@ function NodeView({
   prev,
   onToggle,
 }: NodeViewProps) {
+  const zipPreparado = usePageZip(zipScope);
   const ref = React.useRef<HTMLDivElement>(null);
   // Medir antes do paint (layout effect), e só quando o conteúdo muda a
   // altura — abrir a configuração, editar um campo —, não a cada pan.
@@ -2662,8 +3874,10 @@ function NodeView({
   const url = node.url ?? "";
   // Publicador (nós de página): estado do "crachá".
   const pag = node.pagina;
-  const paginaPronta = Boolean(pag?.dominio && pag?.zip?.ok);
-  const enderecoPub = pag?.dominio ? `${pag.dominio}${pag.caminho}` : "";
+  const paginaPronta = Boolean(zipPreparado);
+  const enderecoPub = pag?.dominio
+    ? (pageAddress(pag) ?? "Endereço inválido")
+    : "";
   const rotuloSaidas = `${saidas} ${saidas === 1 ? "saída" : "saídas"}`;
 
   return (
@@ -2716,7 +3930,9 @@ function NodeView({
             <div className="funnel__node-titles">
               <span className="funnel__node-title">{node.title}</span>
               <span className="funnel__node-sub">
-                {prev ? `${inteiro(prev.entram)} visitas/mês` : "Origem de tráfego"}
+                {prev
+                  ? `${inteiro(prev.entram)} visitas/mês`
+                  : "Origem de tráfego"}
               </span>
             </div>
           </div>
@@ -2757,37 +3973,39 @@ function NodeView({
                   <LojaCorpo node={node} />
                 ) : (
                   <>
-            <span className="funnel__node-name">
-              {node.title || (pagina ? "Página sem nome" : "Sem nome")}
-            </span>
-            <span className="funnel__node-headline">
-              {pagina
-                ? node.headline || "Adicione um título para sua página"
-                : node.descricao || "Adicione uma observação"}
-            </span>
-            <span className="funnel__node-url">
-              {pagina ? (
-                enderecoPub ? (
-                  <>
-                    <span
-                      className="funnel__dom-dot"
-                      data-estado={estadoDoDominio(pag?.dominio)}
-                      aria-hidden
-                    />
-                    {enderecoPub}
-                  </>
-                ) : (
-                  "Toque para configurar e publicar"
-                )
-              ) : (
-                url || "Sem referência"
-              )}
-            </span>
+                    <span className="funnel__node-name">
+                      {node.title || (pagina ? "Página sem nome" : "Sem nome")}
+                    </span>
+                    <span className="funnel__node-headline">
+                      {pagina
+                        ? node.headline || "Adicione um título para sua página"
+                        : node.descricao || "Adicione uma observação"}
+                    </span>
+                    <span className="funnel__node-url">
+                      {pagina ? (
+                        enderecoPub ? (
+                          <>
+                            <span
+                              className="funnel__dom-dot"
+                              data-estado={estadoDoDominio(pag?.dominio)}
+                              aria-hidden
+                            />
+                            {enderecoPub}
+                          </>
+                        ) : (
+                          "Toque para configurar e publicar"
+                        )
+                      ) : (
+                        url || "Sem referência"
+                      )}
+                    </span>
                   </>
                 )}
                 {pagina && (
                   <MetricasResumo
-                    seed={pag?.dominio ? `${pag.dominio}${pag.caminho}` : node.title}
+                    seed={
+                      pag?.dominio ? `${pag.dominio}${pag.caminho}` : node.title
+                    }
                   />
                 )}
                 {prev && (
@@ -2812,7 +4030,7 @@ function NodeView({
               <i aria-hidden />
               {pagina
                 ? paginaPronta
-                  ? "Pronto para publicar"
+                  ? "ZIP conferido nesta aba"
                   : "Rascunho"
                 : ROTULO_TIPO[node.type]}
             </span>
@@ -2866,7 +4084,9 @@ function AnotacaoView({
         <span className="funnel__pin-ic" aria-hidden>
           💬
         </span>
-        <span className="funnel__pin-txt">{ultima ? ultima.texto : node.title || "Comentário"}</span>
+        <span className="funnel__pin-txt">
+          {ultima ? ultima.texto : node.title || "Comentário"}
+        </span>
         {n > 0 && <span className="funnel__pin-n">{n}</span>}
       </button>
     );
@@ -2903,7 +4123,9 @@ function AnotacaoView({
         <textarea
           className="funnel__anot-texto"
           value={node.descricao ?? ""}
-          placeholder={node.type === "note" ? "Escreva no post-it…" : "Escreva aqui…"}
+          placeholder={
+            node.type === "note" ? "Escreva no post-it…" : "Escreva aqui…"
+          }
           aria-label={node.type === "note" ? "Texto do post-it" : "Texto"}
           maxLength={2000}
           onPointerDown={parar}
@@ -2922,21 +4144,18 @@ function AnotacaoView({
 
 /** Uma linha de métricas no bloco da página (demonstração, 30 dias). */
 function MetricasResumo({ seed }: { seed: string }) {
-  const m = React.useMemo(() => metricasDemo(seed, "30d"), [seed]);
   return (
     <span
       className="funnel__node-metricas"
-      title="Últimos 30 dias (demonstração): visitas · cliques no botão de compra · quem rolou até o fim"
+      title={`Sem medição de visitas, cliques e rolagem conectada a ${seed}`}
     >
       <span>
-        <i aria-hidden>👁</i> {num(m.visitas)}
+        <i aria-hidden>👁</i> —
       </span>
       <span>
-        <i aria-hidden>🛒</i> {num(m.cliquesCompra)} ({pctTxt(m.ctrPct)})
+        <i aria-hidden>🛒</i> —
       </span>
-      <span>
-        <i aria-hidden>⤓</i> {m.profundidade[9]}% fim
-      </span>
+      <span>Sem medição</span>
     </span>
   );
 }
@@ -2948,7 +4167,8 @@ function LojaCorpo({ node }: { node: FunnelNode }) {
     <>
       <span className="funnel__node-name">{node.title || "Minha loja"}</span>
       <span className="funnel__node-headline">
-        {l ? nomeDaPlataforma(l.plataforma) : "Loja"} · {l?.dominio ?? "sem domínio"}
+        {l ? nomeDaPlataforma(l.plataforma) : "Loja"} ·{" "}
+        {l?.dominio ?? "sem domínio"}
       </span>
       <span className="funnel__node-url">🛍 {resumoDaLoja(l)}</span>
       <MetricasResumo seed={l?.dominio ?? node.title} />
@@ -2967,7 +4187,9 @@ function RedirCorpo({
   const regras = node.redir?.regras ?? [];
   return (
     <>
-      <span className="funnel__node-name">{node.title || "Redirecionador"}</span>
+      <span className="funnel__node-name">
+        {node.title || "Redirecionador"}
+      </span>
       <span className="funnel__redir-lista">
         {regras.map((r) => (
           <span
@@ -2980,7 +4202,9 @@ function RedirCorpo({
             <span className="funnel__redir-seta" aria-hidden>
               →
             </span>
-            <span className="funnel__redir-dest">{nomeDoDestino(r, nomes)}</span>
+            <span className="funnel__redir-dest">
+              {nomeDoDestino(r, nomes)}
+            </span>
           </span>
         ))}
         {regras.length === 0 && (

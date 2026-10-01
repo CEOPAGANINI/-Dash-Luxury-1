@@ -2,16 +2,18 @@
 
 import * as React from "react";
 
-import { unifiedDemoData } from "@/features/unified-dashboard/demo-data";
+import { emptyDashboardData } from "@/features/unified-dashboard/empty-data";
 import type {
   FunnelDefinition,
   NetworkId,
   OperationDefinition,
   OperationId,
   PeriodPreset,
+  UnifiedDashboardData,
 } from "@/features/unified-dashboard/types";
 
 interface UnifiedDashboardContextValue {
+  data: UnifiedDashboardData;
   operationId: OperationId;
   operation: OperationDefinition;
   setOperationId: (id: OperationId) => void;
@@ -46,19 +48,30 @@ function firstFunnel(operation: OperationDefinition) {
 
 export function UnifiedDashboardProvider({
   children,
+  initialData,
 }: {
   children: React.ReactNode;
+  initialData?: UnifiedDashboardData;
 }) {
+  const data = React.useMemo(
+    () => initialData ?? emptyDashboardData(),
+    [initialData],
+  );
+  const initialOperationId = Object.keys(data.operations)[0] ?? "alpha";
+  const today = React.useMemo(
+    () => new Date(data.source.asOf),
+    [data.source.asOf],
+  );
   const [operationId, setOperationIdState] =
-    React.useState<OperationId>("alpha");
+    React.useState<OperationId>(initialOperationId);
   const [networkId, setNetworkId] = React.useState<NetworkId>("all");
   const [funnelId, setFunnelIdState] = React.useState<string>(
-    firstFunnel(unifiedDemoData.operations.alpha).id,
+    firstFunnel(data.operations[initialOperationId]).id,
   );
   const [campaignId, setCampaignId] = React.useState("all");
-  const [year, setYear] = React.useState(2026);
-  const [month, setMonth] = React.useState(7);
-  const [day, setDay] = React.useState(19);
+  const [year, setYear] = React.useState(today.getUTCFullYear());
+  const [month, setMonth] = React.useState(today.getUTCMonth());
+  const [day, setDay] = React.useState(today.getUTCDate());
   const [period, setPeriod] = React.useState<PeriodPreset>("30d");
   const [hydrated, setHydrated] = React.useState(false);
 
@@ -77,10 +90,10 @@ export function UnifiedDashboardProvider({
           period: PeriodPreset;
         }>;
         const nextOperationId =
-          parsed.operationId && unifiedDemoData.operations[parsed.operationId]
+          parsed.operationId && data.operations[parsed.operationId]
             ? parsed.operationId
-            : "alpha";
-        const nextOperation = unifiedDemoData.operations[nextOperationId];
+            : initialOperationId;
+        const nextOperation = data.operations[nextOperationId];
         const nextFunnelId =
           parsed.funnelId && nextOperation.funnels[parsed.funnelId]
             ? parsed.funnelId
@@ -90,36 +103,64 @@ export function UnifiedDashboardProvider({
         // navegador desenham a mesma primeira tela.
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setOperationIdState(nextOperationId);
-        setNetworkId(parsed.networkId ?? "all");
+        setNetworkId(
+          ["all", "meta", "google", "youtube"].includes(parsed.networkId ?? "")
+            ? parsed.networkId!
+            : "all",
+        );
         setFunnelIdState(nextFunnelId);
         setCampaignId(parsed.campaignId ?? "all");
-        setYear(parsed.year ?? 2026);
-        setMonth(parsed.month ?? 7);
-        setDay(parsed.day ?? 19);
-        setPeriod(parsed.period ?? "30d");
+        setYear(
+          Number.isInteger(parsed.year) &&
+            parsed.year! >= 2000 &&
+            parsed.year! <= today.getUTCFullYear()
+            ? parsed.year!
+            : today.getUTCFullYear(),
+        );
+        setMonth(
+          Number.isInteger(parsed.month) &&
+            parsed.month! >= 0 &&
+            parsed.month! < 12
+            ? parsed.month!
+            : today.getUTCMonth(),
+        );
+        setDay(
+          Number.isInteger(parsed.day) && parsed.day! >= 1 && parsed.day! <= 31
+            ? parsed.day!
+            : today.getUTCDate(),
+        );
+        setPeriod(
+          ["7d", "30d", "month", "custom"].includes(parsed.period ?? "")
+            ? parsed.period!
+            : "30d",
+        );
       }
     } catch {
       // A dashboard continua com o contexto padrão caso o storage esteja inválido.
     } finally {
       setHydrated(true);
     }
-  }, []);
+  }, [data, initialOperationId, today]);
 
   React.useEffect(() => {
     if (!hydrated) return;
-    window.localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({
-        operationId,
-        networkId,
-        funnelId,
-        campaignId,
-        year,
-        month,
-        day,
-        period,
-      }),
-    );
+    try {
+      window.localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          operationId,
+          networkId,
+          funnelId,
+          campaignId,
+          year,
+          month,
+          day,
+          period,
+        }),
+      );
+    } catch {
+      /* Storage pode estar indisponível no modo privado. */
+    }
   }, [
     campaignId,
     day,
@@ -132,16 +173,21 @@ export function UnifiedDashboardProvider({
     year,
   ]);
 
-  const operation = unifiedDemoData.operations[operationId];
+  const operation =
+    data.operations[operationId] ?? data.operations[initialOperationId];
   const funnel = operation.funnels[funnelId] ?? firstFunnel(operation);
 
-  const setOperationId = React.useCallback((id: OperationId) => {
-    const next = unifiedDemoData.operations[id];
-    setOperationIdState(id);
-    setNetworkId("all");
-    setFunnelIdState(firstFunnel(next).id);
-    setCampaignId("all");
-  }, []);
+  const setOperationId = React.useCallback(
+    (id: OperationId) => {
+      const next = data.operations[id];
+      if (!next) return;
+      setOperationIdState(id);
+      setNetworkId("all");
+      setFunnelIdState(firstFunnel(next).id);
+      setCampaignId("all");
+    },
+    [data],
+  );
 
   const setFunnelId = React.useCallback(
     (id: string) => {
@@ -151,19 +197,21 @@ export function UnifiedDashboardProvider({
   );
 
   const resetFilters = React.useCallback(() => {
-    const initialOperation = unifiedDemoData.operations.alpha;
-    setOperationIdState("alpha");
+    const initialOperation = data.operations[initialOperationId];
+    const current = new Date(data.source.asOf);
+    setOperationIdState(initialOperationId);
     setNetworkId("all");
     setFunnelIdState(firstFunnel(initialOperation).id);
     setCampaignId("all");
-    setYear(2026);
-    setMonth(7);
-    setDay(19);
+    setYear(current.getUTCFullYear());
+    setMonth(current.getUTCMonth());
+    setDay(current.getUTCDate());
     setPeriod("30d");
-  }, []);
+  }, [data, initialOperationId]);
 
   const value = React.useMemo<UnifiedDashboardContextValue>(
     () => ({
+      data,
       operationId,
       operation,
       setOperationId,
@@ -185,6 +233,7 @@ export function UnifiedDashboardProvider({
       resetFilters,
     }),
     [
+      data,
       campaignId,
       day,
       funnel,

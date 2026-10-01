@@ -10,6 +10,8 @@ import { listConnections } from "@/features/integrations/connections-store";
 import { countUnreadNotifications } from "@/features/notifications/queries";
 import { UnifiedDashboardProvider } from "@/features/unified-dashboard/operation-provider";
 
+export const dynamic = "force-dynamic";
+
 export default async function PainelLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
@@ -29,6 +31,8 @@ export default async function PainelLayout({
        painéis da Dash 5, para que a escolha valha em todas as páginas. */
     /* As conexões vêm do banco uma vez por página; o checklist da Visão
        geral e a página de Integrações leem o mesmo estado. */
+    /* Leituras analíticas pertencem às páginas que as usam. O editor,
+       o servidor e as configurações não aguardam o histórico financeiro. */
     <UnifiedDashboardProvider>
       <ConnectionsProvider initial={conexoes}>
         <div

@@ -5,7 +5,7 @@ import { and, eq, sql } from "drizzle-orm";
 
 import { getDb, isDatabaseConfigured } from "@/database/client";
 import { shippingMethods } from "@/database/schema";
-import { getOrCreateDefaultWorkspace } from "@/lib/workspace";
+import { exigirWorkspaceRole } from "@/lib/workspace";
 import { shippingMethodSchema } from "@/validations/shipping";
 
 export interface ShippingActionResult {
@@ -36,7 +36,7 @@ export async function saveShippingMethodAction(
 
   try {
     const db = getDb();
-    const workspaceId = await getOrCreateDefaultWorkspace();
+    const workspaceId = (await exigirWorkspaceRole(["finance"])).workspaceId;
     const d = parsed.data;
 
     const [{ maxPos }] = await db
@@ -58,8 +58,7 @@ export async function saveShippingMethodAction(
 
     revalidatePath("/editor/fretes");
     return { ok: true, message: "Frete criado." };
-  } catch (error) {
-    console.error("[shipping] erro ao guardar:", error);
+  } catch {
     return { ok: false, error: "Não foi possível guardar o frete." };
   }
 }
@@ -72,7 +71,7 @@ export async function toggleShippingMethodAction(
   if (!id || !isDatabaseConfigured()) return;
 
   const db = getDb();
-  const workspaceId = await getOrCreateDefaultWorkspace();
+  const workspaceId = (await exigirWorkspaceRole(["finance"])).workspaceId;
 
   await db
     .update(shippingMethods)
@@ -94,7 +93,7 @@ export async function deleteShippingMethodAction(
   if (!id || !isDatabaseConfigured()) return;
 
   const db = getDb();
-  const workspaceId = await getOrCreateDefaultWorkspace();
+  const workspaceId = (await exigirWorkspaceRole(["finance"])).workspaceId;
 
   await db
     .update(shippingMethods)
@@ -121,7 +120,7 @@ export async function reorderShippingMethodAction(
   if (!id || !MOVE[direction] || !isDatabaseConfigured()) return;
 
   const db = getDb();
-  const workspaceId = await getOrCreateDefaultWorkspace();
+  const workspaceId = (await exigirWorkspaceRole(["finance"])).workspaceId;
 
   const all = await db
     .select({ id: shippingMethods.id, position: shippingMethods.position })

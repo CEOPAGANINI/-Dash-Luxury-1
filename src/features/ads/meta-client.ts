@@ -5,6 +5,7 @@ import { integrations } from "@/database/schema";
 import { decryptSecret } from "@/lib/crypto";
 import { getOrCreateDefaultWorkspace } from "@/lib/workspace";
 import type { AdMetrics, AdStatus } from "./types";
+import type { PosicaoId, VendaPorPosicao } from "./creative-placements";
 
 /*
   O cliente da Marketing API do Meta.
@@ -19,12 +20,26 @@ import type { AdMetrics, AdStatus } from "./types";
 */
 
 const GRAPH = "https://graph.facebook.com/v21.0";
-const INSIGHTS =
-  "insights.date_preset(last_7d){spend,impressions,clicks,actions,action_values}";
+export const META_METRIC_PERIODS = [
+  "last_7d",
+  "last_30d",
+  "today",
+  "yesterday",
+  "this_month",
+] as const;
+export type MetaMetricPeriod = (typeof META_METRIC_PERIODS)[number];
+export function metaMetricPeriod(value: unknown): MetaMetricPeriod {
+  return META_METRIC_PERIODS.includes(value as MetaMetricPeriod)
+    ? (value as MetaMetricPeriod)
+    : "last_7d";
+}
+const insightFields = (credentials: MetaCredentials) =>
+  `insights.date_preset(${metaMetricPeriod(credentials.metricsPeriod)}){spend,impressions,clicks,actions,action_values}`;
 
 export interface MetaCredentials {
   accountId: string;
   token: string;
+  metricsPeriod?: MetaMetricPeriod;
 }
 
 /** As credenciais do Meta salvas em Integrações; null se não há conexão. */
@@ -52,11 +67,18 @@ export async function getMetaCredentials(): Promise<MetaCredentials | null> {
     const secrets = JSON.parse(decryptSecret(row.encryptedCredentials)) as {
       token?: string;
     };
-    const config = (row.config ?? {}) as { identifier?: string };
-    if (!secrets.token || !config.identifier?.startsWith("act_")) return null;
-    return { accountId: config.identifier, token: secrets.token };
-  } catch (error) {
-    console.error("[meta] credenciais indisponíveis:", error);
+    const config = (row.config ?? {}) as {
+      identifier?: string;
+      metricsPeriod?: unknown;
+    };
+    if (!secrets.token || !/^act_\d+$/.test(config.identifier ?? ""))
+      return null;
+    return {
+      accountId: config.identifier!,
+      token: secrets.token,
+      metricsPeriod: metaMetricPeriod(config.metricsPeriod),
+    };
+  } catch {
     return null;
   }
 }
@@ -128,12 +150,22 @@ function pegarAcao(
 
 export function metricasDeInsights(insights?: GraphInsights): AdMetrics {
   const linha = insights?.data?.[0];
+  const checkout = linha?.actions?.find((a) =>
+    [
+      "omni_initiated_checkout",
+      "offsite_conversion.fb_pixel_initiate_checkout",
+      "initiate_checkout",
+    ].includes(a.action_type),
+  );
   return {
     spendCents: Math.round((Number(linha?.spend) || 0) * 100),
     impressions: Number(linha?.impressions) || 0,
     clicks: Number(linha?.clicks) || 0,
     purchases: Math.round(pegarAcao(linha?.actions)),
     revenueCents: Math.round(pegarAcao(linha?.action_values) * 100),
+    ...(checkout
+      ? { checkouts: Math.max(0, Math.round(Number(checkout.value) || 0)) }
+      : {}),
   };
 }
 
@@ -153,30 +185,49 @@ export function statusParaMeta(status: AdStatus): string {
       : "PAUSED";
 }
 
-async function graphGet<T>(url: string): Promise<T> {
-  const response = await fetch(url, { cache: "no-store" });
+export class MetaApiError extends Error {
+  constructor(status: number, code?: number) {
+    super(
+      `O Meta recusou a solicitação (HTTP ${status}${Number.isInteger(code) ? `, código ${code}` : ""}). Verifique a conta, as permissões e tente novamente.`,
+    );
+    this.name = "MetaApiError";
+  }
+}
+
+async function graphGet<T>(url: string, token: string): Promise<T> {
+  const target = new URL(url);
+  if (target.origin !== "https://graph.facebook.com")
+    throw new Error("Destino de paginação inválido.");
+  target.searchParams.delete("access_token");
+  const response = await fetch(target, {
+    cache: "no-store",
+    headers: { Authorization: `Bearer ${token}` },
+    signal: AbortSignal.timeout(15_000),
+  });
   const body = (await response.json().catch(() => ({}))) as T & {
     error?: { message?: string; code?: number };
   };
   if (!response.ok || body.error) {
-    throw new Error(
-      `Meta ${response.status}: ${body.error?.message ?? "resposta inválida"}`,
-    );
+    throw new MetaApiError(response.status, body.error?.code);
   }
   return body;
 }
 
 /** Percorre todas as páginas de uma listagem. */
-async function listarTudo<T>(primeiraUrl: string): Promise<T[]> {
+async function listarTudo<T>(primeiraUrl: string, token: string): Promise<T[]> {
   const itens: T[] = [];
   let url: string | undefined = primeiraUrl;
   let paginas = 0;
   while (url && paginas < 20) {
-    const pagina: GraphPage<T> = await graphGet<GraphPage<T>>(url);
+    const pagina: GraphPage<T> = await graphGet<GraphPage<T>>(url, token);
     itens.push(...pagina.data);
     url = pagina.paging?.next;
     paginas += 1;
   }
+  if (url)
+    throw new Error(
+      "A conta excede o limite de páginas desta sincronização. Nenhum snapshot parcial foi salvo.",
+    );
   return itens;
 }
 
@@ -190,7 +241,6 @@ function urlDeLista(
     new URLSearchParams({
       fields,
       limit: "100",
-      access_token: credenciais.token,
     })
   );
 }
@@ -200,8 +250,9 @@ export async function fetchMetaCampaigns(credenciais: MetaCredentials) {
     urlDeLista(
       credenciais,
       "campaigns",
-      `id,name,objective,status,effective_status,daily_budget,lifetime_budget,${INSIGHTS}`,
+      `id,name,objective,status,effective_status,daily_budget,lifetime_budget,${insightFields(credenciais)}`,
     ),
+    credenciais.token,
   );
 }
 
@@ -210,8 +261,9 @@ export async function fetchMetaAdSets(credenciais: MetaCredentials) {
     urlDeLista(
       credenciais,
       "adsets",
-      `id,campaign_id,name,status,daily_budget,targeting,${INSIGHTS}`,
+      `id,campaign_id,name,status,daily_budget,targeting,${insightFields(credenciais)}`,
     ),
+    credenciais.token,
   );
 }
 
@@ -220,9 +272,57 @@ export async function fetchMetaAds(credenciais: MetaCredentials) {
     urlDeLista(
       credenciais,
       "ads",
-      `id,adset_id,name,status,creative{title,body,thumbnail_url},${INSIGHTS}`,
+      `id,adset_id,name,status,creative{title,body,thumbnail_url},${insightFields(credenciais)}`,
     ),
+    credenciais.token,
   );
+}
+
+export type GraphPlacement = NonNullable<GraphInsights["data"]>[number] & {
+  ad_id: string;
+  publisher_platform: string;
+  platform_position: string;
+};
+
+export async function fetchMetaPlacements(
+  credentials: MetaCredentials,
+): Promise<GraphPlacement[]> {
+  const target = new URL(`${GRAPH}/${credentials.accountId}/insights`);
+  target.search = new URLSearchParams({
+    level: "ad",
+    breakdowns: "publisher_platform,platform_position",
+    fields: "ad_id,spend,impressions,clicks,actions,action_values",
+    date_preset: metaMetricPeriod(credentials.metricsPeriod),
+    limit: "100",
+  }).toString();
+  return listarTudo<GraphPlacement>(target.toString(), credentials.token);
+}
+
+export function placementFromMeta(row: GraphPlacement): VendaPorPosicao | null {
+  if (
+    row.publisher_platform !== "facebook" &&
+    row.publisher_platform !== "instagram"
+  )
+    return null;
+  const positions: Record<string, PosicaoId> = {
+    feed: "feed",
+    instagram_explore: "explorar",
+    explore: "explorar",
+    story: "stories",
+    stories: "stories",
+    reels: "reels",
+    facebook_reels: "reels",
+    instagram_reels: "reels",
+    marketplace: "marketplace",
+    video_feeds: "video",
+    instream_video: "video",
+    messenger_inbox: "mensagens",
+  };
+  return {
+    id: positions[row.platform_position] ?? "outra",
+    plataforma: row.publisher_platform,
+    metrics: metricasDeInsights({ data: [row] }),
+  };
 }
 
 export interface MetaUpdate {
@@ -237,7 +337,9 @@ export async function updateMetaObject(
   mudanca: MetaUpdate,
   token: string,
 ): Promise<void> {
-  const body = new URLSearchParams({ access_token: token });
+  if (!/^\d+$/.test(externalId))
+    throw new Error("Identificador do Meta inválido.");
+  const body = new URLSearchParams();
   if (mudanca.name !== undefined) body.set("name", mudanca.name);
   if (mudanca.status !== undefined)
     body.set("status", statusParaMeta(mudanca.status));
@@ -248,13 +350,15 @@ export async function updateMetaObject(
     method: "POST",
     body,
     cache: "no-store",
+    headers: { Authorization: `Bearer ${token}` },
+    signal: AbortSignal.timeout(15_000),
   });
   const resultado = (await response.json().catch(() => ({}))) as {
     success?: boolean;
     error?: { message?: string };
   };
   if (!response.ok || resultado.error) {
-    throw new Error(resultado.error?.message ?? `Meta ${response.status}`);
+    throw new MetaApiError(response.status);
   }
 }
 
@@ -264,7 +368,6 @@ export async function createMetaCampaign(
   entrada: { name: string; objective: string; dailyBudgetCents: number },
 ): Promise<string> {
   const body = new URLSearchParams({
-    access_token: credenciais.token,
     name: entrada.name,
     objective: OBJETIVO_META[entrada.objective] ?? "OUTCOME_SALES",
     status: "PAUSED",
@@ -275,13 +378,15 @@ export async function createMetaCampaign(
     method: "POST",
     body,
     cache: "no-store",
+    headers: { Authorization: `Bearer ${credenciais.token}` },
+    signal: AbortSignal.timeout(15_000),
   });
   const resultado = (await response.json().catch(() => ({}))) as {
     id?: string;
     error?: { message?: string };
   };
   if (!response.ok || resultado.error || !resultado.id) {
-    throw new Error(resultado.error?.message ?? `Meta ${response.status}`);
+    throw new MetaApiError(response.status);
   }
   return resultado.id;
 }

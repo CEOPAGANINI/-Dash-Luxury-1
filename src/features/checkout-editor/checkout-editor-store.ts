@@ -2,7 +2,11 @@
 
 import { useSyncExternalStore } from "react";
 
-import { CONFIG_PADRAO, restoreCheckoutConfig, type CheckoutConfig } from "./checkout-config";
+import {
+  CONFIG_PADRAO,
+  restoreCheckoutConfig,
+  type CheckoutConfig,
+} from "./checkout-config";
 
 /*
   A arrumação do checkout enquanto se mexe nela: fica neste navegador,
@@ -22,9 +26,15 @@ function load() {
   try {
     const raw = localStorage.getItem(CHECKOUT_EDITOR_KEY);
     const lido = raw ? restoreCheckoutConfig(raw) : null;
-    snapshot = { config: lido ?? CONFIG_PADRAO, notice: raw && !lido ? "O checkout salvo não pôde ser lido." : "" };
+    snapshot = {
+      config: lido ?? CONFIG_PADRAO,
+      notice: raw && !lido ? "O checkout salvo não pôde ser lido." : "",
+    };
   } catch {
-    snapshot = { ...snapshot, notice: "Armazenamento indisponível: o checkout vale só nesta sessão." };
+    snapshot = {
+      ...snapshot,
+      notice: "Armazenamento indisponível: o checkout vale só nesta sessão.",
+    };
   }
 }
 
@@ -50,7 +60,11 @@ function subscribe(listener: () => void) {
 
 /** A configuração do editor e como guardá-la. */
 export function useCheckoutDraft() {
-  const state = useSyncExternalStore(subscribe, () => snapshot, () => EMPTY);
+  const state = useSyncExternalStore(
+    subscribe,
+    () => snapshot,
+    () => EMPTY,
+  );
   return {
     config: state.config,
     notice: state.notice,

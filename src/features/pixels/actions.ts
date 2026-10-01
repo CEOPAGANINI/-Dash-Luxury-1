@@ -5,7 +5,7 @@ import { and, eq } from "drizzle-orm";
 
 import { getDb, isDatabaseConfigured } from "@/database/client";
 import { pixels } from "@/database/schema";
-import { getOrCreateDefaultWorkspace } from "@/lib/workspace";
+import { exigirWorkspaceRole } from "@/lib/workspace";
 import { encryptSecret } from "@/lib/crypto";
 import { pixelSchema } from "@/validations/pixel";
 
@@ -40,7 +40,7 @@ export async function savePixelAction(
 
   try {
     const db = getDb();
-    const workspaceId = await getOrCreateDefaultWorkspace();
+    const workspaceId = (await exigirWorkspaceRole(["marketing"])).workspaceId;
     const data = parsed.data;
 
     await db.insert(pixels).values({
@@ -60,8 +60,7 @@ export async function savePixelAction(
 
     revalidatePath("/pixel");
     return { ok: true, message: "Pixel salvo e ativo nas suas páginas." };
-  } catch (error) {
-    console.error("[pixel] erro ao salvar:", error);
+  } catch {
     return { ok: false, error: "Não foi possível salvar o pixel." };
   }
 }
@@ -72,7 +71,7 @@ export async function togglePixelAction(formData: FormData): Promise<void> {
   if (!id || !isDatabaseConfigured()) return;
 
   const db = getDb();
-  const workspaceId = await getOrCreateDefaultWorkspace();
+  const workspaceId = (await exigirWorkspaceRole(["marketing"])).workspaceId;
 
   await db
     .update(pixels)
@@ -87,7 +86,7 @@ export async function deletePixelAction(formData: FormData): Promise<void> {
   if (!id || !isDatabaseConfigured()) return;
 
   const db = getDb();
-  const workspaceId = await getOrCreateDefaultWorkspace();
+  const workspaceId = (await exigirWorkspaceRole(["marketing"])).workspaceId;
 
   await db
     .update(pixels)

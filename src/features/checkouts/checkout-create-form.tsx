@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { useActionState } from "react";
 import { AlertCircle, CheckCircle2, Plus } from "lucide-react";
 
@@ -73,7 +74,17 @@ export function CheckoutCreateForm({
           {state?.ok && state.message && (
             <Alert variant="success">
               <CheckCircle2 />
-              <AlertDescription>{state.message}</AlertDescription>
+              <AlertDescription>
+                {state.message}
+                {state.checkoutId && (
+                  <Link
+                    href={`/editor/checkout?id=${state.checkoutId}`}
+                    className="mt-2 block underline"
+                  >
+                    Editar este checkout
+                  </Link>
+                )}
+              </AlertDescription>
             </Alert>
           )}
 

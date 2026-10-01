@@ -2,7 +2,10 @@ import { and, asc, desc, eq, isNull } from "drizzle-orm";
 
 import { getDb, isDatabaseConfigured } from "@/database/client";
 import { productReviews, products } from "@/database/schema";
-import { getOrCreateDefaultWorkspace } from "@/lib/workspace";
+import {
+  getOrCreateDefaultWorkspace,
+  getPublicWorkspaceId,
+} from "@/lib/workspace";
 
 export interface ReviewRow {
   id: string;
@@ -93,11 +96,13 @@ export interface PublicReview {
 /** Avaliações publicadas de um produto, para a landing page pública. */
 export async function getPublishedReviews(
   productSlug: string,
+  workspace?: string,
 ): Promise<PublicReview[]> {
   if (!isDatabaseConfigured()) return [];
 
   try {
     const db = getDb();
+    const workspaceId = workspace ?? (await getPublicWorkspaceId());
     const rows = await db
       .select({
         authorName: productReviews.authorName,
@@ -115,11 +120,16 @@ export async function getPublishedReviews(
       .where(
         and(
           eq(products.slug, productSlug),
+          eq(products.workspaceId, workspaceId),
+          eq(productReviews.workspaceId, workspaceId),
+          eq(products.status, "active"),
+          isNull(products.deletedAt),
           eq(productReviews.isPublished, true),
           isNull(productReviews.deletedAt),
         ),
       )
-      .orderBy(asc(productReviews.position), desc(productReviews.reviewedAt));
+      .orderBy(asc(productReviews.position), desc(productReviews.reviewedAt))
+      .limit(100);
 
     return rows.map((r) => ({
       name: r.authorName,
@@ -132,8 +142,8 @@ export async function getPublishedReviews(
       verifiedPurchase: r.isVerifiedPurchase,
       photo: r.photoUrl ?? undefined,
     }));
-  } catch (error) {
-    console.error("[reviews] erro ao buscar avaliações públicas:", error);
+  } catch {
+    console.error("[reviews] erro ao buscar avaliações públicas:");
     return [];
   }
 }

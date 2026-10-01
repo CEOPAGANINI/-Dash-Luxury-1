@@ -441,7 +441,30 @@ export async function montarEstado(
   workspaceId: string,
   opcoes: OpcoesDoEstado = {},
 ): Promise<EstadoDoPainelVps> {
-  await db.transaction((tx) => transicoesPreguicosas(tx));
+  // Uma tela de detalhe só precisa do servidor selecionado e dos seus sites.
+  let servidorDoDetalhe = opcoes.servidorId ?? undefined;
+  if (opcoes.siteId) {
+    const [site] = R_UUID.test(opcoes.siteId)
+      ? await db
+          .select({ serverId: vpsSites.serverId })
+          .from(vpsSites)
+          .where(
+            and(
+              eq(vpsSites.id, opcoes.siteId),
+              eq(vpsSites.workspaceId, workspaceId),
+              isNull(vpsSites.deletedAt),
+            ),
+          )
+          .limit(1)
+      : [];
+    servidorDoDetalhe = site?.serverId ?? "inexistente";
+  }
+  const detalheValido = !servidorDoDetalhe || R_UUID.test(servidorDoDetalhe);
+  // O polling de uma conta não deve varrer/alterar tarefas de outras contas.
+  if (detalheValido)
+    await db.transaction((tx) =>
+      transicoesPreguicosas(tx, servidorDoDetalhe, workspaceId),
+    );
   const agora = new Date();
   const config = configuracaoDoPainel();
 
@@ -452,6 +475,11 @@ export async function montarEstado(
       and(
         eq(vpsServers.workspaceId, workspaceId),
         isNull(vpsServers.deletedAt),
+        !detalheValido
+          ? sql`false`
+          : servidorDoDetalhe
+            ? eq(vpsServers.id, servidorDoDetalhe)
+            : undefined,
       ),
     )
     .orderBy(asc(vpsServers.createdAt));
@@ -459,7 +487,15 @@ export async function montarEstado(
     .select(COLUNAS_DO_SITE)
     .from(vpsSites)
     .where(
-      and(eq(vpsSites.workspaceId, workspaceId), isNull(vpsSites.deletedAt)),
+      and(
+        eq(vpsSites.workspaceId, workspaceId),
+        isNull(vpsSites.deletedAt),
+        !detalheValido
+          ? sql`false`
+          : servidorDoDetalhe
+            ? eq(vpsSites.serverId, servidorDoDetalhe)
+            : undefined,
+      ),
     )
     .orderBy(asc(vpsSites.createdAt));
   const siteIds = sitesLinhas.map((s) => s.id);
@@ -507,24 +543,40 @@ export async function montarEstado(
 
   const nomeDoServidor = new Map(servidoresLinhas.map((s) => [s.id, s.name]));
   const checkoutPorSlug = new Map(listaDeCheckouts.map((c) => [c.slug, c]));
+  const dominiosPorSite = new Map<string, LinhaDoDominio[]>();
+  for (const dominio of dominios) {
+    const grupo = dominiosPorSite.get(dominio.siteId) ?? [];
+    grupo.push(dominio);
+    dominiosPorSite.set(dominio.siteId, grupo);
+  }
+  const ativaPorSite = new Map(ativas.map((r) => [r.siteId, r]));
+  const sslPorSite = new Map<string, PedidoDeSslRecente[]>();
+  for (const pedido of pedidosSsl) {
+    if (!pedido.siteId) continue;
+    const grupo = sslPorSite.get(pedido.siteId) ?? [];
+    grupo.push(pedido);
+    sslPorSite.set(pedido.siteId, grupo);
+  }
+  const totalSitesPorServidor = new Map<string, number>();
+  for (const site of sitesLinhas)
+    totalSitesPorServidor.set(
+      site.serverId,
+      (totalSitesPorServidor.get(site.serverId) ?? 0) + 1,
+    );
   const sites = sitesLinhas.map((s) =>
     siteParaDTO(s, {
       servidorNome: nomeDoServidor.get(s.serverId) ?? "",
-      dominios: dominios.filter((d) => d.siteId === s.id),
-      ativa: ativas.find((r) => r.siteId === s.id) ?? null,
+      dominios: dominiosPorSite.get(s.id) ?? [],
+      ativa: ativaPorSite.get(s.id) ?? null,
       checkouts: checkoutPorSlug,
       esperaSsl: calcularEsperaDoSsl(
-        pedidosSsl.filter((p) => p.siteId === s.id),
+        sslPorSite.get(s.id) ?? [],
         agora.getTime(),
       ),
     }),
   );
   const servidores = servidoresLinhas.map((s) =>
-    servidorParaDTO(
-      s,
-      sites.filter((site) => site.servidorId === s.id).length,
-      agora,
-    ),
+    servidorParaDTO(s, totalSitesPorServidor.get(s.id) ?? 0, agora),
   );
 
   const estado: EstadoDoPainelVps = {
@@ -751,7 +803,7 @@ export async function lerPainelVps(
       dados,
     };
   } catch (erro) {
-    console.error("[vps] leitura do painel", erro);
+    console.error("[vps] leitura do painel");
     return { estado: "erro", mensagem: mensagemDeErroVps(erro) };
   }
 }

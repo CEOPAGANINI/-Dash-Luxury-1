@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNull } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 
 import { getDb, isDatabaseConfigured } from "@/database/client";
 import { adCampaigns, adChangeLog, adSets, ads } from "@/database/schema";
@@ -10,10 +10,13 @@ import {
   fetchMetaAdSets,
   fetchMetaAds,
   fetchMetaCampaigns,
+  fetchMetaPlacements,
   getMetaCredentials,
   metricasDeInsights,
   objetivoDoMeta,
   statusDoMeta,
+  placementFromMeta,
+  metaMetricPeriod,
   type MetaCredentials,
 } from "./meta-client";
 import {
@@ -25,6 +28,7 @@ import {
   type CampaignRow,
   type CampaignTree,
 } from "./types";
+import type { VendaPorPosicao } from "./creative-placements";
 
 /*
   Leitura do gerenciador.
@@ -63,7 +67,10 @@ export async function listCampaignTree(): Promise<CampaignTree> {
       .select()
       .from(adCampaigns)
       .where(
-        and(eq(adCampaigns.workspaceId, workspaceId), isNull(adCampaigns.deletedAt)),
+        and(
+          eq(adCampaigns.workspaceId, workspaceId),
+          isNull(adCampaigns.deletedAt),
+        ),
       )
       .orderBy(desc(adCampaigns.spendCents), adCampaigns.name);
 
@@ -73,7 +80,10 @@ export async function listCampaignTree(): Promise<CampaignTree> {
           .select()
           .from(adSets)
           .where(
-            and(inArray(adSets.campaignId, idsCampanhas), isNull(adSets.deletedAt)),
+            and(
+              inArray(adSets.campaignId, idsCampanhas),
+              isNull(adSets.deletedAt),
+            ),
           )
           .orderBy(desc(adSets.spendCents), adSets.name)
       : [];
@@ -90,13 +100,23 @@ export async function listCampaignTree(): Promise<CampaignTree> {
     const anunciosPorConjunto = new Map<string, AdRow[]>();
     for (const a of anuncios) {
       const lista = anunciosPorConjunto.get(a.adSetId) ?? [];
+      const creative = (a.creative ?? {}) as AdRow["creative"] & {
+        placements?: VendaPorPosicao[];
+        checkouts?: number;
+      };
       lista.push({
         id: a.id,
         externalId: a.externalId,
         name: a.name,
         status: isAdStatus(a.status) ? a.status : "paused",
-        creative: (a.creative ?? {}) as AdRow["creative"],
-        metrics: metricasDe(a),
+        creative,
+        metrics: {
+          ...metricasDe(a),
+          ...(typeof creative.checkouts === "number"
+            ? { checkouts: creative.checkouts }
+            : {}),
+        },
+        placements: creative.placements,
       });
       anunciosPorConjunto.set(a.adSetId, lista);
     }
@@ -119,7 +139,10 @@ export async function listCampaignTree(): Promise<CampaignTree> {
 
     let ultimaSync: string | null = null;
     const arvore: CampaignRow[] = campanhas.map((c) => {
-      if (c.syncedAt && (!ultimaSync || c.syncedAt.toISOString() > ultimaSync)) {
+      if (
+        c.syncedAt &&
+        (!ultimaSync || c.syncedAt.toISOString() > ultimaSync)
+      ) {
         ultimaSync = c.syncedAt.toISOString();
       }
       return {
@@ -131,7 +154,12 @@ export async function listCampaignTree(): Promise<CampaignTree> {
         status: isAdStatus(c.status) ? c.status : "paused",
         dailyBudgetCents:
           c.dailyBudgetCents === null ? null : Number(c.dailyBudgetCents),
-        source: c.source === "meta" ? "meta" : "manual",
+        source:
+          c.source === "demo" || c.objective === "Exemplo"
+            ? "demo"
+            : c.source === "meta"
+              ? "meta"
+              : "manual",
         campaignClass: normalizarClasse(c.campaignClass) ?? undefined,
         syncedAt: c.syncedAt?.toISOString() ?? null,
         metrics: metricasDe(c),
@@ -145,9 +173,14 @@ export async function listCampaignTree(): Promise<CampaignTree> {
       metaConectado: Boolean(credenciais),
       ultimaSync,
     };
-  } catch (error) {
-    console.error("[ads] erro ao listar:", error);
-    return { campanhas: [], modo: "banco", metaConectado: false, ultimaSync: null, loadError: true };
+  } catch {
+    return {
+      campanhas: [],
+      modo: "banco",
+      metaConectado: false,
+      ultimaSync: null,
+      loadError: true,
+    };
   }
 }
 
@@ -171,7 +204,9 @@ export async function getAdEntity(
     const [c] = await db
       .select()
       .from(adCampaigns)
-      .where(and(eq(adCampaigns.id, id), eq(adCampaigns.workspaceId, workspaceId)))
+      .where(
+        and(eq(adCampaigns.id, id), eq(adCampaigns.workspaceId, workspaceId)),
+      )
       .limit(1);
     return c
       ? {
@@ -235,99 +270,168 @@ export async function syncFromMeta(
   const workspaceId = await getOrCreateDefaultWorkspace();
   const agora = new Date();
 
-  const [campanhasMeta, conjuntosMeta, anunciosMeta] = await Promise.all([
-    fetchMetaCampaigns(credenciais),
-    fetchMetaAdSets(credenciais),
-    fetchMetaAds(credenciais),
-  ]);
-
-  const idCampanhaPorExterno = new Map<string, string>();
-  for (const c of campanhasMeta) {
-    const m = metricasDeInsights(c.insights);
-    const valores = {
+  const [campanhasMeta, conjuntosMeta, anunciosMeta, posicoesMeta] =
+    await Promise.all([
+      fetchMetaCampaigns(credenciais),
+      fetchMetaAdSets(credenciais),
+      fetchMetaAds(credenciais),
+      fetchMetaPlacements(credenciais),
+    ]);
+  const posicoesPorAnuncio = new Map<string, VendaPorPosicao[]>();
+  for (const row of posicoesMeta) {
+    const position = placementFromMeta(row);
+    if (!position) continue;
+    const positions = posicoesPorAnuncio.get(row.ad_id) ?? [];
+    positions.push(position);
+    posicoesPorAnuncio.set(row.ad_id, positions);
+  }
+  // Uma leitura incompleta nunca deixa metade da árvore com um snapshot novo.
+  // Todos os fetches são GET; os writes abaixo ficam no banco, em uma transação.
+  return db.transaction(async (tx) => {
+    const metricsSet = {
+      spendCents: sql`excluded.spend_cents`,
+      impressions: sql`excluded.impressions`,
+      clicks: sql`excluded.clicks`,
+      purchases: sql`excluded.purchases`,
+      revenueCents: sql`excluded.revenue_cents`,
+      syncedAt: agora,
+      updatedAt: agora,
+      deletedAt: null,
+    };
+    const campaigns = campanhasMeta.map((c) => ({
+      workspaceId,
+      network: "meta",
+      externalId: c.id,
       name: c.name,
       objective: objetivoDoMeta(c.objective),
       status: statusDoMeta(c.effective_status ?? c.status),
       dailyBudgetCents: c.daily_budget ? Number(c.daily_budget) : null,
       lifetimeBudgetCents: c.lifetime_budget ? Number(c.lifetime_budget) : null,
       source: "meta",
-      ...m,
+      ...metricasDeInsights(c.insights),
       syncedAt: agora,
       updatedAt: agora,
       deletedAt: null,
+    }));
+    const idCampanhaPorExterno = new Map<string, string>();
+    for (const chunk of chunks(campaigns)) {
+      const rows = await tx
+        .insert(adCampaigns)
+        .values(chunk)
+        .onConflictDoUpdate({
+          target: [
+            adCampaigns.workspaceId,
+            adCampaigns.network,
+            adCampaigns.externalId,
+          ],
+          set: {
+            ...metricsSet,
+            name: sql`excluded.name`,
+            objective: sql`excluded.objective`,
+            status: sql`excluded.status`,
+            dailyBudgetCents: sql`excluded.daily_budget_cents`,
+            lifetimeBudgetCents: sql`excluded.lifetime_budget_cents`,
+            source: "meta",
+          },
+        })
+        .returning({ id: adCampaigns.id, externalId: adCampaigns.externalId });
+      for (const row of rows)
+        if (row.externalId) idCampanhaPorExterno.set(row.externalId, row.id);
+    }
+    const sets = conjuntosMeta.flatMap((s) => {
+      const campaignId = idCampanhaPorExterno.get(s.campaign_id);
+      return campaignId
+        ? [
+            {
+              workspaceId,
+              campaignId,
+              externalId: s.id,
+              name: s.name,
+              status: statusDoMeta(s.status),
+              dailyBudgetCents: s.daily_budget ? Number(s.daily_budget) : null,
+              targeting: s.targeting ?? {},
+              ...metricasDeInsights(s.insights),
+              syncedAt: agora,
+              updatedAt: agora,
+              deletedAt: null,
+            },
+          ]
+        : [];
+    });
+    const idConjuntoPorExterno = new Map<string, string>();
+    for (const chunk of chunks(sets)) {
+      const rows = await tx
+        .insert(adSets)
+        .values(chunk)
+        .onConflictDoUpdate({
+          target: [adSets.workspaceId, adSets.externalId],
+          set: {
+            ...metricsSet,
+            campaignId: sql`excluded.campaign_id`,
+            name: sql`excluded.name`,
+            status: sql`excluded.status`,
+            dailyBudgetCents: sql`excluded.daily_budget_cents`,
+            targeting: sql`excluded.targeting`,
+          },
+        })
+        .returning({ id: adSets.id, externalId: adSets.externalId });
+      for (const row of rows)
+        if (row.externalId) idConjuntoPorExterno.set(row.externalId, row.id);
+    }
+    const adValues = anunciosMeta.flatMap((a) => {
+      const adSetId = idConjuntoPorExterno.get(a.adset_id);
+      const metrics = metricasDeInsights(a.insights);
+      return adSetId
+        ? [
+            {
+              workspaceId,
+              adSetId,
+              externalId: a.id,
+              name: a.name,
+              status: statusDoMeta(a.status),
+              creative: {
+                title: a.creative?.title,
+                body: a.creative?.body,
+                thumbnailUrl: a.creative?.thumbnail_url,
+                placements: posicoesPorAnuncio.get(a.id) ?? [],
+                checkouts: metrics.checkouts,
+                metricsPeriod: metaMetricPeriod(credenciais.metricsPeriod),
+              },
+              ...metrics,
+              syncedAt: agora,
+              updatedAt: agora,
+              deletedAt: null,
+            },
+          ]
+        : [];
+    });
+    for (const chunk of chunks(adValues))
+      await tx
+        .insert(ads)
+        .values(chunk)
+        .onConflictDoUpdate({
+          target: [ads.workspaceId, ads.externalId],
+          set: {
+            ...metricsSet,
+            adSetId: sql`excluded.ad_set_id`,
+            name: sql`excluded.name`,
+            status: sql`excluded.status`,
+            creative: sql`excluded.creative`,
+          },
+        });
+    return {
+      campanhas: campaigns.length,
+      conjuntos: sets.length,
+      anuncios: adValues.length,
     };
-    const [row] = await db
-      .insert(adCampaigns)
-      .values({ workspaceId, network: "meta", externalId: c.id, ...valores })
-      .onConflictDoUpdate({
-        target: [adCampaigns.workspaceId, adCampaigns.network, adCampaigns.externalId],
-        set: valores,
-      })
-      .returning({ id: adCampaigns.id });
-    idCampanhaPorExterno.set(c.id, row.id);
-  }
+  });
+}
 
-  const idConjuntoPorExterno = new Map<string, string>();
-  for (const s of conjuntosMeta) {
-    const campaignId = idCampanhaPorExterno.get(s.campaign_id);
-    if (!campaignId) continue;
-    const m = metricasDeInsights(s.insights);
-    const valores = {
-      campaignId,
-      name: s.name,
-      status: statusDoMeta(s.status),
-      dailyBudgetCents: s.daily_budget ? Number(s.daily_budget) : null,
-      targeting: s.targeting ?? {},
-      ...m,
-      syncedAt: agora,
-      updatedAt: agora,
-      deletedAt: null,
-    };
-    const [row] = await db
-      .insert(adSets)
-      .values({ workspaceId, externalId: s.id, ...valores })
-      .onConflictDoUpdate({
-        target: [adSets.workspaceId, adSets.externalId],
-        set: valores,
-      })
-      .returning({ id: adSets.id });
-    idConjuntoPorExterno.set(s.id, row.id);
-  }
-
-  let anuncios = 0;
-  for (const a of anunciosMeta) {
-    const adSetId = idConjuntoPorExterno.get(a.adset_id);
-    if (!adSetId) continue;
-    const m = metricasDeInsights(a.insights);
-    const valores = {
-      adSetId,
-      name: a.name,
-      status: statusDoMeta(a.status),
-      creative: {
-        title: a.creative?.title,
-        body: a.creative?.body,
-        thumbnailUrl: a.creative?.thumbnail_url,
-      },
-      ...m,
-      syncedAt: agora,
-      updatedAt: agora,
-      deletedAt: null,
-    };
-    await db
-      .insert(ads)
-      .values({ workspaceId, externalId: a.id, ...valores })
-      .onConflictDoUpdate({
-        target: [ads.workspaceId, ads.externalId],
-        set: valores,
-      });
-    anuncios += 1;
-  }
-
-  return {
-    campanhas: idCampanhaPorExterno.size,
-    conjuntos: idConjuntoPorExterno.size,
-    anuncios,
-  };
+function chunks<T>(values: T[], size = 200): T[][] {
+  const chunks: T[][] = [];
+  for (let index = 0; index < values.length; index += size)
+    chunks.push(values.slice(index, index + size));
+  return chunks;
 }
 
 /* ------------------------------------------------------------------ */
@@ -369,7 +473,12 @@ export async function listCampaignChangeLog(
     const rows = await db
       .select()
       .from(adChangeLog)
-      .where(and(eq(adChangeLog.workspaceId, workspaceId), inArray(adChangeLog.entityId, ids)))
+      .where(
+        and(
+          eq(adChangeLog.workspaceId, workspaceId),
+          inArray(adChangeLog.entityId, ids),
+        ),
+      )
       .orderBy(desc(adChangeLog.createdAt))
       .limit(limit);
     return rows.map((r) => ({
@@ -384,8 +493,8 @@ export async function listCampaignChangeLog(
       actor: r.actor,
       createdAt: r.createdAt.toISOString(),
     }));
-  } catch (error) {
-    console.error("[ads] diário indisponível:", error);
+  } catch {
+    console.error("[ads] diário indisponível");
     return [];
   }
 }

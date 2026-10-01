@@ -105,6 +105,8 @@ export function RedirectPanel({
   onChange,
   onFechar,
   onIrPara,
+  onAddress,
+  onPublicarSite,
 }: {
   node: FunnelNode;
   /** Todos os blocos do quadro (para escolher o destino de cada regra). */
@@ -114,9 +116,13 @@ export function RedirectPanel({
   onFechar: () => void;
   /** Leva o quadro até um bloco (o destino de uma regra). */
   onIrPara?: (nodeId: string) => void;
+  onAddress?: (url: string) => void;
+  onPublicarSite?: () => void;
 }) {
   const [aba, setAba] = React.useState<Aba>("regras");
-  const [filtroPais, setFiltroPais] = React.useState<Record<string, string>>({});
+  const [filtroPais, setFiltroPais] = React.useState<Record<string, string>>(
+    {},
+  );
   const [visitante, setVisitante] = React.useState<RouterVisitor>({
     pais: "BR",
     dispositivo: "mobile",
@@ -130,10 +136,14 @@ export function RedirectPanel({
   const regras = React.useMemo(() => node.redir?.regras ?? [], [node.redir]);
   const nomes = React.useMemo(() => nomesDosNos(nodes), [nodes]);
   const grupos = React.useMemo(
-    () => destinosPorCategoria(destinosDosNos(nodes.filter((n) => n.id !== node.id))),
+    () =>
+      destinosPorCategoria(
+        destinosDosNos(nodes.filter((n) => n.id !== node.id)),
+      ),
     [nodes, node.id],
   );
-  const setRegras = (rs: RegraRedir[]) => onChange({ ...node.redir, regras: rs });
+  const setRegras = (rs: RegraRedir[]) =>
+    onChange({ ...node.redir, regras: rs });
   const setRegra = (id: string, patch: Partial<RegraRedir>) =>
     setRegras(regras.map((r) => (r.id === id ? { ...r, ...patch } : r)));
   const novoId = () => {
@@ -142,7 +152,8 @@ export function RedirectPanel({
     while (regras.some((r) => r.id === id));
     return id;
   };
-  const addRegra = () => setRegras([...regras, regraRedirNova(novoId(), "regiao")]);
+  const addRegra = () =>
+    setRegras([...regras, regraRedirNova(novoId(), "regiao")]);
   const mover = (i: number, dir: -1 | 1) => {
     const j = i + dir;
     if (j < 0 || j >= regras.length) return;
@@ -186,7 +197,8 @@ export function RedirectPanel({
       (p) =>
         r.paises.includes(p.code) ||
         (q.length > 0 &&
-          (p.nome.toLowerCase().includes(q) || p.code.toLowerCase().includes(q))),
+          (p.nome.toLowerCase().includes(q) ||
+            p.code.toLowerCase().includes(q))),
     );
   };
 
@@ -208,7 +220,12 @@ export function RedirectPanel({
             onChange={(e) => onNome(e.target.value)}
           />
         </div>
-        <button type="button" className="pub__x" aria-label="Fechar" onClick={onFechar}>
+        <button
+          type="button"
+          className="pub__x"
+          aria-label="Fechar"
+          onClick={onFechar}
+        >
           ✕
         </button>
       </header>
@@ -240,7 +257,10 @@ export function RedirectPanel({
         </nav>
 
         <div className="pub__corpo">
-          <div className="pub__sec" style={{ "--aba-cor": abaAtual.cor } as React.CSSProperties}>
+          <div
+            className="pub__sec"
+            style={{ "--aba-cor": abaAtual.cor } as React.CSSProperties}
+          >
             <span className="pub__sec-badge" aria-hidden>
               <abaAtual.Icone size={18} strokeWidth={2} />
             </span>
@@ -253,11 +273,31 @@ export function RedirectPanel({
           {/* ── Regras ─────────────────────────────────────────────── */}
           {aba === "regras" && (
             <>
+              <label className="pub__campo">
+                <span>Caminho público do redirecionador</span>
+                <input
+                  className="pub__input"
+                  value={node.url ?? ""}
+                  placeholder="/go"
+                  onChange={(event) => onAddress?.(event.target.value)}
+                />
+                <small className="pub__hint">
+                  No ZIP único, fatias percentuais, aparelho, sistema e
+                  utm_source rodam no navegador. Região/IP e rede não são
+                  suportados; com essas regras ativas, a exportação é bloqueada.
+                  Isso não é controle de acesso.
+                </small>
+              </label>
               <div className="rdp__topo">
                 <span className="pub__hint">
-                  Quem não bate em nenhuma regra segue a linha de saída do bloco.
+                  Quem não bate em nenhuma regra segue a linha de saída do
+                  bloco.
                 </span>
-                <button type="button" className="pub__btn rdp__add" onClick={addRegra}>
+                <button
+                  type="button"
+                  className="pub__btn rdp__add"
+                  onClick={addRegra}
+                >
                   <Plus size={14} strokeWidth={2.4} /> Regra
                 </button>
               </div>
@@ -277,18 +317,45 @@ export function RedirectPanel({
                   <header className="rdp__regra-head">
                     <span className="rdp__num">{i + 1}</span>
                     <span className="rdp__quem">
-                      <span aria-hidden>{GLIFO_REGRA[r.tipo]}</span> {rotuloDaRegra(r)}{" "}
-                      <span className="rdp__seta" aria-hidden>→</span>{" "}
+                      <span aria-hidden>{GLIFO_REGRA[r.tipo]}</span>{" "}
+                      {rotuloDaRegra(r)}{" "}
+                      <span className="rdp__seta" aria-hidden>
+                        →
+                      </span>{" "}
                       <b>{nomeDoDestino(r, nomes)}</b>
                     </span>
                     <span className="rdp__acoes">
-                      <button type="button" aria-label="Subir regra" disabled={i === 0} onClick={() => mover(i, -1)}>↑</button>
-                      <button type="button" aria-label="Descer regra" disabled={i === regras.length - 1} onClick={() => mover(i, 1)}>↓</button>
-                      <button type="button" aria-label={`Remover regra ${i + 1}`} onClick={() => remover(r.id)}>✕</button>
+                      <button
+                        type="button"
+                        aria-label="Subir regra"
+                        disabled={i === 0}
+                        onClick={() => mover(i, -1)}
+                      >
+                        ↑
+                      </button>
+                      <button
+                        type="button"
+                        aria-label="Descer regra"
+                        disabled={i === regras.length - 1}
+                        onClick={() => mover(i, 1)}
+                      >
+                        ↓
+                      </button>
+                      <button
+                        type="button"
+                        aria-label={`Remover regra ${i + 1}`}
+                        onClick={() => remover(r.id)}
+                      >
+                        ✕
+                      </button>
                     </span>
                   </header>
 
-                  <div className="pub__chips rdp__tipos" role="radiogroup" aria-label="Tipo da regra">
+                  <div
+                    className="pub__chips rdp__tipos"
+                    role="radiogroup"
+                    aria-label="Tipo da regra"
+                  >
                     {TIPOS_REGRA.map((t) => (
                       <button
                         key={t.id}
@@ -312,7 +379,10 @@ export function RedirectPanel({
                         placeholder="Buscar país… (ex.: Japão, BR, Alemanha)"
                         aria-label="Buscar país"
                         onChange={(e) =>
-                          setFiltroPais((f) => ({ ...f, [r.id]: e.target.value }))
+                          setFiltroPais((f) => ({
+                            ...f,
+                            [r.id]: e.target.value,
+                          }))
                         }
                       />
                       <div className="pub__chips">
@@ -323,14 +393,19 @@ export function RedirectPanel({
                             className="pub__chip"
                             data-on={r.paises.includes(p.code) || undefined}
                             aria-pressed={r.paises.includes(p.code)}
-                            onClick={() => setRegra(r.id, { paises: alternar(r.paises, p.code) })}
+                            onClick={() =>
+                              setRegra(r.id, {
+                                paises: alternar(r.paises, p.code),
+                              })
+                            }
                           >
                             <CountryFlag code={p.code} size={16} /> {p.nome}
                           </button>
                         ))}
                         {paisesDaRegra(r).length === 0 && (
                           <span className="pub__hint">
-                            Digite acima para achar um país (são todos do mundo).
+                            Digite acima para achar um país (são todos do
+                            mundo).
                           </span>
                         )}
                       </div>
@@ -339,7 +414,18 @@ export function RedirectPanel({
                   {r.tipo === "dispositivo" && (
                     <div className="pub__chips">
                       {DISPOSITIVOS.map((d) => (
-                        <button key={d.id} type="button" className="pub__chip" data-on={r.dispositivos.includes(d.id) || undefined} aria-pressed={r.dispositivos.includes(d.id)} onClick={() => setRegra(r.id, { dispositivos: alternar(r.dispositivos, d.id) })}>
+                        <button
+                          key={d.id}
+                          type="button"
+                          className="pub__chip"
+                          data-on={r.dispositivos.includes(d.id) || undefined}
+                          aria-pressed={r.dispositivos.includes(d.id)}
+                          onClick={() =>
+                            setRegra(r.id, {
+                              dispositivos: alternar(r.dispositivos, d.id),
+                            })
+                          }
+                        >
                           {d.nome}
                         </button>
                       ))}
@@ -348,7 +434,20 @@ export function RedirectPanel({
                   {r.tipo === "sistema" && (
                     <div className="pub__chips">
                       {SISTEMAS.map((x) => (
-                        <button key={x.id} type="button" className="pub__chip" data-on={(r.sistemas ?? []).includes(x.id) || undefined} aria-pressed={(r.sistemas ?? []).includes(x.id)} onClick={() => setRegra(r.id, { sistemas: alternar(r.sistemas ?? [], x.id) })}>
+                        <button
+                          key={x.id}
+                          type="button"
+                          className="pub__chip"
+                          data-on={
+                            (r.sistemas ?? []).includes(x.id) || undefined
+                          }
+                          aria-pressed={(r.sistemas ?? []).includes(x.id)}
+                          onClick={() =>
+                            setRegra(r.id, {
+                              sistemas: alternar(r.sistemas ?? [], x.id),
+                            })
+                          }
+                        >
                           {x.nome}
                         </button>
                       ))}
@@ -357,7 +456,18 @@ export function RedirectPanel({
                   {r.tipo === "rede" && (
                     <div className="pub__chips">
                       {REDES.map((x) => (
-                        <button key={x.id} type="button" className="pub__chip" data-on={(r.redes ?? []).includes(x.id) || undefined} aria-pressed={(r.redes ?? []).includes(x.id)} onClick={() => setRegra(r.id, { redes: alternar(r.redes ?? [], x.id) })}>
+                        <button
+                          key={x.id}
+                          type="button"
+                          className="pub__chip"
+                          data-on={(r.redes ?? []).includes(x.id) || undefined}
+                          aria-pressed={(r.redes ?? []).includes(x.id)}
+                          onClick={() =>
+                            setRegra(r.id, {
+                              redes: alternar(r.redes ?? [], x.id),
+                            })
+                          }
+                        >
                           {x.nome}
                         </button>
                       ))}
@@ -366,8 +476,25 @@ export function RedirectPanel({
                   {r.tipo === "origem" && (
                     <div className="pub__chips">
                       {ORIGENS.map((x) => (
-                        <button key={x.id} type="button" className="pub__chip" data-on={(r.origens ?? []).includes(x.id) || undefined} aria-pressed={(r.origens ?? []).includes(x.id)} onClick={() => setRegra(r.id, { origens: alternar(r.origens ?? [], x.id) })}>
-                          <span className="pub__chip-dot" style={{ background: x.cor }} aria-hidden />
+                        <button
+                          key={x.id}
+                          type="button"
+                          className="pub__chip"
+                          data-on={
+                            (r.origens ?? []).includes(x.id) || undefined
+                          }
+                          aria-pressed={(r.origens ?? []).includes(x.id)}
+                          onClick={() =>
+                            setRegra(r.id, {
+                              origens: alternar(r.origens ?? [], x.id),
+                            })
+                          }
+                        >
+                          <span
+                            className="pub__chip-dot"
+                            style={{ background: x.cor }}
+                            aria-hidden
+                          />
                           {x.nome}
                         </button>
                       ))}
@@ -383,7 +510,9 @@ export function RedirectPanel({
                         min={1}
                         max={100}
                         value={r.percentual}
-                        onChange={(e) => setRegra(r.id, { percentual: Number(e.target.value) })}
+                        onChange={(e) =>
+                          setRegra(r.id, { percentual: Number(e.target.value) })
+                        }
                       />
                     </label>
                   )}
@@ -393,7 +522,9 @@ export function RedirectPanel({
                     {grupos.length > 0 ? (
                       grupos.map((g) => (
                         <div key={g.categoria} className="rdp__grupo">
-                          <span className="rdp__grupo-nome">{ROTULO_CATEGORIA[g.categoria]}</span>
+                          <span className="rdp__grupo-nome">
+                            {ROTULO_CATEGORIA[g.categoria]}
+                          </span>
                           <div className="pub__chips">
                             {g.itens.map((d) => (
                               <button
@@ -403,7 +534,12 @@ export function RedirectPanel({
                                 data-on={r.destinoNoId === d.id || undefined}
                                 aria-pressed={r.destinoNoId === d.id}
                                 title={`${d.nome} — ${d.url}`}
-                                onClick={() => setRegra(r.id, { destinoNoId: d.id, destino: "" })}
+                                onClick={() =>
+                                  setRegra(r.id, {
+                                    destinoNoId: d.id,
+                                    destino: "",
+                                  })
+                                }
                               >
                                 {d.nome}
                               </button>
@@ -413,7 +549,8 @@ export function RedirectPanel({
                       ))
                     ) : (
                       <span className="pub__hint">
-                        Crie uma página, checkout ou link no quadro para escolher aqui.
+                        Crie uma página, checkout ou link no quadro para
+                        escolher aqui.
                       </span>
                     )}
                     <input
@@ -422,10 +559,19 @@ export function RedirectPanel({
                       maxLength={2048}
                       placeholder="ou um endereço: /outra-pagina ou https://…"
                       aria-label="Endereço de destino"
-                      onChange={(e) => setRegra(r.id, { destino: e.target.value, destinoNoId: undefined })}
+                      onChange={(e) =>
+                        setRegra(r.id, {
+                          destino: e.target.value,
+                          destinoNoId: undefined,
+                        })
+                      }
                     />
                     {r.destinoNoId && onIrPara && nomes[r.destinoNoId] && (
-                      <button type="button" className="rdp__ver" onClick={() => onIrPara(r.destinoNoId!)}>
+                      <button
+                        type="button"
+                        className="rdp__ver"
+                        onClick={() => onIrPara(r.destinoNoId!)}
+                      >
                         Ver o bloco no quadro ↗
                       </button>
                     )}
@@ -450,41 +596,93 @@ export function RedirectPanel({
                 <div className="rdp__sim-grid">
                   <label>
                     <span>Região</span>
-                    <select className="pub__input" value={visitante.pais} onChange={(e) => setVisitante((v) => ({ ...v, pais: e.target.value }))}>
+                    <select
+                      className="pub__input"
+                      value={visitante.pais}
+                      onChange={(e) =>
+                        setVisitante((v) => ({ ...v, pais: e.target.value }))
+                      }
+                    >
                       {PAISES.map((p) => (
-                        <option key={p.code} value={p.code}>{p.nome}</option>
+                        <option key={p.code} value={p.code}>
+                          {p.nome}
+                        </option>
                       ))}
                     </select>
                   </label>
                   <label>
                     <span>Aparelho</span>
-                    <select className="pub__input" value={visitante.dispositivo} onChange={(e) => setVisitante((v) => ({ ...v, dispositivo: e.target.value as DeviceKind }))}>
+                    <select
+                      className="pub__input"
+                      value={visitante.dispositivo}
+                      onChange={(e) =>
+                        setVisitante((v) => ({
+                          ...v,
+                          dispositivo: e.target.value as DeviceKind,
+                        }))
+                      }
+                    >
                       {DISPOSITIVOS.map((d) => (
-                        <option key={d.id} value={d.id}>{d.nome}</option>
+                        <option key={d.id} value={d.id}>
+                          {d.nome}
+                        </option>
                       ))}
                     </select>
                   </label>
                   <label>
                     <span>Sistema</span>
-                    <select className="pub__input" value={visitante.sistema} onChange={(e) => setVisitante((v) => ({ ...v, sistema: e.target.value as SystemKind }))}>
+                    <select
+                      className="pub__input"
+                      value={visitante.sistema}
+                      onChange={(e) =>
+                        setVisitante((v) => ({
+                          ...v,
+                          sistema: e.target.value as SystemKind,
+                        }))
+                      }
+                    >
                       {SISTEMAS.map((x) => (
-                        <option key={x.id} value={x.id}>{x.nome}</option>
+                        <option key={x.id} value={x.id}>
+                          {x.nome}
+                        </option>
                       ))}
                     </select>
                   </label>
                   <label>
                     <span>Rede</span>
-                    <select className="pub__input" value={visitante.rede} onChange={(e) => setVisitante((v) => ({ ...v, rede: e.target.value as NetworkKind }))}>
+                    <select
+                      className="pub__input"
+                      value={visitante.rede}
+                      onChange={(e) =>
+                        setVisitante((v) => ({
+                          ...v,
+                          rede: e.target.value as NetworkKind,
+                        }))
+                      }
+                    >
                       {REDES.map((x) => (
-                        <option key={x.id} value={x.id}>{x.nome}</option>
+                        <option key={x.id} value={x.id}>
+                          {x.nome}
+                        </option>
                       ))}
                     </select>
                   </label>
                   <label>
                     <span>Origem do anúncio</span>
-                    <select className="pub__input" value={visitante.origem} onChange={(e) => setVisitante((v) => ({ ...v, origem: e.target.value as TrafficKind }))}>
+                    <select
+                      className="pub__input"
+                      value={visitante.origem}
+                      onChange={(e) =>
+                        setVisitante((v) => ({
+                          ...v,
+                          origem: e.target.value as TrafficKind,
+                        }))
+                      }
+                    >
                       {ORIGENS.map((x) => (
-                        <option key={x.id} value={x.id}>{x.nome}</option>
+                        <option key={x.id} value={x.id}>
+                          {x.nome}
+                        </option>
                       ))}
                     </select>
                   </label>
@@ -492,24 +690,39 @@ export function RedirectPanel({
                     <span>
                       Roleta do tráfego: <b>{sorteio}</b>
                     </span>
-                    <input type="range" min={0} max={99} value={sorteio} aria-label="Roleta do tráfego" onChange={(e) => setSorteio(Number(e.target.value))} />
+                    <input
+                      type="range"
+                      min={0}
+                      max={99}
+                      value={sorteio}
+                      aria-label="Roleta do tráfego"
+                      onChange={(e) => setSorteio(Number(e.target.value))}
+                    />
                   </label>
                 </div>
               </div>
-              <div className="rdp__veredito" data-ficou={decisao.ficou || undefined}>
+              <div
+                className="rdp__veredito"
+                data-ficou={decisao.ficou || undefined}
+              >
                 <span className="rdp__veredito-mark" aria-hidden>
                   {decisao.ficou ? "=" : "⤳"}
                 </span>
                 <div className="rdp__veredito-body">
                   <b>{decisao.ficou ? "Fica no fluxo" : "Redirecionado"}</b>
                   <span>
-                    {nomeDoPais(visitante.pais)} · {nomeDoDispositivo(visitante.dispositivo)} ·{" "}
-                    {nomeDoSistema(visitante.sistema ?? "windows")} · {nomeDaRede(visitante.rede ?? "wifi")} ·{" "}
-                    {nomeDaOrigem(visitante.origem ?? "facebook")} · roleta {sorteio}
+                    {nomeDoPais(visitante.pais)} ·{" "}
+                    {nomeDoDispositivo(visitante.dispositivo)} ·{" "}
+                    {nomeDoSistema(visitante.sistema ?? "windows")} ·{" "}
+                    {nomeDaRede(visitante.rede ?? "wifi")} ·{" "}
+                    {nomeDaOrigem(visitante.origem ?? "facebook")} · roleta{" "}
+                    {sorteio}
                   </span>
                   <span className="rdp__veredito-dest">→ {destinoDecisao}</span>
                   {decisao.regra && (
-                    <span className="rdp__veredito-why">pela regra: {descreverRegra(decisao.regra)}</span>
+                    <span className="rdp__veredito-why">
+                      pela regra: {descreverRegra(decisao.regra)}
+                    </span>
                   )}
                 </div>
               </div>
@@ -523,7 +736,8 @@ export function RedirectPanel({
               <Barras titulo="Por região" itens={POR_REGIAO} />
               <Barras titulo="Por origem do anúncio" itens={POR_ORIGEM} />
               <small className="pub__hint">
-                Números de demonstração. Os reais chegam quando a VPS estiver ligada (Fase 2).
+                Números de demonstração. Os reais chegam quando a VPS estiver
+                ligada (Fase 2).
               </small>
             </>
           )}
@@ -533,7 +747,8 @@ export function RedirectPanel({
             <>
               <div className="pub__campo">
                 <span>
-                  Total redirecionados: <b>{totalRedirecionados(REDIRECIONADOS_EXEMPLO)}</b>
+                  Total redirecionados:{" "}
+                  <b>{totalRedirecionados(REDIRECIONADOS_EXEMPLO)}</b>
                 </span>
                 <table className="rdp__tabela">
                   <thead>
@@ -557,7 +772,8 @@ export function RedirectPanel({
                 </table>
               </div>
               <small className="pub__hint">
-                Registro de demonstração. Numa versão ligada, viria do log real da VPS.
+                Registro de demonstração. Numa versão ligada, viria do log real
+                da VPS.
               </small>
             </>
           )}
@@ -567,17 +783,28 @@ export function RedirectPanel({
       <footer className="pub__foot">
         <span className="pub__foot-vps">
           <span className="pub__vps-dot" aria-hidden />
-          Nada redireciona de verdade — liga na Fase 2 (VPS)
+          Regras estáticas suportadas são incluídas no ZIP único
         </span>
-        <button type="button" className="pub__publicar" disabled>
-          ⇄ Aplicar
+        <button
+          type="button"
+          className="pub__publicar"
+          onClick={onPublicarSite}
+          disabled={!onPublicarSite}
+        >
+          Publicar site e regras
         </button>
       </footer>
     </aside>
   );
 }
 
-function Barras({ titulo, itens }: { titulo: string; itens: { rotulo: string; pct: number }[] }) {
+function Barras({
+  titulo,
+  itens,
+}: {
+  titulo: string;
+  itens: { rotulo: string; pct: number }[];
+}) {
   return (
     <div className="pub__campo rdp__barras">
       <span>{titulo}</span>
@@ -606,7 +833,13 @@ function Toggle({
   onToggle: (v: boolean) => void;
 }) {
   return (
-    <button type="button" className="pub__toggle" role="switch" aria-checked={on} onClick={() => onToggle(!on)}>
+    <button
+      type="button"
+      className="pub__toggle"
+      role="switch"
+      aria-checked={on}
+      onClick={() => onToggle(!on)}
+    >
       <span className="pub__toggle-track" data-on={on || undefined}>
         <span className="pub__toggle-knob" />
       </span>

@@ -102,12 +102,17 @@ export interface BroskiCredentials extends ProviderCredentials {
 function toPaymentResult(order: BroskiOrder): PaymentResult {
   return {
     externalId: order.id,
-    status: STATUS_MAP[order.status] ?? "created",
+    status:
+      order.status === "paid" && (order.amount_refunded ?? 0) > 0
+        ? "partially_refunded"
+        : (STATUS_MAP[order.status] ?? "created"),
     method: (order.method === "mbway"
       ? "mbway"
       : "multibanco") as PaymentMethod,
     amountCents: order.amount,
     currency: order.currency ?? "EUR",
+    refundedAmountCents:
+      order.amount_refunded ?? (order.status === "refunded" ? order.amount : 0),
     displayData: order.multibanco
       ? {
           multibancoEntity: order.multibanco.entity,
@@ -138,6 +143,7 @@ export class BroskiProvider implements PaymentProvider {
     }
 
     const response = await fetch(`${BROSKI_BASE_URL}${path}`, {
+      signal: AbortSignal.timeout(15_000),
       method,
       headers,
       body:
@@ -227,6 +233,29 @@ export class BroskiProvider implements PaymentProvider {
       `/v1/orders/${encodeURIComponent(paymentExternalId)}`,
     );
     return toPaymentResult(order);
+  }
+
+  /** Read-only recovery: bounded to 100 recent orders; no match is not proof of no charge. */
+  async findPaymentByReference(
+    reference: string,
+  ): Promise<PaymentResult | null> {
+    let cursor: string | undefined;
+    for (let page = 0; page < 4; page++) {
+      const query = cursor
+        ? `?starting_after=${encodeURIComponent(cursor)}`
+        : "";
+      const result = await this.request<{
+        data: BroskiOrder[];
+        has_more: boolean;
+      }>("GET", `/v1/orders${query}`);
+      const found = result.data.find(
+        (order) => order.external_reference === reference,
+      );
+      if (found) return this.getPayment(found.id);
+      cursor = result.data.at(-1)?.id;
+      if (!result.has_more || !cursor) break;
+    }
+    return null;
   }
 
   async cancelPayment(paymentExternalId: string): Promise<PaymentResult> {
@@ -326,9 +355,19 @@ export class BroskiProvider implements PaymentProvider {
         ? obj?.id
         : // dispute.created referencia o pedido em data.object.order
           obj?.order,
+      orderReference: obj?.external_reference,
       status:
-        isOrder && obj ? (STATUS_MAP[obj.status] ?? undefined) : undefined,
+        event.type === "dispute.created"
+          ? "chargeback"
+          : isOrder && obj
+            ? (STATUS_MAP[obj.status] ?? undefined)
+            : undefined,
       amountCents: obj?.amount,
+      refundedAmountCents:
+        isOrder && obj
+          ? (obj.amount_refunded ??
+            (obj.status === "refunded" ? obj.amount : undefined))
+          : undefined,
       raw: event,
     };
   }
@@ -357,9 +396,9 @@ export class BroskiProvider implements PaymentProvider {
         ok: false,
         environment: this.credentials.environment,
         message:
-          error instanceof Error
-            ? `Falha ao conectar: ${error.message}`
-            : "Falha desconhecida ao conectar com a API Broski.",
+          error instanceof BroskiApiError
+            ? `Falha ao conectar com o Broski (HTTP ${error.httpStatus}). Confira a configuração da conta.`
+            : "Falha ao conectar com a API Broski. Verifique a rede e tente novamente.",
       };
     }
   }

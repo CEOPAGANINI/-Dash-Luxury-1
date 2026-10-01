@@ -39,7 +39,9 @@ export interface PushcutStatus {
 const DEFAULT_EVENTS = ["payment_approved", "chargeback", "webhook_error"];
 
 /** Estado atual da integração, para exibir no painel. */
-export async function getPushcutStatus(): Promise<PushcutStatus> {
+export async function getPushcutStatus(
+  workspace?: string,
+): Promise<PushcutStatus> {
   const empty: PushcutStatus = {
     configured: false,
     isActive: false,
@@ -53,7 +55,7 @@ export async function getPushcutStatus(): Promise<PushcutStatus> {
 
   try {
     const db = getDb();
-    const workspaceId = await getOrCreateDefaultWorkspace();
+    const workspaceId = workspace ?? (await getOrCreateDefaultWorkspace());
 
     const [row] = await db
       .select()
@@ -77,8 +79,8 @@ export async function getPushcutStatus(): Promise<PushcutStatus> {
       lastEventAt: row.lastEventAt,
       lastError: row.lastError,
     };
-  } catch (error) {
-    console.error("[pushcut] erro ao ler estado:", error);
+  } catch {
+    console.error("[pushcut] status_failed");
     return empty;
   }
 }
@@ -148,7 +150,7 @@ export interface PushcutSendResult {
 export async function sendPushcutNotification(
   title: string,
   text: string,
-  options: { force?: boolean } = {},
+  options: { force?: boolean; workspaceId?: string } = {},
 ): Promise<PushcutSendResult> {
   if (!isDatabaseConfigured()) {
     return { ok: false, error: "Banco de dados não configurado." };
@@ -156,7 +158,8 @@ export async function sendPushcutNotification(
 
   try {
     const db = getDb();
-    const workspaceId = await getOrCreateDefaultWorkspace();
+    const workspaceId =
+      options.workspaceId ?? (await getOrCreateDefaultWorkspace());
 
     const [row] = await db
       .select()
@@ -201,13 +204,12 @@ export async function sendPushcutNotification(
     const now = new Date();
 
     if (!response.ok) {
-      const detail = await response.text().catch(() => "");
       const error =
         response.status === 401 || response.status === 403
           ? "Chave de API do Pushcut inválida."
           : response.status === 404
             ? `Notificação "${name}" não existe na app Pushcut.`
-            : `Erro HTTP ${response.status} do Pushcut. ${detail.slice(0, 200)}`;
+            : `Erro HTTP ${response.status} do Pushcut.`;
 
       await db
         .update(integrations)
@@ -223,17 +225,22 @@ export async function sendPushcutNotification(
       .where(eq(integrations.id, row.id));
 
     return { ok: true };
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Falha ao contactar o Pushcut.";
-    console.error("[pushcut] erro ao enviar:", error);
-    return { ok: false, error: message };
+  } catch {
+    console.error("[pushcut] send_failed");
+    return {
+      ok: false,
+      error:
+        "Falha ao contactar o Pushcut. Confira a conexão e tente novamente.",
+    };
   }
 }
 
 /** O evento está na lista escolhida pelo utilizador? */
-export async function shouldPushEvent(eventType: string): Promise<boolean> {
-  const status = await getPushcutStatus();
+export async function shouldPushEvent(
+  eventType: string,
+  workspaceId?: string,
+): Promise<boolean> {
+  const status = await getPushcutStatus(workspaceId);
   return (
     status.configured && status.isActive && status.events.includes(eventType)
   );

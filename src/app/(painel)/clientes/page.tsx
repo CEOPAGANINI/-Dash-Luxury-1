@@ -17,6 +17,7 @@ import {
 } from "@/features/customers/crm";
 import { demoCustomerRows } from "@/features/customers/crm-demo";
 import { toggleMarketingConsentAction } from "@/features/customers/actions";
+import { getOperationSettings } from "@/features/settings/operation";
 import { formatDate, formatMoney } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -52,22 +53,30 @@ async function carregarClientes(): Promise<{
   bancoConfigurado: boolean;
   agora: number;
   rows: CustomerRow[];
+  currency: "BRL" | "EUR";
 }> {
   const bancoConfigurado = isDatabaseConfigured();
   const agora = Date.now();
-  const rows = bancoConfigurado ? await listCustomers() : demoCustomerRows(agora);
-  return { bancoConfigurado, agora, rows };
+  const currency = bancoConfigurado
+    ? (await getOperationSettings()).currency
+    : "BRL";
+  const rows = bancoConfigurado
+    ? await listCustomers(200, currency)
+    : demoCustomerRows(agora);
+  return { bancoConfigurado, agora, rows, currency };
 }
 
 export default async function ClientesPage(props: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const searchParams = await props.searchParams;
-  const filtro = ehSegmento(searchParams.segmento) ? searchParams.segmento : null;
+  const filtro = ehSegmento(searchParams.segmento)
+    ? searchParams.segmento
+    : null;
 
-  const { bancoConfigurado, agora, rows } = await carregarClientes();
+  const { bancoConfigurado, agora, rows, currency } = await carregarClientes();
 
-  const summary = summarizeCustomers(rows);
+  const summary = summarizeCustomers(rows, currency);
   const contagem = contarSegmentos(rows);
   const visiveis = filtro
     ? rows.filter((c) => segmentar(c, agora) === filtro)
@@ -76,8 +85,14 @@ export default async function ClientesPage(props: {
   const cards = [
     { label: "Total de clientes", value: String(summary.total) },
     { label: "Compraram", value: String(summary.buyers) },
-    { label: "Receita total", value: formatMoney(summary.revenueCents) },
-    { label: "Ticket médio", value: formatMoney(summary.averageTicketCents) },
+    {
+      label: `Receita total (${currency})`,
+      value: formatMoney(summary.revenueCents, currency),
+    },
+    {
+      label: `Ticket médio (${currency})`,
+      value: formatMoney(summary.averageTicketCents, currency),
+    },
   ];
 
   return (
@@ -93,7 +108,8 @@ export default async function ClientesPage(props: {
           <p className="text-muted-foreground mt-2 max-w-4xl text-sm leading-6">
             Quem já comprou ou tentou comprar, separado em segmentos calculados
             dos próprios pedidos. Clique num segmento para ver só quem está
-            nele.
+            nele. Valores e segmentos consideram somente pedidos em {currency},
+            sem conversão de moedas.
           </p>
         </div>
       </header>
@@ -197,7 +213,9 @@ export default async function ClientesPage(props: {
                         >
                           {c.name}
                         </Link>
-                        <p className="text-muted-foreground text-xs">{c.email}</p>
+                        <p className="text-muted-foreground text-xs">
+                          {c.email}
+                        </p>
                         {c.phone && (
                           <p className="text-muted-foreground text-xs">
                             {c.phone}
@@ -218,18 +236,23 @@ export default async function ClientesPage(props: {
                         )}
                       </td>
                       <td className="py-3 text-right font-medium">
-                        {formatMoney(c.totalSpentCents)}
+                        {formatMoney(c.totalSpentCents, c.currency ?? "BRL")}
                       </td>
                       <td className="text-muted-foreground py-3 text-right">
                         {c.paidCount > 0
-                          ? formatMoney(c.averageTicketCents)
+                          ? formatMoney(
+                              c.averageTicketCents,
+                              c.currency ?? "BRL",
+                            )
                           : "—"}
                       </td>
                       <td className="text-muted-foreground py-3 pl-6 text-xs">
                         {c.lastOrderAt ? formatDate(c.lastOrderAt) : "—"}
                       </td>
                       <td className="py-3 pl-4">
-                        <Badge variant={c.marketingOptOut ? "muted" : "success"}>
+                        <Badge
+                          variant={c.marketingOptOut ? "muted" : "success"}
+                        >
                           {c.marketingOptOut ? "Não recebe" : "Recebe"}
                         </Badge>
                       </td>

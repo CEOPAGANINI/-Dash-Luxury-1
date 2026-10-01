@@ -98,7 +98,7 @@ function resultadoDeErro(erro: unknown): ResultadoVps<never> {
     };
   }
   if (faltaTabelaVps(erro)) {
-    console.error("[vps] tabelas ausentes numa ação", erro);
+    console.error("[vps] tabelas ausentes numa ação");
     return {
       ok: false,
       codigo: "sem_tabelas",
@@ -106,14 +106,14 @@ function resultadoDeErro(erro: unknown): ResultadoVps<never> {
     };
   }
   if (detalheDoErroPg(erro).codigo) {
-    console.error("[vps] o banco recusou uma ação", erro);
+    console.error("[vps] o banco recusou uma ação");
     return {
       ok: false,
       codigo: "erro_banco",
       mensagem: mensagemDeErroVps(erro),
     };
   }
-  console.error("[vps] erro inesperado numa ação", erro);
+  console.error("[vps] erro inesperado numa ação");
   return { ok: false, codigo: "erro_interno", mensagem: FALHA_INTERNA };
 }
 
@@ -805,8 +805,8 @@ export async function reentrarAction(
     try {
       const supabase = await createClient();
       await supabase.auth.signOut();
-    } catch (erro) {
-      console.error("[vps] não foi possível encerrar a sessão", erro);
+    } catch {
+      console.error("[vps] não foi possível encerrar a sessão");
     }
   }
   redirect(`/login?redirect=${encodeURIComponent(destino)}`);

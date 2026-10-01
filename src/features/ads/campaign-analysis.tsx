@@ -45,9 +45,9 @@ export function CampaignAnalysis({
           </strong>
           <p>
             {tree.campanhas.length}{" "}
-            {tree.campanhas.length === 1 ? "campanha" : "campanhas"} · {exampleCount} de exemplo.
-            Métricas dos últimos 7 dias; confira a última sincronização em cada
-            gerenciador.
+            {tree.campanhas.length === 1 ? "campanha" : "campanhas"} ·{" "}
+            {exampleCount} de exemplo. Métricas do período sincronizado; confira
+            a última atualização em cada gerenciador.
           </p>
         </div>
       </div>

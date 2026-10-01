@@ -71,7 +71,6 @@ export async function saveConnectionAction(
       publicConfig: publicValues,
     });
   } catch (error) {
-    console.error("[connections] erro ao salvar:", error);
     const semChave =
       error instanceof Error && error.message.includes("ENCRYPTION_KEY");
     return {
@@ -86,7 +85,7 @@ export async function saveConnectionAction(
   return {
     ok: true,
     mensagem:
-      "Conectada. O segredo foi criptografado e guardado; a tela mostra só a máscara.",
+      "Credencial salva e criptografada. Teste o acesso em Configurações → Diagnóstico antes de considerar a integração validada.",
   };
 }
 
@@ -99,8 +98,7 @@ export async function removeConnectionAction(
 
   try {
     await deleteConnection(id);
-  } catch (error) {
-    console.error("[connections] erro ao remover:", error);
+  } catch {
     return;
   }
   revalidar();
@@ -131,8 +129,7 @@ export async function useGoogleForYoutubeAction(): Promise<ResultadoConexao> {
       via: google.via,
       secrets: {},
     });
-  } catch (error) {
-    console.error("[connections] erro ao ligar o YouTube:", error);
+  } catch {
     return { ok: false, mensagem: "Não foi possível salvar. Tente de novo." };
   }
 

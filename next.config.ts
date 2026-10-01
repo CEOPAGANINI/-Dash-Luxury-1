@@ -4,8 +4,8 @@ import type { NextConfig } from "next";
    construiu (VERCEL_GIT_COMMIT_SHA). Aparece no rodapé do menu da
    esquerda, para conferir que versão está no ar. */
 const versao = (
-  process.env.VERCEL_GIT_COMMIT_SHA ??
-  process.env.COMMIT_SHA ??
+  process.env.VERCEL_GIT_COMMIT_SHA ||
+  process.env.COMMIT_SHA ||
   ""
 ).slice(0, 7);
 

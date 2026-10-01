@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import {
   ArrowRight, ChevronDown, ChevronLeft, ChevronRight, Clapperboard, Columns2, Compass, GripVertical,
-  Folder, LayoutGrid, Lock, Megaphone, MessageCircle, MonitorPlay, MoreHorizontal, Pin, Plus, Square, Store, X,
+  Folder, LayoutGrid, Megaphone, MessageCircle, MonitorPlay, MoreHorizontal, Pin, Plus, Square, Store, X,
 } from "lucide-react";
 
 import type { ProfitGuardrails } from "@/features/guardrails/rules";

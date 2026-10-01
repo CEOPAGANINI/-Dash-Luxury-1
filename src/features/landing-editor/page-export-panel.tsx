@@ -16,9 +16,11 @@ type Props = {
   page: FlowPage;
   site: SitePackage | null;
   onSiteChange: (site: SitePackage | null) => void;
+  /** Prepara o pacote em memória; o envio exige confirmação em outro painel. */
+  onPrepareZip?: (file: File) => Promise<void>;
 };
 
-export function PageExportPanel({ flow, page, site, onSiteChange }: Props) {
+export function PageExportPanel({ flow, page, site, onSiteChange, onPrepareZip }: Props) {
   const id = useId();
   const [mode, setMode] = useState<"editor" | "imported">(
     site ? "imported" : "editor",
@@ -82,7 +84,7 @@ export function PageExportPanel({ flow, page, site, onSiteChange }: Props) {
     }
   }
 
-  async function download() {
+  async function download(prepareOnly = false) {
     if (locked.current || (mode === "imported" && !site)) return;
     locked.current = true;
     setBusy("export");
@@ -96,6 +98,11 @@ export function PageExportPanel({ flow, page, site, onSiteChange }: Props) {
         mode === "imported" && site ? site : undefined,
       );
       if (!mounted.current) return;
+      if (prepareOnly && onPrepareZip) {
+        await onPrepareZip(new File([new Uint8Array(exported.bytes)], exported.filename, { type: "application/zip" }));
+        if (mounted.current) setMessage("ZIP preparado e conferido. Escolha o site e confirme a publicação no painel da página.");
+        return;
+      }
       const url = URL.createObjectURL(
         new Blob([new Uint8Array(exported.bytes)], { type: "application/zip" }),
       );
@@ -351,6 +358,16 @@ export function PageExportPanel({ flow, page, site, onSiteChange }: Props) {
             Sites: o Servidor do Funil coloca a página no ar e cuida do nginx,
             do domínio e do HTTPS. Este botão não se conecta à VPS.
           </p>
+          {onPrepareZip && (
+            <button
+              className={styles.primary}
+              type="button"
+              disabled={Boolean(busy) || (mode === "imported" && !site) || confirmReplace}
+              onClick={() => void download(true)}
+            >
+              Preparar ZIP para publicar
+            </button>
+          )}
           <p className={styles.notice}>
             Os arquivos importados ficam só nesta aba e não entram no rascunho
             nem no JSON do funil. Guarde o ZIP antes de sair.

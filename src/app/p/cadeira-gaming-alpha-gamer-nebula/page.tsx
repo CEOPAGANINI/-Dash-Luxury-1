@@ -16,6 +16,7 @@ export const metadata: Metadata = {
   title: `${alphaGamerNebula.name} · ${techNebulaStore.name}`,
   description: alphaGamerNebula.shortPitch,
 };
+export const dynamic = "force-dynamic";
 
 /**
  * Landing page pública TechNébula (rota /p/[slug]).

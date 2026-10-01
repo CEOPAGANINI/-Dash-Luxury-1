@@ -26,23 +26,13 @@ export interface RouterVisitor extends Visitor {
 
 /** O critério de uma regra: por região (país), por aparelho, ou por fatia %. */
 export type MatchKind =
-  | "regiao"
-  | "dispositivo"
-  | "sistema"
-  | "rede"
-  | "origem"
-  | "fatia";
+  "regiao" | "dispositivo" | "sistema" | "rede" | "origem" | "fatia";
 
 export type SystemKind =
-  | "windows"
-  | "macos"
-  | "ios"
-  | "android"
-  | "linux"
-  | "chromeos"
-  | "outro_so";
+  "windows" | "macos" | "ios" | "android" | "linux" | "chromeos" | "outro_so";
 
-export type NetworkKind = "wifi" | "cabo" | "cel5g" | "cel4g" | "cel3g" | "outra_rede";
+export type NetworkKind =
+  "wifi" | "cabo" | "cel5g" | "cel4g" | "cel3g" | "outra_rede";
 
 export interface SistemaDef {
   id: SystemKind;
@@ -181,6 +171,7 @@ export function decidirDestino(
   visitante: RouterVisitor,
   sorteio: number,
 ): DecisaoDeRota {
+  let percentualAnterior = 0;
   for (const r of pagina.regras) {
     if (!r.ativo) continue;
     let bate = false;
@@ -188,12 +179,17 @@ export function decidirDestino(
     else if (r.tipo === "dispositivo")
       bate = r.dispositivos.includes(visitante.dispositivo);
     else if (r.tipo === "sistema")
-      bate = !!visitante.sistema && (r.sistemas ?? []).includes(visitante.sistema);
+      bate =
+        !!visitante.sistema && (r.sistemas ?? []).includes(visitante.sistema);
     else if (r.tipo === "rede")
       bate = !!visitante.rede && (r.redes ?? []).includes(visitante.rede);
     else if (r.tipo === "origem")
       bate = !!visitante.origem && (r.origens ?? []).includes(visitante.origem);
-    else if (r.tipo === "fatia") bate = sorteio < r.percentual;
+    else if (r.tipo === "fatia") {
+      const final = Math.min(100, percentualAnterior + r.percentual);
+      bate = sorteio >= percentualAnterior && sorteio < final;
+      percentualAnterior = final;
+    }
     if (bate && r.destino.trim())
       return { destino: r.destino, regra: r, ficou: false };
   }
@@ -227,7 +223,9 @@ export function descreverRegra(regra: RedirectRule): string {
 
 /** Só as páginas que têm ao menos uma regra ativa de redirecionamento. */
 export function paginasComRedirecionamento(paginas: OfferPage[]): OfferPage[] {
-  return paginas.filter((p) => p.regras.some((r) => r.ativo && r.destino.trim()));
+  return paginas.filter((p) =>
+    p.regras.some((r) => r.ativo && r.destino.trim()),
+  );
 }
 
 /** Quantas regras ativas de redirecionamento existem no total. */
@@ -341,11 +339,36 @@ export interface EventoRedirecionado {
  * aparelho (demonstração). Numa versão ligada, viria do registro real.
  */
 export const REDIRECIONADOS_EXEMPLO: EventoRedirecionado[] = [
-  { regiao: "Rússia", dispositivo: "Celular", destino: "/indisponivel", qtd: 128 },
-  { regiao: "Índia", dispositivo: "Celular", destino: "/indisponivel", qtd: 96 },
-  { regiao: "Sudeste (BR)", dispositivo: "Computador", destino: "/versao-computador", qtd: 74 },
-  { regiao: "Sul (BR)", dispositivo: "Computador", destino: "/versao-computador", qtd: 39 },
-  { regiao: "Nigéria", dispositivo: "Tablet", destino: "/indisponivel", qtd: 21 },
+  {
+    regiao: "Rússia",
+    dispositivo: "Celular",
+    destino: "/indisponivel",
+    qtd: 128,
+  },
+  {
+    regiao: "Índia",
+    dispositivo: "Celular",
+    destino: "/indisponivel",
+    qtd: 96,
+  },
+  {
+    regiao: "Sudeste (BR)",
+    dispositivo: "Computador",
+    destino: "/versao-computador",
+    qtd: 74,
+  },
+  {
+    regiao: "Sul (BR)",
+    dispositivo: "Computador",
+    destino: "/versao-computador",
+    qtd: 39,
+  },
+  {
+    regiao: "Nigéria",
+    dispositivo: "Tablet",
+    destino: "/indisponivel",
+    qtd: 21,
+  },
 ];
 
 /** O total de visitantes redirecionados no registro. */

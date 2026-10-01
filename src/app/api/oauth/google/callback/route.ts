@@ -123,8 +123,8 @@ export async function GET(request: Request) {
         hasDeveloperToken: Boolean(developerToken),
       },
     });
-  } catch (error) {
-    console.error("[oauth google] falha:", error);
+  } catch {
+    console.error("[oauth google] callback_failed");
     return backToIntegrations(origin, "google", "erro");
   }
 

@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 
 import { isDatabaseConfigured } from "@/database/client";
 import { getSession } from "@/lib/auth/session";
+import { exigirWorkspaceRole } from "@/lib/workspace";
 
 /*
   O que as duas plataformas têm em comum no OAuth.
@@ -30,7 +31,7 @@ export function appOrigin(request: Request): string {
 /** Sem sessão ou sem banco, o OAuth não tem onde guardar o resultado. */
 export async function oauthPrecondition(): Promise<NextResponse | null> {
   const session = await getSession();
-  if (!session) {
+  if (!session || session.demoMode) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
   if (!isDatabaseConfigured()) {
@@ -41,6 +42,11 @@ export async function oauthPrecondition(): Promise<NextResponse | null> {
       },
       { status: 503 },
     );
+  }
+  try {
+    await exigirWorkspaceRole();
+  } catch {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
   return null;
 }

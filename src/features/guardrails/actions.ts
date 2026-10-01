@@ -5,7 +5,7 @@ import { eq } from "drizzle-orm";
 
 import { getDb, isDatabaseConfigured } from "@/database/client";
 import { workspaces } from "@/database/schema";
-import { getOrCreateDefaultWorkspace } from "@/lib/workspace";
+import { exigirWorkspaceRole } from "@/lib/workspace";
 import { GUARDRAILS_SETTINGS_KEY } from "./queries";
 import { normalizarGuardrails } from "./rules";
 
@@ -46,7 +46,7 @@ export async function saveGuardrailsAction(
 
   try {
     const db = getDb();
-    const workspaceId = await getOrCreateDefaultWorkspace();
+    const workspaceId = (await exigirWorkspaceRole(["marketing"])).workspaceId;
     const [row] = await db
       .select({ settings: workspaces.settings })
       .from(workspaces)
@@ -61,8 +61,7 @@ export async function saveGuardrailsAction(
         updatedAt: new Date(),
       })
       .where(eq(workspaces.id, workspaceId));
-  } catch (error) {
-    console.error("[guardrails] erro ao salvar:", error);
+  } catch {
     return { ok: false, mensagem: "Não foi possível salvar. Tente de novo." };
   }
 

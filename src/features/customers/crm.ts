@@ -1,8 +1,9 @@
-import { and, desc, eq, isNull } from "drizzle-orm";
+import { and, desc, eq, isNull, sql } from "drizzle-orm";
 
 import { getDb, isDatabaseConfigured } from "@/database/client";
 import { customerAddresses, customers, orders } from "@/database/schema";
 import { getOrCreateDefaultWorkspace } from "@/lib/workspace";
+import { getOperationSettings } from "@/features/settings/operation";
 import type { CustomerRow } from "./queries";
 
 /*
@@ -22,7 +23,11 @@ export type Segmento =
 
 export const SEGMENTOS: Record<
   Segmento,
-  { label: string; pergunta: string; tom: "success" | "info" | "warning" | "destructive" | "muted" }
+  {
+    label: string;
+    pergunta: string;
+    tom: "success" | "info" | "warning" | "destructive" | "muted";
+  }
 > = {
   vip: {
     label: "VIP",
@@ -36,17 +41,20 @@ export const SEGMENTOS: Record<
   },
   novo: {
     label: "Novo",
-    pergunta: "Primeira compra nos últimos 30 dias — a hora de conquistar a segunda.",
+    pergunta:
+      "Primeira compra nos últimos 30 dias — a hora de conquistar a segunda.",
     tom: "success",
   },
   inativo: {
     label: "Inativo",
-    pergunta: "Comprou, mas há mais de 90 dias sem voltar — campanha de retorno.",
+    pergunta:
+      "Comprou, mas há mais de 90 dias sem voltar — campanha de retorno.",
     tom: "warning",
   },
   risco: {
     label: "Risco",
-    pergunta: "Tentou comprar e nunca pagou — recuperação de carrinho ou bloqueio.",
+    pergunta:
+      "Tentou comprar e nunca pagou — recuperação de carrinho ou bloqueio.",
     tom: "destructive",
   },
   lead: {
@@ -98,6 +106,7 @@ export interface PedidoDoCliente {
   reference: string;
   status: string;
   totalCents: number;
+  currency?: string;
   createdAt: Date;
   origin: string | null;
 }
@@ -120,6 +129,16 @@ export interface FichaDoCliente {
   isBlocked: boolean;
   marketingOptOut: boolean;
   createdAt: Date;
+  currency?: "BRL" | "EUR";
+  metricas?: Pick<
+    CustomerRow,
+    | "orderCount"
+    | "paidCount"
+    | "totalSpentCents"
+    | "averageTicketCents"
+    | "lastOrderAt"
+    | "firstOrderAt"
+  >;
   pedidos: PedidoDoCliente[];
   enderecos: EnderecoDoCliente[];
 }
@@ -132,6 +151,7 @@ export async function getFichaDoCliente(
 
   const db = getDb();
   const workspaceId = await getOrCreateDefaultWorkspace();
+  const { currency } = await getOperationSettings();
 
   const [perfil] = await db
     .select({
@@ -159,18 +179,22 @@ export async function getFichaDoCliente(
 
   if (!perfil) return null;
 
-  const [pedidos, enderecos] = await Promise.all([
+  const paidFilter = sql`${orders.status} in ('paid','shipped','delivered')`;
+  const [pedidos, enderecos, metricas] = await Promise.all([
     db
       .select({
         id: orders.id,
         reference: orders.reference,
         status: orders.status,
         totalCents: orders.totalCents,
+        currency: orders.currency,
         createdAt: orders.createdAt,
         origin: orders.origin,
       })
       .from(orders)
-      .where(eq(orders.customerId, id))
+      .where(
+        and(eq(orders.customerId, id), eq(orders.workspaceId, workspaceId)),
+      )
       .orderBy(desc(orders.createdAt))
       .limit(100),
     db
@@ -183,7 +207,28 @@ export async function getFichaDoCliente(
       .from(customerAddresses)
       .where(eq(customerAddresses.customerId, id))
       .limit(10),
+    db
+      .select({
+        orderCount: sql`count(${orders.id})`.mapWith(Number),
+        paidCount:
+          sql`count(${orders.id}) filter (where ${paidFilter})`.mapWith(Number),
+        totalSpentCents:
+          sql`coalesce(sum(${orders.totalCents}) filter (where ${paidFilter}), 0)`.mapWith(
+            Number,
+          ),
+        lastOrderAt: sql<Date | null>`max(${orders.createdAt})`,
+        firstOrderAt: sql<Date | null>`min(${orders.createdAt})`,
+      })
+      .from(orders)
+      .where(
+        and(
+          eq(orders.customerId, id),
+          eq(orders.workspaceId, workspaceId),
+          eq(orders.currency, currency),
+        ),
+      ),
   ]);
+  const resumo = metricas[0];
 
   return {
     id: perfil.id,
@@ -200,6 +245,17 @@ export async function getFichaDoCliente(
     isBlocked: perfil.isBlocked,
     marketingOptOut: perfil.marketingOptOut,
     createdAt: perfil.createdAt,
+    currency,
+    metricas: {
+      orderCount: resumo.orderCount,
+      paidCount: resumo.paidCount,
+      totalSpentCents: resumo.totalSpentCents,
+      averageTicketCents: resumo.paidCount
+        ? Math.round(resumo.totalSpentCents / resumo.paidCount)
+        : 0,
+      lastOrderAt: resumo.lastOrderAt ? new Date(resumo.lastOrderAt) : null,
+      firstOrderAt: resumo.firstOrderAt ? new Date(resumo.firstOrderAt) : null,
+    },
     pedidos: pedidos.map((p) => ({
       ...p,
       status: String(p.status),

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useActionState } from "react";
-import { Check, ChevronDown, Copy, ExternalLink, Plug, X } from "lucide-react";
+import { Check, ChevronDown, ExternalLink, Plug, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import {
@@ -115,8 +115,8 @@ export function DataConnections({
           </h2>
           <p className="text-muted-foreground mt-0.5 text-xs leading-5">
             Meta e Google conectam com um clique, autorizando na própria
-            plataforma. As outras pedem as credenciais que a plataforma
-            emite. Todo segredo vai criptografado para o banco.
+            plataforma. As outras pedem as credenciais que a plataforma emite.
+            Todo segredo vai criptografado para o banco.
           </p>
         </div>
         <span className="text-muted-foreground shrink-0 text-xs leading-4 font-bold tabular-nums">
@@ -150,8 +150,8 @@ export function DataConnections({
       {!bancoConfigurado && (
         <p className="bg-warning/10 text-warning border-b px-4 py-2 text-xs leading-5">
           Sem banco de dados, nenhuma conexão fica salva. Configure o Supabase
-          na Vercel (DATABASE_URL e ENCRYPTION_KEY) para as conexões
-          existirem de verdade.
+          na Vercel (DATABASE_URL e ENCRYPTION_KEY) para as conexões existirem
+          de verdade.
         </p>
       )}
 
@@ -163,7 +163,9 @@ export function DataConnections({
             stored={connections[meta.id]}
             googleIdentifier={connections.google?.identifier}
             oauthDisponivel={
-              meta.id === "meta" || meta.id === "google" ? oauth[meta.id] : false
+              meta.id === "meta" || meta.id === "google"
+                ? oauth[meta.id]
+                : false
             }
             open={open === meta.id}
             onToggle={() =>
@@ -235,7 +237,7 @@ function ProviderCard({
               : "border-warning/40 text-warning bg-warning/10",
           )}
         >
-          {isConfigured ? "Conectada" : "Não conectada"}
+          {isConfigured ? "Credencial salva" : "Não configurada"}
         </span>
         <ChevronDown
           aria-hidden
@@ -261,7 +263,10 @@ function ProviderCard({
               {(meta.id === "meta" || meta.id === "google") && (
                 <OauthButton provider={meta.id} disponivel={oauthDisponivel} />
               )}
-              <ProviderForm meta={meta} comOauth={meta.id === "meta" || meta.id === "google"} />
+              <ProviderForm
+                meta={meta}
+                comOauth={meta.id === "meta" || meta.id === "google"}
+              />
             </div>
           )}
         </div>
@@ -335,9 +340,7 @@ function ConnectedBody({
     <div className="space-y-2">
       <p className="text-muted-foreground text-xs leading-5">
         {stored.identifier} · token {stored.tokenMask}
-        {stored.via === "oauth"
-          ? " · autorizado na plataforma"
-          : " · digitado"}
+        {stored.via === "oauth" ? " · autorizado na plataforma" : " · digitado"}
         . Para trocar de conta ou de token, desconecte e conecte de novo.
       </p>
       <DisconnectButton id={meta.id} name={meta.name} />
@@ -380,8 +383,8 @@ function YoutubeBody({
     return (
       <div className="space-y-2">
         <p className="text-muted-foreground text-xs leading-5">
-          O YouTube usa a mesma conta do Google Ads — conecte o Google
-          primeiro e volte aqui.
+          O YouTube usa a mesma conta do Google Ads — conecte o Google primeiro
+          e volte aqui.
         </p>
         <button type="button" onClick={onOpenGoogle} className={BOTAO_CONTORNO}>
           Abrir a conexão do Google Ads
@@ -420,7 +423,9 @@ function ProviderForm({
 }) {
   const fields = FIELDS[meta.id] ?? [];
   const [values, setValues] = React.useState<Record<string, string>>({});
-  const [errosLocais, setErrosLocais] = React.useState<Record<string, string>>({});
+  const [errosLocais, setErrosLocais] = React.useState<Record<string, string>>(
+    {},
+  );
   const [estado, acao, pendente] = useActionState<
     ResultadoConexao | null,
     FormData
@@ -471,7 +476,10 @@ function ProviderForm({
             }
             placeholder={field.placeholder}
             aria-invalid={Boolean(erros[field.name])}
-            className={cn(INPUT_CLASS, erros[field.name] && "border-destructive")}
+            className={cn(
+              INPUT_CLASS,
+              erros[field.name] && "border-destructive",
+            )}
           />
           {erros[field.name] && (
             <span className="text-destructive mt-1 block text-xs leading-4 font-semibold">
@@ -487,7 +495,10 @@ function ProviderForm({
           {pendente ? "Salvando…" : "Salvar conexão"}
         </button>
         {estado && !estado.ok ? (
-          <span role="status" className="text-warning text-[0.6875rem] leading-4 font-semibold">
+          <span
+            role="status"
+            className="text-warning text-[0.6875rem] leading-4 font-semibold"
+          >
             {estado.mensagem}
           </span>
         ) : (
@@ -506,52 +517,13 @@ function ProviderForm({
  * a sincronização de servidor.
  */
 function WebhookAddress() {
-  const [url, setUrl] = React.useState("");
-  const [copied, setCopied] = React.useState(false);
-
-  /* O endereço só existe no navegador (window.location); agendado para não
-     ser um setState síncrono dentro do efeito. */
-  React.useEffect(() => {
-    const timeout = window.setTimeout(() => {
-      setUrl(`${window.location.origin}/api/webhooks/gateway`);
-    }, 0);
-    return () => window.clearTimeout(timeout);
-  }, []);
-
-  React.useEffect(() => {
-    if (!copied) return;
-    const timeout = window.setTimeout(() => setCopied(false), 2000);
-    return () => window.clearTimeout(timeout);
-  }, [copied]);
-
-  if (!url) return null;
-
   return (
-    <div className="bg-muted/30 rounded-lg border px-3 py-2">
-      <span className="text-[0.6875rem] leading-4 font-extrabold tracking-wide uppercase">
-        Endereço do webhook
-      </span>
-      <span className="text-muted-foreground block text-[0.6875rem] leading-4">
-        Cadastre este endereço no painel do gateway, no evento de pagamento
-        atualizado.
-      </span>
-      <span className="mt-1.5 flex items-center gap-2">
-        <code className="text-foreground min-w-0 flex-1 truncate font-mono text-xs">
-          {url}
-        </code>
-        <button
-          type="button"
-          onClick={() => {
-            void navigator.clipboard?.writeText(url);
-            setCopied(true);
-          }}
-          className="border-input hover:bg-muted/30 focus-visible:ring-ring flex min-h-8 shrink-0 items-center gap-1 rounded-lg border px-2 text-[0.6875rem] font-bold focus-visible:ring-2 focus-visible:outline-none"
-        >
-          <Copy aria-hidden className="size-3" />
-          {copied ? "Copiado" : "Copiar"}
-        </button>
-      </span>
-    </div>
+    <p className="text-xs">
+      O webhook precisa identificar sua operação e validar a assinatura.{" "}
+      <a className="underline" href="/configuracoes/diagnosticos">
+        Abrir endereço seguro e diagnóstico
+      </a>
+    </p>
   );
 }
 

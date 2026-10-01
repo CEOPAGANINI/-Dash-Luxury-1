@@ -10,6 +10,7 @@
 */
 
 import { FUNIL_DEMO } from "@/features/funnel/funnel-demo";
+import { funnelNodeAddress } from "@/features/funnel/funnel-address";
 import type {
   FunnelData,
   FunnelNode,
@@ -74,15 +75,7 @@ export const ORDEM_CATEGORIA: FunnelDestKind[] = [
  * ainda vira um destino apresentável.
  */
 export function enderecoDoNo(n: FunnelNode): string {
-  const u = (n.url ?? "").trim();
-  if (u.startsWith("/") || /^https?:\/\//i.test(u)) return u;
-  const slug = n.title
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-  return "/" + (slug || n.id);
+  return funnelNodeAddress(n);
 }
 
 /** Os lugares de uma lista de nós (o quadro aberto) que servem de destino. */
@@ -91,13 +84,16 @@ export function destinosDosNos(nodes: FunnelNode[]): FunnelDestino[] {
   for (const n of nodes) {
     const categoria = CATEGORIA_POR_TIPO[n.type];
     if (!categoria) continue;
-    saida.push({ id: n.id, nome: n.title, url: enderecoDoNo(n), categoria });
+    const url = enderecoDoNo(n);
+    if (url) saida.push({ id: n.id, nome: n.title, url, categoria });
   }
   return saida;
 }
 
 /** Os lugares do funil que dá para escolher no redirecionador. */
-export function destinosDoFunil(data: FunnelData = FUNIL_DEMO): FunnelDestino[] {
+export function destinosDoFunil(
+  data: FunnelData = FUNIL_DEMO,
+): FunnelDestino[] {
   return destinosDosNos(data.nodes);
 }
 

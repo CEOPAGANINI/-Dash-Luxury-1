@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { cache } from "react";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 export interface SessionUser {
@@ -31,7 +32,7 @@ export interface AppSession {
  * - Supabase configurado: exige usuário autenticado (retorna null se não houver).
  * - Supabase ausente: retorna sessão de demonstração explícita (demoMode=true).
  */
-export async function getSession(): Promise<AppSession | null> {
+export const getSession = cache(async (): Promise<AppSession | null> => {
   if (!isSupabaseConfigured()) {
     return { user: DEMO_USER, demoMode: true };
   }
@@ -55,7 +56,7 @@ export async function getSession(): Promise<AppSession | null> {
     },
     demoMode: false,
   };
-}
+});
 
 /**
  * Quando ESTA sessão se autenticou, pelo `amr` do JWT: a maior `timestamp`

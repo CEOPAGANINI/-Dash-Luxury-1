@@ -148,7 +148,7 @@ export default async function CheckoutsPage() {
                         {c.status === "published" && (
                           <Button size="sm" variant="outline" asChild>
                             <Link
-                              href={`/checkout/${c.slug}`}
+                              href={`/checkout/${c.slug}?loja=${c.workspaceId}`}
                               target="_blank"
                               aria-label="Abrir checkout"
                             >
@@ -156,6 +156,11 @@ export default async function CheckoutsPage() {
                             </Link>
                           </Button>
                         )}
+                        <Button size="sm" variant="outline" asChild>
+                          <Link href={`/editor/checkout?id=${c.id}`}>
+                            Editar
+                          </Link>
+                        </Button>
                         <form action={toggleCheckoutStatusAction}>
                           <input type="hidden" name="id" value={c.id} />
                           <input

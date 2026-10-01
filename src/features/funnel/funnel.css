@@ -84,17 +84,59 @@
    sem cabeçalho e sem moldura, com o menu no trilho à esquerda. A dash-main
    perde o respiro e vira uma coluna flex; o quadro estica e preenche tudo,
    sem nada ficar de fora nem sobrar rolagem. */
-.dash-main:has(> .funnel-stage) {
+.dash-main:has(> .funnel-stage),
+.dash-main:has(> .campaign-workspace > .funnel-stage) {
   padding: 0;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+}
+.campaign-workspace:has(> .funnel-stage) {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
 }
 .funnel-stage {
   flex: 1;
   min-width: 0;
   min-height: 0;
   display: flex;
+}
+/* A sessão de armazenamento também precisa esticar o quadro. Sem flex,
+   o canvas (com filhos absolutos) fica com altura zero após a hidratação. */
+.funnel-session {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+}
+
+.funnel__sync {
+  position: absolute;
+  z-index: 40;
+  top: 10px;
+  left: 76px;
+  max-width: calc(100% - 112px);
+  font: 11px/1.4 var(--font-mono, monospace);
+  color: var(--fn-muted);
+  padding: 6px 8px;
+  background: var(--fn-node-top);
+  border: 1px solid var(--fn-line);
+}
+.funnel__sync button {
+  margin-left: 12px;
+  text-decoration: underline;
+  color: var(--fn-text);
+}
+.funnel__sync[data-state="error"] {
+  border-color: #b45309;
+}
+.funnel__sync[data-state="local"] {
+  opacity: 0.75;
 }
 .funnel-stage .funnel {
   flex: 1;
@@ -676,7 +718,8 @@
 /* ── Toolbar de zoom ──────────────────────────────────────────────────── */
 .funnel__zoom {
   position: absolute;
-  left: 16px;
+  /* O trilho ocupa os primeiros 56px e fica acima do canvas. */
+  left: 72px;
   bottom: 16px;
   z-index: 28;
   display: flex;
@@ -1075,7 +1118,8 @@
   color: var(--aba-cor, #34d399);
   background: color-mix(in srgb, var(--aba-cor, #34d399) 14%, transparent);
   border-color: color-mix(in srgb, var(--aba-cor, #34d399) 42%, transparent);
-  box-shadow: 0 8px 20px -8px color-mix(in srgb, var(--aba-cor, #34d399) 65%, transparent);
+  box-shadow: 0 8px 20px -8px
+    color-mix(in srgb, var(--aba-cor, #34d399) 65%, transparent);
 }
 .pub__rail-ic {
   display: grid;
@@ -1590,7 +1634,9 @@
   border-radius: 8px;
   cursor: pointer;
   color: var(--fn-text);
-  transition: border-color 0.14s, background 0.14s;
+  transition:
+    border-color 0.14s,
+    background 0.14s;
 }
 .pub__slug:hover {
   border-color: color-mix(in srgb, #2bd975 45%, var(--fn-line));
@@ -2160,10 +2206,14 @@
   width: min(380px, calc(100% - 90px));
 }
 .funnel__funis-salvar {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 8px;
   align-items: center;
   margin: 8px 0 6px;
+}
+.funnel__funis-salvar > button:nth-of-type(n + 2) {
+  grid-column: 1 / -1;
 }
 .funnel__funis-salvar .funnel__input {
   flex: 1;
@@ -3365,7 +3415,8 @@
 }
 .funnel__anot--frame {
   background: color-mix(in srgb, var(--anot-cor, #a78bfa) 7%, transparent);
-  border: 2px dashed color-mix(in srgb, var(--anot-cor, #a78bfa) 70%, transparent);
+  border: 2px dashed
+    color-mix(in srgb, var(--anot-cor, #a78bfa) 70%, transparent);
   padding: 8px;
 }
 .funnel__node[data-tipo="frame"] {
@@ -3380,7 +3431,8 @@
   text-transform: uppercase;
   color: var(--anot-cor, #a78bfa);
   background: var(--fn-canvas);
-  border: 1px solid color-mix(in srgb, var(--anot-cor, #a78bfa) 50%, transparent);
+  border: 1px solid
+    color-mix(in srgb, var(--anot-cor, #a78bfa) 50%, transparent);
   padding: 4px 8px;
 }
 .funnel__anot-texto {
@@ -3736,7 +3788,8 @@
   --fn-handle: #222222;
   --fn-edge: #6b6b6b;
   --fn-shadow-node: 0 6px 18px rgb(0 0 0 / 14%);
-  --fn-shadow-panel: 0 20px 25px -5px rgb(0 0 0 / 15%), 0 8px 10px -6px rgb(0 0 0 / 10%);
+  --fn-shadow-panel:
+    0 20px 25px -5px rgb(0 0 0 / 15%), 0 8px 10px -6px rgb(0 0 0 / 10%);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -3751,7 +3804,13 @@
    ═══════════════════════════════════════════════════════════════════════ */
 .funnel {
   --fn-sans: var(--cl-sans, var(--font-inter), "Inter", system-ui, sans-serif);
-  --fn-mono: var(--cl-mono, var(--font-jetbrains-mono), "JetBrains Mono", ui-monospace, monospace);
+  --fn-mono: var(
+    --cl-mono,
+    var(--font-jetbrains-mono),
+    "JetBrains Mono",
+    ui-monospace,
+    monospace
+  );
   font-family: var(--fn-sans);
   font-size: 13px;
   line-height: 1.45;
@@ -4409,4 +4468,49 @@
 .funnel__ligar-sec,
 .funnel__ligar-lista {
   flex: none;
+}
+
+.funnel__save-notice {
+  position: absolute;
+  z-index: 70;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: max-content;
+  max-width: calc(100% - 32px);
+  padding: 12px 16px;
+  border: 1px solid var(--border, #333);
+  background: var(--background, #080808);
+  color: var(--foreground, #fafafa);
+  box-shadow: 0 8px 24px #0006;
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.funnel__save-notice button {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  color: inherit;
+  border: 1px solid currentColor;
+  cursor: pointer;
+}
+
+/* Safety copy must remain readable, even in the compact one-line UI. */
+[aria-label="Publicação real na VPS"] .pub__hint,
+[aria-label="Publicação real na VPS"] .pub__btn,
+[aria-label="Confirmar substituição do site"] p,
+.pub__hint[role="alert"],
+.pub__hint[role="status"] {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
 }

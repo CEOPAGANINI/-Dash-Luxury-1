@@ -7,14 +7,45 @@
 
 import { PAGINAS_VPS } from "@/features/vps/catalogo-demo";
 
-export type PlataformaLoja = "vps" | "shopify" | "nuvemshop" | "woocommerce" | "outra";
+export type PlataformaLoja =
+  "vps" | "shopify" | "nuvemshop" | "woocommerce" | "outra";
 
-export const PLATAFORMAS: { id: PlataformaLoja; nome: string; dica: string; exemplo: string }[] = [
-  { id: "vps", nome: "Loja própria (VPS)", dica: "Hospedada no seu servidor, com os domínios do painel.", exemplo: "loja-suprema.com" },
-  { id: "shopify", nome: "Shopify", dica: "Já existe integração em Integrações; liga na Fase 2.", exemplo: "minhaloja.myshopify.com" },
-  { id: "nuvemshop", nome: "Nuvemshop", dica: "Loja na Nuvemshop, com checkout deles.", exemplo: "minhaloja.lojavirtualnuvem.com.br" },
-  { id: "woocommerce", nome: "WooCommerce", dica: "Loja em WordPress com WooCommerce.", exemplo: "minhaloja.com.br" },
-  { id: "outra", nome: "Outra plataforma", dica: "Qualquer loja com um endereço.", exemplo: "minhaloja.com" },
+export const PLATAFORMAS: {
+  id: PlataformaLoja;
+  nome: string;
+  dica: string;
+  exemplo: string;
+}[] = [
+  {
+    id: "vps",
+    nome: "Loja própria (VPS)",
+    dica: "Hospedada no seu servidor, com os domínios do painel.",
+    exemplo: "loja-suprema.com",
+  },
+  {
+    id: "shopify",
+    nome: "Shopify",
+    dica: "Já existe integração em Integrações; liga na Fase 2.",
+    exemplo: "minhaloja.myshopify.com",
+  },
+  {
+    id: "nuvemshop",
+    nome: "Nuvemshop",
+    dica: "Loja na Nuvemshop, com checkout deles.",
+    exemplo: "minhaloja.lojavirtualnuvem.com.br",
+  },
+  {
+    id: "woocommerce",
+    nome: "WooCommerce",
+    dica: "Loja em WordPress com WooCommerce.",
+    exemplo: "minhaloja.com.br",
+  },
+  {
+    id: "outra",
+    nome: "Outra plataforma",
+    dica: "Qualquer loja com um endereço.",
+    exemplo: "minhaloja.com",
+  },
 ];
 
 /** O ZIP da landing page do produto (só o nome e o tamanho: Fase 1). */
@@ -22,6 +53,7 @@ export interface ZipProduto {
   nome: string;
   tamanho: number;
   ok: boolean;
+  sourceFunnelId?: string;
 }
 
 export interface ProdutoLoja {
@@ -53,7 +85,10 @@ export function normalizarSlug(txt: string): string {
 /** Nome para mostrar: o dado, senão o do slug, senão o do ZIP, senão "Produto". */
 export function nomeDoProduto(p: ProdutoLoja): string {
   if (p.nome.trim()) return p.nome.trim();
-  const base = p.caminho.split("/").filter(Boolean).pop() || p.zip?.nome.replace(/\.zip$/i, "") || "";
+  const base =
+    p.caminho.split("/").filter(Boolean).pop() ||
+    p.zip?.nome.replace(/\.zip$/i, "") ||
+    "";
   const limpo = base.replace(/[-_]+/g, " ").trim();
   return limpo ? limpo.charAt(0).toUpperCase() + limpo.slice(1) : "Produto";
 }
@@ -88,19 +123,27 @@ function precoDemo(nome: string): number {
 
 /** Os produtos que a VPS já tem num domínio (demonstração). */
 export function produtosDaVps(host: string): ProdutoLoja[] {
-  return PAGINAS_VPS.filter((p) => p.host === host && p.tipo === "produto").map((p) => ({
-    id: `vps-${p.id}`,
-    nome: p.nome,
-    preco: precoDemo(p.nome),
-    caminho: p.caminho,
-    ativo: true,
-  }));
+  return PAGINAS_VPS.filter((p) => p.host === host && p.tipo === "produto").map(
+    (p) => ({
+      id: `vps-${p.id}`,
+      nome: p.nome,
+      preco: precoDemo(p.nome),
+      caminho: p.caminho,
+      ativo: true,
+    }),
+  );
 }
 
 /** A loja de demonstração (Loja Suprema, da VPS). */
 export function lojaDemo(): DadosLoja {
   const produtos = produtosDaVps("loja-suprema.com");
-  return { plataforma: "vps", dominio: "loja-suprema.com", moeda: "BRL", produtos, destaqueId: produtos[0]?.id };
+  return {
+    plataforma: "vps",
+    dominio: "loja-suprema.com",
+    moeda: "BRL",
+    produtos,
+    destaqueId: produtos[0]?.id,
+  };
 }
 
 export function nomeDaPlataforma(id: PlataformaLoja): string {
@@ -109,7 +152,11 @@ export function nomeDaPlataforma(id: PlataformaLoja): string {
 
 /** "R$ 197" na moeda da loja. */
 export function precoTxt(v: number, moeda: DadosLoja["moeda"] = "BRL"): string {
-  return v.toLocaleString(moeda === "USD" ? "en-US" : "pt-BR", { style: "currency", currency: moeda, maximumFractionDigits: 0 });
+  return v.toLocaleString(moeda === "USD" ? "en-US" : "pt-BR", {
+    style: "currency",
+    currency: moeda,
+    maximumFractionDigits: 0,
+  });
 }
 
 /** Resumo curto para o bloco: "3 produtos · destaque: Relógio Aviator". */

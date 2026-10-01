@@ -1,4 +1,4 @@
-export type OperationId = "alpha" | "beta";
+export type OperationId = string;
 export type NetworkId = "all" | "meta" | "google" | "youtube";
 export type PeriodPreset = "7d" | "30d" | "month" | "custom";
 
@@ -128,4 +128,34 @@ export interface UnifiedDemoData {
   customers: CustomerRow[];
   transactions: TransactionRow[];
   notifications: NotificationRow[];
+}
+
+export interface ObservedRevenueDay {
+  date: string;
+  approved: number;
+  pending: number;
+  refused: number;
+  orders: number;
+  paidOrders: number;
+}
+
+/** Valores observados. Lucro, caixa de repasse e atribuição não são presumidos. */
+export interface UnifiedDashboardData extends UnifiedDemoData {
+  source: {
+    status: "ready" | "unavailable" | "error";
+    asOf: string;
+    startDate: string;
+    currency?: "BRL" | "EUR";
+    timeZone?: string;
+    note: string;
+    revenueDays: ObservedRevenueDay[];
+    paymentDays?: {
+      date: string;
+      status: string;
+      count: number;
+      amount: number;
+    }[];
+    mediaSyncedAt: string | null;
+    unavailableMetrics: string[];
+  };
 }

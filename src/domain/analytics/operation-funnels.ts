@@ -391,7 +391,8 @@ export function buildOperationFunnelSnapshot(
       conversion:
         index === 0
           ? 100
-          : safeDivide(volume, Math.max(stages[index - 1].volume, 1)) * 100,
+          : safeDivide(volume, Math.max(stages[index - 1]?.volume ?? 0, 1)) *
+            100,
       costLabel: stage.costLabel,
       costValue: isCpm
         ? safeDivide(spend, Math.max(volume, 1)) * 1000

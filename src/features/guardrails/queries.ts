@@ -46,8 +46,8 @@ export async function getGuardrails(): Promise<{
       regras: normalizarGuardrails(salvas as Partial<ProfitGuardrails>),
       persistidas: true,
     };
-  } catch (error) {
-    console.error("[guardrails] erro ao ler:", error);
+  } catch {
+    console.error("[guardrails] leitura indisponível");
     return { regras: GUARDRAILS_PADRAO, persistidas: false };
   }
 }

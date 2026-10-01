@@ -12,7 +12,10 @@ import {
   type ProfitGuardrails,
 } from "@/features/guardrails/rules";
 import { getSession } from "@/lib/auth/session";
-import { getOrCreateDefaultWorkspace } from "@/lib/workspace";
+import {
+  exigirWorkspaceRole,
+  getOrCreateDefaultWorkspace,
+} from "@/lib/workspace";
 import {
   createMetaCampaign,
   getMetaCredentials,
@@ -108,15 +111,24 @@ async function registrar(entrada: {
   try {
     await getDb()
       .insert(adChangeLog)
-      .values({ ...entrada, decision: entrada.decision ?? null, actor: await ator() });
-  } catch (error) {
-    console.error("[ads] diário falhou:", error);
+      .values({
+        ...entrada,
+        decision: entrada.decision ?? null,
+        actor: await ator(),
+      });
+  } catch {
+    console.error("[ads] diário falhou");
   }
 }
 
 /** Puxa tudo do Meta para o banco. */
 export async function syncMetaAction(): Promise<ResultadoAds> {
   if (!isDatabaseConfigured()) return SEM_BANCO;
+  try {
+    await exigirWorkspaceRole("marketing");
+  } catch (error) {
+    return { ok: false, mensagem: mensagemDeErro(error) };
+  }
   const credenciais = await getMetaCredentials();
   if (!credenciais) {
     return {
@@ -134,10 +146,10 @@ export async function syncMetaAction(): Promise<ResultadoAds> {
       mensagem: `Sincronizado: ${r.campanhas} ${r.campanhas === 1 ? "campanha" : "campanhas"}, ${r.conjuntos} ${r.conjuntos === 1 ? "conjunto" : "conjuntos"}, ${r.anuncios} ${r.anuncios === 1 ? "anúncio" : "anúncios"}.`,
     };
   } catch (error) {
-    console.error("[ads] sync falhou:", error);
+    console.error("[ads] sync falhou");
     return {
       ok: false,
-      mensagem: `O Meta recusou: ${error instanceof Error ? error.message : "erro desconhecido"}.`,
+      mensagem: mensagemDeErro(error),
     };
   }
 }
@@ -151,9 +163,10 @@ export async function updateAdEntityAction(
   formData: FormData,
 ): Promise<ResultadoAds> {
   try {
+    await exigirWorkspaceRole("marketing");
     return await editarEntidade(formData);
   } catch (error) {
-    console.error("[ads] edição falhou:", error);
+    console.error("[ads] edição falhou");
     return { ok: false, mensagem: mensagemDeErro(error) };
   }
 }
@@ -161,7 +174,8 @@ export async function updateAdEntityAction(
 async function editarEntidade(formData: FormData): Promise<ResultadoAds> {
   const tipo = formData.get("tipo");
   const id = String(formData.get("id") ?? "");
-  if (!ehTipo(tipo) || !id) return { ok: false, mensagem: "Item desconhecido." };
+  if (!ehTipo(tipo) || !id)
+    return { ok: false, mensagem: "Item desconhecido." };
   if (id.startsWith("demo-")) {
     return {
       ok: false,
@@ -174,7 +188,9 @@ async function editarEntidade(formData: FormData): Promise<ResultadoAds> {
   const atual = await getAdEntity(tipo, id);
   if (!atual) return { ok: false, mensagem: "Item não encontrado." };
 
-  const nome = String(formData.get("name") ?? atual.name).trim().slice(0, 200);
+  const nome = String(formData.get("name") ?? atual.name)
+    .trim()
+    .slice(0, 200);
   const statusBruto = formData.get("status");
   const status: AdStatus = isAdStatus(statusBruto)
     ? statusBruto
@@ -222,14 +238,20 @@ async function editarEntidade(formData: FormData): Promise<ResultadoAds> {
         };
       }
       const aumento = orcamentoCents! - atual.dailyBudgetCents!;
-      const maximo = Math.round(atual.dailyBudgetCents! * decision.escalaPermitida);
+      const maximo = Math.round(
+        atual.dailyBudgetCents! * decision.escalaPermitida,
+      );
       if (aumento > maximo) {
         return {
           ok: false,
           mensagem: `O freio libera até ${reais(maximo)} a mais por dia (${Math.round(decision.escalaPermitida * 100)}%). Tente até ${reais(atual.dailyBudgetCents! + maximo)}.`,
         };
       }
-      if (regras.aprovacaoAcimaDe > 0 && aumento / 100 > regras.aprovacaoAcimaDe && !aprovado) {
+      if (
+        regras.aprovacaoAcimaDe > 0 &&
+        aumento / 100 > regras.aprovacaoAcimaDe &&
+        !aprovado
+      ) {
         return {
           ok: false,
           pedeAprovacao: true,
@@ -257,7 +279,9 @@ async function editarEntidade(formData: FormData): Promise<ResultadoAds> {
           name: nome !== atual.name ? nome : undefined,
           status: status !== atual.status ? status : undefined,
           dailyBudgetCents:
-            tipo !== "ad" && orcamentoCents !== null && orcamentoCents !== atual.dailyBudgetCents
+            tipo !== "ad" &&
+            orcamentoCents !== null &&
+            orcamentoCents !== atual.dailyBudgetCents
               ? orcamentoCents
               : undefined,
         },
@@ -265,7 +289,7 @@ async function editarEntidade(formData: FormData): Promise<ResultadoAds> {
       );
       appliedRemote = true;
     } catch (error) {
-      const mensagem = error instanceof Error ? error.message : "erro desconhecido";
+      const mensagem = mensagemDeErro(error);
       await registrar({
         workspaceId: await getOrCreateDefaultWorkspace(),
         entityType: tipo,
@@ -293,11 +317,22 @@ async function editarEntidade(formData: FormData): Promise<ResultadoAds> {
     ...(tipo !== "ad" ? { dailyBudgetCents: orcamentoCents } : {}),
   };
   if (tipo === "campaign") {
-    await db.update(adCampaigns).set(set).where(and(eq(adCampaigns.id, id), eq(adCampaigns.workspaceId, workspaceId)));
+    await db
+      .update(adCampaigns)
+      .set(set)
+      .where(
+        and(eq(adCampaigns.id, id), eq(adCampaigns.workspaceId, workspaceId)),
+      );
   } else if (tipo === "ad_set") {
-    await db.update(adSets).set(set).where(and(eq(adSets.id, id), eq(adSets.workspaceId, workspaceId)));
+    await db
+      .update(adSets)
+      .set(set)
+      .where(and(eq(adSets.id, id), eq(adSets.workspaceId, workspaceId)));
   } else {
-    await db.update(ads).set({ name: nome, status, updatedAt: agora }).where(and(eq(ads.id, id), eq(ads.workspaceId, workspaceId)));
+    await db
+      .update(ads)
+      .set({ name: nome, status, updatedAt: agora })
+      .where(and(eq(ads.id, id), eq(ads.workspaceId, workspaceId)));
   }
 
   const mudancas: [string, string | null, string | null][] = [];
@@ -319,7 +354,8 @@ async function editarEntidade(formData: FormData): Promise<ResultadoAds> {
       field,
       before,
       after,
-      decision: field === "daily_budget" || field === "status" ? decision : null,
+      decision:
+        field === "daily_budget" || field === "status" ? decision : null,
       appliedRemote,
     });
   }
@@ -343,20 +379,24 @@ export async function createCampaignAction(
 ): Promise<ResultadoAds> {
   if (!isDatabaseConfigured()) return SEM_BANCO;
   try {
+    await exigirWorkspaceRole("marketing");
     await ensureAdsSchema();
     return await criarCampanha(formData);
   } catch (error) {
-    console.error("[ads] criação falhou:", error);
+    console.error("[ads] criação falhou");
     return { ok: false, mensagem: mensagemDeErro(error) };
   }
 }
 
 async function criarCampanha(formData: FormData): Promise<ResultadoAds> {
-
-  const nome = String(formData.get("name") ?? "").trim().slice(0, 200);
+  const nome = String(formData.get("name") ?? "")
+    .trim()
+    .slice(0, 200);
   const rede = formData.get("network");
   const objetivo = String(formData.get("objective") ?? "Vendas");
-  const orcamentoReais = Number(String(formData.get("dailyBudget") ?? "").replace(",", "."));
+  const orcamentoReais = Number(
+    String(formData.get("dailyBudget") ?? "").replace(",", "."),
+  );
   const classeBruta = formData.get("campaignClass");
   if (!nome) return { ok: false, mensagem: "Dê um nome à campanha." };
   if (!isAdNetwork(rede)) return { ok: false, mensagem: "Escolha a rede." };
@@ -391,7 +431,7 @@ async function criarCampanha(formData: FormData): Promise<ResultadoAds> {
       } catch (error) {
         return {
           ok: false,
-          mensagem: `O Meta recusou a criação: ${error instanceof Error ? error.message : "erro desconhecido"}`,
+          mensagem: mensagemDeErro(error),
         };
       }
     }
@@ -445,10 +485,11 @@ async function criarCampanha(formData: FormData): Promise<ResultadoAds> {
 export async function seedDemoCampaignsAction(): Promise<ResultadoAds> {
   if (!isDatabaseConfigured()) return SEM_BANCO;
   try {
+    await exigirWorkspaceRole("marketing");
     await ensureAdsSchema();
     return await carregarExemplos();
   } catch (error) {
-    console.error("[ads] carregar exemplos falhou:", error);
+    console.error("[ads] carregar exemplos falhou");
     return { ok: false, mensagem: mensagemDeErro(error) };
   }
 }
@@ -459,10 +500,18 @@ async function carregarExemplos(): Promise<ResultadoAds> {
   const [existente] = await db
     .select({ id: adCampaigns.id })
     .from(adCampaigns)
-    .where(and(eq(adCampaigns.workspaceId, workspaceId), eq(adCampaigns.objective, EXEMPLO_MARCA)))
+    .where(
+      and(
+        eq(adCampaigns.workspaceId, workspaceId),
+        eq(adCampaigns.objective, EXEMPLO_MARCA),
+      ),
+    )
     .limit(1);
   if (existente) {
-    return { ok: false, mensagem: "As campanhas de exemplo já estão carregadas." };
+    return {
+      ok: false,
+      mensagem: "As campanhas de exemplo já estão carregadas.",
+    };
   }
 
   let conjuntos = 0;
@@ -478,7 +527,7 @@ async function carregarExemplos(): Promise<ResultadoAds> {
         objective: EXEMPLO_MARCA,
         status: c.status,
         dailyBudgetCents: c.dailyBudgetCents,
-        source: "manual",
+        source: "demo",
         ...c.metrics,
         syncedAt: new Date(),
       })
@@ -534,6 +583,11 @@ export async function bulkStatusAction(
   status: AdStatus,
 ): Promise<ResultadoAds> {
   if (!isDatabaseConfigured()) return SEM_BANCO;
+  try {
+    await exigirWorkspaceRole("marketing");
+  } catch (error) {
+    return { ok: false, mensagem: mensagemDeErro(error) };
+  }
   if (!isAdStatus(status) || ids.length === 0) {
     return { ok: false, mensagem: "Nada selecionado." };
   }
@@ -553,7 +607,12 @@ export async function bulkStatusAction(
     }
   }
   revalidatePath("/campanhas");
-  const participio = status === "active" ? "ativada" : status === "paused" ? "pausada" : "arquivada";
+  const participio =
+    status === "active"
+      ? "ativada"
+      : status === "paused"
+        ? "pausada"
+        : "arquivada";
   const verbo = (n: number) => (n === 1 ? participio : `${participio}s`);
   return {
     ok: ok > 0,
@@ -570,24 +629,36 @@ export async function setCampaignClassAction(
   classe: CampaignClassId,
 ): Promise<ResultadoAds> {
   if (!isDatabaseConfigured()) return SEM_BANCO;
-  if (!id || !isCampaignClass(classe)) return { ok: false, mensagem: "Classe desconhecida." };
+  if (!id || !isCampaignClass(classe))
+    return { ok: false, mensagem: "Classe desconhecida." };
   if (id.startsWith("demo-")) {
-    return { ok: false, mensagem: "Campanha de demonstração: a classe fica só neste navegador." };
+    return {
+      ok: false,
+      mensagem: "Campanha de demonstração: a classe fica só neste navegador.",
+    };
   }
   try {
+    await exigirWorkspaceRole("marketing");
     await ensureAdsSchema();
     const db = getDb();
     const workspaceId = await getOrCreateDefaultWorkspace();
     const [atual] = await db
-      .select({ name: adCampaigns.name, campaignClass: adCampaigns.campaignClass })
+      .select({
+        name: adCampaigns.name,
+        campaignClass: adCampaigns.campaignClass,
+      })
       .from(adCampaigns)
-      .where(and(eq(adCampaigns.id, id), eq(adCampaigns.workspaceId, workspaceId)))
+      .where(
+        and(eq(adCampaigns.id, id), eq(adCampaigns.workspaceId, workspaceId)),
+      )
       .limit(1);
     if (!atual) return { ok: false, mensagem: "Campanha não encontrada." };
     await db
       .update(adCampaigns)
       .set({ campaignClass: classe, updatedAt: new Date() })
-      .where(and(eq(adCampaigns.id, id), eq(adCampaigns.workspaceId, workspaceId)));
+      .where(
+        and(eq(adCampaigns.id, id), eq(adCampaigns.workspaceId, workspaceId)),
+      );
     await registrar({
       workspaceId,
       entityType: "campaign",
@@ -601,7 +672,7 @@ export async function setCampaignClassAction(
     revalidatePath("/campanhas", "layout");
     return { ok: true, mensagem: "Classe salva." };
   } catch (error) {
-    console.error("[ads] classe falhou:", error);
+    console.error("[ads] classe falhou");
     return { ok: false, mensagem: mensagemDeErro(error) };
   }
 }

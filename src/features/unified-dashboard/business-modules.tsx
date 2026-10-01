@@ -22,7 +22,6 @@ import {
   type Veredito,
 } from "@/features/guardrails/rules";
 import { VereditoBadge } from "@/features/guardrails/veredito-badge";
-import { unifiedDemoData } from "@/features/unified-dashboard/demo-data";
 import {
   formatCompactCurrency,
   formatCurrency,
@@ -101,7 +100,9 @@ export function CampaignsDashboard({
 }: {
   regras?: ProfitGuardrails;
 }) {
-  const { operation, networkId, setNetworkId } = useUnifiedDashboard();
+  const { operation, networkId, setNetworkId, data } = useUnifiedDashboard();
+  // Snapshots da plataforma não são receita atribuída ao checkout nem lucro.
+  if (data.source) return <ObservedCampaigns />;
   const campaigns =
     networkId === "all"
       ? operation.campaigns
@@ -239,11 +240,15 @@ export function CampaignsDashboard({
           {campaigns.map((campaign) => {
             const decisao = decisoes.get(campaign.id)!;
             return (
-              <li key={campaign.id} className="grid gap-1.5 md:grid-cols-[minmax(0,14rem)_1fr_auto] md:items-center md:gap-4">
+              <li
+                key={campaign.id}
+                className="grid gap-1.5 md:grid-cols-[minmax(0,14rem)_1fr_auto] md:items-center md:gap-4"
+              >
                 <span className="min-w-0">
                   <b className="block truncate text-sm">{campaign.name}</b>
                   <small className="text-muted-foreground">
-                    {operation.networks.find((n) => n.id === campaign.network)?.name ?? campaign.network}
+                    {operation.networks.find((n) => n.id === campaign.network)
+                      ?.name ?? campaign.network}
                     {" · "}
                     {formatRatio(decisao.roas)}
                   </small>
@@ -252,13 +257,17 @@ export function CampaignsDashboard({
                   <span className="bg-muted/40 flex h-2 overflow-hidden rounded-full">
                     <span
                       className="bg-foreground/35 rounded-full"
-                      style={{ width: `${(campaign.spend / maiorValor) * 100}%` }}
+                      style={{
+                        width: `${(campaign.spend / maiorValor) * 100}%`,
+                      }}
                     />
                   </span>
                   <span className="bg-muted/40 flex h-2 overflow-hidden rounded-full">
                     <span
                       className="bg-foreground rounded-full"
-                      style={{ width: `${(campaign.checkoutRevenue / maiorValor) * 100}%` }}
+                      style={{
+                        width: `${(campaign.checkoutRevenue / maiorValor) * 100}%`,
+                      }}
                     />
                   </span>
                 </span>
@@ -344,8 +353,12 @@ export function CampaignsDashboard({
 }
 
 export function FinanceOverviewDashboard() {
-  const { operation } = useUnifiedDashboard();
-  const kpis = operation.kpis;
+  const { operation, data } = useUnifiedDashboard();
+  const observedMoney = (value: number) =>
+    new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: data.source.currency ?? "BRL",
+    }).format(value);
   return (
     <div className="space-y-6">
       <UnifiedPageHeader
@@ -362,29 +375,29 @@ export function FinanceOverviewDashboard() {
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <UnifiedMetricCard
             label="Saldo disponível"
-            value={formatCompactCurrency(kpis.cash * 0.74)}
-            note="Pronto para repasse."
+            value="Indisponível"
+            note="Depende da conciliação do gateway."
             delta="Sem histórico"
             tone="success"
           />
           <UnifiedMetricCard
             label="Saldo pendente"
-            value={formatCompactCurrency(kpis.cash * 0.26)}
-            note="Em processamento."
+            value="Indisponível"
+            note="Depende da conciliação do gateway."
             delta="Sem histórico"
             tone="warning"
           />
           <UnifiedMetricCard
             label="Receita líquida"
-            value={formatCompactCurrency(kpis.netRevenue)}
-            note="Após devoluções e perdas."
+            value="Indisponível"
+            note="Taxas e devoluções ainda não conciliadas."
             delta="Sem histórico"
             tone="info"
           />
           <UnifiedMetricCard
             label="Reembolsos"
-            value={formatCompactCurrency(kpis.netRevenue * 0.018)}
-            note="Sem movimentações."
+            value="Indisponível"
+            note="Consulte os registros de devolução."
             delta="Sem histórico"
             tone="destructive"
           />
@@ -398,7 +411,7 @@ export function FinanceOverviewDashboard() {
       >
         <DataTable
           headers={["Data", "Descrição", "Categoria", "Tipo", "Valor"]}
-          rows={unifiedDemoData.transactions.map((transaction) => [
+          rows={data.transactions.map((transaction) => [
             transaction.date,
             transaction.description,
             transaction.category,
@@ -420,8 +433,61 @@ export function FinanceOverviewDashboard() {
               )}
             >
               {transaction.type === "entrada" ? "+ " : "− "}
-              {formatCurrency(transaction.value, 2)}
+              {observedMoney(transaction.value)}
             </b>,
+          ])}
+        />
+      </UnifiedSection>
+    </div>
+  );
+}
+
+function ObservedCampaigns() {
+  const { data, operation } = useUnifiedDashboard();
+  const accountAmount = (value: number) =>
+    value.toLocaleString("pt-BR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  return (
+    <div className="space-y-4">
+      <UnifiedPageHeader
+        eyebrow="Mídia"
+        title="Campanhas sincronizadas"
+        description="Snapshots reportados pela plataforma. Valores monetários estão na moeda de cada conta, sem conversão nem soma entre contas. Sem conciliação de atribuição, não mostramos lucro nem decisões automáticas de escala."
+        actions={
+          <Button asChild variant="outline">
+            <Link href="/campanhas/meta">Abrir gerenciador</Link>
+          </Button>
+        }
+      />
+      <UnifiedSection
+        eyebrow="Fonte"
+        title="Métricas da plataforma"
+        description={
+          data.source.mediaSyncedAt
+            ? `Última sincronização: ${data.source.mediaSyncedAt}. Confira a moeda e o período selecionado no gerenciador; este snapshot não acompanha o filtro financeiro.`
+            : "Nenhuma conta de mídia foi sincronizada."
+        }
+      >
+        <DataTable
+          headers={[
+            "Campanha",
+            "Rede",
+            "Investimento (moeda da conta)",
+            "Receita na plataforma (moeda da conta)",
+            "Compras na plataforma",
+            "Impressões",
+            "Cliques",
+          ]}
+          rows={operation.campaigns.map((c) => [
+            c.name,
+            c.network,
+            accountAmount(c.spend),
+            accountAmount(c.platformRevenue),
+            formatInteger(c.purchases),
+            formatInteger(c.impressions),
+            formatInteger(c.clicks),
           ])}
         />
       </UnifiedSection>
@@ -597,6 +663,12 @@ export function PaymentLinksDashboard() {
 }
 
 export function ProductsDashboard() {
+  const { data } = useUnifiedDashboard();
+  const observedMoney = (value: number) =>
+    new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: data.source.currency ?? "BRL",
+    }).format(value);
   return (
     <div className="space-y-6">
       <UnifiedPageHeader
@@ -617,10 +689,10 @@ export function ProductsDashboard() {
       >
         <DataTable
           headers={["Produto", "Tipo", "Preço", "Estoque", "Estado"]}
-          rows={unifiedDemoData.products.map((product) => [
+          rows={data.products.map((product) => [
             <b key="name">{product.name}</b>,
             product.type,
-            formatCurrency(product.price, 2),
+            observedMoney(product.price),
             product.stock,
             <SimpleStatusBadge key="status" status={product.status} />,
           ])}

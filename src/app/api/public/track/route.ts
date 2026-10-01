@@ -1,10 +1,15 @@
 import { NextResponse } from "next/server";
 
 import {
+  InvalidTrackTarget,
   recordTrackEvent,
-  TRACK_EVENTS,
-  type TrackEvent,
 } from "@/features/analytics/track";
+import {
+  allowTrackRequest,
+  readTrackBody,
+  TrackBodyTooLarge,
+  trackRequestSchema,
+} from "@/features/analytics/track-request";
 import { origemPermitidaNoRastreio } from "@/features/vps/cors-rastreio";
 import { getAppUrl } from "@/lib/app-url";
 
@@ -83,26 +88,27 @@ export async function POST(request: Request) {
   }
 
   try {
-    const body = (await request.json().catch(() => null)) as {
-      anonymousId?: string;
-      event?: string;
-      page?: string;
-      referrer?: string;
-      utm?: Record<string, string>;
-      productSlug?: string;
-      valueCents?: number;
-      currency?: string;
-    } | null;
-
-    if (!body?.anonymousId || !body?.event) {
+    if (
+      !request.headers
+        .get("content-type")
+        ?.toLowerCase()
+        .startsWith("application/json")
+    ) {
+      return NextResponse.json({ ok: false }, { status: 415, headers: cors });
+    }
+    const ip =
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
+    if (!(await allowTrackRequest(ip))) {
+      return NextResponse.json(
+        { ok: false },
+        { status: 429, headers: { ...cors, "Retry-After": "60" } },
+      );
+    }
+    const parsed = trackRequestSchema.safeParse(await readTrackBody(request));
+    if (!parsed.success) {
       return NextResponse.json({ ok: false }, { status: 400, headers: cors });
     }
-    if (!TRACK_EVENTS.includes(body.event as TrackEvent)) {
-      return NextResponse.json({ ok: false }, { status: 400, headers: cors });
-    }
-    if (body.anonymousId.length > 64) {
-      return NextResponse.json({ ok: false }, { status: 400, headers: cors });
-    }
+    const body = parsed.data;
 
     const caminho =
       typeof body.page === "string" && body.page.startsWith("/")
@@ -116,28 +122,47 @@ export async function POST(request: Request) {
     await recordTrackEvent(
       {
         anonymousId: body.anonymousId,
-        event: body.event as TrackEvent,
+        event: body.event,
         page,
         referrer: body.referrer?.slice(0, 512),
         utm: body.utm,
         productSlug: body.productSlug?.slice(0, 128),
+        checkoutId: body.checkoutId,
         valueCents: body.valueCents,
         currency: body.currency?.slice(0, 8),
       },
       {
         userAgent: h.get("user-agent"),
-        ip: h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null,
-        country: h.get("x-vercel-ip-country"),
-        city: h.get("x-vercel-ip-city")
-          ? decodeURIComponent(h.get("x-vercel-ip-city")!)
-          : null,
+        ip,
+        country: h.get("x-vercel-ip-country")?.slice(0, 2) ?? null,
+        city: decodeCity(h.get("x-vercel-ip-city")),
+        siteOrigin: paginaDaVps,
       },
     );
 
     return NextResponse.json({ ok: true }, { headers: cors });
   } catch (error) {
-    // Rastreamento nunca pode quebrar a experiência do visitante.
-    console.error("[track] erro:", error);
-    return NextResponse.json({ ok: false }, { status: 200, headers: cors });
+    // Não registrar o erro bruto: drivers podem incluir dados da conexão.
+    return NextResponse.json(
+      { ok: false },
+      {
+        status:
+          error instanceof TrackBodyTooLarge
+            ? 413
+            : error instanceof InvalidTrackTarget
+              ? 400
+              : 503,
+        headers: cors,
+      },
+    );
+  }
+}
+
+function decodeCity(value: string | null): string | null {
+  if (!value) return null;
+  try {
+    return decodeURIComponent(value).slice(0, 128);
+  } catch {
+    return null;
   }
 }

@@ -4,8 +4,8 @@ import { revalidatePath } from "next/cache";
 import { and, eq } from "drizzle-orm";
 
 import { getDb, isDatabaseConfigured } from "@/database/client";
-import { productReviews } from "@/database/schema";
-import { getOrCreateDefaultWorkspace } from "@/lib/workspace";
+import { productReviews, products } from "@/database/schema";
+import { exigirWorkspaceRole } from "@/lib/workspace";
 import { reviewSchema } from "@/validations/review";
 
 export interface ReviewActionResult {
@@ -42,8 +42,21 @@ export async function saveReviewAction(
 
   try {
     const db = getDb();
-    const workspaceId = await getOrCreateDefaultWorkspace();
+    const workspaceId = (await exigirWorkspaceRole(["marketing", "support"]))
+      .workspaceId;
     const d = parsed.data;
+    const [product] = await db
+      .select({ id: products.id })
+      .from(products)
+      .where(
+        and(
+          eq(products.id, d.productId),
+          eq(products.workspaceId, workspaceId),
+        ),
+      )
+      .limit(1);
+    if (!product)
+      return { ok: false, error: "Produto não encontrado nesta operação." };
 
     await db.insert(productReviews).values({
       workspaceId,
@@ -62,8 +75,7 @@ export async function saveReviewAction(
 
     revalidatePath("/provas-sociais");
     return { ok: true, message: "Avaliação guardada e publicada na página." };
-  } catch (error) {
-    console.error("[reviews] erro ao guardar:", error);
+  } catch {
     return { ok: false, error: "Não foi possível guardar a avaliação." };
   }
 }
@@ -74,7 +86,8 @@ export async function toggleReviewAction(formData: FormData): Promise<void> {
   if (!id || !isDatabaseConfigured()) return;
 
   const db = getDb();
-  const workspaceId = await getOrCreateDefaultWorkspace();
+  const workspaceId = (await exigirWorkspaceRole(["marketing", "support"]))
+    .workspaceId;
 
   await db
     .update(productReviews)
@@ -94,7 +107,8 @@ export async function deleteReviewAction(formData: FormData): Promise<void> {
   if (!id || !isDatabaseConfigured()) return;
 
   const db = getDb();
-  const workspaceId = await getOrCreateDefaultWorkspace();
+  const workspaceId = (await exigirWorkspaceRole(["marketing", "support"]))
+    .workspaceId;
 
   await db
     .update(productReviews)

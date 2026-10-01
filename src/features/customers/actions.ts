@@ -5,7 +5,7 @@ import { and, eq } from "drizzle-orm";
 
 import { getDb, isDatabaseConfigured } from "@/database/client";
 import { customers, emailSuppressions } from "@/database/schema";
-import { getOrCreateDefaultWorkspace } from "@/lib/workspace";
+import { exigirWorkspaceRole } from "@/lib/workspace";
 
 /**
  * Liga/desliga o consentimento de marketing de um cliente.
@@ -21,7 +21,7 @@ export async function toggleMarketingConsentAction(
   if (!id || !isDatabaseConfigured()) return;
 
   const db = getDb();
-  const workspaceId = await getOrCreateDefaultWorkspace();
+  const workspaceId = (await exigirWorkspaceRole(["support"])).workspaceId;
 
   const [customer] = await db
     .select({ email: customers.email })

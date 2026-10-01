@@ -26,6 +26,8 @@ import {
 import { VisualOverview } from "@/features/dashboard/visual-overview";
 import { AcquisitionDemoBoard } from "@/features/unified-dashboard/acquisition-demo-board";
 import { ConnectionsChecklist } from "@/features/dashboard/connections-checklist";
+import { ObservedOverview } from "@/features/dashboard/observed-overview";
+import { TrafficBoard } from "@/features/unified-dashboard/traffic-board";
 
 /**
  * Registro central dos blocos do dashboard.
@@ -164,6 +166,17 @@ export function renderDashboardBlock(
   id: string,
   demoMode: boolean,
 ): ReactNode | null {
+  // A projeção demonstrativa nunca é fallback para a operação real.
+  if (!demoMode) {
+    if (id === "traffic-unified") return <TrafficBoard />;
+    if (id === "connections") return <ConnectionsChecklist demoMode={false} />;
+    if (
+      id === "visual-overview" ||
+      id === "profit-summary" ||
+      EXECUTIVE_SECTIONS.has(id)
+    )
+      return <ObservedOverview section={id} />;
+  }
   if (id === "visual-overview") {
     return (
       <VisualOverview

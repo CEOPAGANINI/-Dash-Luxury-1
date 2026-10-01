@@ -136,8 +136,8 @@ export function CampaignTable({
       >
         <table className="campaign-table">
           <caption className="sr-only">
-            Campanhas e métricas dos últimos 7 dias. Totais consideram somente
-            as campanhas filtradas.
+            Campanhas e métricas do período sincronizado. Totais consideram
+            somente as campanhas filtradas.
           </caption>
           <thead>
             <tr>
@@ -279,7 +279,8 @@ export function CampaignTable({
                 {campaigns.filter((c) => c.status === "active").length} ativas
               </td>
               <th scope="row" className="campaign-name-column">
-                Total de {campaigns.length} {campaigns.length === 1 ? "campanha" : "campanhas"}
+                Total de {campaigns.length}{" "}
+                {campaigns.length === 1 ? "campanha" : "campanhas"}
                 <span className="campaign-table-secondary">
                   Resultados dos filtros atuais
                 </span>

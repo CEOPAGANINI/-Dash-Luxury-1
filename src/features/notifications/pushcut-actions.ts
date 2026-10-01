@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { isDatabaseConfigured } from "@/database/client";
+import { exigirWorkspaceRole } from "@/lib/workspace";
 import {
   savePushcutCredentials,
   sendPushcutNotification,
@@ -44,6 +45,7 @@ export async function savePushcutAction(
   }
 
   try {
+    await exigirWorkspaceRole();
     const d = parsed.data;
     await savePushcutCredentials(d.apiKey, d.notificationName, d.events);
 
@@ -67,8 +69,7 @@ export async function savePushcutAction(
       ok: true,
       message: "Ligado! Verifique o push que acabou de receber no telemóvel.",
     };
-  } catch (error) {
-    console.error("[pushcut] erro ao guardar:", error);
+  } catch {
     return { ok: false, error: "Não foi possível guardar a integração." };
   }
 }
@@ -76,12 +77,13 @@ export async function savePushcutAction(
 export async function togglePushcutAction(formData: FormData): Promise<void> {
   const active = formData.get("active") === "true";
   if (!isDatabaseConfigured()) return;
-
+  await exigirWorkspaceRole();
   await setPushcutActive(active);
   revalidatePath("/notificacoes");
 }
 
 export async function testPushcutAction(): Promise<void> {
+  await exigirWorkspaceRole();
   await sendPushcutNotification(
     "Teste do Infinity 🔔",
     "Notificação de teste enviada a partir do painel.",

@@ -53,6 +53,18 @@ function useTestDashboard(): ReturnType<typeof useUnifiedDashboard> {
   const [networkId, setNetworkId] = React.useState<NetworkId>("all");
 
   return {
+    data: {
+      ...unifiedDemoData,
+      source: {
+        status: "unavailable",
+        asOf: "2026-08-01T00:00:00Z",
+        startDate: "2026-08-01",
+        note: "Fixture",
+        revenueDays: [],
+        mediaSyncedAt: null,
+        unavailableMetrics: [],
+      },
+    },
     operationId: "alpha",
     operation,
     setOperationId: vi.fn(),
@@ -261,84 +273,93 @@ describe("independent acquisition pages", () => {
     ).toBe("page");
   });
 
-  it("navigates through eleven real pages while preserving month, year, channel and comparison filters", { timeout: 20000 }, () => {
-    const { container } = render(
-      <TrafficBoard
-        source={source([
-          record("2025-07-14", 100, 20, 1),
-          record("2025-07-14", 300, 60, 3, "google"),
-        ])}
-      />,
-    );
-    openPage("Canais");
-    pick("Mês analisado", "6");
-    pick("Ano analisado", "2025");
-    pick("Canal de aquisição", "google");
-    fireEvent.click(screen.getByRole("button", { name: "Comparar período" }));
-    fireEvent.change(screen.getByLabelText("Início da comparação"), {
-      target: { value: "2025-05-03" },
-    });
-    fireEvent.change(screen.getByLabelText("Fim da comparação"), {
-      target: { value: "2025-05-17" },
-    });
+  it(
+    "navigates through eleven real pages while preserving month, year, channel and comparison filters",
+    { timeout: 20000 },
+    () => {
+      const { container } = render(
+        <TrafficBoard
+          source={source([
+            record("2025-07-14", 100, 20, 1),
+            record("2025-07-14", 300, 60, 3, "google"),
+          ])}
+        />,
+      );
+      openPage("Canais");
+      pick("Mês analisado", "6");
+      pick("Ano analisado", "2025");
+      pick("Canal de aquisição", "google");
+      fireEvent.click(screen.getByRole("button", { name: "Comparar período" }));
+      fireEvent.change(screen.getByLabelText("Início da comparação"), {
+        target: { value: "2025-05-03" },
+      });
+      fireEvent.change(screen.getByLabelText("Fim da comparação"), {
+        target: { value: "2025-05-17" },
+      });
 
-    for (const name of [...PAGE_NAMES.slice(1), "Calendário"]) {
-      openPage(name);
-      // O h1 da página é a faixa do topo; o título da seção é h2.
-      expect(screen.queryAllByRole("heading", { level: 1 })).toHaveLength(0);
-      expect(screen.getAllByRole("heading", { level: 2 }).length).toBeGreaterThan(0);
-      expect(
-        container
-          .querySelector(".board-pager-page:not([hidden])")
-          ?.getAttribute("aria-label"),
-      ).toBe(name);
-      if (name === "Calendário") {
-        expectCalendarChromeRemoved(container);
-        const calendar = screen.getByRole("region", {
-          name: "Calendário de aquisição",
-        });
-        const filteredDay = calendar.querySelector('[data-date="2025-07-14"]');
-        expect(filteredDay?.getAttribute("aria-label")).toMatch(
-          /Receita: R\$\s*300,00/,
-        );
-        expect(filteredDay?.textContent).not.toMatch(/R\$\s*400/);
-      } else {
-        expect(picked("Mês analisado")).toBe("6");
-        expect(picked("Ano analisado")).toBe("2025");
-        expect(picked("Canal de aquisição")).toBe("google");
+      for (const name of [...PAGE_NAMES.slice(1), "Calendário"]) {
+        openPage(name);
+        // O h1 da página é a faixa do topo; o título da seção é h2.
+        expect(screen.queryAllByRole("heading", { level: 1 })).toHaveLength(0);
         expect(
-          (screen.getByLabelText("Início da comparação") as HTMLInputElement)
-            .value,
-        ).toBe("2025-05-03");
+          screen.getAllByRole("heading", { level: 2 }).length,
+        ).toBeGreaterThan(0);
         expect(
-          (screen.getByLabelText("Fim da comparação") as HTMLInputElement)
-            .value,
-        ).toBe("2025-05-17");
+          container
+            .querySelector(".board-pager-page:not([hidden])")
+            ?.getAttribute("aria-label"),
+        ).toBe(name);
+        if (name === "Calendário") {
+          expectCalendarChromeRemoved(container);
+          const calendar = screen.getByRole("region", {
+            name: "Calendário de aquisição",
+          });
+          const filteredDay = calendar.querySelector(
+            '[data-date="2025-07-14"]',
+          );
+          expect(filteredDay?.getAttribute("aria-label")).toMatch(
+            /Receita: R\$\s*300,00/,
+          );
+          expect(filteredDay?.textContent).not.toMatch(/R\$\s*400/);
+        } else {
+          expect(picked("Mês analisado")).toBe("6");
+          expect(picked("Ano analisado")).toBe("2025");
+          expect(picked("Canal de aquisição")).toBe("google");
+          expect(
+            (screen.getByLabelText("Início da comparação") as HTMLInputElement)
+              .value,
+          ).toBe("2025-05-03");
+          expect(
+            (screen.getByLabelText("Fim da comparação") as HTMLInputElement)
+              .value,
+          ).toBe("2025-05-17");
+          expect(
+            within(
+              container.querySelector<HTMLElement>(
+                ".board-pager-content > header",
+              )!,
+            ).getByRole("status"),
+          ).toBeTruthy();
+        }
         expect(
-          within(
-            container.querySelector<HTMLElement>(
-              ".board-pager-content > header",
-            )!,
-          ).getByRole("status"),
-        ).toBeTruthy();
+          container.querySelectorAll(".board-pager-page:not([hidden])"),
+        ).toHaveLength(1);
+        expect(
+          screen
+            .getByRole("button", { name: "Abrir menu de sessões desta página" })
+            .getAttribute("aria-expanded"),
+        ).toBe("false");
       }
+      openPage("Resumo");
       expect(
-        container.querySelectorAll(".board-pager-page:not([hidden])"),
-      ).toHaveLength(1);
+        (screen.getByLabelText("Início da comparação") as HTMLInputElement)
+          .value,
+      ).toBe("2025-05-03");
       expect(
-        screen
-          .getByRole("button", { name: "Abrir menu de sessões desta página" })
-          .getAttribute("aria-expanded"),
-      ).toBe("false");
-    }
-    openPage("Resumo");
-    expect(
-      (screen.getByLabelText("Início da comparação") as HTMLInputElement).value,
-    ).toBe("2025-05-03");
-    expect(
-      (screen.getByLabelText("Fim da comparação") as HTMLInputElement).value,
-    ).toBe("2025-05-17");
-  });
+        (screen.getByLabelText("Fim da comparação") as HTMLInputElement).value,
+      ).toBe("2025-05-17");
+    },
+  );
 
   it("gives each sales analysis its own page instead of stacking the five analyses", () => {
     const { container } = render(<TrafficBoard />);

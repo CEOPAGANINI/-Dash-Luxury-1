@@ -22,3 +22,4 @@ export * from "./system";
 export * from "./executive-analytics";
 export * from "./ads";
 export * from "./vps";
+export * from "./funnel-storage";

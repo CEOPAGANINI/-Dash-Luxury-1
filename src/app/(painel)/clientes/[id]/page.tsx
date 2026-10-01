@@ -56,7 +56,8 @@ const STATUS_LABEL: Record<string, string> = {
 
 function statusVariant(status: string) {
   if (STATUS_PAGOS.has(status)) return "success" as const;
-  if (status === "refused" || status === "chargeback") return "destructive" as const;
+  if (status === "refused" || status === "chargeback")
+    return "destructive" as const;
   if (status === "refunded" || status === "cancelled" || status === "expired")
     return "muted" as const;
   return "warning" as const;
@@ -98,32 +99,50 @@ export default async function FichaClientePage(props: {
   const ficha = await getFichaDoCliente(id);
   if (!ficha) notFound();
 
-  const pagos = ficha.pedidos.filter((p) => STATUS_PAGOS.has(p.status));
+  const currency = ficha.currency ?? "BRL";
+  const pedidosNaMoeda = ficha.pedidos.filter(
+    (p) => (p.currency ?? "BRL") === currency,
+  );
+  const pagos = pedidosNaMoeda.filter((p) => STATUS_PAGOS.has(p.status));
   const gastoCents = pagos.reduce((s, p) => s + p.totalCents, 0);
-  const datas = ficha.pedidos.map((p) => p.createdAt.getTime());
+  const datas = pedidosNaMoeda.map((p) => p.createdAt.getTime());
+  const metricas = ficha.metricas ?? {
+    orderCount: pedidosNaMoeda.length,
+    paidCount: pagos.length,
+    totalSpentCents: gastoCents,
+    averageTicketCents: pagos.length
+      ? Math.round(gastoCents / pagos.length)
+      : 0,
+    lastOrderAt: datas.length ? new Date(Math.max(...datas)) : null,
+    firstOrderAt: datas.length ? new Date(Math.min(...datas)) : null,
+  };
   const segmento = segmentar({
     id: ficha.id,
     name: ficha.name,
     email: ficha.email,
     phone: ficha.phone,
     country: ficha.country,
-    orderCount: ficha.pedidos.length,
-    paidCount: pagos.length,
-    totalSpentCents: gastoCents,
-    averageTicketCents: pagos.length ? Math.round(gastoCents / pagos.length) : 0,
-    lastOrderAt: datas.length ? new Date(Math.max(...datas)) : null,
-    firstOrderAt: datas.length ? new Date(Math.min(...datas)) : null,
+    ...metricas,
+    currency,
     marketingOptOut: ficha.marketingOptOut,
     isBlocked: ficha.isBlocked,
     createdAt: ficha.createdAt,
   });
 
   const kpis = [
-    { label: "Gasto total (LTV)", value: formatMoney(gastoCents) },
-    { label: "Pedidos pagos", value: `${pagos.length} de ${ficha.pedidos.length}` },
+    {
+      label: `Gasto total (LTV · ${currency})`,
+      value: formatMoney(metricas.totalSpentCents, currency),
+    },
+    {
+      label: `Pedidos pagos (${currency})`,
+      value: `${metricas.paidCount} de ${metricas.orderCount}`,
+    },
     {
       label: "Ticket médio",
-      value: pagos.length ? formatMoney(gastoCents / pagos.length) : "—",
+      value: metricas.paidCount
+        ? formatMoney(metricas.averageTicketCents, currency)
+        : "—",
     },
     { label: "Cliente desde", value: formatDate(ficha.createdAt) },
   ];
@@ -155,11 +174,17 @@ export default async function FichaClientePage(props: {
           <p className="text-muted-foreground text-xs leading-5">
             {SEGMENTOS[segmento].pergunta}
           </p>
+          <p className="text-muted-foreground text-xs leading-5">
+            LTV, ticket e segmento em {currency}, sem conversão. O histórico
+            preserva a moeda original de cada pedido.
+          </p>
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2">
           {ficha.isBlocked && <Badge variant="destructive">Bloqueado</Badge>}
           <Badge variant={ficha.marketingOptOut ? "muted" : "success"}>
-            {ficha.marketingOptOut ? "Não recebe marketing" : "Recebe marketing"}
+            {ficha.marketingOptOut
+              ? "Não recebe marketing"
+              : "Recebe marketing"}
           </Badge>
           <form action={toggleMarketingConsentAction}>
             <input type="hidden" name="id" value={ficha.id} />
@@ -255,7 +280,8 @@ export default async function FichaClientePage(props: {
       <Card className="gap-3 py-4">
         <CardHeader className="px-4">
           <CardDescription className="flex items-center gap-2 text-xs">
-            <ShoppingBag className="size-3.5" /> Pedidos ({ficha.pedidos.length})
+            <ShoppingBag className="size-3.5" /> Pedidos ({ficha.pedidos.length}
+            )
           </CardDescription>
         </CardHeader>
         <CardContent className="overflow-x-auto px-4">
@@ -287,7 +313,7 @@ export default async function FichaClientePage(props: {
                       {p.origin ?? "—"}
                     </td>
                     <td className="py-2.5 text-right tabular-nums">
-                      {formatMoney(p.totalCents)}
+                      {formatMoney(p.totalCents, p.currency ?? currency)}
                     </td>
                     <td className="text-muted-foreground py-2.5 text-xs">
                       {formatDateTime(p.createdAt)}
@@ -310,7 +336,10 @@ export default async function FichaClientePage(props: {
           <CardContent className="px-4">
             <ul className="grid gap-2 sm:grid-cols-2">
               {ficha.enderecos.map((e, i) => (
-                <li key={i} className="bg-muted/20 rounded-lg border px-3 py-2 text-sm">
+                <li
+                  key={i}
+                  className="bg-muted/20 rounded-lg border px-3 py-2 text-sm"
+                >
                   {e.label && <b className="block text-xs">{e.label}</b>}
                   {[e.city, e.state, e.country].filter(Boolean).join(", ")}
                 </li>

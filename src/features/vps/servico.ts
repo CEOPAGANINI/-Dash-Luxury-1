@@ -166,7 +166,7 @@ export function respostaDeErroVps(
         ? erro.codigo
         : (CODIGO_DO_AGENTE[erro.codigo] ?? "erro_interno");
       if (codigo === "erro_interno")
-        console.error("[vps] erro do painel na API do agente", erro);
+        console.error("[vps] erro do painel na API do agente");
       return respostaErroAgente(
         codigo === "erro_interno" ? 500 : erro.status,
         codigo,
@@ -181,7 +181,7 @@ export function respostaDeErroVps(
     );
   }
   if (faltaTabelaVps(erro)) {
-    console.error("[vps] tabelas do Servidor do Funil ausentes", erro);
+    console.error("[vps] tabelas do Servidor do Funil ausentes");
     return contexto === "agente"
       ? respostaErroAgente(503, "tables_missing")
       : respostaAgente(503, {
@@ -190,7 +190,7 @@ export function respostaDeErroVps(
           error: mensagemDeErroVps(erro),
         });
   }
-  console.error("[vps] erro inesperado", erro);
+  console.error("[vps] erro inesperado");
   return contexto === "agente"
     ? respostaErroAgente(500, "erro_interno")
     : respostaAgente(500, {
@@ -235,8 +235,8 @@ export async function auditar(
       entityId: entrada.entidadeId,
       changes: { por: entrada.por, ...(entrada.campos ?? {}) },
     });
-  } catch (erro) {
-    console.error("[vps] auditoria não gravada", entrada.acao, erro);
+  } catch {
+    console.error("[vps] auditoria não gravada", entrada.acao);
   }
 }
 
@@ -2291,7 +2291,7 @@ export async function conferirSiteDepois(
   } catch (erro) {
     if (erro instanceof VpsError && erro.codigo === "dns_pendente") return;
     if (erro instanceof VpsError && erro.codigo === "nao_encontrado") return;
-    console.error("[vps] conferência pública", erro);
+    console.error("[vps] conferência pública");
   }
 }
 

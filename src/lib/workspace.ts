@@ -1,46 +1,221 @@
-import { eq } from "drizzle-orm";
-
+import { cache } from "react";
+import { cookies } from "next/headers";
+import { and, asc, eq, isNull, sql } from "drizzle-orm";
 import { getDb } from "@/database/client";
-import { profiles, workspaces } from "@/database/schema";
+import { profiles, workspaces, workspaceMembers } from "@/database/schema";
+import { getSession, type SessionUser } from "@/lib/auth/session";
+import {
+  principalOperator,
+  roleAllows,
+  type WorkspaceRole,
+} from "./workspace-policy";
 
-const DEFAULT_WORKSPACE_SLUG = "infinity-principal";
+export type { WorkspaceRole } from "./workspace-policy";
+export class WorkspaceAccessError extends Error {
+  constructor(
+    public readonly status: 401 | 403,
+    message: string,
+  ) {
+    super(message);
+    this.name = "WorkspaceAccessError";
+  }
+}
+export interface WorkspaceAccess {
+  workspaceId: string;
+  user: SessionUser;
+  role: WorkspaceRole;
+}
 
-/**
- * Garante a existência do workspace padrão da operação (multi-tenant desde
- * o início: toda entidade de negócio pertence a um workspace).
- *
- * Enquanto o fluxo completo de onboarding não existe, o workspace é criado
- * sob um perfil de sistema; quando o dono fizer login, a posse será
- * transferida (Fase 1 → onboarding).
- */
-export async function getOrCreateDefaultWorkspace(): Promise<string> {
+/** Existing access is a read, not a profile write or a serialized bootstrap. */
+async function findActiveMembership(
+  db: Pick<ReturnType<typeof getDb>, "select">,
+  userId: string,
+  selectedWorkspace: string | undefined,
+) {
+  const memberships = await db
+    .select({
+      workspaceId: workspaceMembers.workspaceId,
+      role: workspaceMembers.role,
+    })
+    .from(workspaceMembers)
+    .innerJoin(workspaces, eq(workspaces.id, workspaceMembers.workspaceId))
+    .where(
+      and(
+        eq(workspaceMembers.profileId, userId),
+        eq(workspaceMembers.isActive, true),
+        isNull(workspaces.deletedAt),
+      ),
+    )
+    .orderBy(asc(workspaces.createdAt));
+  return (
+    memberships.find((item) => item.workspaceId === selectedWorkspace) ??
+    memberships[0]
+  );
+}
+
+/** Authenticate and check membership at the data boundary, not only by Proxy. */
+export const getWorkspaceAccess = cache(async (): Promise<WorkspaceAccess> => {
+  const session = await getSession();
+  if (!session || session.demoMode)
+    throw new WorkspaceAccessError(
+      401,
+      "Entre na sua conta para acessar os dados.",
+    );
+  const user = session.user;
+  const selectedWorkspace = (await cookies()).get("dashboard_workspace")?.value;
   const db = getDb();
+  const existing = await findActiveMembership(db, user.id, selectedWorkspace);
+  if (existing) return { ...existing, user };
 
-  const existing = await db
+  return db.transaction(async (tx) => {
+    await tx.execute(
+      sql`select pg_advisory_xact_lock(hashtext(${`workspace:${user.id}`}))`,
+    );
+    // Another request may have finished onboarding while this one awaited the lock.
+    const membership = await findActiveMembership(
+      tx,
+      user.id,
+      selectedWorkspace,
+    );
+    if (membership) return { ...membership, user };
+    await tx
+      .insert(profiles)
+      .values({ id: user.id, email: user.email, name: user.name })
+      .onConflictDoUpdate({
+        target: profiles.id,
+        set: { email: user.email, name: user.name, updatedAt: new Date() },
+      });
+    let workspaceId: string;
+    if (principalOperator(user, process.env)) {
+      await tx.execute(
+        sql`select pg_advisory_xact_lock(hashtext('workspace:infinity-principal'))`,
+      );
+      const [legacy] = await tx
+        .select({
+          id: workspaces.id,
+          ownerId: workspaces.ownerId,
+          ownerEmail: profiles.email,
+        })
+        .from(workspaces)
+        .innerJoin(profiles, eq(profiles.id, workspaces.ownerId))
+        .where(
+          and(
+            eq(workspaces.slug, "infinity-principal"),
+            isNull(workspaces.deletedAt),
+          ),
+        )
+        .limit(1);
+      // Only the explicitly configured operator may claim the old system-owned operation.
+      if (
+        legacy &&
+        (legacy.ownerId === user.id ||
+          legacy.ownerEmail === "sistema@infinity.app")
+      ) {
+        workspaceId = legacy.id;
+        await tx
+          .update(workspaces)
+          .set({ ownerId: user.id, updatedAt: new Date() })
+          .where(eq(workspaces.id, legacy.id));
+      } else if (!legacy) {
+        const [created] = await tx
+          .insert(workspaces)
+          .values({
+            name: "Minha operação",
+            slug: "infinity-principal",
+            ownerId: user.id,
+          })
+          .returning({ id: workspaces.id });
+        workspaceId = created.id;
+      } else {
+        const [created] = await tx
+          .insert(workspaces)
+          .values({
+            name: `Operação de ${user.name}`,
+            slug: `conta-${user.id}`,
+            ownerId: user.id,
+          })
+          .onConflictDoUpdate({
+            target: workspaces.slug,
+            set: { updatedAt: new Date() },
+          })
+          .returning({ id: workspaces.id });
+        workspaceId = created.id;
+      }
+    } else {
+      const [created] = await tx
+        .insert(workspaces)
+        .values({
+          name: `Operação de ${user.name}`,
+          slug: `conta-${user.id}`,
+          ownerId: user.id,
+        })
+        .onConflictDoUpdate({
+          target: workspaces.slug,
+          set: { updatedAt: new Date() },
+        })
+        .returning({ id: workspaces.id });
+      workspaceId = created.id;
+    }
+    await tx
+      .insert(workspaceMembers)
+      .values({
+        workspaceId,
+        profileId: user.id,
+        role: "owner",
+        joinedAt: new Date(),
+        isActive: true,
+      })
+      .onConflictDoNothing();
+    const [allowed] = await tx
+      .select({ role: workspaceMembers.role })
+      .from(workspaceMembers)
+      .innerJoin(workspaces, eq(workspaces.id, workspaceMembers.workspaceId))
+      .where(
+        and(
+          eq(workspaceMembers.workspaceId, workspaceId),
+          eq(workspaceMembers.profileId, user.id),
+          eq(workspaceMembers.isActive, true),
+          eq(workspaces.ownerId, user.id),
+          isNull(workspaces.deletedAt),
+        ),
+      )
+      .limit(1);
+    if (!allowed)
+      throw new WorkspaceAccessError(
+        403,
+        "O acesso a esta operação está suspenso. Peça ao proprietário para revisar sua permissão.",
+      );
+    return { workspaceId, user, role: allowed.role };
+  });
+});
+
+export async function getOrCreateDefaultWorkspace(): Promise<string> {
+  return (await getWorkspaceAccess()).workspaceId;
+}
+export async function exigirWorkspaceRole(
+  roles: WorkspaceRole | WorkspaceRole[] = ["owner", "admin"],
+): Promise<WorkspaceAccess> {
+  const access = await getWorkspaceAccess();
+  if (!roleAllows(access.role, roles))
+    throw new WorkspaceAccessError(
+      403,
+      "Sua função não permite alterar esta configuração.",
+    );
+  return access;
+}
+/** Public flows only look up an existing operation and cannot create ownership. */
+export async function getPublicWorkspaceId(): Promise<string> {
+  const [workspace] = await getDb()
     .select({ id: workspaces.id })
     .from(workspaces)
-    .where(eq(workspaces.slug, DEFAULT_WORKSPACE_SLUG))
+    .where(
+      and(
+        eq(workspaces.slug, "infinity-principal"),
+        isNull(workspaces.deletedAt),
+      ),
+    )
     .limit(1);
-
-  if (existing.length > 0) return existing[0].id;
-
-  const [systemProfile] = await db
-    .insert(profiles)
-    .values({
-      id: crypto.randomUUID(),
-      email: "sistema@infinity.app",
-      name: "Sistema Infinity",
-    })
-    .returning({ id: profiles.id });
-
-  const [workspace] = await db
-    .insert(workspaces)
-    .values({
-      name: "Infinity Principal",
-      slug: DEFAULT_WORKSPACE_SLUG,
-      ownerId: systemProfile.id,
-    })
-    .returning({ id: workspaces.id });
-
+  if (!workspace)
+    throw new Error("A operação pública ainda não foi configurada.");
   return workspace.id;
 }

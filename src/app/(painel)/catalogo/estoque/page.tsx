@@ -1,15 +1,10 @@
 import type { Metadata } from "next";
 
-import { ModulePlaceholder } from "@/components/module-placeholder";
+import { CatalogPanel } from "@/features/catalog/catalog-panel";
+import { getCatalogData } from "@/features/catalog/queries";
 
 export const metadata: Metadata = { title: "Catálogo · Estoque" };
 
-export default function EstoquePage() {
-  return (
-    <ModulePlaceholder
-      title="Estoque"
-      description="Controle de estoque por produto e variação, movimentações, estoque mínimo e alertas de esgotamento."
-      phase={2}
-    />
-  );
+export default async function EstoquePage() {
+  return <CatalogPanel data={await getCatalogData()} mode="inventory" />;
 }

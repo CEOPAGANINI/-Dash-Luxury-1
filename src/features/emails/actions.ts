@@ -11,6 +11,7 @@ import {
 } from "@/features/emails/resend-provider";
 import { company } from "@/lib/company";
 import { getAppUrl } from "@/lib/app-url";
+import { exigirWorkspaceRole } from "@/lib/workspace";
 
 const campaignSchema = z.object({
   segment: z.enum(["paid", "pending", "refused", "no_orders", "all"]),
@@ -49,7 +50,10 @@ function wrapHtml(bodyText: string): string {
   const paragraphs = bodyText
     .split("\n")
     .filter((l) => l.trim())
-    .map((l) => `<p style="margin:0 0 14px;line-height:1.6">${l}</p>`)
+    .map(
+      (l) =>
+        `<p style="margin:0 0 14px;line-height:1.6">${l.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;")}</p>`,
+    )
     .join("");
 
   return `<!doctype html><html lang="pt"><body style="margin:0;background:#f4f4f5;padding:24px;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#18181b">
@@ -68,6 +72,14 @@ export async function sendCampaignAction(
   _prev: EmailActionResult | null,
   formData: FormData,
 ): Promise<EmailActionResult> {
+  try {
+    await exigirWorkspaceRole(["marketing"]);
+  } catch {
+    return {
+      ok: false,
+      error: "Sua conta não pode enviar campanhas nesta operação.",
+    };
+  }
   const parsed = campaignSchema.safeParse({
     segment: formData.get("segment"),
     subject: formData.get("subject"),
@@ -160,5 +172,6 @@ export async function sendCampaignAction(
 }
 
 export async function testResendAction(): Promise<void> {
+  await exigirWorkspaceRole();
   await testResendConnection();
 }

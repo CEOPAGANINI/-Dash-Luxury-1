@@ -31,20 +31,33 @@ export const checkoutSchema = z
   .object({
     firstName: z.string().trim().min(2, "Informe o seu nome"),
     lastName: z.string().trim().min(2, "Informe o apelido"),
-    email: z.string().trim().email("Informe um e-mail válido"),
+    email: z.string().trim().toLowerCase().email("Informe um e-mail válido"),
     phone: z.string().trim().optional().or(z.literal("")),
-    addressLine1: z.string().trim().min(4, "Informe a morada"),
+    document: z
+      .string()
+      .trim()
+      .regex(/^\d{9}$/, "NIF deve ter 9 dígitos")
+      .optional()
+      .or(z.literal("")),
+    addressLine1: z.string().trim().optional().or(z.literal("")),
     addressLine2: z.string().trim().optional().or(z.literal("")),
     postalCode: z
       .string()
       .trim()
-      .regex(PT_POSTAL_REGEX, "Código postal no formato 1234-567"),
-    city: z.string().trim().min(2, "Informe a localidade"),
+      .regex(PT_POSTAL_REGEX, "Código postal no formato 1234-567")
+      .optional()
+      .or(z.literal("")),
+    city: z.string().trim().optional().or(z.literal("")),
     paymentMethod: z.enum(["mbway", "multibanco"], {
       message: "Escolha a forma de pagamento",
     }),
     quantity: z.coerce.number().int().min(1).max(10),
     productSlug: z.string().trim().min(1),
+    checkoutId: z.string().uuid().optional().or(z.literal("")),
+    attemptId: z.string().uuid().optional(),
+    acceptOrderBump: z
+      .preprocess((value) => value === "true" || value === true, z.boolean())
+      .default(false),
     couponCode: z.string().trim().optional().or(z.literal("")),
     shippingMethodId: z.string().trim().optional().or(z.literal("")),
   })

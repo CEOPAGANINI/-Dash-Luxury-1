@@ -72,17 +72,21 @@ export default async function PedidosPage() {
 
   const rows = await listOrders();
   const summary = summarizeOrders(rows);
+  const moneyByCurrency = (totals: Record<string, number>) =>
+    Object.entries(totals)
+      .map(([currency, cents]) => formatMoney(cents, currency))
+      .join(" · ") || "Sem valores registrados";
 
   const cards = [
     { label: "Total de pedidos", value: String(summary.totalOrders) },
     { label: "Pedidos pagos", value: String(summary.paidOrders) },
     {
       label: "Receita aprovada",
-      value: formatMoney(summary.paidRevenueCents, "EUR", "pt-PT"),
+      value: moneyByCurrency(summary.paidByCurrency),
     },
     {
       label: "Aguardando pagamento",
-      value: formatMoney(summary.awaitingRevenueCents, "EUR", "pt-PT"),
+      value: moneyByCurrency(summary.awaitingByCurrency),
     },
   ];
 
@@ -90,7 +94,7 @@ export default async function PedidosPage() {
     <div className="space-y-4 sm:space-y-5">
       <PageHeader
         title="Pedidos"
-        description="Vendas registradas no banco de dados, atualizadas pelo webhook do gateway."
+        description="Até 100 pedidos recentes, atualizados pelo webhook do gateway. Valores separados por moeda; receita bruta não é lucro nem saldo de repasse."
       />
 
       <PageSection

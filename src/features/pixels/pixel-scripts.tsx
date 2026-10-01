@@ -5,6 +5,7 @@ import type { PixelType } from "@/features/pixels/types";
 import { ConsentGate } from "@/features/consent/consent-gate";
 
 interface PixelScriptsProps {
+  workspaceId?: string;
   /** Evento de conteúdo disparado após o PageView */
   event?: "ViewContent" | "InitiateCheckout";
   content?: {
@@ -24,8 +25,12 @@ interface PixelScriptsProps {
  *   pelo servidor (Conversions API), a partir do webhook do gateway.
  * - Tokens privados jamais chegam ao navegador (a consulta pública filtra).
  */
-export async function PixelScripts({ event, content }: PixelScriptsProps) {
-  const active = await getActivePixelsForPublic();
+export async function PixelScripts({
+  event,
+  content,
+  workspaceId,
+}: PixelScriptsProps) {
+  const active = await getActivePixelsForPublic(workspaceId);
   if (active.length === 0) return null;
 
   const byType = (t: PixelType) => active.filter((p) => p.type === t);

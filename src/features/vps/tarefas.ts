@@ -164,9 +164,13 @@ export async function limparPorTipo(
 export async function transicoesPreguicosas(
   tx: BancoVps,
   servidorId?: string,
+  workspaceId?: string,
 ): Promise<void> {
   const agora = new Date();
-  const doServidor = servidorId ? eq(vpsJobs.serverId, servidorId) : undefined;
+  const doServidor = and(
+    servidorId ? eq(vpsJobs.serverId, servidorId) : undefined,
+    workspaceId ? eq(vpsJobs.workspaceId, workspaceId) : undefined,
+  );
 
   const expiradas = await tx
     .update(vpsJobs)
@@ -231,6 +235,7 @@ export async function transicoesPreguicosas(
         eq(vpsReleases.status, "enviando"),
         lt(vpsReleases.createdAt, sql`now() - interval '2 hours'`),
         servidorId ? eq(vpsSites.serverId, servidorId) : undefined,
+        workspaceId ? eq(vpsSites.workspaceId, workspaceId) : undefined,
         sql`not exists (select 1 from ${vpsJobs} where ${vpsJobs.releaseId} = ${vpsReleases.id} and ${vpsJobs.status} in ('pendente', 'entregue'))`,
       ),
     );

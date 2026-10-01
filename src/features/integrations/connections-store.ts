@@ -3,7 +3,10 @@ import { and, eq, inArray } from "drizzle-orm";
 import { getDb, isDatabaseConfigured } from "@/database/client";
 import { integrations } from "@/database/schema";
 import { encryptSecret } from "@/lib/crypto";
-import { getOrCreateDefaultWorkspace } from "@/lib/workspace";
+import {
+  getOrCreateDefaultWorkspace,
+  exigirWorkspaceRole,
+} from "@/lib/workspace";
 import {
   CONNECTION_IDS,
   CONNECTION_META,
@@ -27,10 +30,7 @@ import {
 */
 
 /** A categoria da tabela para cada fonte. */
-const CATEGORY: Record<
-  ConnectionId,
-  "ads" | "payments" | "analytics"
-> = {
+const CATEGORY: Record<ConnectionId, "ads" | "payments" | "analytics"> = {
   meta: "ads",
   google: "ads",
   youtube: "ads",
@@ -85,8 +85,7 @@ export async function listConnections(): Promise<ConnectionsState> {
       };
     }
     return state;
-  } catch (error) {
-    console.error("[connections] erro ao listar:", error);
+  } catch {
     return {};
   }
 }
@@ -107,7 +106,7 @@ export async function upsertConnection(
   input: UpsertConnectionInput,
 ): Promise<StoredConnection> {
   const db = getDb();
-  const workspaceId = await getOrCreateDefaultWorkspace();
+  const workspaceId = (await exigirWorkspaceRole()).workspaceId;
   const meta = CONNECTION_META.find((item) => item.id === input.id)!;
   const connectedAt = new Date().toISOString();
 
@@ -160,7 +159,7 @@ export async function upsertConnection(
 /** Apaga a conexão. YouTube usa a do Google: sem Google, ele cai junto. */
 export async function deleteConnection(id: ConnectionId): Promise<void> {
   const db = getDb();
-  const workspaceId = await getOrCreateDefaultWorkspace();
+  const workspaceId = (await exigirWorkspaceRole()).workspaceId;
   const keys: ConnectionId[] = id === "google" ? ["google", "youtube"] : [id];
 
   await db

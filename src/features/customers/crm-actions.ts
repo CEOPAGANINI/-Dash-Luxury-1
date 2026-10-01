@@ -5,18 +5,20 @@ import { and, eq } from "drizzle-orm";
 
 import { getDb, isDatabaseConfigured } from "@/database/client";
 import { customers } from "@/database/schema";
-import { getOrCreateDefaultWorkspace } from "@/lib/workspace";
+import { exigirWorkspaceRole } from "@/lib/workspace";
 
 /** Anotações livres sobre o cliente — o que o atendimento precisa lembrar. */
 export async function updateCustomerNotesAction(
   formData: FormData,
 ): Promise<void> {
   const id = String(formData.get("id") ?? "");
-  const notes = String(formData.get("notes") ?? "").trim().slice(0, 4000);
+  const notes = String(formData.get("notes") ?? "")
+    .trim()
+    .slice(0, 4000);
   if (!id || !isDatabaseConfigured()) return;
 
   const db = getDb();
-  const workspaceId = await getOrCreateDefaultWorkspace();
+  const workspaceId = (await exigirWorkspaceRole(["support"])).workspaceId;
 
   await db
     .update(customers)
@@ -46,7 +48,7 @@ export async function updateCustomerTagsAction(
   ).slice(0, 20);
 
   const db = getDb();
-  const workspaceId = await getOrCreateDefaultWorkspace();
+  const workspaceId = (await exigirWorkspaceRole(["support"])).workspaceId;
 
   await db
     .update(customers)

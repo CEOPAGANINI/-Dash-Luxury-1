@@ -278,6 +278,18 @@ export async function exportFlowPage(
     site ? await importedFiles(site) : generatedFiles(validated, page)
   ).filter((entry) => !ehArquivoDeSistema(entry.path));
   conferirParaOServidor(files);
+  return exportStaticFiles(files, filename(page.name));
+}
+
+/** One validated site version, reused by the multi-page funnel publisher. */
+export async function exportStaticFiles(
+  files: SiteFile[],
+  outputFilename: string,
+): Promise<StaticPageExport> {
+  files = await validateFiles(files);
+  if (!files.some((entry) => entry.path === "index.html"))
+    throw new Error("O site precisa de index.html na raiz.");
+  conferirParaOServidor(files);
   const entries = Object.fromEntries(
     files.map((entry) => [entry.path, entry.data]),
   ) as Zippable;
@@ -305,5 +317,5 @@ export async function exportFlowPage(
     throw new Error(
       "O ZIP exportado excede 3 MB. Comprima imagens e fontes ou reduza os arquivos antes de tentar novamente.",
     );
-  return { bytes, filename: filename(page.name), fileCount: files.length };
+  return { bytes, filename: outputFilename, fileCount: files.length };
 }

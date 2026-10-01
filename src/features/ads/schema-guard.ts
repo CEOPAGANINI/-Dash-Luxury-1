@@ -1,6 +1,8 @@
 import { sql } from "drizzle-orm";
 
 import { getDb } from "@/database/client";
+import { WorkspaceAccessError } from "@/lib/workspace";
+import { MetaApiError } from "./meta-client";
 
 /*
   As tabelas do gerenciador, criadas pelo próprio painel.
@@ -128,12 +130,14 @@ export function ensureAdsSchema(): Promise<void> {
 
 /** Uma frase para a tela quando o banco recusa algo do gerenciador. */
 export function mensagemDeErro(error: unknown): string {
+  if (error instanceof WorkspaceAccessError || error instanceof MetaApiError)
+    return error.message;
   const detalhe = error instanceof Error ? error.message : String(error);
   if (/does not exist/i.test(detalhe)) {
-    return `As tabelas do gerenciador não existem no banco e não foi possível criá-las daqui. Rode src/database/migrations/0005_ads_manager.sql no SQL Editor do Supabase. Detalhe: ${detalhe}`;
+    return "As tabelas do gerenciador ainda não estão disponíveis. Aplique a migração 0005_ads_manager.sql durante o deploy.";
   }
   if (/permission denied/i.test(detalhe)) {
-    return `O usuário do banco não tem permissão para isto. Detalhe: ${detalhe}`;
+    return "O banco não autorizou esta operação. Confira a permissão da conexão.";
   }
-  return `O banco recusou a operação: ${detalhe}`;
+  return "Não foi possível concluir a operação. Confira a conexão e tente novamente.";
 }

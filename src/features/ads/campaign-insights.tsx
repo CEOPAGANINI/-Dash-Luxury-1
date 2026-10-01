@@ -88,8 +88,8 @@ export function CampaignInsights({
         {campaign.source === "demo"
           ? "Histórico demonstrativo · dados fictícios"
           : "Histórico disponível da campanha"}{" "}
-        · últimos 7 dias. Os cálculos abaixo pertencem somente a{" "}
-        <strong>{campaign.name}</strong>.
+        · período da última sincronização. Os cálculos abaixo pertencem somente
+        a <strong>{campaign.name}</strong>.
       </p>
       <div id={`${id}-content`}>
         {view === "diagnosis" && (
@@ -289,8 +289,8 @@ export function CampaignInsights({
             <header>
               <h4>Da exibição à compra</h4>
               <p>
-                Volumes atribuídos nos últimos 7 dias. Barras na mesma escala,
-                com os totais sempre visíveis.
+                Volumes no período sincronizado. Barras na mesma escala, com os
+                totais sempre visíveis.
               </p>
             </header>
             {funnel.nonSequential && (

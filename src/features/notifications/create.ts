@@ -44,7 +44,7 @@ export async function createNotification(
       channel: "in_app",
       metadata: input.metadata ?? {},
     });
-  } catch (error) {
-    console.error("[notifications] falha ao registar:", error);
+  } catch {
+    console.error("[notifications] falha ao registar:");
   }
 }

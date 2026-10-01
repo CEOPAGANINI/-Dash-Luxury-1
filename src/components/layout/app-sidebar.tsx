@@ -63,19 +63,22 @@ export function SidebarUtilities({
     <div
       className={`dash-sidebar-list dash-sidebar-rodape border-t p-3 ${styles.utilities}`}
     >
-      <div
+      <Link
+        href="/configuracoes/diagnosticos"
+        aria-label="Diagnóstico dos serviços"
+        onClick={onNavigate}
         className={`dash-sidebar-block text-muted-foreground flex min-h-10 items-center gap-3 px-3 ${styles.utilityStatus}`}
       >
         <span aria-hidden className={styles.led} />
-        <span className="truncate">Sistemas saudáveis</span>
+        <span className="truncate">Diagnóstico dos serviços</span>
         {/* A versão publicada (commit), para conferir o que está no ar. */}
         <span
           className="dash-versao ml-auto shrink-0 font-mono text-[0.625rem] font-semibold opacity-60"
-          title={`Versão publicada: ${process.env.NEXT_PUBLIC_VERSAO ?? "local"}`}
+          title={`Versão publicada: ${process.env.NEXT_PUBLIC_VERSAO || "local"}`}
         >
-          v{process.env.NEXT_PUBLIC_VERSAO ?? "local"}
+          v{process.env.NEXT_PUBLIC_VERSAO || "local"}
         </span>
-      </div>
+      </Link>
       {/* O tema do painel: preto (padrão) ou branco com preto. */}
       <ThemeToggle />
 

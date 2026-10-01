@@ -18,6 +18,7 @@ const falso = vi.hoisted(() => ({
   configurado: true,
   ensure: vi.fn(async () => {}),
   workspace: vi.fn(async () => "ws-1"),
+  access: vi.fn(async () => ({ workspaceId: "ws-1", role: "owner" })),
 }));
 
 vi.mock("@/lib/supabase/config", () => ({
@@ -40,6 +41,7 @@ vi.mock("@/database/client", () => ({
 }));
 vi.mock("@/lib/workspace", () => ({
   getOrCreateDefaultWorkspace: falso.workspace,
+  exigirWorkspaceRole: falso.access,
 }));
 vi.mock("@/features/vps/schema-sql", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/features/vps/schema-sql")>()),
@@ -89,6 +91,8 @@ beforeEach(() => {
   falso.configurado = true;
   falso.ensure.mockReset();
   falso.ensure.mockResolvedValue(undefined);
+  falso.access.mockReset();
+  falso.access.mockResolvedValue({ workspaceId: "ws-1", role: "owner" });
 });
 afterEach(() => vi.unstubAllEnvs());
 
@@ -159,6 +163,13 @@ describe("ehDonoDaVps", () => {
 });
 
 describe("exigirDonoDaVps", () => {
+  it("a lista de donos não ignora uma função sem permissão na operação", async () => {
+    falso.access.mockRejectedValueOnce(new Error("Operação sem permissão"));
+    await expect(exigirDonoDaVps({ alterar: false })).rejects.toMatchObject({
+      status: 403,
+      codigo: "sem_permissao",
+    });
+  });
   it("login antigo pelo amr dá login_antigo MESMO com last_sign_in_at de agora", async () => {
     falso.usuario = usuarioDono({ last_sign_in_at: new Date().toISOString() });
     falso.claims = {

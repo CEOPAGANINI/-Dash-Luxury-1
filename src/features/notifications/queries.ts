@@ -40,8 +40,8 @@ export async function listNotifications(
       .where(eq(notifications.workspaceId, workspaceId))
       .orderBy(desc(notifications.createdAt))
       .limit(limit);
-  } catch (error) {
-    console.error("[notifications] erro ao listar:", error);
+  } catch {
+    console.error("[notifications] erro ao listar:");
     return [];
   }
 }

@@ -49,10 +49,10 @@ export async function hostsDoRastreio(
           and(eq(vpsSiteDomains.dnsStatus, "ok"), isNull(vpsSites.deletedAt)),
         );
       hosts = new Set(linhas.map((l) => l.hostname));
-    } catch (erro) {
+    } catch {
       // Sem tabelas (painel sem VPS) ou banco fora: ninguém de fora ganha
       // CORS. O rastreio do próprio app não depende disto.
-      console.error("[rastreio] lista de domínios da VPS indisponível", erro);
+      console.error("[rastreio] lista de domínios da VPS indisponível");
     }
   }
   cache = { ate: agora + VALIDADE_MS, hosts };

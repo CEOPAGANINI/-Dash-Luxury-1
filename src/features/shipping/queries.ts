@@ -2,7 +2,10 @@ import { and, asc, eq, isNull } from "drizzle-orm";
 
 import { getDb, isDatabaseConfigured } from "@/database/client";
 import { shippingMethods } from "@/database/schema";
-import { getOrCreateDefaultWorkspace } from "@/lib/workspace";
+import {
+  getOrCreateDefaultWorkspace,
+  getPublicWorkspaceId,
+} from "@/lib/workspace";
 import type { ShippingMethodRow } from "@/features/shipping/types";
 
 // Reexportados para quem já importava daqui — o conteúdo client-safe vive
@@ -13,11 +16,13 @@ export {
 } from "@/features/shipping/types";
 
 /** Todos os fretes do workspace (painel — inclui inativos). */
-export async function listShippingMethods(): Promise<ShippingMethodRow[]> {
+export async function listShippingMethods(
+  workspace?: string,
+): Promise<ShippingMethodRow[]> {
   if (!isDatabaseConfigured()) return [];
 
   const db = getDb();
-  const workspaceId = await getOrCreateDefaultWorkspace();
+  const workspaceId = workspace ?? (await getOrCreateDefaultWorkspace());
 
   const rows = await db
     .select()
@@ -44,9 +49,11 @@ export async function listShippingMethods(): Promise<ShippingMethodRow[]> {
 }
 
 /** Apenas os fretes ativos — usados no checkout público. */
-export async function listActiveShippingMethods(): Promise<
-  ShippingMethodRow[]
-> {
-  const all = await listShippingMethods();
+export async function listActiveShippingMethods(
+  workspace?: string,
+): Promise<ShippingMethodRow[]> {
+  const all = await listShippingMethods(
+    workspace ?? (await getPublicWorkspaceId()),
+  );
   return all.filter((m) => m.isActive);
 }

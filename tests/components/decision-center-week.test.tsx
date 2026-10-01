@@ -38,6 +38,18 @@ function useTestDashboard(): ReturnType<typeof useUnifiedDashboard> {
   const [networkId, setNetworkId] = React.useState<NetworkId>("all");
 
   return {
+    data: {
+      ...unifiedDemoData,
+      source: {
+        status: "unavailable",
+        asOf: "2026-11-01T00:00:00Z",
+        startDate: "2026-11-01",
+        note: "Fixture",
+        revenueDays: [],
+        mediaSyncedAt: null,
+        unavailableMetrics: [],
+      },
+    },
     operationId: "alpha",
     operation,
     setOperationId: vi.fn(),

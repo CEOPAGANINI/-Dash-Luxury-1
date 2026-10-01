@@ -32,6 +32,7 @@ export interface ProductReview {
 }
 
 export interface LandingProduct {
+  type?: "physical" | "digital" | "service" | "subscription";
   slug: string;
   name: string;
   brand: string;

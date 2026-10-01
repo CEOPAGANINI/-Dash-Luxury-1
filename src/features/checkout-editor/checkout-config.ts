@@ -20,6 +20,8 @@ export const CAMPOS_DO_CHECKOUT = [
 export type CampoId = (typeof CAMPOS_DO_CHECKOUT)[number]["id"];
 
 export const PAGAMENTOS = [
+  { id: "mbway", rotulo: "MB WAY" },
+  { id: "multibanco", rotulo: "Multibanco" },
   { id: "pix", rotulo: "Pix" },
   { id: "cartao", rotulo: "Cartão" },
   { id: "boleto", rotulo: "Boleto" },
@@ -58,10 +60,19 @@ export const checkoutConfigSchema = z.object({
   }),
   cores: z.object({ fundo: cor, texto: cor, destaque: cor }),
   campos: z.array(campoSchema).max(20),
-  pagamentos: z.array(z.enum(["pix", "cartao", "boleto"])).max(3),
-  selos: z.object({ compraSegura: z.boolean(), garantia: z.boolean(), ssl: z.boolean() }),
+  pagamentos: z
+    .array(z.enum(["pix", "cartao", "boleto", "mbway", "multibanco"]))
+    .max(5),
+  selos: z.object({
+    compraSegura: z.boolean(),
+    garantia: z.boolean(),
+    ssl: z.boolean(),
+  }),
   garantiaDias: z.number().int().min(0).max(365),
-  contador: z.object({ ativo: z.boolean(), minutos: z.number().int().min(1).max(120) }),
+  contador: z.object({
+    ativo: z.boolean(),
+    minutos: z.number().int().min(1).max(120),
+  }),
   orderBump: z.object({
     ativo: z.boolean(),
     titulo: z.string().max(80),
@@ -69,7 +80,12 @@ export const checkoutConfigSchema = z.object({
     precoCents: z.number().int().min(0).max(100_000_000),
   }),
   depoimentos: z
-    .array(z.object({ nome: z.string().min(1).max(60), texto: z.string().min(1).max(240) }))
+    .array(
+      z.object({
+        nome: z.string().min(1).max(60),
+        texto: z.string().min(1).max(240),
+      }),
+    )
     .max(6),
 });
 export type CheckoutConfig = z.infer<typeof checkoutConfigSchema>;
@@ -96,7 +112,12 @@ export const CONFIG_PADRAO: CheckoutConfig = {
   selos: { compraSegura: true, garantia: true, ssl: true },
   garantiaDias: 7,
   contador: { ativo: false, minutos: 15 },
-  orderBump: { ativo: false, titulo: "Leve também", texto: "Adicione por um preço especial nesta compra.", precoCents: 0 },
+  orderBump: {
+    ativo: false,
+    titulo: "Leve também",
+    texto: "Adicione por um preço especial nesta compra.",
+    precoCents: 0,
+  },
   depoimentos: [],
 };
 
@@ -104,7 +125,9 @@ export const CONFIG_PADRAO: CheckoutConfig = {
    estranhos) e, no fim, os que faltarem — assim um campo novo do
    produto nunca desaparece de um checkout antigo. Os campos fixos
    (nome e e-mail) voltam sempre ligados e obrigatórios. */
-export function completarCampos(lista: readonly unknown[]): CheckoutConfig["campos"] {
+export function completarCampos(
+  lista: readonly unknown[],
+): CheckoutConfig["campos"] {
   const vistos = new Set<CampoId>();
   const campos: CheckoutConfig["campos"] = [];
   for (const bruto of lista) {
@@ -114,14 +137,22 @@ export function completarCampos(lista: readonly unknown[]): CheckoutConfig["camp
     campos.push(r.data);
   }
   for (const c of CAMPOS_DO_CHECKOUT) {
-    if (!vistos.has(c.id)) campos.push(CONFIG_PADRAO.campos.find((x) => x.id === c.id)!);
+    if (!vistos.has(c.id))
+      campos.push(CONFIG_PADRAO.campos.find((x) => x.id === c.id)!);
   }
-  return campos.map((c) => (CAMPOS_DO_CHECKOUT.find((x) => x.id === c.id)?.fixo ? { ...c, ativo: true, obrigatorio: true } : c));
+  return campos.map((c) =>
+    CAMPOS_DO_CHECKOUT.find((x) => x.id === c.id)?.fixo
+      ? { ...c, ativo: true, obrigatorio: true }
+      : c,
+  );
 }
 
 /** A configuração guardada, saneada; o que faltar volta ao padrão. */
 export function completarConfig(bruta: unknown): CheckoutConfig {
-  const objeto = typeof bruta === "object" && bruta !== null ? (bruta as Record<string, unknown>) : {};
+  const objeto =
+    typeof bruta === "object" && bruta !== null
+      ? (bruta as Record<string, unknown>)
+      : {};
   const juntado = { ...CONFIG_PADRAO, ...objeto, version: 1 as const };
   const r = checkoutConfigSchema.safeParse({
     ...juntado,
@@ -131,12 +162,16 @@ export function completarConfig(bruta: unknown): CheckoutConfig {
     contador: { ...CONFIG_PADRAO.contador, ...(objeto.contador as object) },
     orderBump: { ...CONFIG_PADRAO.orderBump, ...(objeto.orderBump as object) },
     campos: completarCampos(Array.isArray(objeto.campos) ? objeto.campos : []),
-    pagamentos: Array.isArray(objeto.pagamentos) ? objeto.pagamentos : CONFIG_PADRAO.pagamentos,
+    pagamentos: Array.isArray(objeto.pagamentos)
+      ? objeto.pagamentos
+      : CONFIG_PADRAO.pagamentos,
     depoimentos: Array.isArray(objeto.depoimentos) ? objeto.depoimentos : [],
   });
   if (r.success) {
     // Sem forma de pagamento nenhuma o checkout não existe: volta o Pix.
-    return r.data.pagamentos.length ? r.data : { ...r.data, pagamentos: ["pix"] };
+    return r.data.pagamentos.length
+      ? r.data
+      : { ...r.data, pagamentos: ["pix"] };
   }
   return CONFIG_PADRAO;
 }
@@ -153,7 +188,10 @@ export function restoreCheckoutConfig(raw: string): CheckoutConfig | null {
 export function camposVisiveis(config: CheckoutConfig) {
   return config.campos
     .filter((c) => c.ativo)
-    .map((c) => ({ ...c, rotulo: CAMPOS_DO_CHECKOUT.find((x) => x.id === c.id)?.rotulo ?? c.id }));
+    .map((c) => ({
+      ...c,
+      rotulo: CAMPOS_DO_CHECKOUT.find((x) => x.id === c.id)?.rotulo ?? c.id,
+    }));
 }
 
 /** Um campo fixo não se desliga nem deixa de ser obrigatório. */
@@ -165,6 +203,7 @@ export function campoEhFixo(id: CampoId): boolean {
    dados e pagamento, mais entrega quando o endereço está ligado. */
 export function passosDoCheckout(config: CheckoutConfig): string[] {
   if (config.layout === "uma-pagina") return ["Seus dados e pagamento"];
-  const tem = (id: CampoId) => config.campos.some((c) => c.id === id && c.ativo);
+  const tem = (id: CampoId) =>
+    config.campos.some((c) => c.id === id && c.ativo);
   return ["Seus dados", ...(tem("endereco") ? ["Entrega"] : []), "Pagamento"];
 }

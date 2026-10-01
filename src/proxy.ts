@@ -27,7 +27,8 @@ export function isPublicPath(pathname: string): boolean {
   if (pathname === "/") return false; // raiz redireciona para o painel
   return PUBLIC_PREFIXES.some(
     (prefix) =>
-      pathname === prefix.replace(/\/$/, "") || pathname.startsWith(prefix),
+      pathname === prefix.replace(/\/$/, "") ||
+      pathname.startsWith(`${prefix.replace(/\/$/, "")}/`),
   );
 }
 
@@ -62,13 +63,16 @@ export async function proxy(request: NextRequest) {
       getAll() {
         return request.cookies.getAll();
       },
-      setAll(cookiesToSet) {
+      setAll(cookiesToSet, headers) {
         cookiesToSet.forEach(({ name, value }) =>
           request.cookies.set(name, value),
         );
         response = NextResponse.next({ request });
         cookiesToSet.forEach(({ name, value, options }) =>
           response.cookies.set(name, value, options),
+        );
+        Object.entries(headers ?? {}).forEach(([name, value]) =>
+          response.headers.set(name, value),
         );
       },
     },
@@ -78,21 +82,36 @@ export async function proxy(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  const redirectWithSession = (url: URL) => {
+    const redirected = NextResponse.redirect(url);
+    response.cookies
+      .getAll()
+      .forEach((cookie) => redirected.cookies.set(cookie));
+    redirected.headers.set("Cache-Control", "private, no-store, max-age=0");
+    return redirected;
+  };
 
   if (!user && !isPublicPath(pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("redirect", pathname);
-    return NextResponse.redirect(url);
+    return redirectWithSession(url);
   }
 
   if (user && (pathname === "/login" || pathname === "/cadastro")) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     url.search = "";
-    return NextResponse.redirect(url);
+    return redirectWithSession(url);
   }
 
+  if (
+    !isPublicPath(pathname) ||
+    pathname.startsWith("/auth") ||
+    pathname === "/login"
+  ) {
+    response.headers.set("Cache-Control", "private, no-store, max-age=0");
+  }
   return response;
 }
 

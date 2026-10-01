@@ -4,6 +4,7 @@ import { getDb, isDatabaseConfigured } from "@/database/client";
 import { products } from "@/database/schema";
 import type { LandingProduct } from "@/features/landing/technebula-data";
 import { alphaGamerNebula } from "@/features/landing/technebula-data";
+import { getPublicWorkspaceId } from "@/lib/workspace";
 
 /**
  * Busca um produto publicado pelo slug (tabela `products`, campo
@@ -15,26 +16,42 @@ import { alphaGamerNebula } from "@/features/landing/technebula-data";
  */
 export async function getProductBySlug(
   slug: string,
+  workspace?: string,
 ): Promise<LandingProduct | null> {
   if (isDatabaseConfigured()) {
     try {
       const db = getDb();
+      const workspaceId = workspace ?? (await getPublicWorkspaceId());
       const rows = await db
         .select()
         .from(products)
-        .where(and(eq(products.slug, slug), isNull(products.deletedAt)))
+        .where(
+          and(
+            eq(products.slug, slug),
+            eq(products.workspaceId, workspaceId),
+            isNull(products.deletedAt),
+          ),
+        )
         .limit(1);
 
       const row = rows[0];
       if (row && row.status === "active") {
+        const promotional =
+          row.promoPriceCents !== null &&
+          row.promoPriceCents >= 0 &&
+          row.promoPriceCents <= row.priceCents;
         const content = (row.landingContent ?? {}) as Partial<LandingProduct>;
         return {
+          type: row.type,
           slug: row.slug,
           name: row.name,
           brand: content.brand ?? "",
           shortPitch: row.shortDescription ?? content.shortPitch ?? "",
-          priceCents: row.priceCents,
-          compareAtPriceCents: content.compareAtPriceCents ?? null,
+          priceCents: promotional ? row.promoPriceCents! : row.priceCents,
+          compareAtPriceCents:
+            promotional && row.promoPriceCents! < row.priceCents
+              ? row.priceCents
+              : (content.compareAtPriceCents ?? null),
           currency: row.currency,
           mainImage: row.mainImageUrl ?? content.mainImage ?? "",
           gallery:
@@ -51,8 +68,10 @@ export async function getProductBySlug(
           reviews: content.reviews ?? [],
         };
       }
+      return null;
     } catch (error) {
-      console.error("[landing] erro ao buscar produto do banco:", error);
+      void error;
+      return null;
     }
   }
 

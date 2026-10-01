@@ -35,7 +35,7 @@ describe("left menu without pinned areas", () => {
       screen.getByRole("navigation", { name: "Navegação principal" }),
       screen.getByRole("link", { name: "Configurações" }),
       screen.getByRole("link", { name: "Ver loja" }),
-      screen.getByText("Sistemas saudáveis"),
+      screen.getByRole("link", { name: "Diagnóstico dos serviços" }),
       screen.getByRole("button", { name: "Abrir menu da conta" }),
     ]) {
       expect(scroll.contains(element)).toBe(true);
@@ -80,7 +80,7 @@ describe("left menu without pinned areas", () => {
     fireEvent.click(
       within(drawer).getByRole("button", { name: "Abrir pasta Gestão" }),
     );
-    expect(within(drawer).getAllByRole("link")).toHaveLength(5);
+    expect(within(drawer).getAllByRole("link")).toHaveLength(6);
     expect(
       within(drawer).queryByRole("link", { name: "Configurações" }),
     ).toBeNull();

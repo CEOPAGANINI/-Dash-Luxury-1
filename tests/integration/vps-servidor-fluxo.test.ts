@@ -61,6 +61,15 @@ vi.mock("@/lib/auth/session", async (importOriginal) => {
   };
 });
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+vi.mock("next/headers", () => ({
+  cookies: vi.fn(async () => ({ get: () => undefined })),
+}));
+// Probes after a task result are tested independently with local HTTP fixtures.
+// This state-machine suite must never wait on a third-party DNS/HTTPS endpoint.
+vi.mock("@/features/vps/servico", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/features/vps/servico")>()),
+  conferirSiteDepois: vi.fn(async () => undefined),
+}));
 vi.mock("next/navigation", () => ({
   redirect: vi.fn((destino: string) => {
     throw Object.assign(new Error("NEXT_REDIRECT"), { destino });
@@ -133,7 +142,7 @@ beforeAll(async () => {
 
 beforeEach(async () => {
   vi.stubEnv("VPS_CHAVE_MESTRA", MESTRA);
-  vi.stubEnv("VPS_DONOS", `${DONO}, outra-conta-id`);
+  vi.stubEnv("VPS_DONOS", `${DONO}, 99999999-9999-4999-8999-999999999999`);
   vi.stubEnv("NEXT_PUBLIC_APP_URL", APP);
   vi.stubEnv("VPS_CHECKOUT_ORIGENS", ORIGEM_EXTRA);
   vi.stubEnv("VERCEL_ENV", "production");
@@ -152,7 +161,7 @@ afterEach(async () => {
 function sessaoDoDono(mudancas: Record<string, unknown> = {}) {
   return {
     user: {
-      id: "conta-do-dono",
+      id: "88888888-8888-4888-8888-888888888888",
       email: DONO,
       name: "Dono",
       emailConfirmado: true,
@@ -559,7 +568,7 @@ describe("guarda do painel (exigirDonoDaVps)", () => {
     ).toMatchObject({ ok: false, codigo: "sem_permissao" });
     // Pelo id da conta vale mesmo sem e-mail confirmado.
     estado.sessao = sessaoDoDono({
-      id: "outra-conta-id",
+      id: "99999999-9999-4999-8999-999999999999",
       email: "x@e2e-teste.com.br",
       emailConfirmado: false,
     });

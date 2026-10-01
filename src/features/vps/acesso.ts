@@ -10,7 +10,7 @@ import {
   type AppSession,
   type SessionUser,
 } from "@/lib/auth/session";
-import { getOrCreateDefaultWorkspace } from "@/lib/workspace";
+import { exigirWorkspaceRole } from "@/lib/workspace";
 
 import { chaveMestra } from "./chaves";
 import {
@@ -200,7 +200,7 @@ export async function exigirDonoDaVps(
   try {
     await ensureVpsSchema(db);
   } catch (erro) {
-    console.error("[vps] tabelas do Servidor do Funil indisponíveis", erro);
+    console.error("[vps] tabelas do Servidor do Funil indisponíveis");
     throw new VpsError(503, "sem_tabelas", mensagemDeErroVps(erro));
   }
 
@@ -238,7 +238,16 @@ export async function exigirDonoDaVps(
       );
   }
 
-  const workspaceId = await getOrCreateDefaultWorkspace();
+  let workspaceId: string;
+  try {
+    workspaceId = (await exigirWorkspaceRole()).workspaceId;
+  } catch {
+    throw new VpsError(
+      403,
+      "sem_permissao",
+      "Sua função nesta operação não permite administrar servidores.",
+    );
+  }
   return { session, db, workspaceId };
 }
 

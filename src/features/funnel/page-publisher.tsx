@@ -12,24 +12,20 @@ import {
 } from "./funnel-model";
 import { SpeedTest } from "./speed-test";
 import { MetricasAba } from "./page-metrics-tab";
-import {
-  DOMINIOS_VPS,
-  ITENS_COFRE,
-  cofreDoDominio,
-  criarSlug,
-  dominioPronto,
-  saudeDoDominio,
-  setCofreDoDominio,
-  slugsDoDominio,
-} from "@/features/vps/catalogo-demo";
+import { forgetPreparedPageZip, preparePageZip } from "./page-zip";
+import { usePageZip } from "./use-page-zip";
+import { PageVpsPublisher } from "./page-vps-publisher";
+import { deletePackage } from "./package-cloud";
+import { pageAddress } from "./funnel-address";
 
 /*
-  O publicador do bloco "Página" — só a interface, a pedido do dono. Um
+  O publicador do bloco "Página". Um
   painel lateral com abas (Essencial, Conteúdo, SEO, Rastreio, Velocidade,
   Proteção, Saídas): escolher o domínio da VPS e o caminho, arrastar o ZIP
   para conferir, SEO, pixels, o Turbo de velocidade, a proteção anti-cópia
-  e as saídas ligadas às próximas etapas. Nada publica nem sobe ZIP de
-  verdade: sem VPS conectada, o botão Publicar fica em espera.
+  e as saídas ligadas às próximas etapas. ZIPs são conferidos em memória;
+  publicação real exige escolher um site e confirmar a substituição inteira.
+  Configurações adicionais continuam como rascunho, sem injeção no pacote.
 */
 
 type Aba =
@@ -175,15 +171,44 @@ const PROTECOES: { id: keyof ProtecaoPagina; rotulo: string }[] = [
   { id: "devtools", rotulo: "Desfocar se abrir o inspecionar" },
 ];
 
-const BLOQUEIOS: { id: keyof IndexacaoPagina; rotulo: string; dica: string }[] = [
-  { id: "noindex", rotulo: "Esconder do Google (noindex)", dica: "A página não aparece nos resultados de busca." },
-  { id: "nofollow", rotulo: "Não seguir os links (nofollow)", dica: "Robôs não passam pelos links desta página." },
-  { id: "foraDoSitemap", rotulo: "Fora do sitemap.xml e do sitemap index", dica: "Não listar a página nos mapas do site." },
-  { id: "robotsDisallow", rotulo: "Bloquear no robots.txt (Disallow)", dica: "Atenção: bloqueado, o Google não lê o noindex e o link pode aparecer sem descrição. Para sumir da busca e continuar acessível, use só o noindex." },
-  { id: "semCacheTrecho", rotulo: "Sem cache e sem trecho (noarchive, nosnippet)", dica: "Sem cópia salva nem resumo nos resultados." },
-  { id: "semImagens", rotulo: "Não indexar imagens (noimageindex)", dica: "As imagens não entram no Google Imagens." },
-  { id: "bloquearIA", rotulo: "Bloquear robôs de IA (GPTBot, ClaudeBot, CCBot…)", dica: "Impede que treinem modelos com a página." },
-];
+const BLOQUEIOS: { id: keyof IndexacaoPagina; rotulo: string; dica: string }[] =
+  [
+    {
+      id: "noindex",
+      rotulo: "Esconder do Google (noindex)",
+      dica: "A página não aparece nos resultados de busca.",
+    },
+    {
+      id: "nofollow",
+      rotulo: "Não seguir os links (nofollow)",
+      dica: "Robôs não passam pelos links desta página.",
+    },
+    {
+      id: "foraDoSitemap",
+      rotulo: "Fora do sitemap.xml e do sitemap index",
+      dica: "Não listar a página nos mapas do site.",
+    },
+    {
+      id: "robotsDisallow",
+      rotulo: "Bloquear no robots.txt (Disallow)",
+      dica: "Atenção: bloqueado, o Google não lê o noindex e o link pode aparecer sem descrição. Para sumir da busca e continuar acessível, use só o noindex.",
+    },
+    {
+      id: "semCacheTrecho",
+      rotulo: "Sem cache e sem trecho (noarchive, nosnippet)",
+      dica: "Sem cópia salva nem resumo nos resultados.",
+    },
+    {
+      id: "semImagens",
+      rotulo: "Não indexar imagens (noimageindex)",
+      dica: "As imagens não entram no Google Imagens.",
+    },
+    {
+      id: "bloquearIA",
+      rotulo: "Bloquear robôs de IA (GPTBot, ClaudeBot, CCBot…)",
+      dica: "Impede que treinem modelos com a página.",
+    },
+  ];
 
 const VELOCIDADES: { id: keyof VelocidadePagina; rotulo: string }[] = [
   { id: "imagens", rotulo: "Imagens WebP + AVIF" },
@@ -200,63 +225,88 @@ function bytes(n: number): string {
   return `${(n / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function normalizarCaminho(c: string): string {
-  const t = c.trim();
-  if (!t || t === "/") return "/";
-  return "/" + t.replace(/^\/+/, "").replace(/\s+/g, "-").toLowerCase();
-}
-
 export interface EtapaDestino {
   id: string;
   nome: string;
   url?: string;
 }
 
-export function PagePublisher({
-  nome,
-  dados,
-  onNome,
-  onChange,
-  proximasEtapas,
-  onFechar,
-}: {
+type PublisherProps = {
+  storageId: string;
+  funnelId: string;
+  nodeId: string;
   nome: string;
   dados: DadosPagina;
   onNome: (n: string) => void;
   onChange: (d: DadosPagina) => void;
   proximasEtapas: EtapaDestino[];
   onFechar: () => void;
-}) {
+  onEditarConteudo?: () => void;
+  onPublicarSite?: () => void;
+};
+
+export function PagePublisher(props: PublisherProps) {
+  return (
+    <PublisherContent
+      key={JSON.stringify([props.storageId, props.funnelId, props.nodeId])}
+      {...props}
+    />
+  );
+}
+
+function PublisherContent({
+  storageId,
+  funnelId,
+  nodeId,
+  nome,
+  dados,
+  onNome,
+  onChange,
+  proximasEtapas,
+  onFechar,
+  onEditarConteudo,
+  onPublicarSite,
+}: PublisherProps) {
   const [aba, setAba] = React.useState<Aba>("essencial");
   const [novoDominio, setNovoDominio] = React.useState("");
   const [novaSaida, setNovaSaida] = React.useState("");
-  const [novoSlug, setNovoSlug] = React.useState("");
-  // Bump para re-renderizar quando um slug novo entra no store da sessão.
-  const [, forcar] = React.useReducer((x: number) => x + 1, 0);
+  const [zipError, setZipError] = React.useState("");
+  const [validatingZip, setValidatingZip] = React.useState(false);
+  const zipScope = { storageId, funnelId, nodeId };
+  const preparedZip = usePageZip({
+    ...zipScope,
+    funnelId: dados.zip?.sourceFunnelId ?? funnelId,
+  });
+  const mounted = React.useRef(false);
+  const validating = React.useRef(false);
+  const latestDados = React.useRef(dados);
+  const latestOnChange = React.useRef(onChange);
+  React.useEffect(() => {
+    latestDados.current = dados;
+    latestOnChange.current = onChange;
+  }, [dados, onChange]);
+  React.useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
   const [arrastando, setArrastando] = React.useState(false);
   const inputZip = React.useRef<HTMLInputElement>(null);
   const inputFav = React.useRef<HTMLInputElement>(null);
+  const publishSection = React.useRef<HTMLDivElement>(null);
 
   const set = (p: Partial<DadosPagina>) => onChange({ ...dados, ...p });
   const setMeta = (p: Partial<DadosPagina["meta"]>) =>
     set({ meta: { ...dados.meta, ...p } });
 
-  const caminho = normalizarCaminho(dados.caminho);
-  const urlFinal = dados.dominio
-    ? `https://${dados.dominio}${caminho}`
-    : "— escolha um domínio";
+  const address = pageAddress(dados);
+  const urlFinal = address ?? "— endereço inválido";
   const abaAtual = ABAS.find((a) => a.id === aba) ?? ABAS[0];
 
-  // Status do "crachá": rascunho até ter domínio, caminho e ZIP conferido.
-  const pronto = Boolean(dados.dominio && dados.zip?.ok);
-  const saudeDom = saudeDoDominio(dados.dominio);
-  const domPronto = dominioPronto(dados.dominio);
-  const checksDominio = [
-    { ok: saudeDom.dns, txt: "DNS apontado (registro A)" },
-    { ok: saudeDom.propagado, txt: "Domínio propagado" },
-    { ok: saudeDom.https, txt: "HTTPS ativo (certificado)" },
-  ];
-  const caminhoOk = caminho.length > 0;
+  // A persisted filename cannot establish that bytes are present or published.
+  const pronto = Boolean(preparedZip);
+  const caminhoOk = Boolean(address);
   const checklist = [
     {
       ok: Boolean(dados.dominio),
@@ -264,20 +314,42 @@ export function PagePublisher({
     },
     { ok: caminhoOk, txt: caminhoOk ? "Caminho válido" : "Defina o caminho" },
     {
-      ok: Boolean(dados.zip?.ok),
-      txt: dados.zip
-        ? dados.zip.ok
-          ? "ZIP conferido"
-          : "ZIP com problema"
-        : "Arraste o ZIP (aba Conteúdo)",
+      ok: Boolean(preparedZip),
+      txt: preparedZip
+        ? "ZIP conferido e disponível nesta aba"
+        : dados.zip
+          ? "Anexe novamente o ZIP salvo no rascunho"
+          : "Arraste o ZIP (aba Conteúdo)",
     },
-    { ok: false, txt: "VPS não conectada" },
+    {
+      ok: false,
+      txt: "A publicação exige escolher um site real e confirmar abaixo",
+    },
   ];
 
-  const receberZip = (f?: File) => {
-    if (!f) return;
-    const ok = f.name.toLowerCase().endsWith(".zip");
-    set({ zip: { nome: f.name, tamanho: f.size, ok } });
+  const receberZip = async (f?: File) => {
+    if (!f || validating.current) return;
+    validating.current = true;
+    setValidatingZip(true);
+    setZipError("");
+    try {
+      const result = await preparePageZip(zipScope, f, { persist: true });
+      if (mounted.current)
+        latestOnChange.current({
+          ...latestDados.current,
+          zip: result.metadata,
+        });
+    } catch (cause) {
+      if (mounted.current)
+        setZipError(
+          cause instanceof Error
+            ? cause.message
+            : "Não foi possível conferir este ZIP.",
+        );
+    } finally {
+      validating.current = false;
+      if (mounted.current) setValidatingZip(false);
+    }
   };
 
   const receberFavicon = (f?: File) => {
@@ -287,8 +359,10 @@ export function PagePublisher({
     r.readAsDataURL(f);
   };
 
-  const setSaida = (nomeSaida: string, patch: { etapaId?: string; url?: string }) =>
-    set({ saidas: { ...dados.saidas, [nomeSaida]: patch } });
+  const setSaida = (
+    nomeSaida: string,
+    patch: { etapaId?: string; url?: string },
+  ) => set({ saidas: { ...dados.saidas, [nomeSaida]: patch } });
 
   const removerSaida = (nomeSaida: string) => {
     const s = { ...dados.saidas };
@@ -297,7 +371,7 @@ export function PagePublisher({
   };
 
   const velocidade =
-    dados.meta.velocidade === false ? null : dados.meta.velocidade ?? {};
+    dados.meta.velocidade === false ? null : (dados.meta.velocidade ?? {});
   const protecao = dados.meta.protecao ?? {};
   const br: BackRedirect = {
     botaoVoltar: true,
@@ -330,7 +404,7 @@ export function PagePublisher({
       <header className="pub__head">
         <div className="pub__head-id">
           <span className="pub__badge" data-on={pronto || undefined}>
-            {pronto ? "Pronto" : "Rascunho"}
+            {pronto ? "ZIP preparado" : "Rascunho"}
           </span>
           <input
             className="pub__nome"
@@ -389,714 +463,671 @@ export function PagePublisher({
           </div>
 
           {aba === "essencial" && (
-          <>
-            <label className="pub__campo">
-              <span>Adicionar domínio</span>
-              <div className="pub__linha">
-                <input
-                  className="pub__input"
-                  value={novoDominio}
-                  placeholder="meusite.com.br"
-                  onChange={(e) => setNovoDominio(e.target.value)}
-                />
-                <button
-                  type="button"
-                  className="pub__btn"
-                  onClick={() => {
-                    const d = novoDominio.trim().toLowerCase();
-                    if (d) set({ dominio: d });
-                    setNovoDominio("");
-                  }}
-                >
-                  Usar
-                </button>
-              </div>
-              <small className="pub__hint">
-                No painel do domínio, aponte um registro A para o IP da VPS.
-                Isso não publica nada aqui.
-              </small>
-            </label>
-            <label className="pub__campo">
-              <span>Domínio</span>
-              <div className="pub__chips">
-                {DOMINIOS_VPS.map((d) => (
-                  <button
-                    key={d.host}
-                    type="button"
-                    className="pub__chip"
-                    data-on={dados.dominio === d.host || undefined}
-                    onClick={() => set({ dominio: d.host })}
-                  >
-                    <span
-                      className="pub__chip-dot"
-                      data-estado={d.estado}
-                      aria-hidden
-                    />
-                    {d.host}
-                  </button>
-                ))}
-              </div>
-              {dados.dominio && (
-                <div className="pub__saude" data-ok={domPronto || undefined}>
-                  <div className="pub__saude-topo">
-                    {domPronto
-                      ? "Domínio pronto para subir a landing"
-                      : "Ainda falta para este domínio ficar pronto"}
-                  </div>
-                  <ul className="pub__saude-lista">
-                    {checksDominio.map((c, i) => (
-                      <li key={i} data-ok={c.ok || undefined}>
-                        <span className="pub__saude-dot" aria-hidden />
-                        <span className="pub__saude-txt">{c.txt}</span>
-                        <span className="pub__saude-tag">
-                          {c.ok ? "ativo" : "aguardando"}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                  {!domPronto && (
-                    <small className="pub__hint">
-                      Aponte um registro A do domínio para o IP da VPS; o HTTPS
-                      é emitido sozinho na primeira visita.
-                    </small>
-                  )}
-                </div>
-              )}
-            </label>
-            {dados.dominio && (
-              <div
-                className="pub__campo pub__cofre"
-                data-on={cofreDoDominio(dados.dominio) || undefined}
-              >
-                <button
-                  type="button"
-                  className="pub__cofre-topo"
-                  role="switch"
-                  aria-checked={cofreDoDominio(dados.dominio)}
-                  onClick={() => {
-                    const on = !cofreDoDominio(dados.dominio!);
-                    setCofreDoDominio(dados.dominio!, on);
-                    // Reflete nas abas SEO e Proteção desta página.
-                    setMeta({
-                      esconderDoGoogle: on,
-                      indexacao: on
-                        ? {
-                            noindex: true,
-                            nofollow: true,
-                            foraDoSitemap: true,
-                            // Sem Disallow para o Google: ele precisa ler
-                            // o noindex para tirar a página da busca.
-                            robotsDisallow: false,
-                            semCacheTrecho: true,
-                            semImagens: true,
-                            bloquearIA: true,
-                          }
-                        : {},
-                      protecao: on
-                        ? {
-                            cliqueDireito: true,
-                            atalhos: true,
-                            selecao: true,
-                            imagens: true,
-                            devtools: true,
-                          }
-                        : {},
-                    });
-                    forcar();
-                  }}
-                >
-                  <span className="pub__cofre-ic" aria-hidden>
-                    🔒
-                  </span>
-                  <span className="pub__cofre-txt">
-                    <b>Modo cofre do domínio</b>
-                    <small>
-                      Tranca <em>{dados.dominio}</em> inteiro: quem entra só
-                      vê a página e compra — nada além disso.
-                    </small>
-                  </span>
-                  <span
-                    className="pub__toggle-track"
-                    data-on={cofreDoDominio(dados.dominio) || undefined}
-                  >
-                    <span className="pub__toggle-knob" />
-                  </span>
-                </button>
-                <ul className="pub__cofre-lista">
-                  {ITENS_COFRE.map((it) => (
-                    <li key={it.id} data-grupo={it.grupo}>
-                      <span className="pub__cofre-dot" aria-hidden />
-                      <span className="pub__cofre-item">
-                        {it.rotulo}
-                        <small>{it.dica}</small>
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-                <small className="pub__hint">
-                  {cofreDoDominio(dados.dominio)
-                    ? "Trancado. Vira robots.txt, cabeçalhos e regras do site na publicação (Fase 2) — aqui só fica configurado."
-                    : "Ligue para trancar tudo de uma vez. Dá para afinar item por item nas abas SEO e Proteção."}
-                </small>
-              </div>
-            )}
-            <label className="pub__campo">
-              <span>Caminho</span>
-              <input
-                className="pub__input"
-                value={dados.caminho}
-                placeholder="/nova-pagina ou /"
-                onChange={(e) => set({ caminho: e.target.value })}
-              />
-            </label>
-
-            {dados.dominio && (
-              <div className="pub__campo">
-                <span>Slugs deste domínio</span>
-                <ul className="pub__slugs">
-                  {slugsDoDominio(dados.dominio).map((s) => (
-                    <li key={s.id}>
-                      <button
-                        type="button"
-                        className="pub__slug"
-                        data-on={caminho === s.caminho || undefined}
-                        onClick={() => set({ caminho: s.caminho })}
-                      >
-                        <span className="pub__slug-path">{s.caminho}</span>
-                        <span className="pub__slug-nome">{s.nome}</span>
-                      </button>
-                    </li>
-                  ))}
-                  {slugsDoDominio(dados.dominio).length === 0 && (
-                    <li className="pub__slug-vazio">
-                      Nenhum slug ainda neste domínio.
-                    </li>
-                  )}
-                </ul>
+            <>
+              <label className="pub__campo">
+                <span>Adicionar domínio</span>
                 <div className="pub__linha">
                   <input
                     className="pub__input"
-                    value={novoSlug}
-                    placeholder="criar slug: /promo-de-julho"
-                    onChange={(e) => setNovoSlug(e.target.value)}
+                    value={novoDominio}
+                    placeholder="meusite.com.br"
+                    onChange={(e) => setNovoDominio(e.target.value)}
                   />
                   <button
                     type="button"
                     className="pub__btn"
                     onClick={() => {
-                      const c = novoSlug.trim();
-                      if (!c || !dados.dominio) return;
-                      const s = criarSlug(dados.dominio, c);
-                      set({ caminho: s.caminho });
-                      setNovoSlug("");
-                      forcar();
+                      const d = novoDominio.trim().toLowerCase();
+                      if (d) set({ dominio: d });
+                      setNovoDominio("");
                     }}
                   >
-                    + Criar
+                    Usar
                   </button>
                 </div>
                 <small className="pub__hint">
-                  Toque num slug para reusar o caminho, ou crie um novo. Isso
-                  não publica — só organiza os endereços.
+                  No painel do domínio, aponte um registro A para o IP da VPS.
+                  Isso não publica nada aqui.
                 </small>
-              </div>
-            )}
+              </label>
+              <label className="pub__campo">
+                <span>Caminho</span>
+                <input
+                  className="pub__input"
+                  value={dados.caminho}
+                  placeholder="/nova-pagina ou /"
+                  onChange={(e) => set({ caminho: e.target.value })}
+                />
+              </label>
+              <small className="pub__hint">
+                Domínio e caminho acima são o endereço planejado. DNS e HTTPS só
+                podem ser conferidos no site real em Servidor → Sites. O pacote
+                será enviado apenas após a confirmação de publicação abaixo.
+              </small>
 
-            <ul className="pub__check" aria-label="Checklist para publicar">
-              {checklist.map((c, i) => (
-                <li key={i} data-ok={c.ok || undefined}>
-                  <span className="pub__check-mark" aria-hidden>
-                    {c.ok ? "✓" : "•"}
-                  </span>
-                  {c.txt}
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
+              <ul className="pub__check" aria-label="Checklist para publicar">
+                {checklist.map((c, i) => (
+                  <li key={i} data-ok={c.ok || undefined}>
+                    <span className="pub__check-mark" aria-hidden>
+                      {c.ok ? "✓" : "•"}
+                    </span>
+                    {c.txt}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
 
-        {aba === "conteudo" && (
-          <>
-            <div
-              className="pub__drop"
-              data-drag={arrastando || undefined}
-              onDragOver={(e) => {
-                e.preventDefault();
-                setArrastando(true);
-              }}
-              onDragLeave={() => setArrastando(false)}
-              onDrop={(e) => {
-                e.preventDefault();
-                setArrastando(false);
-                receberZip(e.dataTransfer.files?.[0]);
-              }}
-              onClick={() => inputZip.current?.click()}
-              role="button"
-              tabIndex={0}
-            >
-              <b>Arraste o ZIP da página</b>
-              <span>ou clique para escolher — index.html na raiz</span>
-              <input
-                ref={inputZip}
-                type="file"
-                accept=".zip"
-                hidden
-                onChange={(e) => receberZip(e.target.files?.[0] ?? undefined)}
-              />
-            </div>
-            {dados.zip && (
-              <div className="pub__zip" data-ok={dados.zip.ok || undefined}>
-                <b>{dados.zip.nome}</b>
-                <span>
-                  {bytes(dados.zip.tamanho)} ·{" "}
-                  {dados.zip.ok ? "ZIP conferido ✓" : "não é um .zip"}
-                </span>
-              </div>
-            )}
-            <small className="pub__hint">
-              Use links relativos (./style.css) e marque os botões com{" "}
-              <code>data-saida</code> para ligar às próximas etapas na aba
-              Saídas.
-            </small>
-          </>
-        )}
-
-        {aba === "seo" && (
-          <>
-            <Campo
-              rotulo="Título"
-              value={dados.meta.titulo ?? ""}
-              onChange={(v) => setMeta({ titulo: v })}
-            />
-            <label className="pub__campo">
-              <span>Descrição</span>
-              <textarea
-                className="pub__input"
-                rows={3}
-                value={dados.meta.descricao ?? ""}
-                onChange={(e) => setMeta({ descricao: e.target.value })}
-              />
-            </label>
-            <Campo
-              rotulo="Imagem de compartilhamento (og:image)"
-              value={dados.meta.imagem ?? ""}
-              placeholder="https://…/capa.jpg"
-              onChange={(v) => setMeta({ imagem: v })}
-            />
-            <label className="pub__campo">
-              <span>Favicon</span>
-              <div className="pub__linha">
+          {aba === "conteudo" && (
+            <>
+              {onEditarConteudo ? (
                 <button
                   type="button"
                   className="pub__btn"
-                  onClick={() => inputFav.current?.click()}
+                  onClick={onEditarConteudo}
                 >
-                  Arrastar imagem
+                  Editar conteúdo e preparar ZIP desta página
                 </button>
-                {dados.meta.faviconPng && (
-                  // eslint-disable-next-line @next/next/no-img-element -- preview local (data URL), não vai para produção
-                  <img
-                    className="pub__fav"
-                    src={dados.meta.faviconPng}
-                    alt="favicon"
-                    width={22}
-                    height={22}
-                  />
-                )}
-                <input
-                  ref={inputFav}
-                  type="file"
-                  accept="image/*"
-                  hidden
-                  onChange={(e) =>
-                    receberFavicon(e.target.files?.[0] ?? undefined)
+              ) : null}
+              <div
+                className="pub__drop"
+                data-drag={arrastando || undefined}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setArrastando(true);
+                }}
+                onDragLeave={() => setArrastando(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setArrastando(false);
+                  void receberZip(e.dataTransfer.files?.[0]);
+                }}
+                onClick={() => {
+                  if (!validatingZip) inputZip.current?.click();
+                }}
+                onKeyDown={(event) => {
+                  if (
+                    (event.key === "Enter" || event.key === " ") &&
+                    !validatingZip
+                  ) {
+                    event.preventDefault();
+                    inputZip.current?.click();
                   }
+                }}
+                role="button"
+                tabIndex={0}
+                aria-disabled={validatingZip}
+              >
+                <b>
+                  {validatingZip
+                    ? "Conferindo arquivos…"
+                    : "Arraste o ZIP da página"}
+                </b>
+                <span>até 3 MB — index.html na raiz, sem PHP ou .htaccess</span>
+                <input
+                  ref={inputZip}
+                  type="file"
+                  accept=".zip"
+                  hidden
+                  disabled={validatingZip}
+                  aria-label="ZIP da página"
+                  onChange={(e) => {
+                    void receberZip(e.target.files?.[0] ?? undefined);
+                    e.target.value = "";
+                  }}
                 />
               </div>
-            </label>
-            <div className="pub__campo">
-              <span>Bloqueios de busca e rastreadores</span>
-              <div className="pub__panel pub__panel--solto">
-                {BLOQUEIOS.map((b) => (
+              {(preparedZip || dados.zip) && (
+                <div
+                  className="pub__zip"
+                  data-ok={Boolean(preparedZip) || undefined}
+                >
+                  <b>{preparedZip?.metadata.nome ?? dados.zip?.nome}</b>
+                  <span>
+                    {bytes(
+                      preparedZip?.metadata.tamanho ?? dados.zip?.tamanho ?? 0,
+                    )}{" "}
+                    ·{" "}
+                    {preparedZip
+                      ? `ZIP conferido ✓ · ${preparedZip.fileCount} arquivos disponíveis nesta aba`
+                      : "Arquivos indisponíveis — anexe novamente o ZIP"}
+                  </span>
+                  {preparedZip ? (
+                    <button
+                      type="button"
+                      className="pub__btn"
+                      disabled={validatingZip}
+                      onClick={() => {
+                        void (async () => {
+                          try {
+                            if (
+                              !dados.zip?.sourceFunnelId ||
+                              dados.zip.sourceFunnelId === funnelId
+                            )
+                              await deletePackage(zipScope);
+                            forgetPreparedPageZip(zipScope);
+                            set({ zip: undefined });
+                          } catch (cause) {
+                            setZipError(
+                              cause instanceof Error
+                                ? cause.message
+                                : "Não foi possível remover o ZIP.",
+                            );
+                          }
+                        })();
+                      }}
+                    >
+                      Remover ZIP preparado
+                    </button>
+                  ) : null}
+                </div>
+              )}
+              {zipError ? (
+                <p role="alert" className="pub__hint">
+                  {zipError}
+                </p>
+              ) : null}
+              <small className="pub__hint">
+                Ao preparar, o ZIP conferido é guardado na sua conta, separado
+                por funil e página. Isso não publica na VPS. No ZIP único, as
+                saídas são ligadas aos elementos com{" "}
+                <code>data-saida=&quot;nome-da-saida&quot;</code>. Use links
+                relativos para os assets.
+              </small>
+            </>
+          )}
+
+          {aba === "seo" && (
+            <>
+              <Campo
+                rotulo="Título"
+                value={dados.meta.titulo ?? ""}
+                onChange={(v) => setMeta({ titulo: v })}
+              />
+              <label className="pub__campo">
+                <span>Descrição</span>
+                <textarea
+                  className="pub__input"
+                  rows={3}
+                  value={dados.meta.descricao ?? ""}
+                  onChange={(e) => setMeta({ descricao: e.target.value })}
+                />
+              </label>
+              <Campo
+                rotulo="Imagem de compartilhamento (og:image)"
+                value={dados.meta.imagem ?? ""}
+                placeholder="https://…/capa.jpg"
+                onChange={(v) => setMeta({ imagem: v })}
+              />
+              <label className="pub__campo">
+                <span>Favicon</span>
+                <div className="pub__linha">
+                  <button
+                    type="button"
+                    className="pub__btn"
+                    onClick={() => inputFav.current?.click()}
+                  >
+                    Arrastar imagem
+                  </button>
+                  {dados.meta.faviconPng && (
+                    // eslint-disable-next-line @next/next/no-img-element -- preview local (data URL), não vai para produção
+                    <img
+                      className="pub__fav"
+                      src={dados.meta.faviconPng}
+                      alt="favicon"
+                      width={22}
+                      height={22}
+                    />
+                  )}
+                  <input
+                    ref={inputFav}
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    onChange={(e) =>
+                      receberFavicon(e.target.files?.[0] ?? undefined)
+                    }
+                  />
+                </div>
+              </label>
+              <div className="pub__campo">
+                <span>Bloqueios de busca e rastreadores</span>
+                <div className="pub__panel pub__panel--solto">
+                  {BLOQUEIOS.map((b) => (
+                    <Toggle
+                      key={b.id}
+                      rotulo={b.rotulo}
+                      dica={b.dica}
+                      on={Boolean(indexacao[b.id])}
+                      onToggle={(on) => {
+                        const nova = { ...indexacao, [b.id]: on };
+                        // noindex continua espelhado no campo antigo.
+                        setMeta({
+                          indexacao: nova,
+                          ...(b.id === "noindex"
+                            ? { esconderDoGoogle: on }
+                            : {}),
+                        });
+                      }}
+                    />
+                  ))}
+                </div>
+                <small className="pub__hint">
+                  Meta robots é aplicado no ZIP único. robots.txt, sitemap e
+                  bloqueio de robôs por caminho/IA exigem configuração
+                  específica no servidor; não são simulados.
+                </small>
+              </div>
+            </>
+          )}
+
+          {aba === "rastreio" && (
+            <>
+              <Campo
+                rotulo="Meta Pixel (ID)"
+                value={dados.meta.metaPixel ?? ""}
+                onChange={(v) => setMeta({ metaPixel: v })}
+              />
+              <Campo
+                rotulo="Google Analytics 4 (ID)"
+                value={dados.meta.ga4 ?? ""}
+                onChange={(v) => setMeta({ ga4: v })}
+              />
+              <Campo
+                rotulo="Google Tag Manager (ID)"
+                value={dados.meta.gtm ?? ""}
+                onChange={(v) => setMeta({ gtm: v })}
+              />
+              <Campo
+                rotulo="Microsoft Clarity (ID)"
+                value={dados.meta.clarity ?? ""}
+                onChange={(v) => setMeta({ clarity: v })}
+              />
+              <div className="pub__panel">
+                <Toggle
+                  rotulo="Repassar UTM para as próximas etapas"
+                  on={dados.meta.repassarUtm ?? true}
+                  onToggle={(v) => setMeta({ repassarUtm: v })}
+                />
+              </div>
+            </>
+          )}
+
+          {aba === "velocidade" && (
+            <>
+              <div className="pub__panel">
+                <Toggle
+                  rotulo="Turbo (otimização) ligado"
+                  on={velocidade !== null}
+                  onToggle={(v) => setMeta({ velocidade: v ? {} : false })}
+                />
+                {velocidade !== null &&
+                  VELOCIDADES.map((v) => (
+                    <Toggle
+                      key={v.id}
+                      rotulo={v.rotulo}
+                      on={Boolean(velocidade[v.id])}
+                      onToggle={(on) =>
+                        setMeta({ velocidade: { ...velocidade, [v.id]: on } })
+                      }
+                    />
+                  ))}
+              </div>
+              <div className="pub__campo">
+                <span>Velocímetro — testar a velocidade</span>
+                <small className="pub__hint">
+                  Mede site, landing ou loja de verdade com o PageSpeed do
+                  Google (15–40 s). Já vem com o endereço desta página; pode
+                  testar qualquer outro.
+                </small>
+                <SpeedTest urlInicial={dados.dominio ? urlFinal : ""} />
+              </div>
+            </>
+          )}
+
+          {aba === "protecao" && (
+            <>
+              <small className="pub__hint">
+                Estas preferências ficam guardadas, mas não são aplicadas.
+                Anti-cópia não protege o código público e pode prejudicar a
+                acessibilidade.
+              </small>
+              <div className="pub__panel">
+                {PROTECOES.map((pp) => (
                   <Toggle
-                    key={b.id}
-                    rotulo={b.rotulo}
-                    dica={b.dica}
-                    on={Boolean(indexacao[b.id])}
-                    onToggle={(on) => {
-                      const nova = { ...indexacao, [b.id]: on };
-                      // noindex continua espelhado no campo antigo.
-                      setMeta({
-                        indexacao: nova,
-                        ...(b.id === "noindex" ? { esconderDoGoogle: on } : {}),
-                      });
-                    }}
+                    key={pp.id}
+                    rotulo={pp.rotulo}
+                    on={Boolean(protecao[pp.id])}
+                    onToggle={(on) =>
+                      setMeta({ protecao: { ...protecao, [pp.id]: on } })
+                    }
                   />
                 ))}
               </div>
+            </>
+          )}
+
+          {aba === "saidas" && (
+            <>
               <small className="pub__hint">
-                Vira meta robots, robots.txt e sitemap na publicação (Fase 2).
-                Aqui só fica configurado.
+                Ligue cada botão <code>data-saida</code> da página a uma próxima
+                etapa do funil (ou a um link).
               </small>
-            </div>
-          </>
-        )}
-
-        {aba === "rastreio" && (
-          <>
-            <Campo
-              rotulo="Meta Pixel (ID)"
-              value={dados.meta.metaPixel ?? ""}
-              onChange={(v) => setMeta({ metaPixel: v })}
-            />
-            <Campo
-              rotulo="Google Analytics 4 (ID)"
-              value={dados.meta.ga4 ?? ""}
-              onChange={(v) => setMeta({ ga4: v })}
-            />
-            <Campo
-              rotulo="Google Tag Manager (ID)"
-              value={dados.meta.gtm ?? ""}
-              onChange={(v) => setMeta({ gtm: v })}
-            />
-            <Campo
-              rotulo="Microsoft Clarity (ID)"
-              value={dados.meta.clarity ?? ""}
-              onChange={(v) => setMeta({ clarity: v })}
-            />
-            <div className="pub__panel">
-              <Toggle
-                rotulo="Repassar UTM para as próximas etapas"
-                on={dados.meta.repassarUtm ?? true}
-                onToggle={(v) => setMeta({ repassarUtm: v })}
-              />
-            </div>
-          </>
-        )}
-
-        {aba === "velocidade" && (
-          <>
-          <div className="pub__panel">
-            <Toggle
-              rotulo="Turbo (otimização) ligado"
-              on={velocidade !== null}
-              onToggle={(v) => setMeta({ velocidade: v ? {} : false })}
-            />
-            {velocidade !== null &&
-              VELOCIDADES.map((v) => (
-                <Toggle
-                  key={v.id}
-                  rotulo={v.rotulo}
-                  on={Boolean(velocidade[v.id])}
-                  onToggle={(on) =>
-                    setMeta({ velocidade: { ...velocidade, [v.id]: on } })
-                  }
-                />
-              ))}
-          </div>
-          <div className="pub__campo">
-            <span>Velocímetro — testar a velocidade</span>
-            <small className="pub__hint">
-              Mede site, landing ou loja de verdade com o PageSpeed do Google
-              (15–40 s). Já vem com o endereço desta página; pode testar
-              qualquer outro.
-            </small>
-            <SpeedTest urlInicial={dados.dominio ? urlFinal : ""} />
-          </div>
-          </>
-        )}
-
-        {aba === "protecao" && (
-          <>
-            <small className="pub__hint">
-              Dificulta copiar a página. Não é à prova de tudo — é demonstração.
-            </small>
-            <div className="pub__panel">
-              {PROTECOES.map((pp) => (
-                <Toggle
-                  key={pp.id}
-                  rotulo={pp.rotulo}
-                  on={Boolean(protecao[pp.id])}
-                  onToggle={(on) =>
-                    setMeta({ protecao: { ...protecao, [pp.id]: on } })
-                  }
-                />
-              ))}
-            </div>
-          </>
-        )}
-
-        {aba === "saidas" && (
-          <>
-            <small className="pub__hint">
-              Ligue cada botão <code>data-saida</code> da página a uma próxima
-              etapa do funil (ou a um link).
-            </small>
-            {Object.keys(dados.saidas).length === 0 && (
-              <p className="pub__vazio">
-                Nenhuma saída ainda. Adicione uma abaixo ou arraste um ZIP com
-                botões marcados.
-              </p>
-            )}
-            {Object.entries(dados.saidas).map(([nomeSaida, s]) => (
-              <div className="pub__saida" key={nomeSaida}>
-                <div className="pub__saida-head">
-                  <b>{nomeSaida}</b>
-                  <button
-                    type="button"
-                    className="pub__saida-del"
-                    aria-label={`Remover saída ${nomeSaida}`}
-                    onClick={() => removerSaida(nomeSaida)}
+              {Object.keys(dados.saidas).length === 0 && (
+                <p className="pub__vazio">
+                  Nenhuma saída ainda. Adicione uma abaixo ou arraste um ZIP com
+                  botões marcados.
+                </p>
+              )}
+              {Object.entries(dados.saidas).map(([nomeSaida, s]) => (
+                <div className="pub__saida" key={nomeSaida}>
+                  <div className="pub__saida-head">
+                    <b>{nomeSaida}</b>
+                    <button
+                      type="button"
+                      className="pub__saida-del"
+                      aria-label={`Remover saída ${nomeSaida}`}
+                      onClick={() => removerSaida(nomeSaida)}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <select
+                    className="pub__input"
+                    value={s.etapaId ?? ""}
+                    onChange={(e) =>
+                      setSaida(nomeSaida, {
+                        etapaId: e.target.value || undefined,
+                        url: e.target.value ? undefined : s.url,
+                      })
+                    }
                   >
-                    ✕
-                  </button>
+                    <option value="">— próxima etapa —</option>
+                    {proximasEtapas.map((et) => (
+                      <option key={et.id} value={et.id}>
+                        {et.nome}
+                      </option>
+                    ))}
+                  </select>
+                  {!s.etapaId && (
+                    <input
+                      className="pub__input"
+                      value={s.url ?? ""}
+                      placeholder="ou um link: https://…"
+                      onChange={(e) =>
+                        setSaida(nomeSaida, { url: e.target.value })
+                      }
+                    />
+                  )}
                 </div>
+              ))}
+              <div className="pub__linha">
+                <input
+                  className="pub__input"
+                  value={novaSaida}
+                  placeholder="nome da saída (ex.: principal)"
+                  onChange={(e) => setNovaSaida(e.target.value)}
+                />
+                <button
+                  type="button"
+                  className="pub__btn"
+                  onClick={() => {
+                    const n = novaSaida.trim();
+                    if (n && !dados.saidas[n]) setSaida(n, {});
+                    setNovaSaida("");
+                  }}
+                >
+                  + Saída
+                </button>
+              </div>
+            </>
+          )}
+
+          {aba === "metricas" && (
+            <MetricasAba
+              seed={dados.dominio ? `${dados.dominio}${dados.caminho}` : nome}
+            />
+          )}
+
+          {aba === "voltar" && (
+            <>
+              <div
+                className="pub__campo pub__br"
+                data-on={br.ligado || undefined}
+              >
+                <button
+                  type="button"
+                  className="pub__cofre-topo"
+                  role="switch"
+                  aria-checked={Boolean(br.ligado)}
+                  onClick={() => setBr({ ligado: !br.ligado })}
+                >
+                  <span className="pub__cofre-ic pub__br-ic" aria-hidden>
+                    ↩
+                  </span>
+                  <span className="pub__cofre-txt">
+                    <b>Back redirect</b>
+                    <small>
+                      Quem aperta <em>voltar</em> ou tenta sair não vai embora:
+                      cai numa página com a oferta mais barata.
+                    </small>
+                  </span>
+                  <span
+                    className="pub__toggle-track"
+                    data-on={br.ligado || undefined}
+                  >
+                    <span className="pub__toggle-knob" />
+                  </span>
+                </button>
+                <div className="pub__br-fluxo" aria-hidden>
+                  <span className="pub__br-no">{nome || "Esta página"}</span>
+                  <span className="pub__br-seta">↩ voltar / sair</span>
+                  <span className="pub__br-no pub__br-no--dest">
+                    {destinoBr?.nome ||
+                      (br.url
+                        ? br.url.replace(/^https?:\/\//, "")
+                        : "Oferta mais barata")}
+                  </span>
+                </div>
+              </div>
+
+              <label className="pub__campo">
+                <span>Para onde mandar</span>
                 <select
                   className="pub__input"
-                  value={s.etapaId ?? ""}
+                  value={br.destinoEtapaId ?? ""}
                   onChange={(e) =>
-                    setSaida(nomeSaida, {
-                      etapaId: e.target.value || undefined,
-                      url: e.target.value ? undefined : s.url,
+                    setBr({
+                      destinoEtapaId: e.target.value || undefined,
+                      url: e.target.value ? undefined : br.url,
                     })
                   }
                 >
-                  <option value="">— próxima etapa —</option>
+                  <option value="">
+                    — uma etapa do funil (ligada a esta página) —
+                  </option>
                   {proximasEtapas.map((et) => (
                     <option key={et.id} value={et.id}>
                       {et.nome}
+                      {et.url ? ` · ${et.url.replace(/^https?:\/\//, "")}` : ""}
                     </option>
                   ))}
                 </select>
-                {!s.etapaId && (
+                {!br.destinoEtapaId && (
                   <input
                     className="pub__input"
-                    value={s.url ?? ""}
-                    placeholder="ou um link: https://…"
-                    onChange={(e) => setSaida(nomeSaida, { url: e.target.value })}
+                    value={br.url ?? ""}
+                    placeholder="ou um link: https://…/oferta-mais-barata"
+                    onChange={(e) => setBr({ url: e.target.value })}
                   />
                 )}
+                <small className="pub__hint">
+                  Dica: crie um bloco de página “Oferta mais barata” no quadro,
+                  ligue esta página a ele, e escolha aqui. Ele aparece na lista.
+                </small>
+              </label>
+
+              <div className="pub__campo">
+                <span>O que dispara o desvio</span>
+                <div className="pub__panel pub__panel--solto">
+                  <Toggle
+                    rotulo="Botão voltar do navegador"
+                    dica="O clássico: apertou ← e cai na oferta."
+                    on={Boolean(br.botaoVoltar)}
+                    onToggle={(v) => setBr({ botaoVoltar: v })}
+                  />
+                  <Toggle
+                    rotulo="Tentar fechar a aba ou a janela"
+                    dica="Segura a saída com a oferta antes de fechar."
+                    on={Boolean(br.fecharAba)}
+                    onToggle={(v) => setBr({ fecharAba: v })}
+                  />
+                  <Toggle
+                    rotulo="Mouse saindo pela parte de cima (computador)"
+                    dica="Intenção de sair: cursor vai para a barra do navegador."
+                    on={Boolean(br.mouseSaindo)}
+                    onToggle={(v) => setBr({ mouseSaindo: v })}
+                  />
+                  <Toggle
+                    rotulo={`Parado sem mexer por ${br.inatividadeSeg ?? 45} s`}
+                    dica="Visitante travou na decisão: empurra a oferta."
+                    on={Boolean(br.inatividade)}
+                    onToggle={(v) => setBr({ inatividade: v })}
+                  />
+                  {br.inatividade && (
+                    <label className="pub__br-num">
+                      <span>Segundos parado</span>
+                      <input
+                        className="pub__input"
+                        type="number"
+                        min={5}
+                        max={600}
+                        value={br.inatividadeSeg ?? 45}
+                        onChange={(e) =>
+                          setBr({
+                            inatividadeSeg: Number(e.target.value) || 45,
+                          })
+                        }
+                      />
+                    </label>
+                  )}
+                </div>
               </div>
-            ))}
-            <div className="pub__linha">
-              <input
-                className="pub__input"
-                value={novaSaida}
-                placeholder="nome da saída (ex.: principal)"
-                onChange={(e) => setNovaSaida(e.target.value)}
-              />
-              <button
-                type="button"
-                className="pub__btn"
-                onClick={() => {
-                  const n = novaSaida.trim();
-                  if (n && !dados.saidas[n]) setSaida(n, {});
-                  setNovaSaida("");
-                }}
-              >
-                + Saída
-              </button>
-            </div>
-          </>
-        )}
 
-        {aba === "metricas" && <MetricasAba seed={dados.dominio ? `${dados.dominio}${dados.caminho}` : nome} />}
-
-        {aba === "voltar" && (
-          <>
-            <div className="pub__campo pub__br" data-on={br.ligado || undefined}>
-              <button
-                type="button"
-                className="pub__cofre-topo"
-                role="switch"
-                aria-checked={Boolean(br.ligado)}
-                onClick={() => setBr({ ligado: !br.ligado })}
-              >
-                <span className="pub__cofre-ic pub__br-ic" aria-hidden>
-                  ↩
-                </span>
-                <span className="pub__cofre-txt">
-                  <b>Back redirect</b>
-                  <small>
-                    Quem aperta <em>voltar</em> ou tenta sair não vai embora:
-                    cai numa página com a oferta mais barata.
-                  </small>
-                </span>
-                <span
-                  className="pub__toggle-track"
-                  data-on={br.ligado || undefined}
-                >
-                  <span className="pub__toggle-knob" />
-                </span>
-              </button>
-              <div className="pub__br-fluxo" aria-hidden>
-                <span className="pub__br-no">{nome || "Esta página"}</span>
-                <span className="pub__br-seta">
-                  ↩ voltar / sair
-                </span>
-                <span className="pub__br-no pub__br-no--dest">
-                  {destinoBr?.nome ||
-                    (br.url ? br.url.replace(/^https?:\/\//, "") : "Oferta mais barata")}
-                </span>
-              </div>
-            </div>
-
-            <label className="pub__campo">
-              <span>Para onde mandar</span>
-              <select
-                className="pub__input"
-                value={br.destinoEtapaId ?? ""}
-                onChange={(e) =>
-                  setBr({
-                    destinoEtapaId: e.target.value || undefined,
-                    url: e.target.value ? undefined : br.url,
-                  })
-                }
-              >
-                <option value="">— uma etapa do funil (ligada a esta página) —</option>
-                {proximasEtapas.map((et) => (
-                  <option key={et.id} value={et.id}>
-                    {et.nome}
-                    {et.url ? ` · ${et.url.replace(/^https?:\/\//, "")}` : ""}
-                  </option>
-                ))}
-              </select>
-              {!br.destinoEtapaId && (
-                <input
-                  className="pub__input"
-                  value={br.url ?? ""}
-                  placeholder="ou um link: https://…/oferta-mais-barata"
-                  onChange={(e) => setBr({ url: e.target.value })}
-                />
-              )}
-              <small className="pub__hint">
-                Dica: crie um bloco de página “Oferta mais barata” no quadro,
-                ligue esta página a ele, e escolha aqui. Ele aparece na lista.
-              </small>
-            </label>
-
-            <div className="pub__campo">
-              <span>O que dispara o desvio</span>
-              <div className="pub__panel pub__panel--solto">
-                <Toggle
-                  rotulo="Botão voltar do navegador"
-                  dica="O clássico: apertou ← e cai na oferta."
-                  on={Boolean(br.botaoVoltar)}
-                  onToggle={(v) => setBr({ botaoVoltar: v })}
-                />
-                <Toggle
-                  rotulo="Tentar fechar a aba ou a janela"
-                  dica="Segura a saída com a oferta antes de fechar."
-                  on={Boolean(br.fecharAba)}
-                  onToggle={(v) => setBr({ fecharAba: v })}
-                />
-                <Toggle
-                  rotulo="Mouse saindo pela parte de cima (computador)"
-                  dica="Intenção de sair: cursor vai para a barra do navegador."
-                  on={Boolean(br.mouseSaindo)}
-                  onToggle={(v) => setBr({ mouseSaindo: v })}
-                />
-                <Toggle
-                  rotulo={`Parado sem mexer por ${br.inatividadeSeg ?? 45} s`}
-                  dica="Visitante travou na decisão: empurra a oferta."
-                  on={Boolean(br.inatividade)}
-                  onToggle={(v) => setBr({ inatividade: v })}
-                />
-                {br.inatividade && (
+              <div className="pub__campo">
+                <span>Regras</span>
+                <div className="pub__panel pub__panel--solto">
                   <label className="pub__br-num">
-                    <span>Segundos parado</span>
+                    <span>Armar só depois de (segundos na página)</span>
                     <input
                       className="pub__input"
                       type="number"
-                      min={5}
-                      max={600}
-                      value={br.inatividadeSeg ?? 45}
+                      min={0}
+                      max={300}
+                      value={br.armarApos ?? 5}
                       onChange={(e) =>
-                        setBr({ inatividadeSeg: Number(e.target.value) || 45 })
+                        setBr({ armarApos: Number(e.target.value) || 0 })
                       }
                     />
                   </label>
-                )}
-              </div>
-            </div>
-
-            <div className="pub__campo">
-              <span>Regras</span>
-              <div className="pub__panel pub__panel--solto">
-                <label className="pub__br-num">
-                  <span>Armar só depois de (segundos na página)</span>
-                  <input
-                    className="pub__input"
-                    type="number"
-                    min={0}
-                    max={300}
-                    value={br.armarApos ?? 5}
-                    onChange={(e) =>
-                      setBr({ armarApos: Number(e.target.value) || 0 })
-                    }
+                  <Toggle
+                    rotulo="Só uma vez por visita"
+                    dica="Depois do desvio, o voltar funciona normal — sem prender a pessoa."
+                    on={Boolean(br.umaVez)}
+                    onToggle={(v) => setBr({ umaVez: v })}
                   />
-                </label>
-                <Toggle
-                  rotulo="Só uma vez por visita"
-                  dica="Depois do desvio, o voltar funciona normal — sem prender a pessoa."
-                  on={Boolean(br.umaVez)}
-                  onToggle={(v) => setBr({ umaVez: v })}
-                />
-                <Toggle
-                  rotulo="Levar os UTMs junto"
-                  dica="A oferta mais barata continua contando para a mesma campanha."
-                  on={Boolean(br.repassarUtm)}
-                  onToggle={(v) => setBr({ repassarUtm: v })}
-                />
+                  <Toggle
+                    rotulo="Levar os UTMs junto"
+                    dica="A oferta mais barata continua contando para a mesma campanha."
+                    on={Boolean(br.repassarUtm)}
+                    onToggle={(v) => setBr({ repassarUtm: v })}
+                  />
+                </div>
               </div>
-            </div>
 
-            <ul className="pub__check" aria-label="Checklist do back redirect">
-              <li data-ok={br.ligado || undefined}>
-                <span className="pub__check-mark" aria-hidden>
-                  {br.ligado ? "✓" : "•"}
-                </span>
-                {br.ligado ? "Back redirect ligado" : "Ligue o back redirect"}
-              </li>
-              <li data-ok={destinoBr || br.url ? true : undefined}>
-                <span className="pub__check-mark" aria-hidden>
-                  {destinoBr || br.url ? "✓" : "•"}
-                </span>
-                {destinoBr
-                  ? `Destino: ${destinoBr.nome}`
-                  : br.url
-                    ? "Destino: link manual"
-                    : "Escolha para onde mandar"}
-              </li>
-              <li data-ok={brPronto || undefined}>
-                <span className="pub__check-mark" aria-hidden>
-                  {brPronto ? "✓" : "•"}
-                </span>
-                {brPronto
-                  ? "Pronto: vai para o HTML na publicação (Fase 2)"
-                  : "Falta configurar — nada é injetado ainda"}
-              </li>
-            </ul>
-            <small className="pub__hint">
-              Como funciona por baixo: a página empurra uma entrada no
-              histórico e escuta o voltar/sair; quando dispara, troca para o
-              destino. Só interface por enquanto — o script entra na
-              publicação.
-            </small>
-          </>
-        )}
+              <ul
+                className="pub__check"
+                aria-label="Checklist do back redirect"
+              >
+                <li data-ok={br.ligado || undefined}>
+                  <span className="pub__check-mark" aria-hidden>
+                    {br.ligado ? "✓" : "•"}
+                  </span>
+                  {br.ligado ? "Back redirect ligado" : "Ligue o back redirect"}
+                </li>
+                <li data-ok={destinoBr || br.url ? true : undefined}>
+                  <span className="pub__check-mark" aria-hidden>
+                    {destinoBr || br.url ? "✓" : "•"}
+                  </span>
+                  {destinoBr
+                    ? `Destino: ${destinoBr.nome}`
+                    : br.url
+                      ? "Destino: link manual"
+                      : "Escolha para onde mandar"}
+                </li>
+                <li data-ok={brPronto || undefined}>
+                  <span className="pub__check-mark" aria-hidden>
+                    {brPronto ? "✓" : "•"}
+                  </span>
+                  {brPronto
+                    ? "Destino configurado — use uma saída explícita"
+                    : "Falta configurar o destino"}
+                </li>
+              </ul>
+              <small className="pub__hint">
+                Não interceptamos voltar, fechamento de aba ou histórico do
+                visitante. Esta preferência fica no rascunho; ligue um botão ao
+                downsell na aba Saídas para publicar uma navegação explícita.
+              </small>
+            </>
+          )}
+          <div ref={publishSection} hidden={aba !== "essencial"}>
+            {onPublicarSite ? (
+              <>
+                <p className="pub__hint">
+                  Publique todas as páginas em um ZIP único. Isso preserva os
+                  caminhos de produtos, upsell, downsell e obrigado na mesma
+                  versão.
+                </p>
+                <button
+                  type="button"
+                  className="pub__btn"
+                  onClick={onPublicarSite}
+                >
+                  Preparar e publicar site completo
+                </button>
+              </>
+            ) : (
+              <PageVpsPublisher
+                zip={preparedZip}
+                domain={dados.dominio}
+                path={dados.caminho}
+                onDomainChange={(dominio) => set({ dominio })}
+              />
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Rodapé fixo: o Publicar fica sempre à vista, mesmo em telas baixas.
-          O meio (acima) é que rola. Só interface: sem VPS, fica em espera. */}
+      {/* O rodapé abre a revisão; nunca envia arquivos diretamente. */}
       <footer className="pub__foot">
         <span className="pub__foot-vps">
           <span className="pub__vps-dot" aria-hidden />
-          VPS não conectada — publicar liga na Fase 2
+          {preparedZip
+            ? "ZIP conferido · ainda não publicado"
+            : "Prepare o ZIP antes de publicar"}
         </span>
-        <button type="button" className="pub__publicar" disabled>
-          🚀 Publicar
+        <button
+          type="button"
+          className="pub__publicar"
+          onClick={() => {
+            setAba("essencial");
+            requestAnimationFrame(() =>
+              publishSection.current?.scrollIntoView({ block: "nearest" }),
+            );
+          }}
+        >
+          Publicar na VPS
         </button>
       </footer>
     </aside>

@@ -1,5 +1,11 @@
 import * as React from "react";
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   SidebarFolderNavigation,
@@ -37,14 +43,41 @@ describe("navigation folders", () => {
 
   it.each([
     ["Geral", ["Visão geral"]],
-    ["Operação", ["Monitor ao vivo", "Pedidos", "Transações", "Gateways", "Lojas conectadas"]],
-    ["Meta Ads", ["Por classe", "Tabela", "Gerenciador", "Métricas", "Calculadora"]],
-    ["Google Ads", ["Por classe", "Tabela", "Gerenciador", "Métricas", "Calculadora"]],
-    ["YouTube Ads", ["Por classe", "Tabela", "Gerenciador", "Métricas", "Calculadora"]],
+    [
+      "Operação",
+      [
+        "Monitor ao vivo",
+        "Pedidos",
+        "Transações",
+        "Gateways",
+        "Lojas conectadas",
+      ],
+    ],
+    [
+      "Meta Ads",
+      ["Por classe", "Tabela", "Gerenciador", "Métricas", "Calculadora"],
+    ],
+    [
+      "Google Ads",
+      ["Por classe", "Tabela", "Gerenciador", "Métricas", "Calculadora"],
+    ],
+    [
+      "YouTube Ads",
+      ["Por classe", "Tabela", "Gerenciador", "Métricas", "Calculadora"],
+    ],
     ["Campanhas", ["Todas as redes", "Calculadora", "Análise"]],
     ["Servidor", ["Servidores", "Sites", "Adicionar servidor"]],
     ["Gestão", ["Financeiro", "Aquisição", "CRM", "Alertas", "Notificações"]],
-    ["Páginas", ["Landing pages", "Editor de páginas"]],
+    [
+      "Páginas",
+      [
+        "Landing pages",
+        "Editor de páginas",
+        "Baixar site",
+        "Filtro de acesso",
+        "Roteador de ofertas",
+      ],
+    ],
     [
       "Sistema",
       [
@@ -111,7 +144,9 @@ describe("navigation folders", () => {
       screen.getByRole("button", { name: "Abrir pasta Meta Ads" }),
     );
     // A pasta da rede lista todas as páginas daquela rede, cada uma com o seu endereço.
-    expect(screen.getAllByRole("link").map((l) => l.getAttribute("href"))).toEqual([
+    expect(
+      screen.getAllByRole("link").map((l) => l.getAttribute("href")),
+    ).toEqual([
       "/campanhas/meta/classes",
       "/campanhas/meta/tabela",
       "/campanhas/meta/gerenciador",
@@ -145,9 +180,13 @@ describe("navigation folders", () => {
     expect(sidebarPageTitle("/clientes/pessoa-1")).toBe("CRM");
     expect(sidebarPageTitle("/dashboard/trafego")).toBe("Aquisição");
     expect(sidebarPageTitle("/landing-pages")).toBe("Landing pages");
-    expect(sidebarPageTitle("/landing-pages/minha-pagina")).toBe("Landing pages");
+    expect(sidebarPageTitle("/landing-pages/minha-pagina")).toBe(
+      "Landing pages",
+    );
     expect(sidebarPageTitle("/editor/landing-page")).toBe("Editor de páginas");
-    expect(sidebarPageTitle("/editor/landing-page/minha-pagina")).toBe("Editor de páginas");
+    expect(sidebarPageTitle("/editor/landing-page/minha-pagina")).toBe(
+      "Editor de páginas",
+    );
     expect(sidebarPageTitle("/servidor")).toBe("Servidor");
     expect(sidebarPageTitle("/servidor/novo")).toBe("Servidor");
     expect(sidebarPageTitle(`/servidor/sites/${UUID}`)).toBe("Servidor");
@@ -173,9 +212,14 @@ describe("navigation folders", () => {
     fireEvent.click(folder);
 
     // O Servidor não se repete aqui: tem pasta própria, logo a seguir.
-    expect(screen.getAllByRole("link").map((link) => link.getAttribute("href"))).toEqual([
+    expect(
+      screen.getAllByRole("link").map((link) => link.getAttribute("href")),
+    ).toEqual([
       "/landing-pages",
       "/editor/landing-page",
+      "/captura",
+      "/filtro-de-acesso",
+      "/roteador-de-ofertas",
     ]);
     const current = screen.getByRole("link", { name: title });
     expect(current.getAttribute("aria-current")).toBe("page");
@@ -191,7 +235,9 @@ describe("pasta Servidor", () => {
   function acesos(caminho: string) {
     navegacao.caminho = caminho;
     render(<SidebarFolderNavigation unreadCount={0} onNavigate={() => {}} />);
-    fireEvent.click(screen.getByRole("button", { name: "Abrir pasta Servidor" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Abrir pasta Servidor" }),
+    );
     return screen
       .getAllByRole("link")
       .filter((link) => link.getAttribute("aria-current") === "page")
@@ -248,13 +294,25 @@ describe("pastas abrem só no clique", () => {
   it("passar o mouse numa pasta não a abre; clicar abre", () => {
     vi.useFakeTimers();
     try {
-      render(<SidebarFolderNavigation id="menu" unreadCount={0} onNavigate={() => {}} />);
+      render(
+        <SidebarFolderNavigation
+          id="menu"
+          unreadCount={0}
+          onNavigate={() => {}}
+        />,
+      );
       const pasta = screen.getAllByRole("button", { name: /^Abrir pasta/ })[0];
       fireEvent.pointerEnter(pasta);
-      act(() => { vi.advanceTimersByTime(500); });
-      expect(screen.queryByRole("button", { name: "Todas as pastas" })).toBeNull();
+      act(() => {
+        vi.advanceTimersByTime(500);
+      });
+      expect(
+        screen.queryByRole("button", { name: "Todas as pastas" }),
+      ).toBeNull();
       fireEvent.click(pasta);
-      expect(screen.getByRole("button", { name: "Todas as pastas" })).toBeTruthy();
+      expect(
+        screen.getByRole("button", { name: "Todas as pastas" }),
+      ).toBeTruthy();
     } finally {
       vi.useRealTimers();
     }

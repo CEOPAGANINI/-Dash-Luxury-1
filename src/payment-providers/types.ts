@@ -78,6 +78,7 @@ export interface PaymentResult {
   method: PaymentMethod;
   amountCents: number;
   currency: string;
+  refundedAmountCents?: number;
   /** Dados de exibição: QR Code Pix, URL de boleto, redirect 3DS etc. */
   displayData?: {
     pixQrCode?: string;
@@ -107,8 +108,10 @@ export interface WebhookEvent {
   externalEventId: string;
   type: string;
   paymentExternalId?: string;
+  orderReference?: string;
   status?: PaymentProviderStatus;
   amountCents?: number;
+  refundedAmountCents?: number;
   raw: unknown;
 }
 

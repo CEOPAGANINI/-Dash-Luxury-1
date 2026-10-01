@@ -1,15 +1,10 @@
 import type { Metadata } from "next";
 
-import { ModulePlaceholder } from "@/components/module-placeholder";
+import { CatalogPanel } from "@/features/catalog/catalog-panel";
+import { getCatalogData } from "@/features/catalog/queries";
 
 export const metadata: Metadata = { title: "Catálogo · Categorias" };
 
-export default function CategoriasPage() {
-  return (
-    <ModulePlaceholder
-      title="Categorias"
-      description="Organização do catálogo em categorias com slug, SEO e vínculo a produtos e landing pages."
-      phase={2}
-    />
-  );
+export default async function CategoriasPage() {
+  return <CatalogPanel data={await getCatalogData()} mode="categories" />;
 }

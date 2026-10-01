@@ -127,6 +127,27 @@ afterEach(() => {
 });
 
 describe("Per-page ZIP export panel", () => {
+  it("prepares a validated export for the publisher only after the explicit preparation action", async () => {
+    const prepare = vi.fn().mockResolvedValue(undefined);
+    render(<PageExportPanel flow={flow} page={page} site={null} onSiteChange={changed} onPrepareZip={prepare} />);
+    expect(prepare).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Preparar ZIP para publicar" }));
+    await waitFor(() => expect(prepare).toHaveBeenCalledOnce());
+    expect(prepare.mock.calls[0][0]).toBeInstanceOf(File);
+    expect(prepare.mock.calls[0][0].name).toBe("landing-page.zip");
+    expect(downloads).toHaveLength(0);
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect((await screen.findByRole("status")).textContent).toContain("Escolha o site e confirme");
+  });
+
+  it("shows preparation failures without claiming success or uploading anything", async () => {
+    const prepare = vi.fn().mockRejectedValue(new Error("O conteúdo mudou. Prepare novamente."));
+    render(<PageExportPanel flow={flow} page={page} site={null} onSiteChange={changed} onPrepareZip={prepare} />);
+    fireEvent.click(screen.getByRole("button", { name: "Preparar ZIP para publicar" }));
+    expect((await screen.findByRole("alert")).textContent).toBe("O conteúdo mudou. Prepare novamente.");
+    expect(downloads).toHaveLength(0);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
   it("defaults to the selected page's editor content and explains publication limits", () => {
     render(<Harness />);
     expect(

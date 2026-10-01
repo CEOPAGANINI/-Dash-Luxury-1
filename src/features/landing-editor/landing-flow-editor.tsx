@@ -116,9 +116,7 @@ function Editor({
   );
   /* O cartão aberto mostra, dentro dele, a configuração da própria página.
      Um por vez: abrir outro fecha o anterior. */
-  const [aberta, setAberta] = React.useState<string | null>(
-    initialFlow.pages[0]?.id ?? null,
-  );
+  const [configOpen, setConfigOpen] = React.useState(true);
   const [alturaAberta, setAlturaAberta] = React.useState(NODE_HEIGHT);
   const cartaoAberto = React.useRef<HTMLElement>(null);
   const [kind, setKind] = React.useState<PageKind>("landing");
@@ -198,6 +196,8 @@ function Editor({
   } | null>(null);
   const selected =
     flow.pages.find((page) => page.id === selectedId) ?? flow.pages[0];
+  // One page identity drives the visible inspector and the export panel.
+  const aberta = configOpen ? (selected?.id ?? null) : null;
   const previewPage =
     flow.pages.find((page) => page.id === previewId) ?? selected;
   const dirty = JSON.stringify(flow) !== saved;
@@ -277,7 +277,8 @@ function Editor({
     const page = createFlowPage(kind, flow.pages.length);
     change({ ...flow, pages: [...flow.pages, page] });
     setSelectedId(page.id);
-    setAberta(page.id);
+    setConfigOpen(true);
+    setTargetId("");
     setMessage(
       `${PAGE_KIND_LABELS[kind]} adicionada. Configure a página no próprio cartão.`,
     );
@@ -299,10 +300,9 @@ function Editor({
         "Não foi possível salvar neste navegador. Exporte o fluxo para guardar suas alterações.",
       );
   }
-  function connect(event: React.FormEvent) {
+  function connect(event: React.FormEvent, sourceId: string) {
     event.preventDefault();
-    if (!selected) return;
-    const result = connectPages(flow, selected.id, targetId, connectionLabel);
+    const result = connectPages(flow, sourceId, targetId, connectionLabel);
     if (result.error) {
       setMessage(result.error);
       return;
@@ -354,6 +354,7 @@ function Editor({
       return;
     remember();
     setSelectedId(page.id);
+    setTargetId("");
     drag.current = {
       id: page.id,
       x: page.x,
@@ -411,7 +412,8 @@ function Editor({
               setSelectedId(
                 flow.pages.find((page) => page.id !== pagina.id)?.id ?? "",
               );
-              setAberta(null);
+              setConfigOpen(false);
+              setTargetId("");
               setMessage("Página removida. Use Desfazer para recuperá-la.");
             }}
           >
@@ -514,12 +516,18 @@ function Editor({
           <button
             type="button"
             className={styles.previewButton}
-            onClick={() => setView("files")}
+            onClick={() => {
+              setSelectedId(pagina.id);
+              setView("files");
+            }}
           >
             <Download size={16} /> Publicar: ZIP, site e domínio
           </button>
         </div>
-        <form className={styles.linkForm} onSubmit={connect}>
+        <form
+          className={styles.linkForm}
+          onSubmit={(event) => connect(event, pagina.id)}
+        >
           <h3>
             <Link2 size={16} /> Ligar a outra página
           </h3>
@@ -664,7 +672,11 @@ function Editor({
                 Página para exportar
                 <select
                   value={selected.id}
-                  onChange={(event) => setSelectedId(event.target.value)}
+                  onChange={(event) => {
+                    setSelectedId(event.target.value);
+                    setConfigOpen(true);
+                    setTargetId("");
+                  }}
                 >
                   {flow.pages.map((page) => (
                     <option key={page.id} value={page.id}>
@@ -673,7 +685,13 @@ function Editor({
                   ))}
                 </select>
               </label>
-              <button type="button" onClick={() => setView("flow")}>
+              <button
+                type="button"
+                onClick={() => {
+                  setConfigOpen(true);
+                  setView("flow");
+                }}
+              >
                 Editar conteúdo e ligações
               </button>
             </div>
@@ -900,9 +918,7 @@ function Editor({
                             onClick={() => {
                               setSelectedId(page.id);
                               setTargetId("");
-                              setAberta((atual) =>
-                                atual === page.id ? null : page.id,
-                              );
+                              setConfigOpen(aberta !== page.id);
                             }}
                             aria-expanded={aberta === page.id}
                             aria-controls={
@@ -1044,7 +1060,8 @@ function Editor({
                       type="button"
                       onClick={() => {
                         setSelectedId(source.id);
-                        setAberta(source.id);
+                        setConfigOpen(true);
+                        setTargetId("");
                       }}
                     >
                       {source.name}
@@ -1054,7 +1071,8 @@ function Editor({
                       type="button"
                       onClick={() => {
                         setSelectedId(target.id);
-                        setAberta(target.id);
+                        setConfigOpen(true);
+                        setTargetId("");
                       }}
                     >
                       {target.name}
@@ -1293,7 +1311,7 @@ function Editor({
                   setPagePackages({});
                   setPackageRevision((revision) => revision + 1);
                   setSelectedId(imported.pages[0]?.id ?? "");
-                  setAberta(imported.pages[0]?.id ?? null);
+                  setConfigOpen(true);
                   setTargetId("");
                   setImported(null);
                   setMessage("Fluxo importado. Revise e salve o rascunho.");

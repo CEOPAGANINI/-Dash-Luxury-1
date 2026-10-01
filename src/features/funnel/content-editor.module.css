@@ -1,0 +1,15 @@
+/* Regra do dono: nada abre no meio da tela. O editor e o publicador
+   encostam na direita como painel lateral, no mesmo lugar do painel da
+   página, sem escurecer o quadro inteiro. */
+.overlay { position: fixed; inset: 0; z-index: 80; background: rgb(0 0 0 / 28%); }
+.dialog { position: fixed; inset: 8px 8px 8px auto; width: min(560px, calc(100vw - 16px)); z-index: 81; overflow: auto; padding: clamp(16px, 3vw, 28px); background: var(--background, #080808); color: var(--foreground, #fafafa); border: 1px solid var(--border, #333); border-radius: 0; box-shadow: 0 24px 80px #0008; }
+.header { display: flex; gap: 16px; align-items: start; justify-content: space-between; margin-bottom: 24px; }
+.header h2 { margin: 0 0 8px; font-size: 20px; line-height: 1.3; overflow-wrap: anywhere; }
+.header p, .notice { max-width: 76ch; color: var(--muted-foreground, #aaa); font-size: 13px; line-height: 1.6; }
+.close { flex: none; width: 40px; height: 40px; display: grid; place-items: center; border: 1px solid var(--border, #333); background: transparent; color: inherit; cursor: pointer; }
+.fields { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+.fields label { display: grid; align-content: start; gap: 8px; min-width: 0; font-size: 13px; }
+.fields input, .fields textarea { width: 100%; min-width: 0; min-height: 40px; padding: 10px; color: inherit; background: var(--card, #101010); border: 1px solid var(--border, #333); border-radius: 0; font: inherit; }
+.fields textarea { resize: vertical; }
+.dialog :focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+.notice { margin: 20px 0; }

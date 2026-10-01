@@ -30,6 +30,7 @@ const MIGRACOES_A_MAO = [
   "0004_executive_analytics_mart.sql",
   "0005_ads_manager.sql",
   "0001_enable_rls.sql",
+  "0008_rate_limits.sql",
 ] as const;
 
 export const MIGRACAO_VPS = "0006_vps.sql";

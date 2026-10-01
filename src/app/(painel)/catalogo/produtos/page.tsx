@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 
-import { ProductsDashboard } from "@/features/unified-dashboard/business-modules";
+import { CatalogPanel } from "@/features/catalog/catalog-panel";
+import { getCatalogData } from "@/features/catalog/queries";
 
 export const metadata: Metadata = { title: "Produtos" };
 
-/** Módulo da Dash 5.0 unificada, com os dados demonstrativos tipados. */
-export default function Page() {
-  return <ProductsDashboard />;
+export default async function Page() {
+  return <CatalogPanel data={await getCatalogData()} mode="products" />;
 }

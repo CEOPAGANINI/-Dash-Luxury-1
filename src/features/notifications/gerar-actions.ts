@@ -5,7 +5,7 @@ import { and, eq, gt } from "drizzle-orm";
 
 import { getDb, isDatabaseConfigured } from "@/database/client";
 import { notifications } from "@/database/schema";
-import { getOrCreateDefaultWorkspace } from "@/lib/workspace";
+import { exigirWorkspaceRole } from "@/lib/workspace";
 import { avaliarAgora } from "./avaliar-agora";
 
 export interface ResultadoGeracao {
@@ -39,12 +39,17 @@ export async function gerarAvisosAction(): Promise<ResultadoGeracao> {
 
   const { avisos } = await avaliarAgora();
   if (avisos.length === 0) {
-    return { ok: true, criadas: 0, repetidas: 0, mensagem: "Nenhuma regra disparou agora." };
+    return {
+      ok: true,
+      criadas: 0,
+      repetidas: 0,
+      mensagem: "Nenhuma regra disparou agora.",
+    };
   }
 
   try {
     const db = getDb();
-    const workspaceId = await getOrCreateDefaultWorkspace();
+    const workspaceId = (await exigirWorkspaceRole(["marketing"])).workspaceId;
 
     const recentes = await db
       .select({ metadata: notifications.metadata })
@@ -52,7 +57,10 @@ export async function gerarAvisosAction(): Promise<ResultadoGeracao> {
       .where(
         and(
           eq(notifications.workspaceId, workspaceId),
-          gt(notifications.createdAt, new Date(Date.now() - JANELA_REPETICAO_MS)),
+          gt(
+            notifications.createdAt,
+            new Date(Date.now() - JANELA_REPETICAO_MS),
+          ),
         ),
       );
     const chavesRecentes = new Set(
@@ -72,7 +80,11 @@ export async function gerarAvisosAction(): Promise<ResultadoGeracao> {
           href: a.href,
           valueCents: a.valueCents,
           channel: "in_app" as const,
-          metadata: { chave: a.chave, severidade: a.severidade, origem: "regras" },
+          metadata: {
+            chave: a.chave,
+            severidade: a.severidade,
+            origem: "regras",
+          },
         })),
       );
     }
@@ -88,8 +100,12 @@ export async function gerarAvisosAction(): Promise<ResultadoGeracao> {
           ? "Todos os avisos de agora já estavam na lista."
           : `${novos.length} ${novos.length === 1 ? "aviso novo" : "avisos novos"}${repetidas ? `, ${repetidas} ${repetidas === 1 ? "já existia" : "já existiam"}` : ""}.`,
     };
-  } catch (error) {
-    console.error("[notifications] erro ao gerar avisos:", error);
-    return { ok: false, criadas: 0, repetidas: 0, mensagem: "Não foi possível gravar. Tente de novo." };
+  } catch {
+    return {
+      ok: false,
+      criadas: 0,
+      repetidas: 0,
+      mensagem: "Não foi possível gravar. Tente de novo.",
+    };
   }
 }

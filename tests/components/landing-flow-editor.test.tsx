@@ -210,6 +210,64 @@ describe("Orbit landing-page flow editor", () => {
     expect(save).not.toHaveBeenCalled();
   });
 
+  it("keeps the open page, new connection and ZIP selection aligned after choosing another export page", () => {
+    vi.mocked(useLandingFlowDraft).mockReturnValue({
+      ready: true,
+      flow: { ...parseFlow(INITIAL_FLOW)!, connections: [] },
+      notice: "",
+      save,
+    });
+    renderEditor();
+    fireEvent.click(screen.getByRole("button", { name: "ZIP de cada página" }));
+    fireEvent.change(
+      screen.getByRole("combobox", { name: "Página para exportar" }),
+      { target: { value: "page-checkout" } },
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: "Editar conteúdo e ligações" }),
+    );
+
+    expect(
+      screen.getByRole("region", { name: "Configuração de Checkout" }),
+    ).toBeTruthy();
+    expect(
+      screen.queryByRole("region", { name: "Configuração de Landing page" }),
+    ).toBeNull();
+    fireEvent.change(inspector().getByRole("combobox", { name: "Destino" }), {
+      target: { value: "page-landing" },
+    });
+    editField("Nome da ligação", "Voltar para oferta");
+    fireEvent.click(inspector().getByRole("button", { name: "Criar ligação" }));
+    expect(
+      connections().getByRole("button", {
+        name: "Remover ligação de Checkout para Landing page",
+      }),
+    ).toBeTruthy();
+
+    fireEvent.click(
+      inspector().getByRole("button", {
+        name: "Publicar: ZIP, site e domínio",
+      }),
+    );
+    expect(
+      screen.getByRole("region", { name: "ZIP de Checkout" }),
+    ).toBeTruthy();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Editar conteúdo e ligações" }),
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: "Configurar Landing page" }),
+    );
+    fireEvent.click(
+      inspector().getByRole("button", {
+        name: "Publicar: ZIP, site e domínio",
+      }),
+    );
+    expect(
+      screen.getByRole("region", { name: "ZIP de Landing page" }),
+    ).toBeTruthy();
+  });
+
   it("keeps unsaved edits visible when storage refuses the save", () => {
     save.mockReturnValue(false);
     vi.mocked(useLandingFlowDraft).mockReturnValue({

@@ -2,7 +2,10 @@ import { and, eq, isNull } from "drizzle-orm";
 
 import { getDb, isDatabaseConfigured } from "@/database/client";
 import { pixels } from "@/database/schema";
-import { getOrCreateDefaultWorkspace } from "@/lib/workspace";
+import {
+  getOrCreateDefaultWorkspace,
+  getPublicWorkspaceId,
+} from "@/lib/workspace";
 import type { PixelRow, PixelType } from "@/features/pixels/types";
 
 // Reexportados para não quebrar quem já importa tipos/labels daqui —
@@ -40,14 +43,14 @@ export async function listPixels(): Promise<PixelRow[]> {
  * Pixels ativos para injeção nas páginas públicas.
  * Retorna apenas dados que podem ir ao navegador — nunca tokens.
  */
-export async function getActivePixelsForPublic(): Promise<
-  { type: PixelType; pixelId: string }[]
-> {
+export async function getActivePixelsForPublic(
+  workspace?: string,
+): Promise<{ type: PixelType; pixelId: string }[]> {
   if (!isDatabaseConfigured()) return [];
 
   try {
     const db = getDb();
-    const workspaceId = await getOrCreateDefaultWorkspace();
+    const workspaceId = workspace ?? (await getPublicWorkspaceId());
 
     const rows = await db
       .select({ type: pixels.type, pixelId: pixels.pixelId })

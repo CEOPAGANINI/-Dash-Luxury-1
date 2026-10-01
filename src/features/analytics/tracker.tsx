@@ -4,6 +4,7 @@ import * as React from "react";
 
 const STORAGE_KEY = "infinity:aid";
 const HEARTBEAT_MS = 30_000;
+let fallbackAnonymousId: string | undefined;
 
 /** ID anônimo persistente por navegador (não identifica a pessoa). */
 function getAnonymousId(): string {
@@ -15,7 +16,8 @@ function getAnonymousId(): string {
     }
     return id;
   } catch {
-    return "anon";
+    fallbackAnonymousId ??= `anon-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    return fallbackAnonymousId;
   }
 }
 
@@ -70,6 +72,7 @@ interface TrackerProps {
   /** Evento disparado ao carregar, além do page_view */
   event?: "view_content" | "checkout_opened";
   productSlug?: string;
+  checkoutId?: string;
   valueCents?: number;
   currency?: string;
 }
@@ -81,20 +84,22 @@ interface TrackerProps {
 export function Tracker({
   event,
   productSlug,
+  checkoutId,
   valueCents,
   currency,
 }: TrackerProps) {
   React.useEffect(() => {
-    const extra = { productSlug, valueCents, currency };
+    const extra = { productSlug, checkoutId, valueCents, currency };
     sendTrack("page_view", extra);
     if (event) sendTrack(event, extra);
 
     const beat = setInterval(() => {
-      if (document.visibilityState === "visible") sendTrack("heartbeat", {});
+      if (document.visibilityState === "visible")
+        sendTrack("heartbeat", { checkoutId });
     }, HEARTBEAT_MS);
 
     return () => clearInterval(beat);
-  }, [event, productSlug, valueCents, currency]);
+  }, [event, productSlug, checkoutId, valueCents, currency]);
 
   return null;
 }

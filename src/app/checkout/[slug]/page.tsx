@@ -10,7 +10,11 @@ import { PixelScripts } from "@/features/pixels/pixel-scripts";
 import { Tracker } from "@/features/analytics/tracker";
 import { CookieBanner } from "@/features/consent/cookie-banner";
 import { listActiveShippingMethods } from "@/features/shipping/queries";
-import { getPublishedCheckoutBySlug } from "@/features/checkouts/queries";
+import {
+  getPublishedCheckoutBySlug,
+  isConfiguredCheckoutSlug,
+} from "@/features/checkouts/queries";
+import { randomUUID } from "node:crypto";
 
 export const metadata: Metadata = {
   title: `Checkout · ${techNebulaStore.name}`,
@@ -29,12 +33,15 @@ export default async function CheckoutSlugPage(
   const { slug } = await props.params;
   const searchParams = await props.searchParams;
 
-  const [checkout, shippingMethods] = await Promise.all([
-    getPublishedCheckoutBySlug(slug),
-    listActiveShippingMethods(),
+  const store =
+    typeof searchParams.loja === "string" ? searchParams.loja : undefined;
+  const checkout = await getPublishedCheckoutBySlug(slug, store);
+  if (store && !checkout) notFound();
+  if (!checkout && (await isConfiguredCheckoutSlug(slug))) notFound();
+  const [product, shippingMethods] = await Promise.all([
+    getProductBySlug(checkout?.productSlug ?? slug, checkout?.workspaceId),
+    listActiveShippingMethods(checkout?.workspaceId),
   ]);
-
-  const product = await getProductBySlug(checkout?.productSlug ?? slug);
   if (!product) notFound();
 
   const qtyRaw = Number(
@@ -47,6 +54,7 @@ export default async function CheckoutSlugPage(
   return (
     <div className="min-h-svh bg-zinc-50 text-zinc-900">
       <PixelScripts
+        workspaceId={checkout?.workspaceId}
         event="InitiateCheckout"
         content={{
           id: product.slug,
@@ -56,6 +64,7 @@ export default async function CheckoutSlugPage(
         }}
       />
       <Tracker
+        checkoutId={checkout?.id}
         event="checkout_opened"
         productSlug={product.slug}
         valueCents={product.priceCents * quantity}
@@ -80,7 +89,19 @@ export default async function CheckoutSlugPage(
         <CheckoutForm
           product={product}
           initialQuantity={quantity}
-          shippingMethods={shippingMethods}
+          shippingMethods={
+            product.type === "digital"
+              ? []
+              : shippingMethods.filter(
+                  (method) =>
+                    method.currency === product.currency &&
+                    method.country === "PT",
+                )
+          }
+          checkoutId={checkout?.id}
+          paymentMethods={checkout?.paymentMethods}
+          config={checkout?.config}
+          attemptId={randomUUID()}
         />
       </main>
 

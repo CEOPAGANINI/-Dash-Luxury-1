@@ -97,8 +97,8 @@ export async function GET(request: Request) {
           : null,
       },
     });
-  } catch (error) {
-    console.error("[oauth meta] falha:", error);
+  } catch {
+    console.error("[oauth meta] callback_failed");
     return backToIntegrations(origin, "meta", "erro");
   }
 

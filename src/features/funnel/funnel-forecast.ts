@@ -10,7 +10,12 @@ import type { FunnelEdge, FunnelNode, FunnelNodeType } from "./funnel-model";
 
 export type Cenario = "pessimista" | "realista" | "otimista";
 
-export const CENARIOS: { id: Cenario; nome: string; fator: number; cor: string }[] = [
+export const CENARIOS: {
+  id: Cenario;
+  nome: string;
+  fator: number;
+  cor: string;
+}[] = [
   { id: "pessimista", nome: "Pessimista", fator: 0.7, cor: "#f87171" },
   { id: "realista", nome: "Realista", fator: 1, cor: "#38bdf8" },
   { id: "otimista", nome: "Otimista", fator: 1.3, cor: "#00e559" },
@@ -37,7 +42,10 @@ export const PREVISAO_PADRAO: PrevisaoCfg = { cenario: "realista", cpc: 1.2 };
 
 /** Conversão típica por tipo de bloco (%), a faixa do semáforo e se vende. */
 export const PADRAO_TIPO: Partial<
-  Record<FunnelNodeType, { conv: number; faixa?: [number, number]; vende?: boolean; preco?: number }>
+  Record<
+    FunnelNodeType,
+    { conv: number; faixa?: [number, number]; vende?: boolean; preco?: number }
+  >
 > = {
   page_v3: { conv: 30, faixa: [15, 35] },
   optin: { conv: 30, faixa: [20, 40] },
@@ -94,38 +102,70 @@ export interface Totais {
   custoPorVenda: number;
 }
 
-const ANOTACOES = new Set<FunnelNodeType>(["note", "text", "shape", "frame", "comment"]);
+const ANOTACOES = new Set<FunnelNodeType>([
+  "note",
+  "text",
+  "shape",
+  "frame",
+  "comment",
+]);
 
 /** Calcula a previsão de todo o quadro no cenário escolhido. */
 export function calcularPrevisao(
   nodes: FunnelNode[],
   edges: FunnelEdge[],
   cfg: PrevisaoCfg,
-): { porNo: Record<string, ResultadoNo>; total: Totais; ordem: string[] } {
+): {
+  porNo: Record<string, ResultadoNo>;
+  total: Totais;
+  ordem: string[];
+  avisos: string[];
+} {
   const fator = CENARIOS.find((c) => c.id === cfg.cenario)?.fator ?? 1;
   const uteis = nodes.filter((n) => !ANOTACOES.has(n.type));
   const ids = new Set(uteis.map((n) => n.id));
-  const ligacoes = edges.filter((e) => ids.has(e.source) && ids.has(e.target));
+  const byId = new Map(uteis.map((n) => [n.id, n]));
+  const avisos: string[] = [];
+  const regras = new Map<
+    string,
+    NonNullable<FunnelNode["redir"]>["regras"][number]
+  >();
+  for (const n of uteis)
+    for (const rule of n.redir?.regras ?? [])
+      regras.set(`rr:${n.id}:${rule.id}`, rule);
+  const originalIncoming = new Set(edges.map((e) => e.target));
+  const ligacoes = edges.filter(
+    (e) =>
+      ids.has(e.source) &&
+      ids.has(e.target) &&
+      (regras.get(e.id)?.ativo ?? true),
+  );
   const entradas: Record<string, number> = {};
-  const saidas: Record<string, string[]> = {};
+  const saidas: Record<string, FunnelEdge[]> = {};
   for (const n of uteis) {
     entradas[n.id] = 0;
     saidas[n.id] = [];
   }
   for (const e of ligacoes) {
     entradas[e.target]++;
-    saidas[e.source].push(e.target);
+    saidas[e.source].push(e);
   }
   // Ordem topológica (Kahn); num ciclo, os que sobram entram no fim.
   const fila = uteis.filter((n) => entradas[n.id] === 0).map((n) => n.id);
   const ordem: string[] = [];
   const grau = { ...entradas };
-  while (fila.length) {
-    const id = fila.shift()!;
+  for (let index = 0; index < fila.length; index++) {
+    const id = fila[index];
     ordem.push(id);
-    for (const t of saidas[id]) if (--grau[t] === 0) fila.push(t);
+    for (const edge of saidas[id])
+      if (--grau[edge.target] === 0) fila.push(edge.target);
   }
-  for (const n of uteis) if (!ordem.includes(n.id)) ordem.push(n.id);
+  const processed = new Set(ordem);
+  if (processed.size !== uteis.length)
+    avisos.push(
+      "Há um ciclo de páginas. A previsão não representa visitas repetidas; remova o ciclo para calcular um percurso completo.",
+    );
+  for (const n of uteis) if (!processed.has(n.id)) ordem.push(n.id);
 
   const entram: Record<string, number> = {};
   for (const n of uteis) entram[n.id] = 0;
@@ -135,15 +175,18 @@ export function calcularPrevisao(
   let vendas = 0;
   let receita = 0;
   for (const id of ordem) {
-    const n = uteis.find((x) => x.id === id)!;
+    const n = byId.get(id)!;
     const pad = PADRAO_TIPO[n.type] ?? { conv: 100 };
-    const origem = entradas[id] === 0;
+    const origem = entradas[id] === 0 && !originalIncoming.has(id);
     if (origem) {
       entram[id] = n.previsao?.visitas ?? VISITAS_PADRAO;
       visitas += entram[id];
     }
     const base = n.previsao?.conversao ?? pad.conv;
-    const conv = pad.conv === 100 && n.previsao?.conversao == null ? 100 : Math.min(100, base * fator);
+    const conv =
+      pad.conv === 100 && n.previsao?.conversao == null
+        ? 100
+        : Math.min(100, base * fator);
     const saem = (entram[id] * conv) / 100;
     const vende = Boolean(pad.vende);
     const preco = n.previsao?.preco ?? pad.preco ?? 0;
@@ -151,21 +194,65 @@ export function calcularPrevisao(
     const r = v * preco;
     vendas += v;
     receita += r;
-    if (n.type === "optin" || n.type === "quiz" || n.type === "webinar") leads += saem;
+    if (n.type === "optin" || n.type === "quiz" || n.type === "webinar")
+      leads += saem;
     let semaforo: Semaforo = "neutro";
     if (pad.faixa) {
       const [ruim, bom] = pad.faixa;
       semaforo = conv >= bom ? "verde" : conv >= ruim ? "amarelo" : "vermelho";
     }
-    porNo[id] = { entram: entram[id], saem, conversao: conv, vendas: v, receita: r, semaforo, origem };
+    porNo[id] = {
+      entram: entram[id],
+      saem,
+      conversao: conv,
+      vendas: v,
+      receita: r,
+      semaforo,
+      origem,
+    };
     const dest = saidas[id];
-    if (dest.length) for (const t of dest) entram[t] += saem / dest.length;
+    if (n.type === "redirect" && dest.some((edge) => regras.has(edge.id))) {
+      const fatias = dest.filter(
+        (edge) => regras.get(edge.id)?.tipo === "fatia",
+      );
+      const condicionais = dest.filter(
+        (edge) => regras.has(edge.id) && regras.get(edge.id)?.tipo !== "fatia",
+      );
+      const fallback = dest.filter((edge) => !regras.has(edge.id));
+      if (condicionais.length)
+        avisos.push(
+          `“${n.title}”: regras de região/aparelho/origem dependem dos visitantes. A previsão divide somente essa parcela entre destinos ativos.`,
+        );
+      const soma = fatias.reduce(
+        (total, edge) => total + (regras.get(edge.id)?.percentual ?? 0),
+        0,
+      );
+      if (soma > 100)
+        avisos.push(
+          `“${n.title}”: as fatias somam mais de 100%; apenas os primeiros 100% serão distribuídos, na ordem das regras.`,
+        );
+      let assigned = 0;
+      for (const edge of fatias) {
+        const portion = Math.min(
+          Math.max(0, regras.get(edge.id)!.percentual),
+          100 - assigned,
+        );
+        entram[edge.target] += (saem * portion) / 100;
+        assigned += portion;
+      }
+      const resto = saem * Math.max(0, 1 - soma / 100);
+      const outros = [...condicionais, ...fallback];
+      if (outros.length)
+        for (const edge of outros) entram[edge.target] += resto / outros.length;
+    } else if (dest.length)
+      for (const edge of dest) entram[edge.target] += saem / dest.length;
   }
   const custo = visitas * cfg.cpc;
   const lucro = receita - custo;
   return {
     porNo,
     ordem,
+    avisos,
     total: {
       visitas,
       leads,
@@ -182,7 +269,11 @@ export function calcularPrevisao(
 
 /** "R$ 1.234" */
 export function reais(v: number): string {
-  return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+  return v.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    maximumFractionDigits: 0,
+  });
 }
 
 /** "1.234" (arredondado). */

@@ -1,9 +1,18 @@
 "use client";
 
 import * as React from "react";
-import { Check, GripVertical, Lock, Plus, RotateCcw, ShieldCheck, Timer, Trash2 } from "lucide-react";
+import {
+  Check,
+  GripVertical,
+  Lock,
+  Plus,
+  RotateCcw,
+  ShieldCheck,
+  Timer,
+  Trash2,
+} from "lucide-react";
 
-import { formatCurrency } from "@/features/unified-dashboard/formatters";
+import { formatMoney } from "@/lib/format";
 import { moverNaOrdem } from "@/features/ads/metrics-order-store";
 
 import {
@@ -33,22 +42,46 @@ import { useCheckoutDraft } from "./checkout-editor-store";
   guarda é a mesma configuração que a página do checkout lê.
 */
 
-const dinheiro = (cents: number) => formatCurrency(cents / 100, cents % 100 === 0 ? 0 : 2);
-
-export function CheckoutEditor({ inicial, nome }: { inicial?: unknown; nome?: string }) {
+export function CheckoutEditor({
+  inicial,
+  nome,
+  onSave,
+  allowedMethods,
+}: {
+  inicial?: unknown;
+  nome?: string;
+  onSave?: (
+    config: CheckoutConfig,
+  ) => Promise<{ ok: boolean; message: string }>;
+  allowedMethods?: readonly string[];
+}) {
   /* A arrumação vive num cofre do navegador: volta ao recarregar e não
      se perde ao trocar de página. Com um checkout escolhido, o que vem
      do banco manda no primeiro desenho. */
   const cofre = useCheckoutDraft();
-  const config = inicial === undefined ? cofre.config : completarConfig(inicial);
+  const [savedConfig, setSavedConfig] = React.useState(() =>
+    completarConfig(inicial),
+  );
+  const [editedConfig, setEditedConfig] = React.useState(() =>
+    completarConfig(inicial),
+  );
+  const [saving, startSave] = React.useTransition();
+  const [saveNotice, setSaveNotice] = React.useState("");
+  const config = onSave || inicial !== undefined ? editedConfig : cofre.config;
+  const dirty =
+    onSave && JSON.stringify(config) !== JSON.stringify(savedConfig);
   const [tela, setTela] = React.useState<TelaId>("computador");
   const [arrastando, setArrastando] = React.useState<CampoId | null>(null);
 
   const mexer = React.useCallback(
     (muda: (c: CheckoutConfig) => CheckoutConfig) => {
-      cofre.guardar(muda(config));
+      const updated = muda(config);
+      if (onSave || inicial !== undefined) {
+        setEditedConfig(updated);
+        setSaveNotice("");
+      } else cofre.guardar(updated);
     },
-    [cofre, config],
+    [cofre, config, inicial, onSave],
   );
 
   const campo = (id: CampoId) => config.campos.find((c) => c.id === id)!;
@@ -66,7 +99,9 @@ export function CheckoutEditor({ inicial, nome }: { inicial?: unknown; nome?: st
                 type="button"
                 aria-pressed={config.layout === l.id}
                 data-escolhido={config.layout === l.id ? "true" : undefined}
-                onClick={() => mexer((c) => ({ ...c, layout: l.id as LayoutId }))}
+                onClick={() =>
+                  mexer((c) => ({ ...c, layout: l.id as LayoutId }))
+                }
               >
                 <b>{l.rotulo}</b>
                 <span>{l.legenda}</span>
@@ -77,11 +112,14 @@ export function CheckoutEditor({ inicial, nome }: { inicial?: unknown; nome?: st
 
         <section aria-label="Campos do formulário">
           <h2>Campos</h2>
-          <p className="dash-checkout-dica">Arraste para mudar a ordem. Nome e e-mail não se desligam.</p>
+          <p className="dash-checkout-dica">
+            Arraste para mudar a ordem. Nome e e-mail não se desligam.
+          </p>
           <ul className="dash-checkout-campos">
             {config.campos.map((c) => {
               const meta = CAMPOS_DO_CHECKOUT.find((x) => x.id === c.id)!;
               const fixo = campoEhFixo(c.id);
+              const unsupported = Boolean(allowedMethods && c.id === "cupom");
               return (
                 <li
                   key={c.id}
@@ -98,15 +136,29 @@ export function CheckoutEditor({ inicial, nome }: { inicial?: unknown; nome?: st
                     if (!arrastando || arrastando === c.id) return;
                     e.preventDefault();
                     e.dataTransfer.dropEffect = "move";
-                    mexer((atual) => ({ ...atual, campos: moverNaOrdem(atual.campos, campo(arrastando), campo(c.id)) }));
+                    mexer((atual) => ({
+                      ...atual,
+                      campos: moverNaOrdem(
+                        atual.campos,
+                        campo(arrastando),
+                        campo(c.id),
+                      ),
+                    }));
                   }}
                   onDrop={(e) => {
                     e.preventDefault();
                     setArrastando(null);
                   }}
                 >
-                  <GripVertical aria-hidden="true" className="dash-checkout-pega" />
-                  <b>{meta.rotulo}</b>
+                  <GripVertical
+                    aria-hidden="true"
+                    className="dash-checkout-pega"
+                  />
+                  <b>
+                    {allowedMethods && c.id === "documento"
+                      ? "NIF (Portugal)"
+                      : meta.rotulo}
+                  </b>
                   {fixo ? (
                     <span className="dash-checkout-fixo">
                       <Lock aria-hidden="true" />
@@ -116,18 +168,47 @@ export function CheckoutEditor({ inicial, nome }: { inicial?: unknown; nome?: st
                     <>
                       <button
                         type="button"
+                        disabled={unsupported}
                         aria-pressed={c.ativo}
                         data-escolhido={c.ativo ? "true" : undefined}
-                        onClick={() => mexer((a) => ({ ...a, campos: a.campos.map((x) => (x.id === c.id ? { ...x, ativo: !x.ativo, obrigatorio: x.ativo ? false : x.obrigatorio } : x)) }))}
+                        onClick={() =>
+                          mexer((a) => ({
+                            ...a,
+                            campos: a.campos.map((x) =>
+                              x.id === c.id
+                                ? {
+                                    ...x,
+                                    ativo: !x.ativo,
+                                    obrigatorio: x.ativo
+                                      ? false
+                                      : x.obrigatorio,
+                                  }
+                                : x,
+                            ),
+                          }))
+                        }
                       >
-                        {c.ativo ? "No formulário" : "Escondido"}
+                        {unsupported
+                          ? "Indisponível neste gateway"
+                          : c.ativo
+                            ? "No formulário"
+                            : "Escondido"}
                       </button>
                       <button
                         type="button"
                         aria-pressed={c.obrigatorio}
                         data-escolhido={c.obrigatorio ? "true" : undefined}
-                        disabled={!c.ativo}
-                        onClick={() => mexer((a) => ({ ...a, campos: a.campos.map((x) => (x.id === c.id ? { ...x, obrigatorio: !x.obrigatorio } : x)) }))}
+                        disabled={unsupported || !c.ativo}
+                        onClick={() =>
+                          mexer((a) => ({
+                            ...a,
+                            campos: a.campos.map((x) =>
+                              x.id === c.id
+                                ? { ...x, obrigatorio: !x.obrigatorio }
+                                : x,
+                            ),
+                          }))
+                        }
                       >
                         {c.obrigatorio ? "Obrigatório" : "Opcional"}
                       </button>
@@ -142,7 +223,9 @@ export function CheckoutEditor({ inicial, nome }: { inicial?: unknown; nome?: st
         <section aria-label="Formas de pagamento">
           <h2>Pagamento</h2>
           <div className="dash-checkout-opcoes">
-            {PAGAMENTOS.map((p) => {
+            {PAGAMENTOS.filter(
+              (p) => !allowedMethods || allowedMethods.includes(p.id),
+            ).map((p) => {
               const ligado = config.pagamentos.includes(p.id as PagamentoId);
               const unico = ligado && config.pagamentos.length === 1;
               return (
@@ -152,11 +235,17 @@ export function CheckoutEditor({ inicial, nome }: { inicial?: unknown; nome?: st
                   aria-pressed={ligado}
                   data-escolhido={ligado ? "true" : undefined}
                   disabled={unico}
-                  title={unico ? "O checkout precisa de pelo menos uma forma de pagamento" : undefined}
+                  title={
+                    unico
+                      ? "O checkout precisa de pelo menos uma forma de pagamento"
+                      : undefined
+                  }
                   onClick={() =>
                     mexer((c) => ({
                       ...c,
-                      pagamentos: ligado ? c.pagamentos.filter((x) => x !== p.id) : [...c.pagamentos, p.id as PagamentoId],
+                      pagamentos: ligado
+                        ? c.pagamentos.filter((x) => x !== p.id)
+                        : [...c.pagamentos, p.id as PagamentoId],
                     }))
                   }
                 >
@@ -172,15 +261,42 @@ export function CheckoutEditor({ inicial, nome }: { inicial?: unknown; nome?: st
           <h2>Textos</h2>
           <label>
             <span>Título</span>
-            <input value={config.textos.titulo} maxLength={80} onChange={(e) => mexer((c) => ({ ...c, textos: { ...c.textos, titulo: e.target.value } }))} />
+            <input
+              value={config.textos.titulo}
+              maxLength={80}
+              onChange={(e) =>
+                mexer((c) => ({
+                  ...c,
+                  textos: { ...c.textos, titulo: e.target.value },
+                }))
+              }
+            />
           </label>
           <label>
             <span>Subtítulo</span>
-            <input value={config.textos.subtitulo} maxLength={140} onChange={(e) => mexer((c) => ({ ...c, textos: { ...c.textos, subtitulo: e.target.value } }))} />
+            <input
+              value={config.textos.subtitulo}
+              maxLength={140}
+              onChange={(e) =>
+                mexer((c) => ({
+                  ...c,
+                  textos: { ...c.textos, subtitulo: e.target.value },
+                }))
+              }
+            />
           </label>
           <label>
             <span>Texto do botão</span>
-            <input value={config.textos.botao} maxLength={40} onChange={(e) => mexer((c) => ({ ...c, textos: { ...c.textos, botao: e.target.value } }))} />
+            <input
+              value={config.textos.botao}
+              maxLength={40}
+              onChange={(e) =>
+                mexer((c) => ({
+                  ...c,
+                  textos: { ...c.textos, botao: e.target.value },
+                }))
+              }
+            />
           </label>
         </section>
 
@@ -189,12 +305,23 @@ export function CheckoutEditor({ inicial, nome }: { inicial?: unknown; nome?: st
           <div className="dash-checkout-cores">
             {(["fundo", "texto", "destaque"] as const).map((chave) => (
               <label key={chave}>
-                <span>{chave === "fundo" ? "Fundo" : chave === "texto" ? "Texto" : "Destaque"}</span>
+                <span>
+                  {chave === "fundo"
+                    ? "Fundo"
+                    : chave === "texto"
+                      ? "Texto"
+                      : "Destaque"}
+                </span>
                 <input
                   type="color"
                   value={config.cores[chave]}
                   aria-label={`Cor de ${chave}`}
-                  onChange={(e) => mexer((c) => ({ ...c, cores: { ...c.cores, [chave]: e.target.value } }))}
+                  onChange={(e) =>
+                    mexer((c) => ({
+                      ...c,
+                      cores: { ...c.cores, [chave]: e.target.value },
+                    }))
+                  }
                 />
               </label>
             ))}
@@ -216,7 +343,12 @@ export function CheckoutEditor({ inicial, nome }: { inicial?: unknown; nome?: st
                 type="button"
                 aria-pressed={config.selos[chave]}
                 data-escolhido={config.selos[chave] ? "true" : undefined}
-                onClick={() => mexer((c) => ({ ...c, selos: { ...c.selos, [chave]: !c.selos[chave] } }))}
+                onClick={() =>
+                  mexer((c) => ({
+                    ...c,
+                    selos: { ...c.selos, [chave]: !c.selos[chave] },
+                  }))
+                }
               >
                 <b>{rotulo}</b>
                 <span>{config.selos[chave] ? "Aparece" : "Escondido"}</span>
@@ -230,7 +362,15 @@ export function CheckoutEditor({ inicial, nome }: { inicial?: unknown; nome?: st
               min={0}
               max={365}
               value={config.garantiaDias}
-              onChange={(e) => mexer((c) => ({ ...c, garantiaDias: Math.max(0, Math.min(365, Math.round(Number(e.target.value) || 0))) }))}
+              onChange={(e) =>
+                mexer((c) => ({
+                  ...c,
+                  garantiaDias: Math.max(
+                    0,
+                    Math.min(365, Math.round(Number(e.target.value) || 0)),
+                  ),
+                }))
+              }
             />
           </label>
           <div className="dash-checkout-opcoes">
@@ -238,10 +378,19 @@ export function CheckoutEditor({ inicial, nome }: { inicial?: unknown; nome?: st
               type="button"
               aria-pressed={config.contador.ativo}
               data-escolhido={config.contador.ativo ? "true" : undefined}
-              onClick={() => mexer((c) => ({ ...c, contador: { ...c.contador, ativo: !c.contador.ativo } }))}
+              onClick={() =>
+                mexer((c) => ({
+                  ...c,
+                  contador: { ...c.contador, ativo: !c.contador.ativo },
+                }))
+              }
             >
               <b>Contagem regressiva</b>
-              <span>{config.contador.ativo ? `${config.contador.minutos} minutos` : "Desligada"}</span>
+              <span>
+                {config.contador.ativo
+                  ? `${config.contador.minutos} minutos`
+                  : "Desligada"}
+              </span>
             </button>
           </div>
           {config.contador.ativo && (
@@ -252,7 +401,18 @@ export function CheckoutEditor({ inicial, nome }: { inicial?: unknown; nome?: st
                 min={1}
                 max={120}
                 value={config.contador.minutos}
-                onChange={(e) => mexer((c) => ({ ...c, contador: { ...c.contador, minutos: Math.max(1, Math.min(120, Math.round(Number(e.target.value) || 1))) } }))}
+                onChange={(e) =>
+                  mexer((c) => ({
+                    ...c,
+                    contador: {
+                      ...c.contador,
+                      minutos: Math.max(
+                        1,
+                        Math.min(120, Math.round(Number(e.target.value) || 1)),
+                      ),
+                    },
+                  }))
+                }
               />
             </label>
           )}
@@ -265,7 +425,12 @@ export function CheckoutEditor({ inicial, nome }: { inicial?: unknown; nome?: st
               type="button"
               aria-pressed={config.orderBump.ativo}
               data-escolhido={config.orderBump.ativo ? "true" : undefined}
-              onClick={() => mexer((c) => ({ ...c, orderBump: { ...c.orderBump, ativo: !c.orderBump.ativo } }))}
+              onClick={() =>
+                mexer((c) => ({
+                  ...c,
+                  orderBump: { ...c.orderBump, ativo: !c.orderBump.ativo },
+                }))
+              }
             >
               <b>Oferta no checkout</b>
               <span>{config.orderBump.ativo ? "Aparece" : "Escondida"}</span>
@@ -275,11 +440,29 @@ export function CheckoutEditor({ inicial, nome }: { inicial?: unknown; nome?: st
             <>
               <label>
                 <span>Título</span>
-                <input value={config.orderBump.titulo} maxLength={80} onChange={(e) => mexer((c) => ({ ...c, orderBump: { ...c.orderBump, titulo: e.target.value } }))} />
+                <input
+                  value={config.orderBump.titulo}
+                  maxLength={80}
+                  onChange={(e) =>
+                    mexer((c) => ({
+                      ...c,
+                      orderBump: { ...c.orderBump, titulo: e.target.value },
+                    }))
+                  }
+                />
               </label>
               <label>
                 <span>Texto</span>
-                <input value={config.orderBump.texto} maxLength={200} onChange={(e) => mexer((c) => ({ ...c, orderBump: { ...c.orderBump, texto: e.target.value } }))} />
+                <input
+                  value={config.orderBump.texto}
+                  maxLength={200}
+                  onChange={(e) =>
+                    mexer((c) => ({
+                      ...c,
+                      orderBump: { ...c.orderBump, texto: e.target.value },
+                    }))
+                  }
+                />
               </label>
               <label>
                 <span>Preço (R$)</span>
@@ -288,7 +471,18 @@ export function CheckoutEditor({ inicial, nome }: { inicial?: unknown; nome?: st
                   min={0}
                   step={0.01}
                   value={config.orderBump.precoCents / 100}
-                  onChange={(e) => mexer((c) => ({ ...c, orderBump: { ...c.orderBump, precoCents: Math.max(0, Math.round((Number(e.target.value) || 0) * 100)) } }))}
+                  onChange={(e) =>
+                    mexer((c) => ({
+                      ...c,
+                      orderBump: {
+                        ...c.orderBump,
+                        precoCents: Math.max(
+                          0,
+                          Math.round((Number(e.target.value) || 0) * 100),
+                        ),
+                      },
+                    }))
+                  }
                 />
               </label>
             </>
@@ -305,16 +499,39 @@ export function CheckoutEditor({ inicial, nome }: { inicial?: unknown; nome?: st
                   maxLength={60}
                   aria-label={`Nome do depoimento ${i + 1}`}
                   placeholder="Nome"
-                  onChange={(e) => mexer((c) => ({ ...c, depoimentos: c.depoimentos.map((x, j) => (j === i ? { ...x, nome: e.target.value } : x)) }))}
+                  onChange={(e) =>
+                    mexer((c) => ({
+                      ...c,
+                      depoimentos: c.depoimentos.map((x, j) =>
+                        j === i ? { ...x, nome: e.target.value } : x,
+                      ),
+                    }))
+                  }
                 />
                 <input
                   value={d.texto}
                   maxLength={240}
                   aria-label={`Texto do depoimento ${i + 1}`}
                   placeholder="O que essa pessoa disse"
-                  onChange={(e) => mexer((c) => ({ ...c, depoimentos: c.depoimentos.map((x, j) => (j === i ? { ...x, texto: e.target.value } : x)) }))}
+                  onChange={(e) =>
+                    mexer((c) => ({
+                      ...c,
+                      depoimentos: c.depoimentos.map((x, j) =>
+                        j === i ? { ...x, texto: e.target.value } : x,
+                      ),
+                    }))
+                  }
                 />
-                <button type="button" aria-label={`Apagar o depoimento ${i + 1}`} onClick={() => mexer((c) => ({ ...c, depoimentos: c.depoimentos.filter((_, j) => j !== i) }))}>
+                <button
+                  type="button"
+                  aria-label={`Apagar o depoimento ${i + 1}`}
+                  onClick={() =>
+                    mexer((c) => ({
+                      ...c,
+                      depoimentos: c.depoimentos.filter((_, j) => j !== i),
+                    }))
+                  }
+                >
                   <Trash2 aria-hidden="true" />
                 </button>
               </li>
@@ -324,7 +541,12 @@ export function CheckoutEditor({ inicial, nome }: { inicial?: unknown; nome?: st
             <button
               type="button"
               className="dash-checkout-adicionar"
-              onClick={() => mexer((c) => ({ ...c, depoimentos: [...c.depoimentos, { nome: "Cliente", texto: "Chegou rápido e é exatamente como na página." }] }))}
+              onClick={() =>
+                mexer((c) => ({
+                  ...c,
+                  depoimentos: [...c.depoimentos, { nome: "", texto: "" }],
+                }))
+              }
             >
               <Plus aria-hidden="true" />
               Novo depoimento
@@ -333,17 +555,65 @@ export function CheckoutEditor({ inicial, nome }: { inicial?: unknown; nome?: st
         </section>
 
         <div className="dash-checkout-rodape">
-          <button type="button" onClick={() => mexer(() => CONFIG_PADRAO)}>
+          <button
+            type="button"
+            onClick={() =>
+              mexer(() =>
+                completarConfig({
+                  ...CONFIG_PADRAO,
+                  pagamentos: allowedMethods ?? CONFIG_PADRAO.pagamentos,
+                  campos: CONFIG_PADRAO.campos.map((field) =>
+                    allowedMethods && field.id === "cupom"
+                      ? { ...field, ativo: false, obrigatorio: false }
+                      : field,
+                  ),
+                }),
+              )
+            }
+          >
             <RotateCcw aria-hidden="true" />
             Voltar ao padrão
           </button>
-          <span role="status">{cofre.notice || "As alterações ficam guardadas neste navegador"}</span>
+          {onSave && (
+            <button
+              type="button"
+              disabled={saving || !dirty}
+              onClick={() =>
+                startSave(async () => {
+                  try {
+                    const result = await onSave(config);
+                    setSaveNotice(result.message);
+                    if (result.ok) setSavedConfig(config);
+                  } catch {
+                    setSaveNotice(
+                      "Falha de conexão. Suas alterações continuam na tela; tente salvar novamente.",
+                    );
+                  }
+                })
+              }
+            >
+              {saving ? "Salvando…" : "Salvar na minha conta"}
+            </button>
+          )}
+          <span role="status">
+            {onSave
+              ? saveNotice ||
+                (dirty
+                  ? "Alterações ainda não salvas"
+                  : "Configuração salva na sua conta")
+              : cofre.notice ||
+                "Rascunho local; selecione um checkout para publicar"}
+          </span>
         </div>
       </div>
 
       {/* A prévia. */}
       <div className="dash-checkout-previa">
-        <div className="dash-checkout-telas" role="group" aria-label="Tamanho da tela">
+        <div
+          className="dash-checkout-telas"
+          role="group"
+          aria-label="Tamanho da tela"
+        >
           {TELAS.map((t) => (
             <button
               key={t.id}
@@ -357,7 +627,12 @@ export function CheckoutEditor({ inicial, nome }: { inicial?: unknown; nome?: st
           ))}
         </div>
         <div className="dash-checkout-palco" data-tela={tela}>
-          <PreviaDoCheckout config={config} nome={nome} largura={TELAS.find((t) => t.id === tela)!.largura} />
+          <PreviaDoCheckout
+            config={config}
+            nome={nome}
+            largura={TELAS.find((t) => t.id === tela)!.largura}
+            currency={allowedMethods ? "EUR" : "BRL"}
+          />
         </div>
       </div>
     </div>
@@ -365,7 +640,17 @@ export function CheckoutEditor({ inicial, nome }: { inicial?: unknown; nome?: st
 }
 
 /** A página do checkout como ela vai ficar, com a configuração de agora. */
-export function PreviaDoCheckout({ config, nome, largura }: { config: CheckoutConfig; nome?: string; largura: number }) {
+export function PreviaDoCheckout({
+  config,
+  nome,
+  largura,
+  currency = "BRL",
+}: {
+  config: CheckoutConfig;
+  nome?: string;
+  largura: number;
+  currency?: string;
+}) {
   const campos = camposVisiveis(config);
   const passos = passosDoCheckout(config);
   return (
@@ -382,9 +667,12 @@ export function PreviaDoCheckout({ config, nome, largura }: { config: CheckoutCo
       }}
     >
       {config.contador.ativo && (
-        <p className="dash-checkout-contador" style={{ background: config.cores.destaque }}>
+        <p
+          className="dash-checkout-contador"
+          style={{ background: config.cores.destaque }}
+        >
           <Timer aria-hidden="true" />
-          Oferta reservada por {config.contador.minutos}:00
+          Tempo de preenchimento: {config.contador.minutos}:00
         </p>
       )}
       <header>
@@ -406,7 +694,7 @@ export function PreviaDoCheckout({ config, nome, largura }: { config: CheckoutCo
         {campos.map((c) => (
           <li key={c.id} data-campo={c.id}>
             <span>
-              {c.rotulo}
+              {currency === "EUR" && c.id === "documento" ? "NIF" : c.rotulo}
               {c.obrigatorio && <i aria-label="obrigatório"> *</i>}
             </span>
             <em />
@@ -421,20 +709,34 @@ export function PreviaDoCheckout({ config, nome, largura }: { config: CheckoutCo
         ))}
       </ul>
       {config.orderBump.ativo && (
-        <div className="dash-checkout-bump" style={{ borderColor: config.cores.destaque }}>
+        <div
+          className="dash-checkout-bump"
+          style={{ borderColor: config.cores.destaque }}
+        >
           <Check aria-hidden="true" />
           <div>
             <b>{config.orderBump.titulo}</b>
             <span>{config.orderBump.texto}</span>
           </div>
-          <b className="dash-checkout-bump-preco">{dinheiro(config.orderBump.precoCents)}</b>
+          <b className="dash-checkout-bump-preco">
+            {formatMoney(config.orderBump.precoCents, currency)}
+          </b>
         </div>
       )}
-      <button type="button" className="dash-checkout-botao" style={{ background: config.cores.destaque }} tabIndex={-1}>
+      <button
+        type="button"
+        className="dash-checkout-botao"
+        style={{ background: config.cores.destaque }}
+        tabIndex={-1}
+      >
         {config.textos.botao}
       </button>
-      {config.textos.seguranca && <p className="dash-checkout-seguranca">{config.textos.seguranca}</p>}
-      {(config.selos.compraSegura || config.selos.garantia || config.selos.ssl) && (
+      {config.textos.seguranca && (
+        <p className="dash-checkout-seguranca">{config.textos.seguranca}</p>
+      )}
+      {(config.selos.compraSegura ||
+        config.selos.garantia ||
+        config.selos.ssl) && (
         <ul className="dash-checkout-selos">
           {config.selos.compraSegura && (
             <li>
