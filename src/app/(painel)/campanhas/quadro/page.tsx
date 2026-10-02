@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 
 import { FunnelBoardClient } from "@/features/funnel/funnel-board-client";
 import { getSession } from "@/lib/auth/session";
-import { getWorkspaceAccess } from "@/lib/workspace";
+import { tentarWorkspaceAccess } from "@/lib/workspace";
 
 export const metadata: Metadata = { title: "Quadro do funil" };
 export const dynamic = "force-dynamic";
@@ -18,7 +18,8 @@ export const dynamic = "force-dynamic";
 export default async function QuadroPage() {
   const session = await getSession();
   if (!session) redirect("/login");
-  const access = session.demoMode ? null : await getWorkspaceAccess();
+  // Banco fora do ar: o quadro abre só com a cópia deste navegador.
+  const access = session.demoMode ? null : await tentarWorkspaceAccess();
   // Sem cabeçalho, a pedido do dono: só o quadro, em tela cheia.
   return (
     <>

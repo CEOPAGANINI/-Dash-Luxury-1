@@ -56,7 +56,7 @@ export default async function Page() {
           </div>
         ))}
       </section>
-      {!d.schemaReady && d.access.role === "owner" && (
+      {!d.schemaReady && d.access?.role === "owner" && (
         <section className="cfg-card">
           <h3>Preparar recursos novos</h3>
           <p>
@@ -194,7 +194,11 @@ export default async function Page() {
           ativos enquanto não houver um adaptador completo. A assinatura é
           obrigatória.
         </p>
-        <code className="cfg-break">{`${getAppUrl()}/api/webhooks/gateway?loja=${d.access.workspaceId}`}</code>
+        <code className="cfg-break">
+          {d.access
+            ? `${getAppUrl()}/api/webhooks/gateway?loja=${d.access.workspaceId}`
+            : "Disponível quando o banco responder."}
+        </code>
       </section>
       <section className="cfg-card">
         <h3>Próxima conexão</h3>

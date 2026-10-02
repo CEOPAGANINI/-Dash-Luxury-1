@@ -9,7 +9,7 @@ import {
   products,
   workspaces,
 } from "@/database/schema";
-import { getOrCreateDefaultWorkspace } from "@/lib/workspace";
+import { bancoIndisponivel, getOrCreateDefaultWorkspace } from "@/lib/workspace";
 
 import { emptyDashboardData } from "./empty-data";
 import { observeDashboardRead } from "./read-observer";
@@ -38,7 +38,15 @@ export async function getUnifiedDashboardData(
 ): Promise<UnifiedDashboardData> {
   if (!isDatabaseConfigured()) return emptyDashboardData("unavailable", now);
   // Resolve authority before catching source failures: never hide a denied membership.
-  const workspaceId = await getOrCreateDefaultWorkspace();
+  // Banco fora de alcance, porém, é indisponibilidade, não recusa: a tela
+  // mostra o estado "não foi possível consultar" em vez de quebrar.
+  let workspaceId: string;
+  try {
+    workspaceId = await getOrCreateDefaultWorkspace();
+  } catch (err) {
+    if (bancoIndisponivel(err)) return emptyDashboardData("error", now);
+    throw err;
+  }
   try {
     return await readUnifiedDashboardData(workspaceId, now);
   } catch {

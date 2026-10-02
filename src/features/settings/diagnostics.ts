@@ -1,11 +1,13 @@
 import { eq, sql } from "drizzle-orm";
 import { getDb } from "@/database/client";
 import { integrations } from "@/database/schema";
-import { getWorkspaceAccess } from "@/lib/workspace";
+import { tentarWorkspaceAccess } from "@/lib/workspace";
 import { catalogoDeServicos } from "./servicos";
 
 export async function getDiagnostics() {
-  const access = await getWorkspaceAccess();
+  // Banco fora do ar: o diagnóstico é justamente a tela que precisa abrir
+  // para mostrar isso, então o acesso pode vir nulo.
+  const access = await tentarWorkspaceAccess();
   const started = Date.now();
   let reachable = false;
   let schemaReady = false;
@@ -25,6 +27,7 @@ export async function getDiagnostics() {
     lastEventAt: Date | null;
   }[] = [];
   try {
+    if (!access) throw new Error("banco_indisponivel");
     const db = getDb();
     const tablesResult = await db.execute(
       sql`select to_regclass('public.funnel_vaults') is not null as vaults, to_regclass('public.funnel_packages') is not null as packages, to_regclass('public.rate_limit_buckets') is not null as tracking`,

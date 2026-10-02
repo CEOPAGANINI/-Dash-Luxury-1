@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { getSession } from "@/lib/auth/session";
-import { getWorkspaceAccess } from "@/lib/workspace";
+import { tentarWorkspaceAccess } from "@/lib/workspace";
 import { FunnelBoardClient } from "@/features/funnel/funnel-board-client";
 
 export const metadata: Metadata = { title: "Roteador de ofertas · Orbit" };
@@ -18,7 +18,8 @@ export const dynamic = "force-dynamic";
 export default async function RoteadorDeOfertasPage() {
   const session = await getSession();
   if (!session) redirect("/login");
-  const access = session.demoMode ? null : await getWorkspaceAccess();
+  // Banco fora do ar: o quadro abre só com a cópia deste navegador.
+  const access = session.demoMode ? null : await tentarWorkspaceAccess();
   return (
     <>
       <h1 className="sr-only">Roteador de ofertas</h1>

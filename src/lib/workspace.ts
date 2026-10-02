@@ -26,6 +26,56 @@ export interface WorkspaceAccess {
   role: WorkspaceRole;
 }
 
+/**
+ * Banco fora de alcance (DNS, recusa, tempo esgotado, DATABASE_URL ausente)
+ * não é falta de permissão: as telas devem degradar para o modo local, não
+ * quebrar. Olha o erro e as suas causas encadeadas (o drizzle embrulha o
+ * erro do driver em `cause`).
+ */
+const CODIGOS_SEM_BANCO = new Set([
+  "ENOTFOUND",
+  "EAI_AGAIN",
+  "ECONNREFUSED",
+  "ECONNRESET",
+  "ETIMEDOUT",
+  "EHOSTUNREACH",
+  "ENETUNREACH",
+  "08001",
+  "08006",
+  "57P01",
+]);
+export function bancoIndisponivel(err: unknown): boolean {
+  let atual: unknown = err;
+  for (let nivel = 0; nivel < 5 && atual; nivel += 1) {
+    const codigo = (atual as { code?: unknown }).code;
+    if (typeof codigo === "string" && CODIGOS_SEM_BANCO.has(codigo)) return true;
+    const mensagem =
+      atual instanceof Error ? atual.message : typeof atual === "string" ? atual : "";
+    if (
+      /DATABASE_URL não configurada|timeout exceeded when trying to connect|Connection terminated|getaddrinfo/i.test(
+        mensagem,
+      )
+    )
+      return true;
+    atual = (atual as { cause?: unknown }).cause;
+  }
+  return false;
+}
+
+/**
+ * Como getWorkspaceAccess, mas devolve null quando o banco está fora do ar,
+ * para a tela seguir só com a cópia deste navegador. Acesso negado (401/403)
+ * continua sendo erro: nunca se esconde uma recusa.
+ */
+export async function tentarWorkspaceAccess(): Promise<WorkspaceAccess | null> {
+  try {
+    return await getWorkspaceAccess();
+  } catch (err) {
+    if (bancoIndisponivel(err)) return null;
+    throw err;
+  }
+}
+
 /** Existing access is a read, not a profile write or a serialized bootstrap. */
 async function findActiveMembership(
   db: Pick<ReturnType<typeof getDb>, "select">,
