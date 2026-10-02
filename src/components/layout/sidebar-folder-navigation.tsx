@@ -114,82 +114,144 @@ const PASTAS_DAS_REDES: PastaDoMenu[] = (
 
 const groups: PastaDoMenu[] = [
   {
-    label: "Geral",
+    label: "Visão geral",
+    icon: LayoutDashboard,
     items: [
       { title: "Visão geral", href: "/dashboard", icon: LayoutDashboard },
     ],
   },
   {
-    label: "Operação",
+    label: "Vendas",
+    icon: ShoppingBag,
     items: [
       { title: "Monitor ao vivo", href: "/live-view", icon: Activity },
       { title: "Pedidos", href: "/pedidos", icon: ShoppingBag },
       { title: "Checkouts", href: "/checkouts", icon: CircleDollarSign },
-      { title: "Gateways", href: "/gateways", icon: Landmark },
-      { title: "Lojas conectadas", href: "/lojas", icon: Store },
+      { title: "Carrinhos", href: "/carrinhos", icon: ShoppingBag },
     ],
   },
   {
-    label: "Gestão",
+    label: "Financeiro",
+    icon: Wallet,
     items: [
-      { title: "Financeiro", href: "/dashboard/financeiro", icon: Wallet },
-      { title: "Gestão de tráfego", href: "/dashboard/trafego", icon: BarChart3 },
+      { title: "Resumo financeiro", href: "/dashboard/financeiro", icon: Wallet },
+      { title: "Operação financeira", href: "/financeiro", icon: Wallet },
+      { title: "Entradas e saídas", href: "/financeiro/entradas-saidas", icon: CircleDollarSign },
+      { title: "Processador", href: "/financeiro/processador", icon: Landmark },
+      { title: "Repasses", href: "/financeiro/repasses", icon: Wallet },
+      { title: "Links de pagamento", href: "/financeiro/links-de-pagamento", icon: FileText },
+    ],
+  },
+  {
+    label: "Produtos",
+    icon: ShoppingBag,
+    items: [
+      { title: "Produtos", href: "/catalogo/produtos", icon: ShoppingBag },
+      { title: "Categorias", href: "/catalogo/categorias", icon: Folder },
+      { title: "Estoque", href: "/catalogo/estoque", icon: Database },
+      { title: "Descontos e cupons", href: "/catalogo/cupons", icon: FileText },
+    ],
+  },
+  {
+    label: "Loja",
+    icon: Store,
+    items: [
+      { title: "Lojas conectadas", href: "/lojas", icon: Store },
+      { title: "Editor da loja", href: "/editor/loja", icon: SquarePen },
+      { title: "Editor de checkout", href: "/editor/checkout", icon: CircleDollarSign },
+      { title: "Fretes", href: "/editor/fretes", icon: ShoppingBag },
+      { title: "Ver loja", href: "/loja", icon: Store, external: true },
+    ],
+  },
+  {
+    label: "Clientes e comunicação",
+    icon: Users,
+    items: [
       { title: "CRM", href: "/clientes", icon: Users },
-      { title: "Alertas", href: "/dashboard/notificacoes", icon: Bell },
+      { title: "E-mails", href: "/emails", icon: FileText },
+      { title: "Provas sociais", href: "/provas-sociais", icon: Users },
       { title: "Notificações", href: "/notificacoes", icon: BellRing },
     ],
   },
   {
-    label: "Páginas",
+    label: "Sites e páginas",
     icon: PanelsTopLeft,
     items: [
       { title: "Landing pages", href: "/landing-pages", icon: FileText },
-      { title: "Quadro do funil", href: "/editor/landing-page", icon: SquarePen },
+      { title: "Editor de conteúdo", href: "/editor/pagina", icon: SquarePen },
       { title: "Baixar site", href: "/captura", icon: FileZip },
       { title: "Filtro de acesso", href: "/filtro-de-acesso", icon: Globe },
       { title: "Roteador de ofertas", href: "/roteador-de-ofertas", icon: Megaphone },
     ],
   },
   {
-    label: "Servidor",
-    icon: Server,
-    titulo: "Servidor",
-    raiz: "/servidor",
+    label: "Funis e campanhas",
+    icon: Megaphone,
     items: [
-      {
-        title: "Servidores",
-        href: "/servidor",
-        icon: Server,
-        // A lista e a página de um servidor (/servidor/<uuid>).
-        corresponde: /^\/servidor(?:\/[0-9a-f-]{36})?$/,
-      },
-      { title: "Sites", href: "/servidor/sites", icon: Globe },
-      { title: "Adicionar servidor", href: "/servidor/novo", icon: Plus },
-    ],
-  },
-  ...PASTAS_DAS_REDES,
-  {
-    label: "Campanhas",
-    items: [
+      // /campanhas/quadro e /editor/landing-page abrem o mesmo quadro; o menu
+      // lista um só (o endereço antigo continua funcionando).
       { title: "Quadro do funil", href: "/campanhas/quadro", icon: Megaphone },
-      {
-        title: "Calculadora de campanhas",
-        href: "/campanhas/calculadora",
-        icon: Calculator,
-      },
+      { title: "Calculadora de campanhas", href: "/campanhas/calculadora", icon: Calculator },
       { title: "Análise de campanhas", href: "/campanhas/analise", icon: BarChart3 },
     ],
   },
   {
+    label: "Tráfego e métricas",
+    icon: BarChart3,
+    items: [
+      { title: "Gestão de tráfego", href: "/dashboard/trafego", icon: BarChart3 },
+      { title: "Diagnósticos de aquisição", href: "/dashboard/trafego/diagnosticos", icon: Activity },
+      { title: "Pixel", href: "/pixel", icon: Activity },
+    ],
+  },
+  {
+    label: "Redes de tráfego",
+    icon: Megaphone,
+    items: PASTAS_DAS_REDES.flatMap((rede) =>
+      rede.items.map((item) => ({
+        ...item,
+        title: `${rede.label} · ${item.title}`,
+      })),
+    ),
+  },
+  {
+    label: "Conexões e APIs",
+    icon: Plug,
+    items: [
+      { title: "Integrações", href: "/integracoes", icon: Plug },
+      { title: "Gateways", href: "/gateways", icon: Landmark },
+      { title: "Webhooks", href: "/webhooks", icon: Megaphone },
+    ],
+  },
+  {
+    label: "Servidor",
+    icon: Server,
+    items: [
+      { title: "Servidores", href: "/servidor", icon: Server, corresponde: new RegExp("^/servidor(?:/[0-9a-f-]{36})?$") },
+      { title: "Adicionar servidor", href: "/servidor/novo", icon: Plus },
+    ],
+  },
+  {
+    label: "Domínios",
+    icon: Globe,
+    items: [
+      { title: "Sites", href: "/servidor/sites", icon: Globe },
+    ],
+  },
+  {
     label: "Sistema",
+    icon: Settings,
     items: [
       { title: "Segurança", href: "/seguranca", icon: ShieldCheck },
       { title: "Design system", href: "/design-system", icon: Palette },
-      { title: "Integrações", href: "/integracoes", icon: Plug },
       { title: "Qualidade de dados", href: "/dashboard/dados", icon: Database },
+      { title: "Alertas", href: "/dashboard/notificacoes", icon: Bell },
       { title: "Logs", href: "/logs", icon: ScrollText },
       { title: "Configurações", href: "/configuracoes", icon: Settings },
-      { title: "Ver loja", href: "/loja", icon: Store, external: true },
+      { title: "Equipe e permissões", href: "/configuracoes/acessos", icon: ShieldCheck },
+      { title: "Configurar operação", href: "/configuracoes/operacao", icon: Settings },
+      { title: "Pagamentos e conciliação", href: "/configuracoes/pagamentos", icon: Wallet },
+      { title: "Diagnóstico da operação", href: "/configuracoes/diagnosticos", icon: Activity },
     ],
   },
 ];
@@ -218,6 +280,7 @@ const TITULOS_FORA_DO_MENU: Record<string, string> = {
   "/catalogo/produtos": "Produtos",
   "/editor/checkout": "Editor de checkout",
   "/editor/fretes": "Fretes",
+  "/editor/landing-page": "Quadro do funil",
   "/editor/loja": "Editor da loja",
   "/emails": "E-mails",
   "/financeiro": "Financeiro",
@@ -232,8 +295,10 @@ const TITULOS_FORA_DO_MENU: Record<string, string> = {
 
 export function sidebarPageTitle(pathname: string) {
   for (const group of groups) {
-    const item = group.items.find((item) => itemAtivo(pathname, item));
-    if (item) return group.titulo ?? item.title;
+    const item = [...group.items]
+      .sort((a, b) => b.href.length - a.href.length)
+      .find((item) => itemAtivo(pathname, item));
+    if (item) return item.title;
   }
   for (const group of groups) {
     if (group.raiz && itemIsActive(pathname, group.raiz))
@@ -351,7 +416,7 @@ export function SidebarFolderNavigation({
         ) : (
           <>
             <p className="text-muted-foreground px-3 py-1.5 text-[11px] font-bold tracking-[0.16em] uppercase">
-              Pastas do menu
+              Módulos do dashboard
             </p>
             {groups.map((group) => {
               const current =
