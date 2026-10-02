@@ -3385,8 +3385,8 @@ export function FunnelBoard({
         <div className="funnel__panel funnel__panel--largo">
           <div className="funnel__panel-title">Previsão do funil</div>
           <div className="funnel__panel-hint">
-            Calculadora: digite as visitas que entram e a conversão de cada
-            bloco. São contas, não medições.
+            Digite as visitas que entram e a conversão de cada bloco. São
+            contas, não medições.
           </div>
           {previsao.avisos.map((aviso) => (
             <p key={aviso} className="funnel__panel-hint" role="status">
@@ -3471,6 +3471,7 @@ export function FunnelBoard({
               </b>
             </div>
           </div>
+          <div className="funnel__prev-tab-wrap">
           <table className="funnel__prev-tab">
             <thead>
               <tr>
@@ -3560,10 +3561,10 @@ export function FunnelBoard({
               })}
             </tbody>
           </table>
+          </div>
           <div className="funnel__panel-hint">
-            Semáforo: 🟢 conversão boa para o tipo do bloco · 🟡 mediana · 🔴
-            abaixo do comum. Os cenários multiplicam as conversões (×0,7 / ×1 /
-            ×1,3).
+            🟢 boa · 🟡 mediana · 🔴 fraca para o tipo do bloco. Cenários: ×0,7
+            / ×1 / ×1,3 nas conversões.
           </div>
         </div>
       )}

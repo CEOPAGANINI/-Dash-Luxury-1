@@ -221,7 +221,7 @@ export function calcularPrevisao(
       const fallback = dest.filter((edge) => !regras.has(edge.id));
       if (condicionais.length)
         avisos.push(
-          `“${n.title}”: regras de região/aparelho/origem dependem dos visitantes. A previsão divide somente essa parcela entre destinos ativos.`,
+          `“${n.title}”: só a parcela com regras entra na conta; região, aparelho e origem dependem de quem visita.`,
         );
       const soma = fatias.reduce(
         (total, edge) => total + (regras.get(edge.id)?.percentual ?? 0),

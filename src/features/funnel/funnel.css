@@ -117,10 +117,14 @@
 
 .funnel__sync {
   position: absolute;
-  z-index: 40;
-  top: 10px;
-  left: 16px;
-  max-width: calc(100% - 112px);
+  z-index: 27;
+  /* No rodapé, ao lado do zoom: nunca cobre um painel aberto. */
+  bottom: 16px;
+  left: 60px;
+  max-width: min(640px, calc(100% - 160px));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font: 11px/1.4 var(--font-mono, monospace);
   color: var(--fn-muted);
   padding: 6px 8px;
@@ -3611,8 +3615,38 @@
 .funnel__sem[data-sem="vermelho"] {
   background: #f87171;
 }
+/* Painel largo (Previsão): gaveta de altura inteira encostada no trilho,
+   com rolagem por dentro. Em telas menores (notebook) ele encolhe junto
+   com a tela e a tabela rola na horizontal, em vez de ficar cortada. */
 .funnel__panel--largo {
-  width: min(780px, calc(100% - 88px));
+  top: 8px;
+  bottom: 8px;
+  right: 64px;
+  width: min(760px, calc(100% - 80px));
+  max-height: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+}
+.funnel__panel--largo .funnel__panel-hint {
+  margin: 0;
+}
+.funnel__prev-tab-wrap {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  scrollbar-width: thin;
+  border: 1px solid var(--fn-line);
+}
+.funnel__prev-tab-wrap .funnel__prev-tab {
+  min-width: 640px;
+}
+.funnel__prev-tab-wrap .funnel__prev-tab thead th {
+  position: sticky;
+  top: 0;
+  background: var(--fn-surface-2);
+  z-index: 1;
 }
 .funnel__prev-topo {
   display: flex;
@@ -3649,9 +3683,10 @@
 }
 .funnel__prev-kpis {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 6px;
   margin: 6px 0 10px;
+  flex: none;
 }
 .funnel__prev-kpis div {
   display: flex;
