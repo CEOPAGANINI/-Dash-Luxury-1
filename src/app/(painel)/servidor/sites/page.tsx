@@ -6,7 +6,7 @@ import { lerPainelVps } from "@/features/vps/queries";
 import { SitesPainel } from "@/features/vps/sites-painel";
 import { estadoDaTela } from "@/features/vps/vps-cliente";
 
-export const metadata: Metadata = { title: "Servidor" };
+export const metadata: Metadata = { title: "Sites" };
 export const dynamic = "force-dynamic";
 // O maxDuration das server actions vem da página que as chama.
 export const maxDuration = 30;

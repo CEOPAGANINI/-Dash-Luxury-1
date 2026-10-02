@@ -124,7 +124,7 @@ const groups: PastaDoMenu[] = [
     items: [
       { title: "Monitor ao vivo", href: "/live-view", icon: Activity },
       { title: "Pedidos", href: "/pedidos", icon: ShoppingBag },
-      { title: "Transações", href: "/checkouts", icon: CircleDollarSign },
+      { title: "Checkouts", href: "/checkouts", icon: CircleDollarSign },
       { title: "Gateways", href: "/gateways", icon: Landmark },
       { title: "Lojas conectadas", href: "/lojas", icon: Store },
     ],
@@ -133,14 +133,9 @@ const groups: PastaDoMenu[] = [
     label: "Gestão",
     items: [
       { title: "Financeiro", href: "/dashboard/financeiro", icon: Wallet },
-      { title: "Aquisição", href: "/dashboard/trafego", icon: BarChart3 },
+      { title: "Gestão de tráfego", href: "/dashboard/trafego", icon: BarChart3 },
       { title: "CRM", href: "/clientes", icon: Users },
-      {
-        title: "Alertas",
-        href: "/dashboard/notificacoes",
-        icon: Bell,
-        badge: 3,
-      },
+      { title: "Alertas", href: "/dashboard/notificacoes", icon: Bell },
       { title: "Notificações", href: "/notificacoes", icon: BellRing },
     ],
   },
@@ -149,11 +144,7 @@ const groups: PastaDoMenu[] = [
     icon: PanelsTopLeft,
     items: [
       { title: "Landing pages", href: "/landing-pages", icon: FileText },
-      {
-        title: "Editor de páginas",
-        href: "/editor/landing-page",
-        icon: SquarePen,
-      },
+      { title: "Quadro do funil", href: "/editor/landing-page", icon: SquarePen },
       { title: "Baixar site", href: "/captura", icon: FileZip },
       { title: "Filtro de acesso", href: "/filtro-de-acesso", icon: Globe },
       { title: "Roteador de ofertas", href: "/roteador-de-ofertas", icon: Megaphone },
@@ -180,13 +171,13 @@ const groups: PastaDoMenu[] = [
   {
     label: "Campanhas",
     items: [
-      { title: "Todas as redes", href: "/campanhas/quadro", icon: Megaphone },
+      { title: "Quadro do funil", href: "/campanhas/quadro", icon: Megaphone },
       {
-        title: "Calculadora",
+        title: "Calculadora de campanhas",
         href: "/campanhas/calculadora",
         icon: Calculator,
       },
-      { title: "Análise", href: "/campanhas/analise", icon: BarChart3 },
+      { title: "Análise de campanhas", href: "/campanhas/analise", icon: BarChart3 },
     ],
   },
   {
@@ -195,11 +186,7 @@ const groups: PastaDoMenu[] = [
       { title: "Segurança", href: "/seguranca", icon: ShieldCheck },
       { title: "Design system", href: "/design-system", icon: Palette },
       { title: "Integrações", href: "/integracoes", icon: Plug },
-      {
-        title: "Qualidade dos dados",
-        href: "/dashboard/dados",
-        icon: Database,
-      },
+      { title: "Qualidade de dados", href: "/dashboard/dados", icon: Database },
       { title: "Logs", href: "/logs", icon: ScrollText },
       { title: "Configurações", href: "/configuracoes", icon: Settings },
       { title: "Ver loja", href: "/loja", icon: Store, external: true },

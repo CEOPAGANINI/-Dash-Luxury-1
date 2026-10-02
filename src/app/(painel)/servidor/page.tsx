@@ -11,7 +11,7 @@ import {
 } from "@/features/vps/servidor-boas-vindas";
 import styles from "@/features/vps/servidor-nexus.module.css";
 
-export const metadata: Metadata = { title: "Servidor" };
+export const metadata: Metadata = { title: "Servidores" };
 export const dynamic = "force-dynamic";
 // O maxDuration das server actions vem da página que as chama.
 export const maxDuration = 30;

@@ -48,7 +48,7 @@ describe("navigation folders", () => {
       [
         "Monitor ao vivo",
         "Pedidos",
-        "Transações",
+        "Checkouts",
         "Gateways",
         "Lojas conectadas",
       ],
@@ -65,14 +65,20 @@ describe("navigation folders", () => {
       "YouTube Ads",
       ["Por classe", "Tabela", "Gerenciador", "Métricas", "Calculadora"],
     ],
-    ["Campanhas", ["Todas as redes", "Calculadora", "Análise"]],
+    [
+      "Campanhas",
+      ["Quadro do funil", "Calculadora de campanhas", "Análise de campanhas"],
+    ],
     ["Servidor", ["Servidores", "Sites", "Adicionar servidor"]],
-    ["Gestão", ["Financeiro", "Aquisição", "CRM", "Alertas", "Notificações"]],
+    [
+      "Gestão",
+      ["Financeiro", "Gestão de tráfego", "CRM", "Alertas", "Notificações"],
+    ],
     [
       "Páginas",
       [
         "Landing pages",
-        "Editor de páginas",
+        "Quadro do funil",
         "Baixar site",
         "Filtro de acesso",
         "Roteador de ofertas",
@@ -84,7 +90,7 @@ describe("navigation folders", () => {
         "Segurança",
         "Design system",
         "Integrações",
-        "Qualidade dos dados",
+        "Qualidade de dados",
         "Logs",
         "Configurações",
         "Ver loja",
@@ -174,18 +180,20 @@ describe("navigation folders", () => {
     expect(sidebarPageTitle("/campanhas/google")).toBe("Google Ads");
     expect(sidebarPageTitle("/campanhas/youtube")).toBe("YouTube Ads");
     expect(sidebarPageTitle("/campanhas/meta/tabela")).toBe("Meta Ads");
-    expect(sidebarPageTitle("/campanhas/quadro")).toBe("Todas as redes");
-    expect(sidebarPageTitle("/campanhas/calculadora")).toBe("Calculadora");
-    expect(sidebarPageTitle("/campanhas/analise")).toBe("Análise");
+    expect(sidebarPageTitle("/campanhas/quadro")).toBe("Quadro do funil");
+    expect(sidebarPageTitle("/campanhas/calculadora")).toBe(
+      "Calculadora de campanhas",
+    );
+    expect(sidebarPageTitle("/campanhas/analise")).toBe("Análise de campanhas");
     expect(sidebarPageTitle("/clientes/pessoa-1")).toBe("CRM");
-    expect(sidebarPageTitle("/dashboard/trafego")).toBe("Aquisição");
+    expect(sidebarPageTitle("/dashboard/trafego")).toBe("Gestão de tráfego");
     expect(sidebarPageTitle("/landing-pages")).toBe("Landing pages");
     expect(sidebarPageTitle("/landing-pages/minha-pagina")).toBe(
       "Landing pages",
     );
-    expect(sidebarPageTitle("/editor/landing-page")).toBe("Editor de páginas");
+    expect(sidebarPageTitle("/editor/landing-page")).toBe("Quadro do funil");
     expect(sidebarPageTitle("/editor/landing-page/minha-pagina")).toBe(
-      "Editor de páginas",
+      "Quadro do funil",
     );
     expect(sidebarPageTitle("/servidor")).toBe("Servidor");
     expect(sidebarPageTitle("/servidor/novo")).toBe("Servidor");
@@ -203,7 +211,7 @@ describe("navigation folders", () => {
 
   it.each([
     ["/landing-pages", "Landing pages"],
-    ["/editor/landing-page", "Editor de páginas"],
+    ["/editor/landing-page", "Quadro do funil"],
   ])("marks Páginas and the current destination at %s", (pathname, title) => {
     navegacao.caminho = pathname;
     const onNavigate = setup();

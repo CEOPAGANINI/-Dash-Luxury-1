@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
 import { LandingFlowEditor } from "@/features/landing-editor/landing-flow-editor";
 
-export const metadata: Metadata = { title: "Editor de conteúdo · Orbit" };
+export const metadata: Metadata = { title: "Editor de conteúdo" };
 
 /**
  * O editor de conteúdo e ZIP de cada página do funil. Antes vivia em

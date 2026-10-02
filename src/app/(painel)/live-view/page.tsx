@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { isDatabaseConfigured } from "@/database/client";
 import { LiveGlobePanel } from "@/features/analytics/live-globe-panel";
 
-export const metadata: Metadata = { title: "Live View" };
+export const metadata: Metadata = { title: "Monitor ao vivo" };
 export const dynamic = "force-dynamic";
 
 export default function LiveViewPage() {
@@ -12,7 +12,7 @@ export default function LiveViewPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-xl font-bold tracking-tight">Live View</h2>
+        <h2 className="text-xl font-bold tracking-tight">Monitor ao vivo</h2>
         <p className="text-muted-foreground text-sm">
           Quem está na sua loja agora, girando no globo — de onde vêm os
           visitantes ao vivo

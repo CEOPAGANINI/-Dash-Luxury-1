@@ -119,7 +119,7 @@
   position: absolute;
   z-index: 40;
   top: 10px;
-  left: 76px;
+  left: 16px;
   max-width: calc(100% - 112px);
   font: 11px/1.4 var(--font-mono, monospace);
   color: var(--fn-muted);
@@ -557,17 +557,18 @@
   display: none;
 }
 
-/* ── Menu do quadro: trilho vertical à esquerda ───────────────────────────
-   Igual ao trilho do redirecionador: uma faixa escura colada na borda
-   esquerda, botões só de ícone, o ativo em verde. */
+/* ── Menu do quadro: trilho vertical à DIREITA (pedido do dono) ──────────
+   Uma faixa escura colada na borda direita, botões só de ícone, o ativo
+   em verde. Os painéis (biblioteca, configuração do bloco) abrem ao lado
+   dele, entre o quadro e o trilho. */
 .funnel__rail {
   --fn-rail-accent: #2bd975;
   --fn-rail-accent-dim: rgb(43 217 117 / 45%);
   position: absolute;
-  left: 0;
+  right: 0;
   top: 0;
   bottom: 0;
-  z-index: 30;
+  z-index: 45;
   width: 56px;
   display: flex;
   flex-direction: column;
@@ -575,7 +576,7 @@
   gap: 10px;
   padding: 16px 0;
   background: #0d0d0f;
-  border-right: 1px solid rgb(255 255 255 / 8%);
+  border-left: 1px solid rgb(255 255 255 / 8%);
 }
 .funnel__rail-sep {
   width: 22px;
@@ -616,7 +617,7 @@
 /* ── Painel suspenso (Recursos / Ícones) ──────────────────────────────── */
 .funnel__panel {
   position: absolute;
-  left: 72px;
+  right: 72px;
   top: 16px;
   z-index: 29;
   width: min(560px, calc(100% - 88px));
@@ -718,8 +719,8 @@
 /* ── Toolbar de zoom ──────────────────────────────────────────────────── */
 .funnel__zoom {
   position: absolute;
-  /* O trilho ocupa os primeiros 56px e fica acima do canvas. */
-  left: 72px;
+  /* O trilho agora fica à direita; o zoom mora no canto inferior esquerdo. */
+  left: 16px;
   bottom: 16px;
   z-index: 28;
   display: flex;
@@ -913,7 +914,8 @@
 .pub {
   position: absolute;
   top: 0;
-  right: 0;
+  /* Encosta no trilho de ícones, que agora fica à direita (56px). */
+  right: 56px;
   bottom: 0;
   z-index: 40;
   /* Largura contida: acompanha a tela e nunca toma mais que 60% do quadro,

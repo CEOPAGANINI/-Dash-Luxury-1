@@ -3,10 +3,11 @@ import type { Metadata } from "next";
 import { getSession } from "@/lib/auth/session";
 import { DashboardCanvas } from "@/features/dashboard/layout-canvas";
 
-export const metadata: Metadata = { title: "Notificações" };
+export const metadata: Metadata = { title: "Alertas" };
 
 /**
- * Notificações: o que precisa de atenção, em ordem de impacto.
+ * Alertas: o que precisa de atenção, em ordem de impacto. (A lista de
+ * eventos, "Notificações", mora em /notificacoes.)
  *
  * Os blocos vêm do registro central e são desenhados pelo canvas, que
  * também permite reorganizá-los no modo "Organizar".

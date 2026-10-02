@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/dashboard/page-header";
 import { StoresPanel } from "@/features/stores/stores-panel";
 import { panoramaDasLojas } from "@/features/stores/queries";
 
-export const metadata: Metadata = { title: "Lojas" };
+export const metadata: Metadata = { title: "Lojas conectadas" };
 export const dynamic = "force-dynamic";
 
 /**

@@ -5,7 +5,7 @@ import { getSession } from "@/lib/auth/session";
 import { FunnelBoardClient } from "@/features/funnel/funnel-board-client";
 import { tentarWorkspaceAccess } from "@/lib/workspace";
 
-export const metadata: Metadata = { title: "Quadro do funil · Orbit" };
+export const metadata: Metadata = { title: "Quadro do funil" };
 export const dynamic = "force-dynamic";
 
 /**

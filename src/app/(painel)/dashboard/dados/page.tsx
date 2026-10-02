@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { getSession } from "@/lib/auth/session";
 import { DashboardCanvas } from "@/features/dashboard/layout-canvas";
 
-export const metadata: Metadata = { title: "Qualidade de Dados" };
+export const metadata: Metadata = { title: "Qualidade de dados" };
 
 /**
  * Qualidade de dados: o quanto dá para confiar em cada número.

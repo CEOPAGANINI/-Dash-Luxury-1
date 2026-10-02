@@ -5,7 +5,7 @@ import { getSession } from "@/lib/auth/session";
 import { tentarWorkspaceAccess } from "@/lib/workspace";
 import { FunnelBoardClient } from "@/features/funnel/funnel-board-client";
 
-export const metadata: Metadata = { title: "Roteador de ofertas · Orbit" };
+export const metadata: Metadata = { title: "Roteador de ofertas" };
 export const dynamic = "force-dynamic";
 
 /**

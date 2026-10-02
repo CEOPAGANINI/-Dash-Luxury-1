@@ -1471,23 +1471,23 @@ export function FunnelBoard({
     if (!r) return;
     const s = size(node.id);
     const painelW = Math.min(468, r.width * 0.6, r.width - 12);
-    const railW = 64; // o trilho de ícones do quadro, à esquerda
+    const railW = 56; // o trilho de ícones do quadro, à direita, antes do painel
     const m = 28; // respiro em volta do card
-    const dispW = r.width - painelW - railW; // largura útil entre trilho e painel
+    const dispW = r.width - painelW - railW; // largura útil à esquerda do painel
     setVp((v) => {
       const left = v.x + node.x * v.k;
       const right = left + s.w * v.k;
       const top = v.y + node.y * v.k;
       const bottom = top + s.h * v.k;
       const dentro =
-        left >= railW + m &&
-        right <= railW + dispW - m &&
+        left >= m &&
+        right <= dispW - m &&
         top >= m &&
         bottom <= r.height - m;
       if (dentro) return v;
       const kCabe = Math.min((dispW - m * 2) / s.w, (r.height - m * 2) / s.h);
       const k = clamp(Math.min(v.k, kCabe), MIN_ZOOM, MAX_ZOOM);
-      const alvoX = railW + dispW / 2;
+      const alvoX = dispW / 2;
       const alvoY = r.height / 2;
       return {
         k,

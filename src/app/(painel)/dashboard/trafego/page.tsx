@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { getSession } from "@/lib/auth/session";
 import { DashboardCanvas } from "@/features/dashboard/layout-canvas";
 
-export const metadata: Metadata = { title: "Gestão de Tráfego" };
+export const metadata: Metadata = { title: "Gestão de tráfego" };
 
 /**
  * Gestão de tráfego: o que cada canal gasta e traz de volta.
