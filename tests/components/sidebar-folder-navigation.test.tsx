@@ -92,7 +92,6 @@ describe("navigation folders", () => {
         "Landing pages",
         "Editor de conteúdo",
         "Baixar site",
-        "Filtro de acesso",
         "Roteador de ofertas",
       ],
     ],
@@ -270,7 +269,6 @@ describe("navigation folders", () => {
       "/landing-pages",
       "/editor/pagina",
       "/captura",
-      "/filtro-de-acesso",
       "/roteador-de-ofertas",
     ]);
     const current = screen.getByRole("link", { name: title });
