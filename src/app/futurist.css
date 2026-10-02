@@ -31,8 +31,10 @@
 @layer futurist {
   .dash-skin {
     --fw-sans: var(--font-inter), "Inter", system-ui, sans-serif;
-    --fw-serif: var(--font-instrument-serif), "Instrument Serif", Georgia, serif;
-    --fw-mono: var(--font-jetbrains-mono), "JetBrains Mono", ui-monospace, monospace;
+    --fw-serif:
+      var(--font-instrument-serif), "Instrument Serif", Georgia, serif;
+    --fw-mono:
+      var(--font-jetbrains-mono), "JetBrains Mono", ui-monospace, monospace;
     --fw-bg: #030305;
     --fw-text: #cbd5e1; /* slate-300 */
     --fw-body: #94a3b8; /* slate-400 */
@@ -147,7 +149,10 @@
   }
 
   /* ── Corpo: leve (300), entrelinha 1,625, slate-400 ───────────────────── */
-  .dash-skin :is(p, li, dd, figcaption):not([class*="text-"]):not([class*="font-"]):not(.funnel-stage *) {
+  .dash-skin
+    :is(p, li, dd, figcaption):not([class*="text-"]):not([class*="font-"]):not(
+      .funnel-stage *
+    ) {
     font-weight: 300;
     line-height: 1.625;
     color: var(--fw-body);
@@ -159,7 +164,10 @@
     color: var(--fw-body);
   }
   .dash-skin small:not(.funnel-stage *),
-  .dash-skin .text-xs:not(.font-semibold):not(.font-bold):not(.uppercase):not(.funnel-stage *) {
+  .dash-skin
+    .text-xs:not(.font-semibold):not(.font-bold):not(.uppercase):not(
+      .funnel-stage *
+    ) {
     color: var(--fw-caption);
   }
 
@@ -265,7 +273,9 @@
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     box-shadow: 0 20px 40px -10px rgb(0 0 0 / 50%);
-    transition: border-color 500ms var(--fw-ease), background-color 500ms var(--fw-ease);
+    transition:
+      border-color 500ms var(--fw-ease),
+      background-color 500ms var(--fw-ease);
   }
   .dash-skin [data-slot="card"]:hover,
   .dash-skin [data-surface="layered"]:hover {
@@ -374,7 +384,10 @@
       radial-gradient(at 100% 0%, rgb(124 58 237 / 6%) 0, transparent 50%);
   }
   :root[data-tema="branco"] .dash-skin :is(h1, h2, h3, h4, h5),
-  :root[data-tema="branco"] .dash-skin [data-slot="card-header"] p.tabular-nums {
+  :root[data-tema="branco"]
+    .dash-skin
+    [data-slot="card-header"]
+    p.tabular-nums {
     color: #09090b;
   }
 }
@@ -405,4 +418,440 @@
 }
 :root[data-tema="branco"] .dash-skin .fw-page-header h2 {
   color: #09090b;
+}
+
+/*
+  ══ Pele profunda: o desenho da referência nas peças que o CommandLayer
+     ainda vestia ═══════════════════════════════════════════════════════════
+
+  Também fora de camada, porque disputa com shell.module.css (sem camada) e
+  com regras antigas do globals.css. Vence por especificidade: todo seletor
+  começa em `.dash-skin.cl`.
+
+  O que vem da referência, peça a peça:
+  - nav: `bg-black/50 backdrop-blur-xl border-b border-white/5`, itens
+    `text-sm font-medium text-zinc-400 hover:text-white`;
+  - marca: quadrado 32px `bg-cyan-500/10 border-cyan-500/20`, ícone
+    `text-cyan-400`, nome `font-bold font-mono tracking-widest` com o
+    sublinhado ciano (DORA_);
+  - chip: `bg-cyan-500/10 border-cyan-500/20 text-cyan-400 text-xs
+    font-semibold shadow-[0_0_15px_-3px_rgba(6,182,212,0.4)]`;
+  - chip neutro: `bg-white/[0.03] border-white/[0.08] text-[10px] font-mono
+    text-zinc-400 uppercase tracking-wider`;
+  - cartão: `bg-zinc-900/30 backdrop-blur-sm border-white/5
+    hover:bg-zinc-900/60 hover:border-cyan-500/20`, uma moldura só;
+  - rótulo técnico: mono 10px caixa alta zinc-500; número grande: Inter 500
+    com tracking apertado.
+*/
+
+/* ── Acento: o ciano da referência passa a ser o acento do painel ─────── */
+.dash-skin.cl {
+  --cl-accent: var(--fw-accent);
+  --cl-activity: var(--fw-accent);
+}
+
+/* ── Menu lateral: painel de vidro escuro ───────────────────────────────── */
+.dash-skin.cl .dash-sidebar {
+  /* A referência usa preto a 50% + blur na nav; aqui a gaveta desliza por
+     cima de texto branco, então o preto sobe a 88% para ler mesmo onde o
+     blur não desenha. */
+  background: rgb(3 3 5 / 88%);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-color: var(--fw-glass-line);
+  box-shadow: 0 20px 40px -10px rgb(0 0 0 / 60%);
+}
+.dash-skin.cl .dash-sidebar-cabecalho {
+  border-bottom: 1px solid var(--fw-glass-line);
+}
+.dash-skin.cl .dash-sidebar-cabecalho > [aria-hidden],
+.dash-skin.cl .dash-sidebar-cabecalho > .nebula-brand-mark {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--fw-accent-dim);
+  background: rgb(6 182 212 / 10%);
+  color: var(--fw-accent);
+  box-shadow: none;
+}
+.dash-skin.cl .dash-sidebar-cabecalho > span:last-child {
+  font: 700 13px/1.4 var(--fw-mono);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #fff;
+}
+.dash-skin.cl .dash-sidebar-cabecalho > span:last-child::after {
+  content: "_";
+  color: var(--fw-accent);
+}
+.dash-skin.cl .dash-sidebar-cabecalho > span:last-child > span {
+  font: 400 9px/1.2 var(--fw-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fw-muted);
+}
+
+/* Busca: campo de vidro, Inter leve */
+.dash-skin.cl .dash-sidebar input[type="search"] {
+  border: 1px solid var(--fw-glass-line-hover);
+  background: rgb(255 255 255 / 3%);
+  box-shadow: none;
+  font: 300 14px/20px var(--fw-sans);
+  color: #fff;
+}
+.dash-skin.cl .dash-sidebar input[type="search"]::placeholder {
+  color: var(--fw-muted);
+}
+.dash-skin.cl .dash-sidebar input[type="search"]:focus-visible {
+  outline: 0;
+  border-color: var(--fw-accent-dim);
+  box-shadow: 0 0 15px -3px rgb(6 182 212 / 40%);
+}
+
+/* Bandeja das pastas: some a "tela afundada"; fica o vidro */
+.dash-skin.cl .dash-sidebar-tray {
+  background: transparent;
+  border-color: var(--fw-glass-line);
+  box-shadow: none;
+}
+.dash-skin.cl .dash-sidebar-tray > div > p {
+  font: 400 10px/15px var(--fw-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fw-muted);
+}
+.dash-skin.cl .dash-sidebar-tray .dash-sidebar-block {
+  border: 1px solid transparent;
+  background: transparent;
+  box-shadow: none;
+  color: #a1a1aa;
+  font: 500 14px/20px var(--fw-sans);
+}
+.dash-skin.cl .dash-sidebar-tray .dash-sidebar-block span {
+  font-weight: 500;
+}
+.dash-skin.cl .dash-sidebar-tray .dash-sidebar-block .dash-sidebar-legenda {
+  font: 400 10px/15px var(--fw-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--fw-muted);
+}
+.dash-skin.cl .dash-sidebar-tray .dash-sidebar-block:hover,
+.dash-skin.cl .dash-sidebar-tray .dash-sidebar-block:focus-visible {
+  color: #fff;
+  border-color: var(--fw-glass-line-hover);
+  background: rgb(255 255 255 / 3%);
+}
+/* A pasta ou a página atual: o chip ciano da referência */
+.dash-skin.cl .dash-sidebar-tray .dash-sidebar-block.is-current,
+.dash-skin.cl .dash-sidebar-tray .dash-sidebar-block.is-active,
+.dash-skin.cl .dash-sidebar-tray .dash-sidebar-block[aria-current="page"] {
+  color: var(--fw-accent);
+  border-color: var(--fw-accent-dim);
+  background: rgb(6 182 212 / 10%);
+  box-shadow: 0 0 15px -3px rgb(6 182 212 / 40%);
+}
+.dash-skin.cl
+  .dash-sidebar-tray
+  .dash-sidebar-block.is-current
+  .dash-sidebar-legenda {
+  color: rgb(34 211 238 / 70%);
+}
+.dash-skin.cl .dash-sidebar-tray h2 {
+  font: 500 14px/20px var(--fw-sans);
+  letter-spacing: 0;
+  color: #fff;
+}
+.dash-skin.cl .dash-sidebar-tray .dash-sidebar-voltar {
+  border-color: var(--fw-glass-line-hover);
+  background: rgb(255 255 255 / 3%);
+  color: #a1a1aa;
+  font: 500 12px/16px var(--fw-sans);
+}
+.dash-skin.cl .dash-sidebar-selo {
+  background: rgb(6 182 212 / 10%);
+  border: 1px solid var(--fw-accent-dim);
+  color: var(--fw-accent);
+  font: 400 10px/15px var(--fw-mono);
+}
+/* Rodapé do menu (diagnóstico, tema, conta) */
+.dash-skin.cl .dash-sidebar-rodape {
+  border-color: var(--fw-glass-line);
+}
+.dash-skin.cl .dash-sidebar-rodape .dash-sidebar-block {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  color: #a1a1aa;
+  font: 500 12px/16px var(--fw-sans);
+}
+.dash-skin.cl .dash-sidebar-rodape .dash-sidebar-block:hover {
+  color: #fff;
+  background: rgb(255 255 255 / 3%);
+}
+.dash-skin.cl .dash-sidebar-rodape .dash-versao {
+  font: 400 10px/15px var(--fw-mono);
+  letter-spacing: 0.08em;
+  color: var(--fw-muted);
+  opacity: 1;
+}
+
+/* ── Aviso de demonstração: barra de vidro com rótulo técnico ─────────── */
+.dash-skin.cl .cl-demo-banner {
+  border: 1px solid var(--fw-glass-line);
+  background: rgb(255 255 255 / 2%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--fw-body);
+  font: 300 12px/16px var(--fw-sans);
+}
+.dash-skin.cl .cl-demo-banner strong {
+  font-weight: 600;
+  color: #fff;
+}
+.dash-skin.cl .cl-demo-banner > svg {
+  color: var(--fw-accent);
+}
+
+/* ── Cartões: uma moldura só, de vidro (sem a moldura interna do chassi) ── */
+.dash-skin.cl [data-surface="layered"]::before,
+.dash-skin.cl .visual-overview-kpi::before,
+.dash-skin.cl .visual-overview-zone::before {
+  content: none;
+}
+.dash-skin.cl [data-slot="card-title"] {
+  font: 500 18px/28px var(--fw-sans);
+  letter-spacing: -0.025em;
+  color: #fff;
+}
+
+/* ── Visão geral (/dashboard): barra, chips, indicadores e zonas ───────── */
+.dash-skin.cl .visual-overview {
+  --overview-line: var(--fw-glass-line);
+  --overview-muted: var(--fw-muted);
+}
+.dash-skin.cl .visual-overview-toolbar {
+  gap: 12px 16px;
+  padding: 14px 20px;
+  border: 1px solid var(--fw-glass-line);
+  background: var(--fw-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: none;
+}
+.dash-skin.cl .visual-overview-toolbar-title p {
+  font: 500 20px/28px var(--fw-sans);
+  letter-spacing: -0.025em;
+  color: #fff;
+}
+.dash-skin.cl .visual-overview-toolbar-title div span {
+  font: 400 10px/15px var(--fw-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fw-muted);
+}
+.dash-skin.cl .visual-overview-filters {
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.dash-skin.cl .visual-overview-filter-label {
+  font: 400 10px/15px var(--fw-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fw-muted);
+}
+.dash-skin.cl .visual-overview-filters button {
+  padding: 6px 14px;
+  border: 1px solid rgb(255 255 255 / 8%);
+  background: rgb(255 255 255 / 3%);
+  color: #a1a1aa;
+  font: 600 12px/16px var(--fw-sans);
+  letter-spacing: 0.025em;
+  box-shadow: none;
+  transition:
+    color 150ms var(--fw-ease),
+    border-color 150ms var(--fw-ease),
+    background-color 150ms var(--fw-ease);
+}
+.dash-skin.cl .visual-overview-filters button:hover {
+  color: #fff;
+  border-color: rgb(255 255 255 / 20%);
+  background: rgb(255 255 255 / 5%);
+}
+.dash-skin.cl .visual-overview-filters button.is-active {
+  color: var(--fw-accent);
+  border-color: var(--fw-accent-dim);
+  background: rgb(6 182 212 / 10%);
+  box-shadow: 0 0 15px -3px rgb(6 182 212 / 40%);
+}
+.dash-skin.cl .visual-overview-freshness {
+  border-color: var(--fw-glass-line);
+  background: transparent;
+  font: 400 10px/15px var(--fw-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fw-muted);
+}
+.dash-skin.cl .visual-overview-freshness strong {
+  color: #fff;
+  font-weight: 500;
+}
+.dash-skin.cl .visual-overview-kpis {
+  gap: 16px;
+}
+.dash-skin.cl .visual-overview-kpi {
+  gap: 10px;
+  padding: 20px;
+  border: 1px solid var(--fw-glass-line);
+  background: rgb(24 24 27 / 30%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: none;
+  transition:
+    border-color 500ms var(--fw-ease),
+    background-color 500ms var(--fw-ease);
+}
+.dash-skin.cl .visual-overview-kpi:hover {
+  border-color: var(--fw-accent-dim);
+  background: rgb(24 24 27 / 60%);
+}
+.dash-skin.cl .visual-overview-kpi-top p {
+  font: 400 10px/15px var(--fw-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fw-muted);
+}
+.dash-skin.cl .visual-overview-kpi > strong {
+  font: 500 clamp(26px, 2.2vw, 34px) / 1.1 var(--fw-sans);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  color: #fff;
+}
+.dash-skin.cl .visual-overview-kpi-delta {
+  font: 300 12px/16px var(--fw-sans);
+}
+.dash-skin.cl .visual-overview-kpi-delta span {
+  font-weight: 500;
+}
+.dash-skin.cl .visual-overview-zone {
+  padding: 24px;
+  border: 1px solid var(--fw-glass-line);
+  background: rgb(24 24 27 / 30%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: none;
+  transition:
+    border-color 500ms var(--fw-ease),
+    background-color 500ms var(--fw-ease);
+}
+.dash-skin.cl .visual-overview-zone:hover {
+  border-color: var(--fw-glass-line-hover);
+  background: rgb(24 24 27 / 45%);
+}
+.dash-skin.cl .visual-overview-zone-heading p {
+  font: 500 20px/28px var(--fw-sans);
+  letter-spacing: -0.025em;
+  color: #fff;
+}
+.dash-skin.cl .visual-overview-zone-heading > div > span {
+  font: 300 14px/22px var(--fw-sans);
+  letter-spacing: 0;
+  color: var(--fw-body);
+}
+.dash-skin.cl .visual-overview-caption {
+  font: 300 12px/16px var(--fw-sans);
+  color: var(--fw-caption);
+}
+.dash-skin.cl .visual-overview-supporting-metrics > div {
+  border: 1px solid var(--fw-glass-line);
+  background: rgb(255 255 255 / 2%);
+}
+.dash-skin.cl .visual-overview-supporting-metrics dt {
+  font: 400 10px/15px var(--fw-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fw-muted);
+}
+.dash-skin.cl .visual-overview-supporting-metrics dd {
+  font: 500 16px/24px var(--fw-sans);
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+
+/* ── Tema branco: as mesmas peças sobre superfícies claras ─────────────── */
+:root[data-tema="branco"] .dash-skin.cl {
+  --cl-accent: #0e7490;
+  --cl-activity: #0e7490;
+  --fw-accent: #0e7490;
+  --fw-accent-dim: rgb(14 116 144 / 25%);
+}
+:root[data-tema="branco"] .dash-skin.cl .dash-sidebar {
+  background: rgb(250 250 250 / 92%);
+}
+:root[data-tema="branco"]
+  .dash-skin.cl
+  .dash-sidebar-cabecalho
+  > span:last-child,
+:root[data-tema="branco"] .dash-skin.cl .dash-sidebar-tray h2,
+:root[data-tema="branco"] .dash-skin.cl .dash-sidebar input[type="search"],
+:root[data-tema="branco"] .dash-skin.cl .cl-demo-banner strong,
+:root[data-tema="branco"] .dash-skin.cl [data-slot="card-title"],
+:root[data-tema="branco"] .dash-skin.cl .visual-overview-toolbar-title p,
+:root[data-tema="branco"] .dash-skin.cl .visual-overview-freshness strong,
+:root[data-tema="branco"] .dash-skin.cl .visual-overview-kpi > strong,
+:root[data-tema="branco"] .dash-skin.cl .visual-overview-zone-heading p,
+:root[data-tema="branco"] .dash-skin.cl .visual-overview-supporting-metrics dd {
+  color: #09090b;
+}
+:root[data-tema="branco"]
+  .dash-skin.cl
+  .dash-sidebar-tray
+  .dash-sidebar-block:not(.is-current):not(.is-active):not(
+    [aria-current="page"]
+  ),
+:root[data-tema="branco"]
+  .dash-skin.cl
+  .dash-sidebar-rodape
+  .dash-sidebar-block,
+:root[data-tema="branco"]
+  .dash-skin.cl
+  .visual-overview-filters
+  button:not(.is-active) {
+  color: #52525b;
+}
+:root[data-tema="branco"]
+  .dash-skin.cl
+  .dash-sidebar-tray
+  .dash-sidebar-block:not(.is-current):not(.is-active):not(
+    [aria-current="page"]
+  ):hover,
+:root[data-tema="branco"]
+  .dash-skin.cl
+  .dash-sidebar-rodape
+  .dash-sidebar-block:hover,
+:root[data-tema="branco"]
+  .dash-skin.cl
+  .visual-overview-filters
+  button:not(.is-active):hover {
+  color: #09090b;
+  background: rgb(0 0 0 / 4%);
+  border-color: rgb(0 0 0 / 12%);
+}
+:root[data-tema="branco"] .dash-skin.cl .visual-overview-kpi,
+:root[data-tema="branco"] .dash-skin.cl .visual-overview-zone,
+:root[data-tema="branco"] .dash-skin.cl .visual-overview-toolbar,
+:root[data-tema="branco"] .dash-skin.cl .cl-demo-banner {
+  background: rgb(255 255 255 / 60%);
+}
+:root[data-tema="branco"] .dash-skin.cl .visual-overview-kpi:hover,
+:root[data-tema="branco"] .dash-skin.cl .visual-overview-zone:hover {
+  background: rgb(255 255 255 / 85%);
+}
+:root[data-tema="branco"]
+  .dash-skin.cl
+  .visual-overview-filters
+  button:not(.is-active) {
+  border-color: rgb(0 0 0 / 8%);
+  background: rgb(0 0 0 / 2%);
 }
