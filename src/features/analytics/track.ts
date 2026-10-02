@@ -12,6 +12,11 @@ import {
   getOrCreateDefaultWorkspace,
   getPublicWorkspaceId,
 } from "@/lib/workspace";
+import {
+  sanitizeTrackAttribution,
+  sanitizeTrackPage,
+  sanitizeTrackReferrer,
+} from "./track-privacy";
 
 /** Eventos aceitos pelo endpoint público de rastreamento. */
 export const TRACK_EVENTS = [
@@ -150,6 +155,10 @@ export async function recordTrackEvent(
   workspaceId ??= await getPublicWorkspaceId();
   const { deviceType, browser, os } = parseUserAgent(ctx.userAgent);
   const now = new Date();
+  // Enforce privacy at the database boundary, including callers without the browser tracker.
+  const page = sanitizeTrackPage(input.page);
+  const referrer = sanitizeTrackReferrer(input.referrer);
+  const utm = sanitizeTrackAttribution(input.utm);
 
   // Sessão: cria na primeira visita, atualiza nas seguintes.
   const [session] = await db
@@ -157,10 +166,10 @@ export async function recordTrackEvent(
     .values({
       workspaceId,
       anonymousId: input.anonymousId,
-      firstPage: input.page,
-      currentPage: input.page,
-      referrer: input.referrer,
-      utm: input.utm ?? {},
+      firstPage: page,
+      currentPage: page,
+      referrer,
+      utm,
       deviceType,
       browser,
       os,
@@ -174,7 +183,7 @@ export async function recordTrackEvent(
     .onConflictDoUpdate({
       target: [visitorSessions.workspaceId, visitorSessions.anonymousId],
       set: {
-        currentPage: input.page,
+        currentPage: page,
         isActive: true,
         lastSeenAt: now,
         updatedAt: now,
@@ -196,7 +205,7 @@ export async function recordTrackEvent(
     checkoutId: input.checkoutId,
     eventName: input.event,
     eventId: crypto.randomUUID(),
-    page: input.page,
+    page,
     valueCents: input.valueCents,
     currency: input.currency,
     properties: {

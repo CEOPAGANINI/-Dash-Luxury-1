@@ -9,6 +9,7 @@ import {
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   SidebarFolderNavigation,
+  sidebarFolderLabel,
   sidebarPageTitle,
 } from "@/components/layout/sidebar-folder-navigation";
 
@@ -26,7 +27,7 @@ function setup() {
   return onNavigate;
 }
 
-/* As 14 pastas do menu e o título que cada página mostra de verdade: o
+/* As 15 pastas do menu e o título que cada página mostra de verdade: o
    nome no menu é o mesmo título da página (regra do dono). */
 const PASTAS = [
   "Visão geral",
@@ -42,9 +43,16 @@ const PASTAS = [
   "Conexões e APIs",
   "Servidor",
   "Domínios",
+  "Agente IA",
   "Sistema",
 ];
-const SESSOES = ["Por classe", "Tabela", "Gerenciador", "Métricas", "Calculadora"];
+const SESSOES = [
+  "Por classe",
+  "Tabela",
+  "Gerenciador",
+  "Métricas",
+  "Calculadora",
+];
 
 describe("navigation folders", () => {
   it("starts with categories only, without a list of pages", () => {
@@ -65,43 +73,62 @@ describe("navigation folders", () => {
 
   it.each([
     ["Visão geral", ["Visão geral"]],
-    ["Vendas", ["Monitor ao vivo", "Pedidos", "Checkouts", "Carrinhos"]],
+    [
+      "Vendas",
+      ["Monitor ao vivo", "Pedidos", "Transações de pagamento", "Carrinhos"],
+    ],
     [
       "Financeiro",
       [
         "Resumo financeiro",
         "Operação financeira",
         "Entradas e saídas",
-        "Processador",
+        "Processadores de pagamento",
         "Repasses",
         "Links de pagamento",
       ],
     ],
-    ["Produtos", ["Produtos", "Categorias", "Estoque", "Descontos e cupons"]],
+    ["Produtos", ["Produtos", "Categorias", "Estoque", "Cupons"]],
     [
       "Loja",
-      ["Lojas conectadas", "Editor da loja", "Editor de checkout", "Fretes", "Ver loja"],
+      [
+        "Lojas conectadas",
+        "Editor da loja",
+        "Editor de checkout",
+        "Fretes",
+        "Ver loja",
+      ],
     ],
     [
       "Clientes e comunicação",
-      ["CRM", "E-mails", "Provas sociais", "Notificações"],
+      ["Clientes e CRM", "E-mails", "Provas sociais", "Notificações"],
     ],
     [
       "Sites e páginas",
       [
         "Landing pages",
         "Editor de conteúdo",
-        "Baixar site",
+        "Captura de sites",
+        "Filtro de acesso",
         "Roteador de ofertas",
       ],
     ],
     [
       "Funis e campanhas",
-      ["Quadro do funil", "Calculadora de campanhas", "Análise de campanhas"],
+      [
+        "Quadro do funil",
+        "Quadro do funil (editor)",
+        "Calculadora de campanhas",
+        "Análise de campanhas",
+      ],
     ],
     [
       "Tráfego e métricas",
-      ["Gestão de tráfego", "Diagnósticos de aquisição", "Pixel"],
+      [
+        "Aquisição de clientes",
+        "Diagnóstico do tráfego",
+        "Pixels de rastreamento",
+      ],
     ],
     [
       "Redes de tráfego",
@@ -109,22 +136,35 @@ describe("navigation folders", () => {
         SESSOES.map((s) => `${rede} · ${s}`),
       ),
     ],
-    ["Conexões e APIs", ["Integrações", "Gateways", "Webhooks"]],
+    [
+      "Conexões e APIs",
+      ["Integrações e APIs", "Gateways de pagamento", "Webhooks"],
+    ],
     ["Servidor", ["Servidores", "Adicionar servidor"]],
-    ["Domínios", ["Sites"]],
+    ["Domínios", ["Domínios e sites hospedados"]],
+    [
+      "Agente IA",
+      [
+        "Assistente IA",
+        "Rascunhos de campanhas",
+        "Histórico do agente",
+        "Configurações do agente",
+      ],
+    ],
     [
       "Sistema",
       [
+        "Segurança e privacidade",
         "Segurança",
-        "Design system",
-        "Qualidade de dados",
-        "Alertas",
-        "Logs",
-        "Configurações",
-        "Equipe e permissões",
-        "Configurar operação",
-        "Pagamentos e conciliação",
-        "Diagnóstico da operação",
+        "Sistema de design",
+        "Qualidade dos dados",
+        "Alertas da operação",
+        "Logs do sistema",
+        "Configurações gerais",
+        "Acessos e permissões",
+        "Configurações da operação",
+        "Configurações de pagamentos",
+        "Diagnóstico dos serviços",
       ],
     ],
   ])("shows only the pages in %s", (folder, expected) => {
@@ -149,19 +189,25 @@ describe("navigation folders", () => {
   it("returns focus to the folder and lets the user choose another category", () => {
     setup();
     fireEvent.click(
-      screen.getByRole("button", { name: "Abrir pasta Clientes e comunicação" }),
+      screen.getByRole("button", {
+        name: "Abrir pasta Clientes e comunicação",
+      }),
     );
     fireEvent.click(screen.getByRole("button", { name: "Todas as pastas" }));
     expect(screen.queryAllByRole("link")).toHaveLength(0);
     expect(document.activeElement).toBe(
-      screen.getByRole("button", { name: "Abrir pasta Clientes e comunicação" }),
+      screen.getByRole("button", {
+        name: "Abrir pasta Clientes e comunicação",
+      }),
     );
     fireEvent.click(
       screen.getByRole("button", { name: "Abrir pasta Sistema" }),
     );
-    expect(screen.queryByRole("link", { name: "CRM" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Clientes e CRM" })).toBeNull();
     expect(
-      screen.getByRole("link", { name: "Configurações" }).getAttribute("href"),
+      screen
+        .getByRole("link", { name: "Configurações gerais" })
+        .getAttribute("href"),
     ).toBe("/configuracoes");
     fireEvent.click(screen.getByRole("button", { name: "Todas as pastas" }));
     fireEvent.click(screen.getByRole("button", { name: "Abrir pasta Loja" }));
@@ -173,7 +219,9 @@ describe("navigation folders", () => {
   it("preserves destinations, unread count and active page when navigating", () => {
     const onNavigate = setup();
     fireEvent.click(
-      screen.getByRole("button", { name: "Abrir pasta Clientes e comunicação" }),
+      screen.getByRole("button", {
+        name: "Abrir pasta Clientes e comunicação",
+      }),
     );
     expect(onNavigate).not.toHaveBeenCalled();
 
@@ -218,32 +266,54 @@ describe("navigation folders", () => {
   });
 
   it("names each page by the title the page itself shows", () => {
-    expect(sidebarPageTitle("/campanhas/meta/tabela")).toBe("Meta Ads · Tabela");
+    expect(sidebarPageTitle("/campanhas/meta/tabela")).toBe(
+      "Meta Ads · Tabela",
+    );
     expect(sidebarPageTitle("/campanhas/quadro")).toBe("Quadro do funil");
-    expect(sidebarPageTitle("/editor/landing-page")).toBe("Quadro do funil");
+    expect(sidebarPageTitle("/editor/landing-page")).toBe(
+      "Quadro do funil (editor)",
+    );
     expect(sidebarPageTitle("/campanhas/calculadora")).toBe(
       "Calculadora de campanhas",
     );
     expect(sidebarPageTitle("/campanhas/analise")).toBe("Análise de campanhas");
-    expect(sidebarPageTitle("/clientes/pessoa-1")).toBe("CRM");
-    expect(sidebarPageTitle("/checkouts")).toBe("Checkouts");
-    expect(sidebarPageTitle("/dashboard/trafego")).toBe("Gestão de tráfego");
+    expect(sidebarPageTitle("/clientes/pessoa-1")).toBe("Clientes e CRM");
+    expect(sidebarPageTitle("/checkouts")).toBe("Transações de pagamento");
+    expect(sidebarPageTitle("/dashboard/trafego")).toBe(
+      "Aquisição de clientes",
+    );
     expect(sidebarPageTitle("/dashboard/trafego/diagnosticos")).toBe(
-      "Diagnósticos de aquisição",
+      "Diagnóstico do tráfego",
     );
     expect(sidebarPageTitle("/landing-pages/minha-pagina")).toBe(
       "Landing pages",
     );
-    expect(sidebarPageTitle("/captura")).toBe("Baixar site");
+    expect(sidebarPageTitle("/captura")).toBe("Captura de sites");
     expect(sidebarPageTitle("/servidor")).toBe("Servidores");
     expect(sidebarPageTitle(`/servidor/${UUID}`)).toBe("Servidores");
     expect(sidebarPageTitle("/servidor/novo")).toBe("Adicionar servidor");
-    expect(sidebarPageTitle("/servidor/sites")).toBe("Sites");
-    expect(sidebarPageTitle(`/servidor/sites/${UUID}`)).toBe("Sites");
-    expect(sidebarPageTitle("/configuracoes/diagnosticos")).toBe(
-      "Diagnóstico da operação",
+    expect(sidebarPageTitle("/servidor/sites")).toBe(
+      "Domínios e sites hospedados",
     );
-    expect(sidebarPageTitle("/dashboard/notificacoes")).toBe("Alertas");
+    expect(sidebarPageTitle(`/servidor/sites/${UUID}`)).toBe(
+      "Domínios e sites hospedados",
+    );
+    expect(sidebarPageTitle("/configuracoes/diagnosticos")).toBe(
+      "Diagnóstico dos serviços",
+    );
+    expect(sidebarPageTitle("/dashboard/notificacoes")).toBe(
+      "Alertas da operação",
+    );
+  });
+
+  it("names the folder a page lives in, for the page header eyebrow", () => {
+    expect(sidebarFolderLabel("/pedidos")).toBe("Vendas");
+    expect(sidebarFolderLabel("/servidor/novo")).toBe("Servidor");
+    expect(sidebarFolderLabel("/campanhas/meta/tabela")).toBe(
+      "Redes de tráfego",
+    );
+    expect(sidebarFolderLabel("/agente-ia/historico")).toBe("Agente IA");
+    expect(sidebarFolderLabel("/rota-que-nao-existe")).toBe("Painel");
   });
 
   it("names the pages that exist outside the menu instead of saying Painel", () => {
@@ -255,28 +325,32 @@ describe("navigation folders", () => {
   it.each([
     ["/landing-pages", "Landing pages"],
     ["/editor/pagina", "Editor de conteúdo"],
-  ])("marks Sites e páginas and the current destination at %s", (pathname, title) => {
-    navegacao.caminho = pathname;
-    const onNavigate = setup();
-    const folder = screen.getByRole("button", {
-      name: "Abrir pasta Sites e páginas",
-    });
-    expect(folder.getAttribute("aria-current")).toBe("true");
-    fireEvent.click(folder);
-    expect(
-      screen.getAllByRole("link").map((link) => link.getAttribute("href")),
-    ).toEqual([
-      "/landing-pages",
-      "/editor/pagina",
-      "/captura",
-      "/roteador-de-ofertas",
-    ]);
-    const current = screen.getByRole("link", { name: title });
-    expect(current.getAttribute("aria-current")).toBe("page");
-    expect(current.getAttribute("target")).toBeNull();
-    fireEvent.click(current);
-    expect(onNavigate).toHaveBeenCalledTimes(1);
-  });
+  ])(
+    "marks Sites e páginas and the current destination at %s",
+    (pathname, title) => {
+      navegacao.caminho = pathname;
+      const onNavigate = setup();
+      const folder = screen.getByRole("button", {
+        name: "Abrir pasta Sites e páginas",
+      });
+      expect(folder.getAttribute("aria-current")).toBe("true");
+      fireEvent.click(folder);
+      expect(
+        screen.getAllByRole("link").map((link) => link.getAttribute("href")),
+      ).toEqual([
+        "/landing-pages",
+        "/editor/pagina",
+        "/captura",
+        "/filtro-de-acesso",
+        "/roteador-de-ofertas",
+      ]);
+      const current = screen.getByRole("link", { name: title });
+      expect(current.getAttribute("aria-current")).toBe("page");
+      expect(current.getAttribute("target")).toBeNull();
+      fireEvent.click(current);
+      expect(onNavigate).toHaveBeenCalledTimes(1);
+    },
+  );
 });
 
 const UUID = "3f2b8c1e-9a4d-4c6b-8e2f-1a2b3c4d5e6f";
@@ -285,7 +359,9 @@ describe("pasta Servidor", () => {
   function acesos(caminho: string, pasta = "Servidor") {
     navegacao.caminho = caminho;
     render(<SidebarFolderNavigation unreadCount={0} onNavigate={() => {}} />);
-    fireEvent.click(screen.getByRole("button", { name: `Abrir pasta ${pasta}` }));
+    fireEvent.click(
+      screen.getByRole("button", { name: `Abrir pasta ${pasta}` }),
+    );
     return screen
       .getAllByRole("link")
       .filter((link) => link.getAttribute("aria-current") === "page")
@@ -302,11 +378,15 @@ describe("pasta Servidor", () => {
   it("/servidor/sites acende Sites (pasta Domínios) e não Servidores", () => {
     expect(acesos("/servidor/sites")).toEqual([]);
     cleanup();
-    expect(acesos("/servidor/sites", "Domínios")).toEqual(["Sites"]);
+    expect(acesos("/servidor/sites", "Domínios")).toEqual([
+      "Domínios e sites hospedados",
+    ]);
   });
 
   it("a página de um site também acende só Sites", () => {
-    expect(acesos(`/servidor/sites/${UUID}`, "Domínios")).toEqual(["Sites"]);
+    expect(acesos(`/servidor/sites/${UUID}`, "Domínios")).toEqual([
+      "Domínios e sites hospedados",
+    ]);
   });
 
   it("/servidor/<uuid> acende Servidores", () => {

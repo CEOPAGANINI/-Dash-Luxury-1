@@ -1,0 +1,35 @@
+/* Dashboard contract: aliases resolve on the themed host, so the existing
+   CommandLayer dark/light palettes remain the source of truth. Flow owns its
+   separate --flow-* contract and does not consume these aliases. */
+@layer dashboard {
+  body:has([data-design-system="commandlayer"]),
+  [data-design-system="commandlayer"] {
+    --dashboard-canvas: var(--cl-canvas, #050505);
+    --dashboard-surface: var(--cl-chassis, #0b0b0b);
+    --dashboard-surface-raised: var(--cl-raised, #101010);
+    --dashboard-table-head: var(--cl-screen, #080808);
+    --dashboard-text: var(--cl-text-primary, #f5f5f5);
+    --dashboard-text-secondary: var(--cl-text-body, #d4d4d4);
+    --dashboard-text-muted: var(--cl-text-muted, #a3a3a3);
+    --dashboard-border: var(--cl-border, #202020);
+    --dashboard-border-control: var(--cl-border-strong, #303030);
+    --dashboard-focus: var(--cl-accent, #fafafa);
+    --dashboard-success: var(--cl-success, #34d399);
+    --dashboard-warning: var(--cl-warning, #f59e0b);
+    --dashboard-danger: var(--cl-danger, #fb7185);
+    --dashboard-info: var(--cl-info, #60a5fa);
+    --dashboard-font-ui: var(--font-inter), "Inter", system-ui, sans-serif;
+    --dashboard-font-technical:
+      var(--font-jetbrains-mono), "JetBrains Mono", Consolas, monospace;
+    --dashboard-text-table: 0.8125rem;
+    --dashboard-text-support: 0.875rem;
+    --dashboard-leading: 1.5;
+    --dashboard-control-min: 2.75rem;
+    --dashboard-control-touch: 3rem;
+    --dashboard-density-gap: 0.75rem;
+    --dashboard-radius-surface: 0.25rem;
+    --dashboard-focus-width: 3px;
+    --dashboard-disabled-opacity: 0.5;
+    --dashboard-table-max-height: min(60svh, 36rem);
+  }
+}

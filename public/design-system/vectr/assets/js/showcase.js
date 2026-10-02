@@ -1,0 +1,1 @@
+document.getElementById('theme').addEventListener('click',function(){const light=document.body.classList.toggle('light');this.setAttribute('aria-pressed',String(light));this.textContent=light?'Usar tema preto':'Usar tema branco';});

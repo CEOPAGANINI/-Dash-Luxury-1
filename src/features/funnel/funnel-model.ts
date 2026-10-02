@@ -467,8 +467,6 @@ export interface EstiloMapa {
 /** O que um bloco Redirecionador guarda. */
 export interface RedirNode {
   regras: RegraRedir[];
-  /** Campaign in the hosted redirection engine; empty opens its dashboard. */
-  campanhaId?: string;
 }
 
 /** Um nó posicionado no quadro. */
@@ -491,6 +489,9 @@ export interface FunnelNode {
   /** Cor do selo (nós `brand`). */
   cor?: string;
   sigla?: string;
+  marcaId?: string;
+  /** Loja cujo tráfego esta origem apresenta. */
+  trafficStoreNodeId?: string;
   /** Dados do publicador (nós de página) — só interface, demonstração. */
   pagina?: DadosPagina;
   /** As regras do bloco Redirecionador (nós `redirect`). */
@@ -629,6 +630,12 @@ export function paginaVazia(): DadosPagina {
 
 /** Uma ligação saída → entrada entre dois nós. */
 /** Estilo de uma linha (ligação) do quadro — como no Miro/Funnelytics. */
+export interface FunnelConnectionAnchor {
+  side: "top" | "right" | "bottom" | "left";
+  /** Posição relativa ao longo da borda, de 0 a 1. */
+  offset: number;
+}
+
 export interface EstiloLinha {
   /** Curva (padrão), reta, cotovelo (90°) ou livre (com pontos para dobrar). */
   forma?: "curva" | "reta" | "cotovelo" | "livre";
@@ -641,6 +648,9 @@ export interface EstiloLinha {
   espessura?: 1 | 2 | 3;
   /** Pontos de controle (mundo) da forma "livre". */
   pontos?: { x: number; y: number }[];
+  /** Ausentes em dados antigos: saída direita e entrada esquerda, no centro. */
+  sourceAnchor?: FunnelConnectionAnchor;
+  targetAnchor?: FunnelConnectionAnchor;
 }
 
 export interface FunnelEdge {
@@ -686,5 +696,3 @@ export function enderecoConfigurado(url?: string): boolean {
     return false;
   }
 }
-
-

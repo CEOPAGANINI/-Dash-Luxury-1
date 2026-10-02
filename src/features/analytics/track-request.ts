@@ -6,6 +6,11 @@ import { z } from "zod";
 import { getDb, isDatabaseConfigured } from "@/database/client";
 
 import { TRACK_EVENTS } from "./track";
+import {
+  sanitizeTrackAttribution,
+  sanitizeTrackPage,
+  sanitizeTrackReferrer,
+} from "./track-privacy";
 
 export const MAX_TRACK_BYTES = 16 * 1024;
 export const TRACK_REQUESTS_PER_MINUTE = 120;
@@ -13,8 +18,8 @@ export const TRACK_REQUESTS_PER_MINUTE = 120;
 export const trackRequestSchema = z.object({
   anonymousId: z.string().trim().min(1).max(64),
   event: z.enum(TRACK_EVENTS),
-  page: z.string().max(512).optional(),
-  referrer: z.string().max(512).optional(),
+  page: z.string().max(512).transform(sanitizeTrackPage).optional(),
+  referrer: z.string().max(512).transform(sanitizeTrackReferrer).optional(),
   productSlug: z.string().max(128).optional(),
   checkoutId: z.string().uuid().optional(),
   currency: z
@@ -30,6 +35,7 @@ export const trackRequestSchema = z.object({
   utm: z
     .record(z.string().regex(/^[a-zA-Z0-9_]{1,32}$/), z.string().max(200))
     .refine((value) => Object.keys(value).length <= 16)
+    .transform(sanitizeTrackAttribution)
     .optional(),
 });
 

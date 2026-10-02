@@ -1,10 +1,8 @@
 /**
  * Verificação central de configuração do Supabase.
  *
- * Enquanto as credenciais não existirem, a aplicação roda em
- * "modo demonstração": o painel abre com banner permanente e o login
- * real fica indisponível (com instruções claras de configuração).
- * Nada finge estar conectado.
+ * Sem credenciais, autenticação real fica indisponível. O fallback de
+ * demonstração é restrito ao desenvolvimento local por deployment-security.
  */
 export function isSupabaseConfigured(): boolean {
   return Boolean(

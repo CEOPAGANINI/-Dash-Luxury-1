@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { cache } from "react";
+import { allowLocalDemo } from "./deployment-security";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 export interface SessionUser {
@@ -30,10 +31,11 @@ export interface AppSession {
 /**
  * Resolve a sessão atual no servidor.
  * - Supabase configurado: exige usuário autenticado (retorna null se não houver).
- * - Supabase ausente: retorna sessão de demonstração explícita (demoMode=true).
+ * - Supabase ausente: demo apenas em desenvolvimento local; produção retorna null.
  */
 export const getSession = cache(async (): Promise<AppSession | null> => {
   if (!isSupabaseConfigured()) {
+    if (!allowLocalDemo(process.env)) return null;
     return { user: DEMO_USER, demoMode: true };
   }
 

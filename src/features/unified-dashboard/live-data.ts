@@ -9,7 +9,10 @@ import {
   products,
   workspaces,
 } from "@/database/schema";
-import { bancoIndisponivel, getOrCreateDefaultWorkspace } from "@/lib/workspace";
+import {
+  bancoIndisponivel,
+  getOrCreateDefaultWorkspace,
+} from "@/lib/workspace";
 
 import { emptyDashboardData } from "./empty-data";
 import { observeDashboardRead } from "./read-observer";

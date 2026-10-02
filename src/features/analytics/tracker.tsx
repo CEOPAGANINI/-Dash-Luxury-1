@@ -1,6 +1,12 @@
 "use client";
 
 import * as React from "react";
+import {
+  sanitizeTrackAttribution,
+  sanitizeTrackPage,
+  sanitizeTrackReferrer,
+  TRACK_ATTRIBUTION_KEYS,
+} from "./track-privacy";
 
 const STORAGE_KEY = "infinity:aid";
 const HEARTBEAT_MS = 30_000;
@@ -25,18 +31,7 @@ function collectUtm(): Record<string, string> {
   const utm: Record<string, string> = {};
   try {
     const p = new URLSearchParams(window.location.search);
-    for (const k of [
-      "utm_source",
-      "utm_medium",
-      "utm_campaign",
-      "utm_content",
-      "utm_term",
-      "src",
-      "sck",
-      "fbclid",
-      "gclid",
-      "ttclid",
-    ]) {
+    for (const k of TRACK_ATTRIBUTION_KEYS) {
       const v = p.get(k);
       if (v) utm[k] = v.slice(0, 200);
     }
@@ -51,10 +46,10 @@ export function sendTrack(event: string, extra: Record<string, unknown> = {}) {
     const payload = JSON.stringify({
       anonymousId: getAnonymousId(),
       event,
-      page: window.location.pathname,
-      referrer: document.referrer || undefined,
-      utm: collectUtm(),
       ...extra,
+      page: sanitizeTrackPage(extra.page ?? window.location.pathname),
+      referrer: sanitizeTrackReferrer(extra.referrer ?? document.referrer),
+      utm: sanitizeTrackAttribution(extra.utm ?? collectUtm()),
     });
     // keepalive garante o envio mesmo se a página estiver a fechar.
     fetch("/api/public/track", {
@@ -62,6 +57,7 @@ export function sendTrack(event: string, extra: Record<string, unknown> = {}) {
       headers: { "Content-Type": "application/json" },
       body: payload,
       keepalive: true,
+      referrerPolicy: "no-referrer",
     }).catch(() => {});
   } catch {
     /* rastreamento nunca quebra a página */

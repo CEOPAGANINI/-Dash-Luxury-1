@@ -8,6 +8,7 @@ import {
   type EstadoDaTela,
 } from "@/features/vps/vps-cliente";
 import type { PreparedPageZip } from "./page-zip";
+import { FlowStatusBadge } from "./flow-ui";
 
 type Props = {
   zip: PreparedPageZip | null;
@@ -16,22 +17,47 @@ type Props = {
   onDomainChange: (domain: string) => void;
 };
 
+type PublicationScope = {
+  siteId: string;
+  domain: string;
+  path: string;
+  file: File | null;
+};
+
+type PublicationReceipt = PublicationScope & {
+  siteName: string;
+  releaseId: string;
+  confirmed: boolean;
+};
+
+function samePublication(a: PublicationScope, b: PublicationScope) {
+  return (
+    a.siteId === b.siteId &&
+    a.domain === b.domain &&
+    a.path === b.path &&
+    a.file === b.file
+  );
+}
+
 /** The API publishes a WHOLE site version. Never silently treat it as a path upload. */
 export function PageVpsPublisher({ zip, domain, path, onDomainChange }: Props) {
   const [state, setState] = React.useState<EstadoDaTela | null>(null);
   const [selectedId, setSelectedId] = React.useState("");
-  const [busy, setBusy] = React.useState(false);
-  const [error, setError] = React.useState("");
-  const [message, setMessage] = React.useState("");
+  const [operation, setOperation] = React.useState<{
+    kind: "loading" | "publishing" | "checking";
+    scope: PublicationScope;
+  } | null>(null);
+  const [feedback, setFeedback] = React.useState<{
+    scope: PublicationScope;
+    error?: string;
+    message?: string;
+  } | null>(null);
   const [confirmation, setConfirmation] = React.useState<{
     site: SiteDTO;
     file: File;
     domain: string;
   } | null>(null);
-  const [receipt, setReceipt] = React.useState<{
-    siteId: string;
-    releaseId: string;
-  } | null>(null);
+  const [receipt, setReceipt] = React.useState<PublicationReceipt | null>(null);
   const mounted = React.useRef(false);
   const locked = React.useRef(false);
   const cancel = React.useRef<HTMLButtonElement>(null);
@@ -58,37 +84,64 @@ export function PageVpsPublisher({ zip, domain, path, onDomainChange }: Props) {
     isRoot &&
     domainMatches,
   );
+  const scope: PublicationScope = {
+    siteId: selectedId,
+    domain: domain ?? "",
+    path,
+    file: zip?.file ?? null,
+  };
+  // A receipt describes the submitted package, never a later selection.
+  // Retain its site link as history when the current package or destination changes.
+  const currentReceipt =
+    receipt && samePublication(receipt, scope) ? receipt : null;
+  const currentFeedback =
+    feedback && samePublication(feedback.scope, scope) ? feedback : null;
+  const busy = operation !== null;
+  const error = currentFeedback?.error ?? "";
+  const message = currentFeedback?.message ?? "";
+  const operationLabel = operation
+    ? !samePublication(operation.scope, scope)
+      ? "Concluindo operação anterior…"
+      : operation.kind === "loading"
+        ? "Conferindo sites da VPS…"
+        : operation.kind === "publishing"
+          ? "Enviando ZIP…"
+          : "Conferindo publicação…"
+    : "";
 
   async function load() {
     if (locked.current) return;
     locked.current = true;
-    setBusy(true);
-    setError("");
+    setOperation({ kind: "loading", scope });
+    setFeedback(null);
     setConfirmation(null);
     try {
       const result = await lerEstado({});
       if (mounted.current) {
         setState(result);
         setSelectedId("");
-        setMessage(
-          result.sites.length
+        setFeedback({
+          scope: { ...scope, siteId: "" },
+          message: result.sites.length
             ? "Escolha o site e confira o domínio antes de publicar."
             : "Nenhum site cadastrado. Crie um em Servidor → Sites.",
-        );
+        });
       }
     } catch (cause) {
       if (mounted.current) {
         setState(null);
         setSelectedId("");
-        setError(
-          cause instanceof Error
-            ? cause.message
-            : "Não foi possível consultar os sites da VPS.",
-        );
+        setFeedback({
+          scope: { ...scope, siteId: "" },
+          error:
+            cause instanceof Error
+              ? cause.message
+              : "Não foi possível consultar os sites da VPS.",
+        });
       }
     } finally {
       locked.current = false;
-      if (mounted.current) setBusy(false);
+      if (mounted.current) setOperation(null);
     }
   }
 
@@ -103,94 +156,154 @@ export function PageVpsPublisher({ zip, domain, path, onDomainChange }: Props) {
       confirmation.domain !== domain
     ) {
       setConfirmation(null);
-      setError(
-        "O pacote ou o destino mudou. Confira e confirme a publicação novamente.",
-      );
+      setFeedback({
+        scope,
+        error:
+          "O pacote ou o destino mudou. Confira e confirme a publicação novamente.",
+      });
       return;
     }
+    const submitted = confirmation;
+    const submittedScope: PublicationScope = {
+      siteId: submitted.site.id,
+      domain: submitted.domain,
+      path,
+      file: submitted.file,
+    };
     locked.current = true;
-    setBusy(true);
-    setError("");
-    setMessage("");
-    setReceipt(null);
+    setOperation({ kind: "publishing", scope: submittedScope });
+    setFeedback(null);
     try {
-      const result = await enviarZip(confirmation.site.id, confirmation.file);
+      const result = await enviarZip(submitted.site.id, submitted.file);
       if (!mounted.current) return;
       setConfirmation(null);
       if (!result.ok) {
-        setError(
-          [
+        setFeedback({
+          scope: submittedScope,
+          error: [
             result.mensagem,
             ...result.problemas.map(
               (problem) => `${problem.arquivo}: ${problem.motivo}`,
             ),
           ].join(" · "),
-        );
+        });
         return;
       }
-      setReceipt({ siteId: confirmation.site.id, releaseId: result.versao.id });
-      setMessage(
-        `ZIP enviado. Aguardando o agente da VPS aplicar esta versão.${result.avisos.length ? ` Avisos: ${result.avisos.join(" · ")}` : ""}`,
-      );
+      setReceipt({
+        ...submittedScope,
+        siteName: submitted.site.nome,
+        releaseId: result.versao.id,
+        confirmed: false,
+      });
+      setFeedback({
+        scope: submittedScope,
+        message: `ZIP enviado. Aguardando o agente da VPS aplicar esta versão.${result.avisos.length ? ` Avisos: ${result.avisos.join(" · ")}` : ""}`,
+      });
     } catch (cause) {
       if (mounted.current) {
         setConfirmation(null);
-        setError(
-          cause instanceof Error
-            ? cause.message
-            : "O envio não foi confirmado. Consulte o site antes de tentar novamente.",
-        );
+        setFeedback({
+          scope: submittedScope,
+          error:
+            cause instanceof Error
+              ? cause.message
+              : "O envio não foi confirmado. Consulte o site antes de tentar novamente.",
+        });
       }
     } finally {
       locked.current = false;
-      if (mounted.current) setBusy(false);
+      if (mounted.current) setOperation(null);
     }
   }
 
   async function checkRelease() {
-    if (!receipt || locked.current) return;
+    if (!currentReceipt || locked.current) return;
+    const checking = currentReceipt;
     locked.current = true;
-    setBusy(true);
-    setError("");
+    setOperation({ kind: "checking", scope: checking });
+    setFeedback(null);
     try {
-      const result = await lerEstado({ siteId: receipt.siteId });
+      const result = await lerEstado({ siteId: checking.siteId });
       if (!mounted.current) return;
       const release = result.site?.versoes.find(
-        (item) => item.id === receipt.releaseId,
+        (item) => item.id === checking.releaseId,
       );
-      if (release?.estado === "falhou")
-        setError(
-          release.erro ||
-            "A VPS não conseguiu aplicar esta versão. Veja os detalhes do site.",
-        );
-      else if (
+      const confirmed = Boolean(
         release?.estado === "no_servidor" &&
         release.ativa &&
-        result.site?.servidorInforma === receipt.releaseId
-      )
-        setMessage(
-          "Versão confirmada pelo agente e ativa na VPS. Confira domínio e HTTPS em Servidor → Sites; isso não é uma conferência pública de disponibilidade.",
-        );
+        result.site?.servidorInforma === checking.releaseId,
+      );
+      setReceipt({ ...checking, confirmed });
+      if (release?.estado === "falhou")
+        setFeedback({
+          scope: checking,
+          error:
+            release.erro ||
+            "A VPS não conseguiu aplicar esta versão. Veja os detalhes do site.",
+        });
       else
-        setMessage(
-          "Esta versão ainda não foi confirmada como ativa pelo agente. Consulte novamente em instantes.",
-        );
+        setFeedback({
+          scope: checking,
+          message: confirmed
+            ? "Versão confirmada pelo agente e ativa na VPS. Confira domínio e HTTPS em Servidor → Sites; isso não é uma conferência pública de disponibilidade."
+            : "Esta versão ainda não foi confirmada como ativa pelo agente. Consulte novamente em instantes.",
+        });
     } catch (cause) {
       if (mounted.current)
-        setError(
-          cause instanceof Error
-            ? cause.message
-            : "Não foi possível conferir a publicação.",
-        );
+        setFeedback({
+          scope: checking,
+          error:
+            cause instanceof Error
+              ? cause.message
+              : "Não foi possível conferir a publicação.",
+        });
     } finally {
       locked.current = false;
-      if (mounted.current) setBusy(false);
+      if (mounted.current) setOperation(null);
     }
   }
 
   return (
-    <section className="pub__campo" aria-label="Publicação real na VPS">
+    <section
+      className="pub__campo"
+      aria-label="Publicação real na VPS"
+      aria-busy={busy}
+    >
       <span>Publicar o pacote na VPS</span>
+      <div role="status" aria-label="Estado da publicação" aria-live="polite">
+        <FlowStatusBadge
+          tone={
+            busy
+              ? "info"
+              : error
+                ? "danger"
+                : currentReceipt?.confirmed
+                  ? "success"
+                  : currentReceipt
+                    ? "warning"
+                    : canPublish
+                      ? "success"
+                      : zip
+                        ? "warning"
+                        : "neutral"
+          }
+          busy={busy}
+        >
+          {busy
+            ? operationLabel
+            : error
+              ? "Ação não concluída"
+              : currentReceipt?.confirmed
+                ? "Confirmado na VPS"
+                : currentReceipt
+                  ? "Aguardando agente da VPS"
+                  : canPublish
+                    ? "Pronto para revisar"
+                    : zip
+                      ? "Destino pendente"
+                      : "Rascunho — ZIP pendente"}
+        </FlowStatusBadge>
+      </div>
       <small className="pub__hint">
         O ZIP será publicado como uma versão inteira do site. Este envio não
         cria um caminho isolado nem junta páginas de outros blocos.
@@ -201,7 +314,9 @@ export function PageVpsPublisher({ zip, domain, path, onDomainChange }: Props) {
         disabled={busy}
         onClick={() => void load()}
       >
-        {busy ? "Aguarde…" : "Carregar meus sites da VPS"}
+        {operation?.kind === "loading"
+          ? "Conferindo sites…"
+          : "Carregar meus sites da VPS"}
       </button>
       {state ? (
         <>
@@ -317,7 +432,9 @@ export function PageVpsPublisher({ zip, domain, path, onDomainChange }: Props) {
               disabled={busy || !canPublish}
               onClick={() => void publish()}
             >
-              Confirmar substituição e enviar
+              {operation?.kind === "publishing"
+                ? "Enviando ZIP…"
+                : "Confirmar substituição e enviar"}
             </button>
           </div>
         </div>
@@ -334,7 +451,7 @@ export function PageVpsPublisher({ zip, domain, path, onDomainChange }: Props) {
           Revisar publicação
         </button>
       )}
-      {receipt ? (
+      {currentReceipt ? (
         <div className="pub__linha">
           <button
             type="button"
@@ -342,12 +459,24 @@ export function PageVpsPublisher({ zip, domain, path, onDomainChange }: Props) {
             disabled={busy}
             onClick={() => void checkRelease()}
           >
-            Verificar publicação
+            {operation?.kind === "checking"
+              ? "Conferindo publicação…"
+              : "Verificar publicação"}
           </button>
-          <a className="pub__btn" href={`/servidor/sites/${receipt.siteId}`}>
+          <a
+            className="pub__btn"
+            href={`/servidor/sites/${currentReceipt.siteId}`}
+          >
             Ver site e versões
           </a>
         </div>
+      ) : receipt ? (
+        <small className="pub__hint">
+          Este pacote ou destino não corresponde à versão enviada antes.{" "}
+          <a href={`/servidor/sites/${receipt.siteId}`}>
+            Ver versão anterior em {receipt.siteName}
+          </a>
+        </small>
       ) : null}
       {error ? (
         <p role="alert" className="pub__hint">

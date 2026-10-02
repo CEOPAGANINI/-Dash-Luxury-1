@@ -33,9 +33,10 @@ describe("left menu without pinned areas", () => {
       screen.getByRole("link", { name: "Dash Luxury" }),
       screen.getByRole("searchbox", { name: "Buscar no painel" }),
       screen.getByRole("navigation", { name: "Navegação principal" }),
-      screen.getByRole("link", { name: "Configurações" }),
-      screen.getByRole("link", { name: "Ver loja" }),
-      screen.getByRole("link", { name: "Diagnóstico dos serviços" }),
+      screen.getByRole("link", { name: "Configurações gerais" }),
+      screen.getByRole("link", { name: "Logs do sistema" }),
+      // Há dois: o item da pasta Sistema e o atalho fixo do rodapé do menu.
+      ...screen.getAllByRole("link", { name: "Diagnóstico dos serviços" }),
       screen.getByRole("button", { name: "Abrir menu da conta" }),
     ]) {
       expect(scroll.contains(element)).toBe(true);
@@ -52,9 +53,11 @@ describe("left menu without pinned areas", () => {
     fireEvent.pointerEnter(trigger);
     expect(trigger.getAttribute("aria-expanded")).toBe("true");
     fireEvent.click(
-      screen.getByRole("button", { name: "Abrir pasta Meta Ads" }),
+      screen.getByRole("button", { name: "Abrir pasta Redes de tráfego" }),
     );
-    fireEvent.click(screen.getByRole("link", { name: "Por classe" }));
+    fireEvent.click(
+      screen.getByRole("link", { name: "Meta Ads · Por classe" }),
+    );
     expect(trigger.getAttribute("aria-expanded")).toBe("false");
   });
 
@@ -78,11 +81,12 @@ describe("left menu without pinned areas", () => {
       scroll.querySelector(".overflow-y-auto, .fixed, .sticky"),
     ).toBeNull();
     fireEvent.click(
-      within(drawer).getByRole("button", { name: "Abrir pasta Gestão" }),
+      within(drawer).getByRole("button", { name: "Abrir pasta Vendas" }),
     );
-    expect(within(drawer).getAllByRole("link")).toHaveLength(6);
+    // As 4 páginas de Vendas mais o atalho fixo "Diagnóstico dos serviços".
+    expect(within(drawer).getAllByRole("link")).toHaveLength(5);
     expect(
-      within(drawer).queryByRole("link", { name: "Configurações" }),
+      within(drawer).queryByRole("link", { name: "Configurações gerais" }),
     ).toBeNull();
     expect(
       within(drawer).queryByRole("button", { name: "Abrir pasta Sistema" }),
@@ -95,7 +99,7 @@ describe("left menu without pinned areas", () => {
       screen.queryByRole("dialog", { name: "Menu de navegação" }),
     ).not.toBeNull();
     expect(
-      within(drawer).getByRole("button", { name: "Abrir pasta Gestão" }),
+      within(drawer).getByRole("button", { name: "Abrir pasta Vendas" }),
     ).toBe(document.activeElement);
   });
 

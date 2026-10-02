@@ -10,6 +10,16 @@ const versao = (
 ).slice(0, 7);
 
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
+  productionBrowserSourceMaps: false,
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [{ key: "X-Content-Type-Options", value: "nosniff" }],
+      },
+    ];
+  },
   env: { NEXT_PUBLIC_VERSAO: versao || "local" },
   /*
     Endereços antigos de áreas que foram renomeadas. Sem isto, quem tem a

@@ -127,6 +127,36 @@ function saveToVault(): FunnelData {
 }
 
 describe("funnel board page and graph integration", () => {
+  it("only deletes a draft after confirmation and lets the user cancel", () => {
+    const removeDraft = vi.fn();
+    render(
+      <FunnelBoard
+        storageId="board-user"
+        cofre={cofre}
+        inicial={fixture()}
+        onExcluir={removeDraft}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Configurações" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: /^Excluir$/ }),
+    );
+    expect(removeDraft).not.toHaveBeenCalled();
+    const confirmation = screen.getByRole("dialog", {
+      name: "Excluir este rascunho?",
+    });
+    fireEvent.click(
+      within(confirmation).getByRole("button", { name: "Cancelar" }),
+    );
+    expect(removeDraft).not.toHaveBeenCalled();
+    fireEvent.click(
+      screen.getByRole("button", { name: /^Excluir$/ }),
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: /^Excluir rascunho$/ }),
+    );
+    expect(removeDraft).toHaveBeenCalledExactlyOnceWith("board-fixture");
+  });
   it("opens the content editor for the page selected in its publisher and saves edits on that same node", () => {
     mount();
     fireEvent.click(screen.getByRole("button", { name: "Configurar Oferta" }));
@@ -240,8 +270,14 @@ describe("funnel board page and graph integration", () => {
 
   it("duplicates a selected graph with new internal references and retains the connection label and control points", () => {
     mount();
-    fireEvent.keyDown(document.body, { key: "a", ctrlKey: true });
-    fireEvent.keyDown(document.body, { key: "d", ctrlKey: true });
+    fireEvent.keyDown(screen.getByRole("region", { name: "Quadro do funil" }), {
+      key: "a",
+      ctrlKey: true,
+    });
+    fireEvent.keyDown(screen.getByRole("region", { name: "Quadro do funil" }), {
+      key: "d",
+      ctrlKey: true,
+    });
     const saved = saveToVault();
     expect(saved.nodes).toHaveLength(6);
     const copy = saved.nodes.filter(
@@ -273,7 +309,10 @@ describe("funnel board page and graph integration", () => {
       }),
     );
     mount(board);
-    fireEvent.keyDown(document.body, { key: "v", ctrlKey: true });
+    fireEvent.keyDown(screen.getByRole("region", { name: "Quadro do funil" }), {
+      key: "v",
+      ctrlKey: true,
+    });
     const saved = saveToVault();
     const copy = saved.nodes.find(
       (node) => !board.nodes.some((original) => original.id === node.id),
@@ -299,7 +338,9 @@ describe("funnel board page and graph integration", () => {
     expect(paths).toHaveLength(2);
     // Ordinary edges are rendered first, then lines derived from redirect rules.
     fireEvent.pointerDown(paths[1]);
-    fireEvent.keyDown(document.body, { key: "Delete" });
+    fireEvent.keyDown(screen.getByRole("region", { name: "Quadro do funil" }), {
+      key: "Delete",
+    });
     expect(container.querySelectorAll(".funnel__edge-hit")).toHaveLength(1);
     const saved = saveToVault();
     expect(
@@ -314,7 +355,9 @@ describe("funnel board page and graph integration", () => {
       '[data-in="checkout"].funnel__node',
     )!;
     fireEvent.contextMenu(checkout, { clientX: 50, clientY: 50 });
-    fireEvent.keyDown(document.body, { key: "Delete" });
+    fireEvent.keyDown(screen.getByRole("region", { name: "Quadro do funil" }), {
+      key: "Delete",
+    });
     const saved = saveToVault();
     expect(saved.nodes.map((node) => node.id)).not.toContain("checkout");
     expect(saved.edges).toEqual([]);

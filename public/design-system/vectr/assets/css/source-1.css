@@ -1,0 +1,36 @@
+/* Custom Button Shapes & Hover Effects */
+.btn-cut {
+clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+position: relative;
+overflow: hidden;
+}
+.btn-cut::before {
+content: '';
+position: absolute;
+top: 0; left: -100%; width: 100%; height: 100%;
+background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+transition: left 0.5s ease;
+}
+.btn-cut:hover::before { left: 100%; }
+.btn-outline-cut {
+clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+position: relative;
+}
+.btn-outline-cut::after {
+content: ''; position: absolute; inset: 1px;
+background: #0A0A0A;
+clip-path: polygon(11px 0, 100% 0, 100% calc(100% - 11px), calc(100% - 11px) 100%, 0 100%, 0 11px);
+z-index: -1;
+}
+/* Animations */
+@keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+.animate-marquee { animation: marquee 20s linear infinite; }
+.group:hover .animate-marquee { animation-play-state: paused; }
+@keyframes scanline { 0% { transform: translateY(-100%); } 100% { transform: translateY(1000%); } }
+.animate-scanline { animation: scanline 8s linear infinite; }
+@keyframes drawLogo { 0% { stroke-dashoffset: 100; } 100% { stroke-dashoffset: 0; } }
+.logo-path { stroke-dasharray: 100; animation: drawLogo 2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+/* Utilities */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.glass-panel { background: rgba(10, 10, 10, 0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }

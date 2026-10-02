@@ -12,6 +12,10 @@
 
 # testing
 /coverage
+/work/
+/storybook-static/
+/playwright-report/
+/test-results/
 
 # next.js
 /.next/
@@ -50,3 +54,4 @@ next-env.d.ts
 # Bytecode dentro de public/ seria servido publicamente pela Vercel.
 __pycache__/
 *.pyc
+

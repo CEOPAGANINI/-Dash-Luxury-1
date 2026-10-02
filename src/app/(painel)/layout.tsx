@@ -38,6 +38,7 @@ export default async function PainelLayout({
         <div
           className="dash-skin cl cl-workspace bg-background text-foreground flex min-h-svh w-full"
           data-design-system="commandlayer"
+          data-visual-theme="vectr"
           data-demo-mode={session.demoMode ? "true" : undefined}
         >
           <AppSidebar user={session.user} unreadCount={unreadCount} />

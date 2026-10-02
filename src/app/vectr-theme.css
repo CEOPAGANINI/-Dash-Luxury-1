@@ -1,0 +1,248 @@
+@font-face {
+  font-family: "Newsreader";
+  font-style: italic;
+  font-weight: 200 400;
+  font-display: swap;
+  src: url(/design-system/vectr/assets/fonts/cY9CfjOCX1hbuyalUrK439vCgYhCBJWxZCPp.woff2)
+    format("woff2");
+  unicode-range:
+    U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1,
+    U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329,
+    U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: "Newsreader";
+  font-style: italic;
+  font-weight: 200 400;
+  font-display: swap;
+  src: url(/design-system/vectr/assets/fonts/cY9CfjOCX1hbuyalUrK439vCgIhCBJWxZCPp.woff2)
+    format("woff2");
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304,
+    U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB,
+    U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Newsreader";
+  font-style: italic;
+  font-weight: 200 400;
+  font-display: swap;
+  src: url(/design-system/vectr/assets/fonts/cY9CfjOCX1hbuyalUrK439vCjohCBJWxZA.woff2)
+    format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Newsreader";
+  font-style: normal;
+  font-weight: 200 400;
+  font-display: swap;
+  src: url(/design-system/vectr/assets/fonts/cY9AfjOCX1hbuyalUrK439HyjIJFJpeBZQ.woff2)
+    format("woff2");
+  unicode-range:
+    U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1,
+    U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329,
+    U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: "Newsreader";
+  font-style: normal;
+  font-weight: 200 400;
+  font-display: swap;
+  src: url(/design-system/vectr/assets/fonts/cY9AfjOCX1hbuyalUrK439DyjIJFJpeBZQ.woff2)
+    format("woff2");
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304,
+    U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB,
+    U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Newsreader";
+  font-style: normal;
+  font-weight: 200 400;
+  font-display: swap;
+  src: url(/design-system/vectr/assets/fonts/cY9AfjOCX1hbuyalUrK4397yjIJFJpc.woff2)
+    format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+/* VECTR reference palette and dashboard adaptation. Shared semantic aliases
+   remain owned by CommandLayer; operational colors are intentionally distinct. */
+@layer commandlayer {
+  body:has([data-visual-theme="vectr"]),
+  [data-visual-theme="vectr"] {
+    --cl-canvas: #0a0a0a;
+    --cl-screen: #0a0a0a;
+    --cl-chassis: #111111;
+    --cl-well: #050505;
+    --cl-terminal: #050505;
+    --cl-readout: #0a0a0a;
+    --cl-card-top: #111111;
+    --cl-raised: #171717;
+    --cl-hover: #202020;
+    --cl-border: #333333;
+    --cl-border-strong: #555555;
+    --cl-text-primary: #f3f2ee;
+    --cl-text-secondary: #e0dfda;
+    --cl-text-body: #c4c3bf;
+    --cl-text-muted: #a0a0a0;
+    --cl-text-dim: #999999;
+    --cl-accent: #ff633d;
+    --cl-activity: #ff633d;
+    --cl-cta-top: #ff3300;
+    --cl-cta-bottom: #ff3300;
+    --cl-cta-hover-top: #ff633d;
+    --cl-cta-hover-bottom: #ff633d;
+    --cl-success: #34d399;
+    --cl-warning: #fbbf24;
+    --cl-danger: #fb7185;
+    --cl-selection: rgb(255 51 0 / 12%);
+    --cl-display: "Newsreader", Georgia, serif;
+    --font-display: var(--cl-display);
+    --cl-shadow-chassis: none;
+    --cl-shadow-nav: none;
+    --cl-shadow-card: none;
+    --cl-shadow-metric: none;
+    --cl-shadow-inset: none;
+    --cl-shadow-screen: none;
+    --cl-shadow-highlight: none;
+    --cl-shadow-button: none;
+    --cl-shadow-tab: none;
+    --cl-shadow-overlay: 0 24px 64px rgb(0 0 0 / 35%);
+    --cl-shadow-led: 0 0 8px rgb(52 211 153 / 35%);
+    --primary-foreground: #0a0a0a;
+    --material: var(--cl-chassis);
+    --material-hover: var(--cl-raised);
+    --text-page-title: clamp(2rem, 3.5vw, 3.5rem);
+    --text-section-title: clamp(1.5rem, 2vw, 2rem);
+    --text-caption: 0.8125rem;
+  }
+  html[data-tema="branco"] body:has([data-visual-theme="vectr"]),
+  html[data-tema="branco"] [data-visual-theme="vectr"] {
+    --cl-canvas: #f3f2ee;
+    --cl-screen: #f3f2ee;
+    --cl-chassis: #faf9f6;
+    --cl-well: #e6e5e0;
+    --cl-terminal: #ebeae5;
+    --cl-readout: #f3f2ee;
+    --cl-card-top: #faf9f6;
+    --cl-raised: #e9e8e2;
+    --cl-hover: #e0dfd8;
+    --cl-border: #d1d0c9;
+    --cl-border-strong: #99988f;
+    --cl-text-primary: #0a0a0a;
+    --cl-text-secondary: #333333;
+    --cl-text-body: #444444;
+    --cl-text-muted: #555555;
+    --cl-text-dim: #666666;
+    --cl-accent: #b82400;
+    --cl-activity: #b82400;
+    --cl-cta-top: #ff3300;
+    --cl-cta-bottom: #ff3300;
+    --cl-cta-hover-top: #ff633d;
+    --cl-cta-hover-bottom: #ff633d;
+    --cl-selection: rgb(184 36 0 / 8%);
+    --cl-success: #047857;
+    --cl-warning: #925900;
+    --cl-danger: #be123c;
+    --cl-info: #1d4ed8;
+    --cl-violet: #6d28d9;
+    --cl-pink: #be185d;
+    --cl-on-status: #ffffff;
+  }
+
+  .cl[data-visual-theme="vectr"] .cl-workspace-scroll {
+    background: var(--cl-canvas);
+    border: 0;
+    padding: clamp(20px, 3vw, 48px);
+  }
+  .cl[data-visual-theme="vectr"] :is(h1, h2):not(.dash-checkout-pagina *) {
+    font-family: var(--cl-display);
+    font-weight: 400;
+    letter-spacing: -0.045em;
+    line-height: 1.12;
+  }
+  .cl[data-visual-theme="vectr"] h1 {
+    font-size: var(--text-page-title);
+  }
+  .cl[data-visual-theme="vectr"] :is(h3, h4, [data-slot="card-title"]) {
+    font-family: var(--cl-sans);
+    font-weight: 500;
+  }
+  .cl[data-visual-theme="vectr"] :is(button, select, [role="tab"], label, th) {
+    font-family: var(--cl-sans);
+  }
+  .cl[data-visual-theme="vectr"] [data-slot="button"].bg-primary,
+  .cl[data-visual-theme="vectr"] .bg-primary {
+    background: #ff3300;
+    color: #0a0a0a;
+    font-weight: 600;
+  }
+  .cl[data-visual-theme="vectr"] [data-slot="button"].bg-primary {
+    clip-path: polygon(
+      8px 0,
+      100% 0,
+      100% calc(100% - 8px),
+      calc(100% - 8px) 100%,
+      0 100%,
+      0 8px
+    );
+  }
+  /* Inset focus survives clipped corners. Other controls retain outer focus. */
+  .cl[data-visual-theme="vectr"] [data-slot="button"].bg-primary:focus-visible {
+    outline: 0;
+    box-shadow:
+      inset 0 0 0 3px #0a0a0a,
+      inset 0 0 0 5px #f3f2ee;
+  }
+  .cl[data-visual-theme="vectr"]
+    :is(a, button, input, select, textarea, [tabindex]):focus-visible {
+    outline-color: var(--cl-accent);
+  }
+  .cl[data-visual-theme="vectr"]
+    :is(.visual-overview-kpi, .visual-overview-zone)::before {
+    display: none;
+  }
+  .cl[data-visual-theme="vectr"] .visual-overview-kpi > strong {
+    font-family: var(--cl-display);
+    font-size: clamp(2rem, 3vw, 3.75rem);
+    font-weight: 400;
+    font-variant-numeric: tabular-nums;
+  }
+  .cl[data-visual-theme="vectr"] .visual-overview-zone-heading p {
+    font: 400 clamp(1.5rem, 2vw, 2rem)/1.15 var(--cl-display);
+  }
+  .cl[data-visual-theme="vectr"]
+    :is(
+      .visual-overview-kpi-top p,
+      .visual-overview-kpi-delta,
+      .visual-overview-filters button
+    ) {
+    font-size: 12px;
+  }
+  .cl[data-visual-theme="vectr"] table {
+    font-variant-numeric: tabular-nums;
+  }
+  .cl[data-visual-theme="vectr"] th {
+    color: var(--cl-text-muted);
+    font-weight: 500;
+  }
+  .cl[data-visual-theme="vectr"] :is(code, kbd, samp, .font-mono) {
+    font-family: var(--cl-mono);
+  }
+  .cl[data-visual-theme="vectr"] [aria-current="page"] {
+    border-inline-start-color: var(--cl-accent);
+  }
+  @media (max-width: 639px) {
+    .cl[data-visual-theme="vectr"] .cl-workspace-scroll {
+      padding: 20px 12px;
+    }
+    .cl[data-visual-theme="vectr"] :is(input, select, [data-slot="button"]) {
+      min-height: 44px;
+    }
+  }
+}

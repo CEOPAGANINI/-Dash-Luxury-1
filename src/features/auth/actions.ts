@@ -19,8 +19,7 @@ export interface AuthActionResult {
 }
 
 const NOT_CONFIGURED_ERROR =
-  "O Supabase ainda não está configurado (NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY). " +
-  "Enquanto isso, o painel está disponível em modo demonstração.";
+  "Autenticação indisponível. Entre em contato com o administrador do painel.";
 
 /*
   Destino depois do login: só caminho DESTE site. `startsWith("/")` deixava

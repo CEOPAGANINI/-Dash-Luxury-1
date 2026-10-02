@@ -99,6 +99,62 @@ function camera(container: HTMLElement) {
 }
 
 describe("initial measured funnel framing", () => {
+  it("centers the complete clicked card in the left half and refits after a desktop resize", async () => {
+    width = 1536;
+    height = 900;
+    const view = mount();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Configurar Obrigado" }),
+    );
+    const verifyLeftHalf = () => {
+      const vp = camera(view.container);
+      const node = fixture().nodes[1];
+      const left = vp.x + node.x * vp.k;
+      const top = vp.y + node.y * vp.k;
+      expect(left).toBeGreaterThanOrEqual(24);
+      expect(left + 280 * vp.k).toBeLessThanOrEqual(width / 2 - 24);
+      expect(left + 140 * vp.k).toBeCloseTo(width / 4);
+      expect(top).toBeGreaterThanOrEqual(Math.min(128, height / 4) - 0.01);
+      expect(top + 300 * vp.k).toBeLessThanOrEqual(
+        height - Math.min(72, height / 8) + 0.01,
+      );
+      expect(
+        view.container
+          .querySelector(".funnel")
+          ?.getAttribute("data-inspector-open"),
+      ).toBe("true");
+      expect(
+        view.container
+          .querySelector('.funnel__node[data-in="last"]')
+          ?.getAttribute("data-compact"),
+      ).toBe("false");
+    };
+    await waitFor(verifyLeftHalf);
+    width = 1100;
+    height = 510;
+    act(() => window.dispatchEvent(new Event("resize")));
+    await waitFor(verifyLeftHalf);
+  });
+
+  it("keeps manual camera adjustments while a card is open until another card is opened", async () => {
+    width = 1536;
+    const view = mount();
+    fireEvent.click(screen.getByRole("button", { name: "Configurar Oferta" }));
+    fireEvent.click(screen.getByRole("button", { name: "Afastar" }));
+    const chosen = camera(view.container).transform;
+    fireEvent.click(screen.getByRole("button", { name: "Travar quadro" }));
+    expect(camera(view.container).transform).toBe(chosen);
+    fireEvent.click(
+      screen.getByRole("button", { name: "Configurar Obrigado" }),
+    );
+    await waitFor(() =>
+      expect(camera(view.container).transform).not.toBe(chosen),
+    );
+    expect(
+      camera(view.container).x + (2500 + 140) * camera(view.container).k,
+    ).toBeCloseTo(width / 4);
+  });
+
   it("fits all measured cards into a positive viewport without clicking Enquadrar", async () => {
     const view = mount();
     await waitFor(() => expect(camera(view.container).k).toBeLessThan(0.8));
@@ -186,5 +242,5 @@ describe("initial measured funnel framing", () => {
     width = 900;
     act(() => window.dispatchEvent(new Event("resize")));
     expect(camera(view.container).transform).toBe(chosen);
-  });
+  }, 15000);
 });

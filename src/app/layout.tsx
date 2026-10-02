@@ -11,6 +11,9 @@ import { Toaster } from "sonner";
 import { brand } from "@/lib/brand";
 import "./globals.css";
 import "./command-layer.css";
+import "../theme/tokens.css";
+import "../theme/dashboard-design-system.css";
+import "./vectr-theme.css";
 
 /*
   Sistema de fontes em três papéis:

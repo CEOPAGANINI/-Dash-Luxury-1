@@ -13,6 +13,10 @@ const id = z
 const numero = z.number().finite();
 const positivo = numero.nonnegative();
 const flags = z.record(z.string(), z.boolean());
+const connectionAnchor = z.object({
+  side: z.enum(["top", "right", "bottom", "left"]),
+  offset: numero.min(0).max(1),
+});
 const linha = z.object({
   forma: z.enum(["curva", "reta", "cotovelo", "livre"]).optional(),
   pontas: z.enum(["fim", "ambas", "nenhuma"]).optional(),
@@ -20,6 +24,8 @@ const linha = z.object({
   fluxo: z.boolean().optional(),
   cor: texto.optional(),
   espessura: z.union([z.literal(1), z.literal(2), z.literal(3)]).optional(),
+  sourceAnchor: connectionAnchor.optional(),
+  targetAnchor: connectionAnchor.optional(),
   pontos: z
     .array(z.object({ x: numero, y: numero }))
     .max(500)
@@ -150,11 +156,10 @@ const node = z
     imageUrl: texto.optional(),
     cor: texto.optional(),
     sigla: texto.optional(),
+    marcaId: z.string().max(100).optional(),
+    trafficStoreNodeId: id.optional(),
     pagina: pagina.optional(),
-    redir: z.object({
-      regras: z.array(regra).max(500),
-      campanhaId: z.string().regex(/^[1-9]\d{0,11}$/).optional(),
-    }).optional(),
+    redir: z.object({ regras: z.array(regra).max(500) }).optional(),
     estilo: z
       .object({
         cor: texto.optional(),
@@ -189,6 +194,11 @@ const node = z
         dominio: texto.optional(),
         moeda: z.enum(["BRL", "USD"]),
         destaqueId: texto.optional(),
+        metaBusinessIds: z
+          .array(z.string().regex(/^\d+$/).max(100))
+          .max(5)
+          .refine((ids) => new Set(ids).size === ids.length)
+          .optional(),
         produtos: z
           .array(
             z.object({
@@ -299,5 +309,3 @@ export function funilSemArquivosTemporarios(value: unknown): FunnelData {
     })),
   };
 }
-
-

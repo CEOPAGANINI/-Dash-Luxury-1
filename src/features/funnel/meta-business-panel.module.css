@@ -1,0 +1,257 @@
+.panel.panel {
+  width: min(600px, calc(100vw - 24px));
+  max-width: none;
+}
+.panel header > div {
+  flex: 1;
+}
+.panel h2 {
+  margin: 6px 0 0;
+  font-size: 18px;
+}
+.body {
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.body label:not(.check) {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-weight: 600;
+  font-size: 12px;
+}
+.body select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #34343d;
+  border-radius: 7px;
+  color: #eee;
+  background: #18181e;
+}
+.body input[type="number"] {
+  width: 100%;
+  padding: 10px;
+  color: #eee;
+  background: #18181e;
+  border: 1px solid #34343d;
+  border-radius: 7px;
+}
+.demoBanner {
+  padding: 12px;
+  border: 1px solid #9d7b36;
+  border-radius: 8px;
+  background: #332d20;
+  color: #fce5a6;
+  font-size: 11px;
+}
+.overview {
+  border: 1px solid #3d526d;
+  background: #162130;
+  border-radius: 9px;
+  padding: 14px;
+}
+.health {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #a7f3d0;
+  font-size: 11px;
+  margin: 10px 0;
+}
+.settings {
+  margin-top: 12px;
+}
+.creative {
+  max-width: 360px;
+  margin: 12px auto;
+  color: #202633;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.creativeHead,
+.creativeFooter {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.creativeHead small {
+  color: #5b6473;
+}
+.creative p {
+  padding: 0 12px;
+}
+.creativeArt {
+  min-height: 210px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  color: #fff;
+  background: linear-gradient(135deg, #143f5b, #478079);
+  text-align: center;
+}
+.creativeArt strong {
+  font-size: 21px;
+}
+.creativeArt span {
+  font-size: 10px;
+}
+.play {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.creativeFooter {
+  background: #e7ebee;
+  font-size: 11px;
+}
+.creativeFooter span {
+  align-self: flex-end;
+  background: #cdd6dd;
+  padding: 7px;
+  border-radius: 4px;
+}
+.settings .businesses {
+  margin: 12px 0;
+}
+.item {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 150px;
+}
+.body button {
+  padding: 8px 10px;
+  border: 1px solid #34343d;
+  border-radius: 6px;
+  color: #eee;
+  background: #24242d;
+  cursor: pointer;
+}
+.body button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.body button:focus-visible,
+.body select:focus-visible,
+.check input:focus-visible {
+  outline: 2px solid #60a5fa;
+  outline-offset: 2px;
+}
+.body h3 {
+  font-size: 14px;
+  margin: 0 0 8px;
+}
+.body h4 {
+  margin: 0 0 6px;
+  font-size: 13px;
+}
+.body p {
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 8px 0;
+}
+.note {
+  color: #aaaab6;
+  font-size: 11px !important;
+}
+.toolbar,
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.toolbar a {
+  color: #93c5fd;
+  font-size: 12px;
+}
+.businesses {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.check {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  padding: 9px;
+  border: 1px solid #34343d;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+}
+.check input {
+  accent-color: #1877f2;
+}
+.check small {
+  display: block;
+  color: #a1a1aa;
+  padding-top: 3px;
+}
+.error {
+  padding: 10px;
+  background: #392128;
+  color: #fecaca;
+  border-radius: 7px;
+  font-size: 12px;
+}
+.tabs {
+  margin: 14px 0;
+}
+.tabs button {
+  font-size: 11px;
+}
+.tabs button[aria-pressed="true"] {
+  background: #1c4477;
+  border-color: #60a5fa;
+}
+.filters {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 12px 0;
+}
+.metrics div {
+  background: #191920;
+  border: 1px solid #30303b;
+  border-radius: 7px;
+  padding: 11px;
+}
+.metrics dt {
+  color: #a1a1aa;
+  font-size: 10px;
+}
+.metrics dd {
+  margin: 6px 0 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+.item {
+  border: 1px solid #34343d;
+  border-radius: 8px;
+  padding: 12px;
+  margin: 10px 0;
+  overflow-wrap: anywhere;
+}
+.item small {
+  color: #a1a1aa;
+  font-size: 10px;
+}
+.body details {
+  padding: 10px;
+  border: 1px solid #34343d;
+  border-radius: 7px;
+  font-size: 12px;
+}

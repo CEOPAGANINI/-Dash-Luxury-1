@@ -1,0 +1,2020 @@
+/* Import after funnel.css. This scoped layer refines the existing editor;
+   it does not alter the dashboard theme or the funnel's stored data. */
+.funnel {
+  color-scheme: dark;
+  font-family: var(--flow-sans);
+  font-size: 14px;
+  line-height: 1.55;
+  accent-color: var(--flow-primary);
+}
+
+.funnel[data-tema="papel"] {
+  color-scheme: light;
+}
+
+.funnel.flow-portal-scope {
+  display: contents;
+  height: auto;
+  min-height: 0;
+  overflow: visible;
+  user-select: text;
+  touch-action: auto;
+  --background: var(--flow-surface);
+  --foreground: var(--flow-text);
+  --muted-foreground: var(--flow-text-secondary);
+  --card: var(--flow-surface-raised);
+  --border: var(--flow-border-functional);
+}
+
+.funnel .flow-tooltip {
+  z-index: 220;
+  max-width: 260px;
+  padding: 8px 12px;
+  background: var(--flow-surface-raised);
+  color: var(--flow-text);
+  border: 1px solid var(--flow-border-functional);
+  border-radius: var(--flow-radius-sm);
+  box-shadow: var(--flow-shadow-panel);
+  font: 12px/18px var(--flow-sans);
+}
+
+.funnel .flow-confirm-dialog {
+  max-width: calc(100vw - 32px);
+  width: 440px;
+}
+
+.funnel .flow-confirm-dialog h2 {
+  margin: 0 0 8px;
+  font-size: 20px;
+}
+
+.funnel .flow-confirm-dialog p {
+  color: var(--flow-text-secondary);
+  margin: 0 0 24px;
+}
+
+.funnel .flow-confirm-dialog footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.funnel :is(button, input, textarea, select, label, th, h1, h2, h3, h4) {
+  font-family: var(--flow-sans);
+  letter-spacing: normal;
+}
+
+.funnel :is(button, input, textarea, select, a):focus-visible {
+  outline: 2px solid var(--flow-primary);
+  outline-offset: 3px;
+}
+
+.funnel :is(button, input, textarea, select):disabled {
+  cursor: not-allowed;
+}
+
+.funnel :is(button, input, textarea, select):disabled:not([type="range"]) {
+  color: var(--flow-text-muted);
+  background: var(--flow-surface-raised);
+  border-color: var(--flow-border);
+  opacity: 1;
+}
+
+.funnel :is(button, a, input, select, textarea) {
+  touch-action: manipulation;
+}
+
+.funnel :is(.funnel__panel, .pub, .funnel__dialog, .funnel__ctx) {
+  touch-action: pan-y;
+  user-select: text;
+}
+
+/* Cards keep their familiar 280px geometry and gain readable hierarchy. */
+.funnel .flow-inspector {
+  position: fixed;
+  inset: 0;
+  z-index: 160;
+  background: var(--flow-surface);
+  color: var(--flow-text);
+  outline: none;
+}
+
+.funnel .flow-inspector .pub {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  box-sizing: border-box;
+  border-radius: 0;
+}
+
+.funnel .funnel__node {
+  width: var(--flow-node-width);
+}
+
+.funnel .funnel__node-shell {
+  border-radius: var(--flow-radius-md);
+  background: var(--fn-node-raised);
+  box-shadow: var(--flow-shadow-node);
+  transition:
+    border-color var(--flow-duration-fast) ease,
+    outline-color var(--flow-duration-fast) ease,
+    box-shadow var(--flow-duration-fast) ease;
+}
+
+.funnel .funnel__node:not([data-cor]):hover .funnel__node-shell {
+  border-color: var(--flow-border-functional);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 32%);
+}
+
+.funnel .funnel__node[data-selected="true"] .funnel__node-shell {
+  border-color: var(--flow-primary);
+  outline: 2px solid var(--flow-primary);
+  outline-offset: 0;
+  box-shadow:
+    0 0 0 4px var(--flow-primary-soft),
+    0 4px 20px color-mix(in srgb, var(--flow-primary) 12%, transparent);
+}
+
+.funnel .funnel__node-head {
+  min-height: 56px;
+  height: auto;
+  padding: 12px 16px;
+  gap: 10px;
+  border-radius: var(--flow-radius-md) var(--flow-radius-md) 0 0;
+  background: var(--fn-node-top);
+}
+
+.funnel .funnel__node-icon {
+  border-radius: var(--flow-radius-sm);
+  background: var(--fn-node-frame);
+  color: var(--flow-text-secondary);
+}
+
+.funnel .funnel__node-kind {
+  font-family: var(--flow-sans);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.funnel .funnel__node-badge {
+  height: 24px;
+  border-radius: var(--flow-radius-sm);
+  font: 12px/18px var(--flow-mono);
+}
+
+.funnel .funnel__node-body {
+  min-height: 140px;
+  gap: 8px;
+  padding: 16px;
+}
+
+.funnel .funnel__node-body:hover {
+  background: var(--flow-surface-hover);
+}
+
+.funnel .funnel__node-body:focus-visible {
+  outline-offset: -3px;
+}
+
+.funnel .funnel__node-name {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.funnel .funnel__node-headline {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  min-height: 0;
+  font-size: 14px;
+  line-height: 22px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  color: var(--fn-node-sub);
+}
+
+.funnel .funnel__node-url {
+  font-size: 12px;
+  line-height: 18px;
+  font-family: var(--flow-mono);
+}
+
+.funnel :is(.funnel__node-prev, .funnel__node-metricas) {
+  font-family: var(--flow-mono);
+  font-size: 12px;
+  line-height: 18px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  color: var(--fn-node-sub);
+}
+
+.funnel .funnel__node-foot {
+  height: auto;
+  min-height: 44px;
+  padding: 12px 16px;
+  border-radius: 0 0 var(--flow-radius-md) var(--flow-radius-md);
+  font-family: var(--flow-sans);
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: normal;
+}
+
+.funnel .funnel__node-foot i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.funnel .funnel__node-status {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.funnel .funnel__node-status [data-state="ready"] {
+  color: var(--flow-primary);
+}
+
+.funnel .funnel__node-status [data-state="pending"] {
+  color: var(--flow-warning);
+}
+
+.funnel .funnel__node-status [data-state="published"] {
+  color: var(--flow-info);
+}
+
+.funnel .funnel__node-next {
+  display: block;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--flow-text-secondary);
+  white-space: normal;
+}
+
+/* Low zoom removes secondary summaries, never editable fields or controls. */
+.funnel .funnel__node[data-compact="true"] .funnel__node-body {
+  min-height: 72px;
+}
+
+.funnel
+  .funnel__node[data-compact="true"]
+  :is(
+    .funnel__node-headline,
+    .funnel__node-url,
+    .funnel__node-prev,
+    .funnel__node-metricas,
+    .funnel__node-checklist,
+    .funnel__redir-lista,
+    .funnel__node-next
+  ) {
+  display: none;
+}
+
+.funnel .funnel__node[data-compact="true"] .funnel__node-name {
+  font-size: 18px;
+  line-height: 26px;
+}
+
+.funnel .funnel__edge {
+  stroke-width: 3;
+}
+
+.funnel .funnel__edge[data-selected="true"] {
+  stroke: var(--flow-routing);
+  stroke-width: 4;
+}
+
+.funnel .funnel__edge-rotulo text {
+  font-family: var(--flow-sans);
+  font-size: 12px;
+}
+
+.funnel .funnel__edge-rotulo rect {
+  fill: var(--flow-surface);
+  stroke: var(--flow-border-functional);
+  rx: 4px;
+}
+
+.funnel .funnel__edge-rotulo[data-selected] rect {
+  stroke: var(--flow-primary);
+}
+
+.funnel .funnel__handle {
+  width: 16px;
+  height: 16px;
+  margin-top: -8px;
+  border-radius: 5px;
+  outline-color: var(--flow-border-functional);
+}
+
+.funnel .funnel__handle::before {
+  content: "";
+  position: absolute;
+  inset: -10px;
+}
+
+.funnel .funnel__handle--in {
+  left: -8px;
+}
+
+.funnel .funnel__handle--out {
+  right: -8px;
+}
+
+/* Tools share one density and remain reachable on short viewports. */
+.funnel .funnel__rail {
+  --fn-rail-accent: var(--flow-primary);
+  --fn-rail-accent-dim: transparent;
+  width: 64px;
+  gap: 8px;
+  padding: 12px 0;
+  background: var(--flow-surface);
+  border-left-color: var(--flow-border);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  touch-action: pan-y;
+}
+
+.funnel .funnel__rail-btn {
+  flex-shrink: 0;
+  width: var(--flow-control);
+  height: var(--flow-control);
+  border-radius: var(--flow-radius-md);
+  border-color: var(--flow-border-functional);
+  background: var(--flow-surface-raised);
+  color: var(--flow-text-secondary);
+}
+
+.funnel .funnel__rail-btn[data-on="true"] {
+  color: var(--flow-on-primary);
+  box-shadow: none;
+}
+
+.funnel .funnel__zoom {
+  left: 16px;
+  bottom: 16px;
+  flex-direction: row;
+  border-color: var(--flow-border-functional);
+  overflow: visible;
+}
+
+.funnel .funnel__zoom button {
+  width: var(--flow-control);
+  height: var(--flow-control);
+  border-bottom: 0;
+  border-right: 1px solid var(--flow-border);
+}
+
+.funnel .funnel__zoom button:last-child {
+  border-right: 0;
+}
+
+.funnel .funnel__zoom-value {
+  display: grid;
+  place-items: center;
+  min-width: 56px;
+  padding: 0 8px;
+  font: 12px/18px var(--flow-mono);
+  color: var(--flow-text-secondary);
+}
+
+.funnel .funnel__view-switch {
+  position: absolute;
+  z-index: var(--flow-z-toolbar);
+  top: 16px;
+  left: 16px;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-width: calc(100% - 96px);
+  padding: 4px;
+  border: 1px solid var(--flow-border-functional);
+  border-radius: var(--flow-radius-md);
+  background: var(--flow-surface);
+}
+
+.funnel .funnel__view-switch button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: var(--flow-control);
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: var(--flow-radius-sm);
+  background: transparent;
+  color: var(--flow-text-secondary);
+  cursor: pointer;
+}
+
+.funnel .funnel__view-switch button[aria-pressed="true"] {
+  color: var(--flow-text);
+  background: var(--flow-surface-raised);
+  border-color: var(--flow-border-functional);
+}
+
+.funnel .funnel__sync {
+  top: 76px;
+  left: 16px;
+  z-index: var(--flow-z-toolbar);
+  max-width: min(440px, calc(100% - 96px));
+  padding: 8px 12px;
+  border-radius: var(--flow-radius-md);
+  background: var(--flow-surface);
+  border-color: var(--flow-border);
+  font: 12px/18px var(--flow-sans);
+  color: var(--flow-text-secondary);
+  white-space: normal;
+}
+
+.funnel .funnel__sync[data-state="error"] {
+  border-color: var(--flow-danger);
+  color: var(--flow-danger);
+  background: var(--flow-danger-soft);
+}
+
+.funnel .funnel__sync[data-state="saving"] {
+  color: var(--flow-info);
+}
+
+.funnel .funnel__sync[data-state="saved"] {
+  color: var(--flow-primary);
+}
+
+.funnel .funnel__sync[data-state="local"] {
+  opacity: 1;
+}
+
+.funnel .funnel__sync button {
+  min-height: 32px;
+  padding: 0 4px;
+  color: inherit;
+}
+
+/* All inspectors use the same shell, including the redirector. */
+.funnel .pub {
+  width: min(var(--flow-inspector-width), calc(100% - 64px));
+  z-index: var(--flow-z-inspector);
+  background: var(--flow-surface);
+  border-left-color: var(--flow-border);
+  box-shadow: var(--flow-shadow-panel);
+  font-family: var(--flow-sans);
+}
+
+.funnel .pub__head {
+  padding: 12px 16px;
+}
+
+.funnel .pub__head-id {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.funnel .pub__nome {
+  flex-basis: 150px;
+  font-size: 16px;
+  line-height: 24px;
+  min-height: 32px;
+  font-weight: 600;
+}
+
+.funnel .pub__badge {
+  font: 12px/18px var(--flow-sans);
+  letter-spacing: normal;
+  text-transform: none;
+  background: var(--flow-surface-raised);
+}
+
+.funnel .pub__badge[data-on] {
+  color: var(--flow-on-primary);
+  background: var(--flow-primary);
+  border-color: var(--flow-primary);
+}
+
+.funnel .pub__x {
+  width: var(--flow-control);
+  height: var(--flow-control);
+  border: 1px solid var(--flow-border-functional);
+  border-radius: var(--flow-radius-md);
+  background: var(--flow-surface-raised);
+}
+
+.funnel .pub__url {
+  padding: 8px 16px;
+  font-size: 12px;
+}
+
+.funnel .pub__rail {
+  width: 72px;
+  gap: 8px;
+  padding: 12px 6px;
+  background: var(--flow-canvas);
+}
+
+.funnel .pub__rail-btn {
+  width: 60px;
+  min-height: 64px;
+  flex-shrink: 0;
+  padding: 8px 4px;
+  border-radius: var(--flow-radius-md);
+}
+
+.funnel .pub__rail-btn[data-on] {
+  color: var(--flow-primary);
+  background: var(--flow-primary-soft);
+  border-color: var(--flow-primary);
+  box-shadow: none;
+}
+
+.funnel .pub__rail-ic {
+  background: transparent;
+}
+
+.funnel .pub__rail-lbl {
+  font: 12px/16px var(--flow-sans);
+  text-transform: none;
+  white-space: normal;
+  overflow-wrap: normal;
+  overflow: visible;
+  max-width: 100%;
+}
+
+.funnel .pub__corpo {
+  gap: 16px;
+  padding: 16px;
+  scrollbar-color: var(--flow-border-functional) transparent;
+  overscroll-behavior: contain;
+}
+
+.funnel .pub__sec {
+  top: -16px;
+  margin: -16px -16px 0;
+  padding: 16px;
+  background: var(--flow-surface);
+  box-shadow: none;
+  border-bottom: 1px solid var(--flow-border);
+}
+
+.funnel .pub__sec-titulo {
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+}
+
+.funnel
+  :is(.pub__sec-sub, .funnel__panel-hint, .pub__hint, .pub__toggle-txt small) {
+  font-size: 14px;
+  line-height: 22px;
+  white-space: normal;
+  overflow: visible;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+}
+
+.funnel :is(.pub__panel, .pub__campo) {
+  gap: 12px;
+  padding: 16px;
+  background: var(--flow-surface-raised);
+  border-radius: var(--flow-radius-md);
+  font-size: 14px;
+}
+
+.funnel :is(.pub__campo > span, .pub__campo > label > span) {
+  font-size: 14px;
+  line-height: 22px;
+  font-weight: 500;
+  white-space: normal;
+  overflow: visible;
+}
+
+.funnel
+  :is(
+    .pub__input,
+    .funnel__input,
+    .funnel__fields input,
+    .funnel__fields textarea
+  ) {
+  min-width: 0;
+  min-height: var(--flow-control);
+  padding: 8px 12px;
+  border: 1px solid var(--flow-border-functional);
+  border-radius: var(--flow-radius-md);
+  background: var(--flow-canvas);
+  box-shadow: none;
+  color: var(--flow-text);
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.funnel :is(input, textarea)::placeholder {
+  color: var(--flow-text-muted);
+  opacity: 1;
+}
+
+.funnel :is(input, textarea, select)[aria-invalid="true"] {
+  border-color: var(--flow-danger);
+}
+
+.funnel :is(.funnel__fields label, .rdp__sim-grid label, .rdp__slider) {
+  font-size: 14px;
+  line-height: 22px;
+  color: var(--flow-text-secondary);
+}
+
+.funnel
+  :is(
+    .pub__btn,
+    .pub__chip,
+    .funnel__btn,
+    .pub__publicar,
+    .funnel__cfg-editor
+  ) {
+  min-height: var(--flow-control);
+  padding: 8px 12px;
+  border-radius: var(--flow-radius-md);
+  border-color: var(--flow-border-functional);
+  font-size: 14px;
+  line-height: 22px;
+  white-space: normal;
+  overflow: visible;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+  transition:
+    background var(--flow-duration-fast) ease,
+    border-color var(--flow-duration-fast) ease,
+    color var(--flow-duration-fast) ease;
+}
+
+.funnel :is(.pub__btn, .pub__chip, .funnel__btn):hover:not(:disabled) {
+  background: var(--flow-surface-hover);
+  border-color: var(--flow-text-secondary);
+  color: var(--flow-text);
+}
+
+.funnel :is(.funnel__btn--primary, .rdp__add, .pub__publicar:not(:disabled)) {
+  background: var(--flow-primary);
+  border-color: var(--flow-primary);
+  color: var(--flow-on-primary);
+  font-weight: 600;
+}
+
+.funnel
+  :is(.funnel__btn--primary, .rdp__add, .pub__publicar):hover:not(:disabled) {
+  background: var(--flow-primary-hover);
+  border-color: var(--flow-primary-hover);
+  color: var(--flow-on-primary);
+  opacity: 1;
+}
+
+.funnel .funnel__btn--danger {
+  background: var(--flow-danger-soft);
+  border-color: var(--flow-danger);
+  color: var(--flow-danger);
+}
+
+.funnel .funnel__btn--danger:hover:not(:disabled) {
+  background: var(--flow-danger-soft);
+  border-color: var(--flow-danger);
+  color: var(--flow-danger);
+}
+
+.funnel .pub__chip[data-on] {
+  color: var(--flow-primary);
+  background: var(--flow-primary-soft);
+  border-color: var(--flow-primary);
+}
+
+.funnel .pub__chip[data-on]:hover:not(:disabled) {
+  color: var(--flow-primary);
+  background: var(--flow-primary-soft);
+  border-color: var(--flow-primary);
+}
+
+.funnel .pub__foot {
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  background: var(--flow-surface);
+}
+
+.funnel .pub__foot-vps {
+  font: 12px/18px var(--flow-sans);
+  white-space: normal;
+  overflow: visible;
+  color: var(--flow-warning);
+}
+
+/* Readability beats legacy forced ellipses for validation and guidance. */
+.funnel
+  :is(
+    .pub__vazio,
+    .pub__vps,
+    .pub__saude-txt,
+    .pub__drop b,
+    .pub__drop span,
+    .pub__toggle-txt,
+    .blk__sobre p,
+    .blk__dica p,
+    .blk__sobre-p,
+    .funnel__modelos span,
+    .funnel__modelos small,
+    .funnel__item-label
+  ) {
+  white-space: normal;
+  overflow: visible;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+}
+
+.funnel .funnel__panel {
+  left: 16px;
+  top: 128px;
+  width: min(560px, calc(100% - 96px));
+  max-height: calc(100% - 200px);
+  padding: 24px;
+  border-radius: var(--flow-radius-lg);
+  background: var(--flow-surface);
+  overscroll-behavior: contain;
+}
+
+.funnel .funnel__panel-title {
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+}
+
+.funnel :is(.funnel__panel-sec, .funnel__ligar-sec) {
+  font: 12px/18px var(--flow-sans);
+  font-weight: 600;
+  text-transform: none;
+}
+
+.funnel .funnel__overlay {
+  z-index: var(--flow-z-dialog);
+}
+
+.funnel .funnel__dialog-close {
+  min-width: var(--flow-control);
+  min-height: var(--flow-control);
+}
+
+.funnel .funnel__dialog-foot {
+  flex-wrap: wrap;
+}
+
+.funnel .funnel__save-notice {
+  z-index: var(--flow-z-toast);
+  border-radius: var(--flow-radius-md);
+  border-color: var(--flow-border-functional);
+  background: var(--flow-surface);
+  color: var(--flow-text);
+}
+
+/* Redirector: explicit priority, fallback and explainable decisions. */
+.funnel .rdp__topo {
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.funnel .rdp__regra {
+  gap: 16px;
+  border-color: var(--flow-border-functional);
+}
+
+.funnel .rdp__regra[data-off] {
+  border-color: var(--flow-border-functional);
+  border-style: dashed;
+}
+
+.funnel .rdp__regra:focus {
+  outline: 2px solid var(--flow-primary);
+  outline-offset: 3px;
+}
+
+.funnel .rdp__regra[data-drag-over="true"] {
+  border-color: var(--flow-routing);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--flow-routing) 35%, transparent);
+}
+
+.funnel .rdp__regra-head {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  align-items: start;
+  gap: 8px;
+}
+
+.funnel .rdp__num {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--flow-border-functional);
+  border-radius: var(--flow-radius-sm);
+  background: var(--flow-surface);
+  color: var(--flow-text-secondary);
+  font: 12px/18px var(--flow-mono);
+}
+
+.funnel .rdp__quem {
+  font-size: 14px;
+  line-height: 22px;
+  white-space: normal;
+  overflow: visible;
+  overflow-wrap: anywhere;
+}
+
+.funnel .rdp__quem b {
+  color: var(--flow-text);
+  font-weight: 600;
+}
+
+.funnel .rdp__acoes {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.funnel .rdp__acoes button {
+  display: grid;
+  place-items: center;
+  width: var(--flow-control);
+  height: var(--flow-control);
+  border-color: var(--flow-border-functional);
+  border-radius: var(--flow-radius-md);
+  background: var(--flow-surface);
+  color: var(--flow-text-secondary);
+}
+
+.funnel .rdp__acoes button:hover:not(:disabled) {
+  background: var(--flow-surface-hover);
+  color: var(--flow-text);
+}
+
+.funnel .rdp__acoes button:disabled {
+  opacity: 1;
+}
+
+.funnel .rdp__acoes .rdp__drag {
+  cursor: grab;
+}
+
+.funnel .rdp__acoes .rdp__drag:active {
+  cursor: grabbing;
+}
+
+.funnel .rdp__rule-state {
+  display: inline-flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  width: fit-content;
+  padding: 2px 8px;
+  border: 1px solid var(--flow-primary);
+  border-radius: var(--flow-radius-sm);
+  color: var(--flow-primary);
+  background: var(--flow-primary-soft);
+  font: 12px/18px var(--flow-sans);
+  white-space: normal;
+}
+
+.funnel .rdp__rule-state[data-state="pending"] {
+  color: var(--flow-warning);
+  border-color: var(--flow-warning);
+  background: var(--flow-warning-soft);
+}
+
+.funnel .rdp__regra[data-off] .rdp__rule-state,
+.funnel .rdp__rule-state[data-off],
+.funnel .rdp__rule-state[data-state="inactive"] {
+  color: var(--flow-text-secondary);
+  background: var(--flow-surface);
+  border-color: var(--flow-border-functional);
+}
+
+.funnel :is(.rdp__tipos, .rdp__dest) .pub__chip[data-on] {
+  color: var(--flow-primary);
+  border-color: var(--flow-primary);
+  background: var(--flow-primary-soft);
+}
+
+.funnel :is(.rdp__lbl, .rdp__grupo-nome) {
+  font: 12px/18px var(--flow-sans);
+  font-weight: 500;
+  letter-spacing: normal;
+  text-transform: none;
+  white-space: normal;
+  overflow: visible;
+}
+
+.funnel .rdp__slider input[type="range"] {
+  min-height: 32px;
+  accent-color: var(--flow-primary);
+}
+
+.funnel .rdp__ver {
+  min-height: var(--flow-control);
+  padding: 4px 0;
+  color: var(--flow-info);
+  font-size: 14px;
+  text-align: left;
+}
+
+.funnel .rdp__default {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--flow-border-functional);
+  border-radius: var(--flow-radius-md);
+  background: var(--flow-surface-raised);
+  color: var(--flow-text);
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.funnel .rdp__default :is(h3, p) {
+  margin: 0;
+}
+
+.funnel .rdp__default p {
+  color: var(--flow-text-secondary);
+}
+
+.funnel .rdp__default strong {
+  display: block;
+  margin: 4px 0;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.funnel .rdp__default h3 {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+}
+
+.funnel :is(.rdp__notice, .rdp__demo) {
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--flow-info);
+  border-radius: var(--flow-radius-md);
+  color: var(--flow-info);
+  background: var(--flow-info-soft);
+  font-size: 14px;
+  line-height: 22px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.funnel .rdp__notice svg {
+  display: inline-block;
+  flex-shrink: 0;
+  vertical-align: -3px;
+  margin-right: 4px;
+}
+
+.funnel .rdp__notice small {
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.funnel .rdp__notice.rdp__help {
+  color: var(--flow-info);
+}
+
+.funnel .rdp__notice--warning {
+  color: var(--flow-warning);
+  border-color: var(--flow-warning);
+  background: var(--flow-warning-soft);
+}
+
+.funnel .rdp__notice--danger {
+  color: var(--flow-danger);
+  border-color: var(--flow-danger);
+  background: var(--flow-danger-soft);
+}
+
+.funnel :is(.rdp__help, .rdp__reason) {
+  margin: 0;
+  font-size: 14px;
+  line-height: 22px;
+  color: var(--flow-text-secondary);
+  white-space: normal;
+  overflow: visible;
+  overflow-wrap: anywhere;
+}
+
+.funnel .rdp__reason {
+  padding-top: 8px;
+  border-top: 1px solid var(--flow-border);
+}
+
+.funnel .rdp__sim-grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+
+.funnel .rdp__veredito {
+  border-color: var(--flow-warning);
+  border-radius: var(--flow-radius-md);
+  background: var(--flow-warning-soft);
+  padding: 16px;
+}
+
+.funnel .rdp__veredito[data-ficou] {
+  border-color: var(--flow-primary);
+  background: var(--flow-primary-soft);
+}
+
+.funnel .rdp__veredito-mark {
+  color: var(--flow-warning);
+  background: transparent;
+}
+
+.funnel .rdp__veredito[data-ficou] .rdp__veredito-mark {
+  color: var(--flow-primary);
+  background: transparent;
+}
+
+.funnel .rdp__veredito-body {
+  gap: 8px;
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.funnel .rdp__veredito-body :is(span, b) {
+  white-space: normal;
+  overflow: visible;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+}
+
+.funnel .rdp__veredito-body b {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+}
+
+.funnel .rdp__veredito-dest {
+  font: 12px/18px var(--flow-mono);
+}
+
+.funnel .rdp__barra {
+  grid-template-columns: minmax(64px, 1fr) minmax(40px, 1fr) 40px;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.funnel .rdp__barra-trilho i {
+  background: var(--flow-primary);
+}
+
+.funnel .rdp__tabela {
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.funnel .rdp__tabela :is(th, td) {
+  padding: 10px 4px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* The alternate list view is built from the same real nodes and states. */
+.funnel .funnel__flow-list {
+  position: absolute;
+  inset: 128px 80px 80px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  user-select: text;
+}
+
+.funnel .funnel__flow-list-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 8px 16px;
+  padding: 16px;
+  border: 1px solid var(--flow-border);
+  border-radius: var(--flow-radius-md);
+  background: var(--flow-surface-raised);
+  box-shadow: var(--flow-shadow-node);
+}
+
+.funnel .funnel__flow-list-item[data-selected="true"] {
+  border-color: var(--flow-primary);
+}
+
+.funnel .funnel__flow-list-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  grid-column: 1;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--flow-text-secondary);
+}
+
+.funnel .funnel__flow-list-main b {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+}
+
+.funnel .funnel__flow-list-state {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  grid-column: 1 / -1;
+  color: var(--flow-text-secondary);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.funnel .funnel__flow-list-path {
+  grid-column: 1;
+  color: var(--flow-text-secondary);
+  font: 12px/18px var(--flow-mono);
+  overflow-wrap: anywhere;
+}
+
+.funnel .funnel__flow-list-action {
+  grid-column: 2;
+  grid-row: 1 / 4;
+  align-self: center;
+  min-width: var(--flow-control);
+  min-height: var(--flow-control);
+}
+
+.funnel .funnel__flow-list > header {
+  padding: 8px 0 16px;
+}
+
+.funnel .funnel__flow-list :is(h2, h3, p) {
+  margin: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.funnel .funnel__flow-list h2 {
+  color: var(--flow-text);
+  font-size: 28px;
+  line-height: 36px;
+  font-weight: 600;
+}
+
+.funnel .funnel__flow-list-item h3 {
+  grid-column: 1;
+  color: var(--flow-text);
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+}
+
+.funnel .funnel__flow-list p {
+  grid-column: 1 / -1;
+  color: var(--flow-text-secondary);
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.funnel[data-mode="lista"] .funnel__viewport {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.funnel[data-mode="lista"] .funnel__zoom {
+  display: none;
+}
+
+/* Reusable controls used by status, publication and list views. */
+.funnel .flow-status {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 3px 8px;
+  max-width: 100%;
+  border: 1px solid var(--flow-border-functional);
+  border-radius: var(--flow-radius-sm);
+  background: var(--flow-surface);
+  color: var(--flow-text-secondary);
+  font: 12px/18px var(--flow-sans);
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.funnel .flow-status svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.funnel .flow-status > span {
+  min-width: 0;
+  white-space: normal;
+  overflow: visible;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+}
+
+.funnel .flow-status[data-tone="success"] {
+  color: var(--flow-primary);
+  border-color: var(--flow-primary);
+  background: var(--flow-primary-soft);
+}
+
+.funnel .flow-status[data-tone="warning"] {
+  color: var(--flow-warning);
+  border-color: var(--flow-warning);
+  background: var(--flow-warning-soft);
+}
+
+.funnel .flow-status[data-tone="danger"] {
+  color: var(--flow-danger);
+  border-color: var(--flow-danger);
+  background: var(--flow-danger-soft);
+}
+
+.funnel .flow-status[data-tone="info"] {
+  color: var(--flow-info);
+  border-color: var(--flow-info);
+  background: var(--flow-info-soft);
+}
+
+.funnel .flow-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: var(--flow-control);
+  padding: 8px 12px;
+  border: 1px solid var(--flow-border-functional);
+  border-radius: var(--flow-radius-md);
+  background: var(--flow-surface-raised);
+  color: var(--flow-text);
+  font: 600 14px/22px var(--flow-sans);
+  white-space: normal;
+  text-align: center;
+  cursor: pointer;
+  transition: background var(--flow-duration-fast) ease;
+}
+
+.funnel .flow-button:hover:not(:disabled) {
+  background: var(--flow-surface-hover);
+}
+
+.funnel .flow-button[data-variant="primary"] {
+  color: var(--flow-on-primary);
+  background: var(--flow-primary);
+  border-color: var(--flow-primary);
+}
+
+.funnel .flow-button[data-variant="primary"]:hover:not(:disabled) {
+  background: var(--flow-primary-hover);
+}
+
+.funnel .flow-button[data-variant="danger"] {
+  color: var(--flow-danger);
+  background: var(--flow-danger-soft);
+  border-color: var(--flow-danger);
+}
+
+.funnel .flow-icon-button {
+  width: var(--flow-control);
+  padding: 8px;
+}
+
+.funnel .flow-field {
+  display: grid;
+  gap: 8px;
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.funnel .flow-field label {
+  color: var(--flow-text);
+  font-weight: 500;
+}
+
+.funnel .flow-field :is(input, select) {
+  min-width: 0;
+  width: 100%;
+  min-height: var(--flow-control);
+  padding: 8px 12px;
+  border: 1px solid var(--flow-border-functional);
+  border-radius: var(--flow-radius-md);
+  color: var(--flow-text);
+  background: var(--flow-canvas);
+  font-size: 14px;
+}
+
+.funnel .flow-field small {
+  color: var(--flow-text-secondary);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.funnel .flow-field :is(input, select)[aria-invalid="true"] {
+  border-color: var(--flow-danger);
+}
+
+.funnel .flow-field .flow-field-error {
+  color: var(--flow-danger);
+}
+
+.funnel .funnel__node-checklist {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--flow-border);
+}
+
+.funnel .funnel__node-progress-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--flow-text-secondary);
+  font: 12px/18px var(--flow-sans);
+}
+
+.funnel .funnel__node-progress-label b {
+  font-family: var(--flow-mono);
+  font-weight: 400;
+}
+
+.funnel .funnel__node-progress {
+  display: block;
+  height: 6px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--flow-canvas);
+}
+
+.funnel .funnel__node-progress > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--flow-primary);
+}
+
+.funnel .funnel__node-checks {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 4px 8px;
+}
+
+.funnel .funnel__node-checks > span {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 6px;
+  color: var(--flow-text-secondary);
+  font: 12px/18px var(--flow-sans);
+  white-space: normal;
+}
+
+.funnel .funnel__node-checks > span[data-done="true"] > span {
+  color: var(--flow-primary);
+}
+
+.funnel .funnel__node-checks > span[data-done="false"] > span {
+  color: var(--flow-warning);
+}
+
+.funnel .funnel__simulation-label {
+  display: block;
+  width: 100%;
+  margin-bottom: 4px;
+  color: var(--flow-warning);
+  font-family: var(--flow-sans);
+}
+
+.funnel .flow-spinner {
+  animation: flow-spin 1s linear infinite;
+}
+
+@keyframes flow-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 1024px) {
+  .funnel .pub {
+    width: 100%;
+    border-left: 0;
+  }
+
+  .funnel .pub__body {
+    flex-direction: column;
+  }
+
+  .funnel .pub__rail {
+    width: 100%;
+    flex-direction: row;
+    gap: 8px;
+    padding: 8px 12px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border-right: 0;
+    border-bottom: 1px solid var(--flow-border);
+    touch-action: pan-x;
+  }
+
+  .funnel .pub__rail-btn {
+    min-width: 72px;
+    min-height: 60px;
+  }
+
+  .funnel .pub__corpo {
+    padding: 16px;
+  }
+
+  .funnel .funnel__panel {
+    padding: 16px;
+  }
+
+  .funnel .funnel__flow-list-item {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .funnel .funnel__flow-list-action {
+    grid-column: 1 / -1;
+    grid-row: auto;
+    justify-self: start;
+  }
+
+  .funnel
+    :is(
+      .pub__input,
+      .funnel__input,
+      .funnel__fields input,
+      .funnel__fields textarea
+    ) {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .funnel .funnel__rail {
+    top: auto;
+    bottom: 8px;
+    left: 16px;
+    right: 16px;
+    width: auto;
+    height: 60px;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 8px;
+    border: 1px solid var(--flow-border-functional);
+    border-radius: var(--flow-radius-md);
+    overflow-x: auto;
+    overflow-y: hidden;
+    touch-action: pan-x;
+  }
+
+  .funnel .funnel__rail-sep {
+    flex: 0 0 1px;
+    width: 1px;
+    height: 24px;
+  }
+
+  .funnel .funnel__flow-list {
+    inset: 128px 16px 84px 16px;
+  }
+
+  .funnel .funnel__view-switch {
+    right: 16px;
+    max-width: none;
+  }
+
+  .funnel .funnel__sync {
+    max-width: calc(100% - 32px);
+  }
+
+  .funnel .funnel__zoom {
+    bottom: 84px;
+  }
+}
+
+@media (max-width: 520px) {
+  .funnel .funnel__view-switch {
+    gap: 4px;
+    top: 8px;
+    left: 16px;
+    right: 16px;
+    max-width: none;
+  }
+
+  .funnel .funnel__view-switch button {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+
+  .funnel .funnel__sync {
+    top: 120px;
+    left: 16px;
+    max-width: calc(100% - 32px);
+  }
+
+  .funnel .funnel__flow-list {
+    inset: 200px 16px 84px 16px;
+  }
+
+  .funnel .funnel__panel {
+    top: 200px;
+    left: 16px;
+    width: calc(100% - 32px);
+    max-height: calc(100% - 284px);
+  }
+
+  .funnel .funnel__flow-list-item {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 12px;
+  }
+
+  .funnel .funnel__flow-list h2 {
+    font-size: 20px;
+    line-height: 28px;
+  }
+}
+
+@media (pointer: coarse) {
+  .funnel
+    :is(.funnel__rail-btn, .funnel__zoom button, .pub__x, .rdp__acoes button) {
+    width: var(--flow-touch-target);
+    height: var(--flow-touch-target);
+  }
+
+  .funnel
+    :is(
+      .pub__btn,
+      .pub__chip,
+      .funnel__btn,
+      .pub__publicar,
+      .flow-button,
+      .funnel__view-switch button
+    ) {
+    min-height: var(--flow-touch-target);
+  }
+
+  .funnel .funnel__handle::before {
+    inset: -17px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .funnel .funnel__node-shell,
+  .funnel :is(.pub__btn, .pub__chip, .funnel__btn) {
+    transition: none;
+  }
+
+  .funnel .flow-spinner {
+    animation: none;
+  }
+}
+
+/* Wires signal configuration; the moving light does not represent live traffic. */
+.funnel g[data-edge-id]:has(> .funnel__edge-signal[data-ready="true"]) {
+  --flow-edge-status: #4ade80;
+}
+
+.funnel g[data-edge-id]:has(> .funnel__edge-signal[data-ready="false"]) {
+  --flow-edge-status: #f87171;
+}
+
+.funnel .funnel__edge[data-auto-color="true"] {
+  stroke: var(--flow-edge-status, #f87171);
+}
+
+.funnel .funnel__edge[data-selected="true"] {
+  filter: drop-shadow(0 0 4px var(--flow-routing));
+}
+
+.funnel .funnel__edge[data-fluxo] {
+  animation: none;
+  stroke-dasharray: none;
+}
+
+.funnel .funnel__edge[data-tracejada] {
+  stroke-dasharray: 8 6;
+}
+
+.funnel .funnel__edge-signal {
+  pointer-events: none;
+  color: #f87171;
+}
+
+.funnel .funnel__edge-signal[data-ready="true"] {
+  color: #4ade80;
+}
+
+.funnel[data-tema="papel"]
+  g[data-edge-id]:has(> .funnel__edge-signal[data-ready="true"]) {
+  --flow-edge-status: #15803d;
+}
+
+.funnel[data-tema="papel"]
+  g[data-edge-id]:has(> .funnel__edge-signal[data-ready="false"]) {
+  --flow-edge-status: #b91c1c;
+}
+
+.funnel[data-tema="papel"] .funnel__edge-signal {
+  color: #b91c1c;
+}
+
+.funnel[data-tema="papel"] .funnel__edge-signal[data-ready="true"] {
+  color: #15803d;
+}
+
+.funnel :is(.funnel__edge-signal-tip, .funnel__edge-pulse) {
+  filter: drop-shadow(0 0 4px currentColor);
+}
+
+.funnel .funnel__edge-light {
+  fill: currentColor;
+  stroke: var(--flow-canvas);
+  stroke-width: 1;
+}
+
+.funnel .funnel__edge-light-halo {
+  fill: currentColor;
+  opacity: 0.2;
+}
+
+/* Connection tools keep controls grouped instead of spanning the whole canvas. */
+/* Important declarations share the legacy theme layer so its universal
+   square-corner reset cannot override the requested connection palette. */
+@layer theme {
+  .funnel :is(.funnel__edge-tools) {
+    border-radius: 20px !important;
+  }
+  .funnel :is(.funnel__edge-tools-group, .funnel__fbar) {
+    border-radius: 12px !important;
+  }
+  .funnel
+    .funnel__edge-tools
+    :is(.funnel__ltb-btn, .funnel__ltb-nome, input[type="color"]) {
+    border-radius: 10px !important;
+  }
+  .funnel .funnel__edge-tools .funnel__ltb-cor {
+    border-radius: 50% !important;
+  }
+  .funnel .funnel__port {
+    border-radius: 7px !important;
+  }
+}
+
+.funnel .funnel__controls-world {
+  z-index: 50;
+  pointer-events: none;
+}
+
+.funnel .funnel__fbar {
+  border-radius: 12px !important;
+}
+
+.funnel .funnel__edge-tools {
+  width: min(520px, calc(100% - 32px));
+  max-height: calc(100% - 160px);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--flow-border-functional);
+  /* The dashboard's legacy global rule forces every radius to zero. */
+  border-radius: 20px !important;
+  background: var(--flow-surface);
+  color: var(--flow-text);
+  box-shadow: var(--flow-shadow-panel);
+  white-space: normal;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  touch-action: pan-y;
+  user-select: text;
+  transform: translateX(-50%);
+}
+
+.funnel .funnel__edge-tools-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font: 600 14px/22px var(--flow-sans);
+}
+
+.funnel .funnel__edge-tools-header {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 8px;
+}
+
+.funnel .funnel__edge-tools-header strong {
+  font: 600 16px/24px var(--flow-sans);
+}
+
+.funnel .funnel__edge-tools-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.funnel .funnel__edge-tools-actions .funnel__ltb-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.funnel .funnel__edge-custom-color,
+.funnel .funnel__edge-tools-group > label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.funnel .funnel__edge-custom-color input[type="color"] {
+  width: 36px;
+  height: 36px;
+  padding: 4px;
+  border: 1px solid var(--flow-border-functional);
+  border-radius: 10px !important;
+  background: var(--flow-canvas);
+  cursor: pointer;
+}
+
+.funnel .funnel__edge-tools-group {
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  margin: 0;
+  border: 1px solid var(--flow-border);
+  border-radius: 12px !important;
+  background: var(--flow-surface-raised);
+}
+
+.funnel .funnel__edge-tools-group > :is(legend, label) {
+  color: var(--flow-text-secondary);
+  font: 12px/18px var(--flow-sans);
+}
+
+.funnel .funnel__edge-tools-group > legend {
+  padding: 0 4px;
+}
+
+.funnel .funnel__edge-tools .funnel__ltb-grupo {
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+}
+
+.funnel .funnel__edge-tools .funnel__ltb-cores {
+  grid-column: 1 / -1;
+}
+
+.funnel .funnel__edge-tools .funnel__ltb-btn {
+  min-width: 36px;
+  min-height: 36px;
+  height: auto;
+  padding: 8px;
+  border-radius: 10px !important;
+  border-color: var(--flow-border-functional);
+  background: var(--flow-canvas);
+  color: var(--flow-text-secondary);
+  font: 14px/20px var(--flow-sans);
+}
+
+.funnel .funnel__edge-tools .funnel__ltb-btn:hover {
+  color: var(--flow-text);
+  background: var(--flow-surface-hover);
+}
+
+.funnel .funnel__edge-tools .funnel__ltb-btn[data-on="true"] {
+  color: var(--flow-primary);
+  border-color: var(--flow-primary);
+  background: var(--flow-primary-soft);
+}
+
+.funnel .funnel__edge-tools .funnel__ltb-cor {
+  width: 28px;
+  height: 28px;
+  border-radius: 50% !important;
+  border-color: var(--flow-border-functional);
+  flex-shrink: 0;
+  box-shadow: none;
+}
+
+.funnel .funnel__edge-tools .funnel__ltb-cor[aria-pressed="true"] {
+  box-shadow:
+    0 0 0 2px var(--flow-surface),
+    0 0 0 4px var(--flow-text);
+}
+
+.funnel .funnel__edge-signal-tip .funnel__edge-light-halo {
+  animation: flow-edge-status-pulse 2s ease-in-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+@keyframes flow-edge-status-pulse {
+  0%,
+  100% {
+    opacity: 0.2;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 0.55;
+    transform: scale(1.25);
+  }
+}
+
+@media (max-width: 600px) {
+  .funnel .funnel__edge-tools {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.funnel .funnel__edge-tools .funnel__ltb-nome {
+  width: 100%;
+  min-width: 0;
+  min-height: 36px;
+  padding: 8px 12px;
+  border: 1px solid var(--flow-border-functional);
+  border-radius: 10px !important;
+  background: var(--flow-canvas);
+  color: var(--flow-text);
+  font: 14px/20px var(--flow-sans);
+}
+
+.funnel .funnel__edge-tools :is(small, p) {
+  margin: 0;
+  color: var(--flow-text-secondary);
+  font: 12px/18px var(--flow-sans);
+  overflow-wrap: anywhere;
+}
+
+/* Ports sit outside the four borders, leaving all node controls reachable. */
+.funnel .funnel__port {
+  position: absolute;
+  z-index: 2;
+  padding: 0;
+  border: 1px dashed var(--flow-border-functional);
+  border-radius: 7px !important;
+  background: color-mix(in srgb, var(--flow-routing) 8%, transparent);
+  color: var(--flow-routing);
+  cursor: crosshair;
+  touch-action: none;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.funnel .funnel__node:hover .funnel__port,
+.funnel .funnel__node[data-selected="true"] .funnel__port,
+.funnel .funnel__node:focus-within .funnel__port,
+.funnel[data-connecting="true"] .funnel__port {
+  opacity: 1;
+}
+
+.funnel .funnel__port:hover,
+.funnel .funnel__port:focus-visible {
+  border-color: var(--flow-routing);
+  background: color-mix(in srgb, var(--flow-routing) 20%, var(--flow-surface));
+}
+
+.funnel :is(.funnel__port--top, .funnel__port--bottom) {
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 14px;
+}
+
+.funnel .funnel__port--top {
+  top: -14px;
+}
+
+.funnel .funnel__port--bottom {
+  bottom: -14px;
+}
+
+.funnel :is(.funnel__port--left, .funnel__port--right) {
+  top: 0;
+  bottom: 0;
+  width: 14px;
+  height: 100%;
+}
+
+.funnel .funnel__port--left {
+  left: -14px;
+}
+
+.funnel .funnel__port--right {
+  right: -14px;
+}
+
+.funnel :is(.funnel__edge-endpoint, .funnel__edge-bend) {
+  fill: var(--flow-surface);
+  stroke: var(--flow-routing);
+  stroke-width: 2;
+  cursor: grab;
+  pointer-events: all;
+  filter: drop-shadow(0 1px 3px rgb(0 0 0 / 35%));
+}
+
+.funnel .funnel__edges--handles {
+  z-index: 12;
+  pointer-events: none;
+}
+
+.funnel :is(.funnel__edge-endpoint, .funnel__edge-bend):active {
+  cursor: grabbing;
+}
+
+/* Screen coordinates for wires and ports must stay fixed during a drag.
+   The shared button press animation scales SVG coordinates around the origin. */
+.funnel
+  :is(
+    .funnel__edge-hit,
+    .funnel__edge-endpoint,
+    .funnel__edge-bend,
+    .funnel__ponto,
+    .funnel__port
+  ) {
+  transform: none !important;
+  transition: none !important;
+}
+
+@media (min-width: 1025px) {
+  .funnel[data-mode="canvas"][data-inspector-open="true"] .pub {
+    width: 50%;
+    max-width: none;
+  }
+
+  .funnel[data-mode="canvas"][data-inspector-open="true"] .funnel__viewport {
+    right: 50%;
+    overflow: hidden;
+  }
+
+  .funnel[data-mode="canvas"][data-inspector-open="true"]
+    :is(.funnel__edge-tools, .funnel__fbar) {
+    max-width: calc(50% - 32px);
+  }
+
+  .funnel[data-mode="canvas"][data-inspector-open="true"] .funnel__fbar {
+    flex-wrap: wrap;
+    white-space: normal;
+    border-radius: 12px !important;
+  }
+}
+
+@media (pointer: coarse) {
+  .funnel .funnel__edge-tools .funnel__ltb-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .funnel .funnel__edge-tools .funnel__ltb-cor {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .funnel .funnel__edge-pulse {
+    display: none;
+  }
+  .funnel .funnel__edge-signal-tip .funnel__edge-light-halo {
+    animation: none;
+  }
+}

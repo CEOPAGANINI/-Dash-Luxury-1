@@ -13,6 +13,7 @@ export default function ConfiguracoesLayout({
           ["Visão geral", "/configuracoes"],
           ["Operação", "/configuracoes/operacao"],
           ["Equipe", "/configuracoes/acessos"],
+          ["Segurança e privacidade", "/configuracoes/seguranca"],
           ["Pagamentos", "/configuracoes/pagamentos"],
           ["Catálogo", "/catalogo/produtos"],
           ["Diagnóstico", "/configuracoes/diagnosticos"],

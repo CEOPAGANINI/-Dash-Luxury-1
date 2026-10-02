@@ -48,9 +48,14 @@ export function bancoIndisponivel(err: unknown): boolean {
   let atual: unknown = err;
   for (let nivel = 0; nivel < 5 && atual; nivel += 1) {
     const codigo = (atual as { code?: unknown }).code;
-    if (typeof codigo === "string" && CODIGOS_SEM_BANCO.has(codigo)) return true;
+    if (typeof codigo === "string" && CODIGOS_SEM_BANCO.has(codigo))
+      return true;
     const mensagem =
-      atual instanceof Error ? atual.message : typeof atual === "string" ? atual : "";
+      atual instanceof Error
+        ? atual.message
+        : typeof atual === "string"
+          ? atual
+          : "";
     if (
       /DATABASE_URL não configurada|timeout exceeded when trying to connect|Connection terminated|getaddrinfo/i.test(
         mensagem,

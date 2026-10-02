@@ -2,7 +2,10 @@ import { and, desc, eq } from "drizzle-orm";
 
 import { getDb, isDatabaseConfigured } from "@/database/client";
 import { ledgerEntries, workspaces } from "@/database/schema";
-import { bancoIndisponivel, getOrCreateDefaultWorkspace } from "@/lib/workspace";
+import {
+  bancoIndisponivel,
+  getOrCreateDefaultWorkspace,
+} from "@/lib/workspace";
 import { emptyDashboardData } from "./empty-data";
 import { observeDashboardRead } from "./read-observer";
 import type { UnifiedDashboardData } from "./types";

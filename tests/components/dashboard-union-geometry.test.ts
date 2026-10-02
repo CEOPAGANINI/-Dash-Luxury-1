@@ -116,7 +116,7 @@ describe("dashboard active CommandLayer integration and geometry", () => {
 
   it("keeps a theme-aware keyboard focus ring above legacy styles", () => {
     expect(read("src/app/globals.css")).toMatch(
-      /@layer\s+theme,\s*base,\s*components,\s*utilities,\s*legacy,\s*commandlayer;/,
+      /@layer\s+theme,\s*base,\s*components,\s*utilities,\s*legacy,\s*commandlayer(?:,\s*\w+)*;/,
     );
     const focus = commandRules.find(
       (rule) =>

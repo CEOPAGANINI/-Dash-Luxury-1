@@ -1,5 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import {
+  allowLocalDemo,
+  protectPrivateResponse,
+} from "./lib/auth/deployment-security";
 
 const PUBLIC_PREFIXES = [
   "/login",
@@ -32,10 +36,34 @@ export function isPublicPath(pathname: string): boolean {
   );
 }
 
+/** Assets publicados deliberadamente; extensões em rotas privadas não são exceção. */
+export function isPublicAssetPath(pathname: string): boolean {
+  return (
+    pathname.startsWith("/landing/") ||
+    [
+      "/favicon.ico",
+      "/file.svg",
+      "/globe.svg",
+      "/next.svg",
+      "/vercel.svg",
+      "/window.svg",
+    ].includes(pathname)
+  );
+}
+
+function needsPrivateHeaders(pathname: string): boolean {
+  return (
+    !isPublicPath(pathname) ||
+    ["/auth", "/login", "/cadastro", "/recuperar-senha"].some(
+      (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+    )
+  );
+}
+
 /**
  * Proxy (Next 16, antigo middleware): renova a sessão Supabase e protege
- * as rotas do painel. Sem Supabase configurado, o painel abre em modo
- * demonstração (banner explícito na UI) — nada finge estar conectado.
+ * as rotas do painel. Sem Supabase, demo apenas em desenvolvimento local;
+ * áreas privadas publicadas falham fechadas.
  */
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -44,7 +72,11 @@ export async function proxy(request: NextRequest) {
   // arquivos estáticos). Sai antes de criar o cliente Supabase para não
   // chamar o Supabase Auth a cada pulso (cerca de 2.880 por dia por
   // servidor parado) e para o agente não depender do Auth estar no ar.
-  if (pathname.startsWith("/api/agente/") || pathname.startsWith("/agente/")) {
+  if (
+    isPublicAssetPath(pathname) ||
+    pathname.startsWith("/api/agente/") ||
+    pathname.startsWith("/agente/")
+  ) {
     return NextResponse.next();
   }
 
@@ -53,7 +85,18 @@ export async function proxy(request: NextRequest) {
 
   // Modo demonstração: sem credenciais não há sessão a renovar.
   if (!supabaseUrl || !supabaseKey) {
-    return NextResponse.next();
+    if (!isPublicPath(pathname) && !allowLocalDemo(process.env)) {
+      const unavailable = NextResponse.json(
+        { error: "Acesso privado indisponível. Autenticação não configurada." },
+        { status: 503 },
+      );
+      protectPrivateResponse(unavailable.headers);
+      return unavailable;
+    }
+    const localResponse = NextResponse.next();
+    if (needsPrivateHeaders(pathname))
+      protectPrivateResponse(localResponse.headers);
+    return localResponse;
   }
 
   let response = NextResponse.next({ request });
@@ -87,7 +130,7 @@ export async function proxy(request: NextRequest) {
     response.cookies
       .getAll()
       .forEach((cookie) => redirected.cookies.set(cookie));
-    redirected.headers.set("Cache-Control", "private, no-store, max-age=0");
+    protectPrivateResponse(redirected.headers);
     return redirected;
   };
 
@@ -105,12 +148,8 @@ export async function proxy(request: NextRequest) {
     return redirectWithSession(url);
   }
 
-  if (
-    !isPublicPath(pathname) ||
-    pathname.startsWith("/auth") ||
-    pathname === "/login"
-  ) {
-    response.headers.set("Cache-Control", "private, no-store, max-age=0");
+  if (needsPrivateHeaders(pathname)) {
+    protectPrivateResponse(response.headers);
   }
   return response;
 }
@@ -118,8 +157,9 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Tudo exceto assets estáticos e imagens.
+     * Assets do framework ficam fora; arquivos públicos conhecidos são
+     * tratados explicitamente acima. A extensão não dispensa autenticação.
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+    "/((?!_next/static(?:/|$)|_next/image(?:/|$)).*)",
   ],
 };

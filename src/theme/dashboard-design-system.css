@@ -1,0 +1,396 @@
+/* Shared dashboard improvements, bounded by the existing CommandLayer host.
+   Exclusions also protect portalled Flow inspectors and authored previews. */
+@layer dashboard {
+  :where(.cl, [data-design-system="commandlayer"])
+    :is(button, [data-slot="button"], [role="tab"], .dash-sidebar-block)
+    span:not(
+      :where(
+        .funnel *,
+        [data-design-system="flow"] *,
+        .dash-checkout-pagina *,
+        code *,
+        kbd *,
+        samp *,
+        [data-technical],
+        [data-technical] *,
+        .dash-versao,
+        .sr-only
+      )
+    ) {
+    font-family: var(--dashboard-font-ui) !important;
+  }
+
+  :where(.cl, [data-design-system="commandlayer"])
+    :is(
+      button,
+      input,
+      select,
+      textarea,
+      label,
+      [role="tab"],
+      [data-slot="label"],
+      [data-slot="badge"],
+      .dash-sidebar-block
+    ):not(
+      :where(
+        .funnel,
+        .funnel *,
+        [data-design-system="flow"],
+        [data-design-system="flow"] *,
+        .dash-checkout-pagina,
+        .dash-checkout-pagina *
+      )
+    ) {
+    font-family: var(--dashboard-font-ui) !important;
+    font-size: var(--dashboard-text-support) !important;
+    line-height: var(--dashboard-leading);
+    letter-spacing: normal;
+  }
+
+  :where(.cl, [data-design-system="commandlayer"])
+    :is(
+      [data-slot="card-description"],
+      [data-slot="alert-description"],
+      .visual-overview-kpi-top p,
+      .visual-overview-kpi-delta,
+      .visual-overview-zone-heading > div > span,
+      .text-muted-foreground.text-xs,
+      .text-muted-foreground.text-\[11px\],
+      .text-muted-foreground.text-\[12px\]
+    ):not(
+      :where(
+        .funnel,
+        .funnel *,
+        [data-design-system="flow"],
+        [data-design-system="flow"] *,
+        .dash-checkout-pagina,
+        .dash-checkout-pagina *,
+        .sr-only,
+        code,
+        kbd,
+        samp,
+        [data-technical]
+      )
+    ) {
+    font-size: var(--dashboard-text-support);
+    line-height: var(--dashboard-leading);
+  }
+
+  :where(.cl, [data-design-system="commandlayer"])
+    :is(
+      .tabular-nums,
+      table,
+      .visual-overview-kpi > strong,
+      .visual-overview-donut strong
+    ):not(
+      :where(
+        .funnel,
+        .funnel *,
+        [data-design-system="flow"],
+        [data-design-system="flow"] *,
+        .dash-checkout-pagina,
+        .dash-checkout-pagina *
+      )
+    ) {
+    font-variant-numeric: tabular-nums;
+    font-family: var(--dashboard-font-ui) !important;
+  }
+
+  :where(.cl, [data-design-system="commandlayer"])
+    :is(.visual-overview-kpi > strong, .visual-overview-donut strong):not(
+      :where(.funnel *, [data-design-system="flow"] *)
+    ) {
+    font-family: var(--dashboard-font-ui) !important;
+  }
+
+  :where(.cl, [data-design-system="commandlayer"])
+    :is(code, kbd, samp, [data-technical]):not(
+      :where(.funnel *, [data-design-system="flow"] *, .dash-checkout-pagina *)
+    ) {
+    font-family: var(--dashboard-font-technical) !important;
+    font-variant-numeric: tabular-nums;
+  }
+
+  :where(.cl, [data-design-system="commandlayer"])
+    :is(
+      button,
+      [data-slot="button"],
+      [role="tab"],
+      .block-picker > [role="radio"],
+      .block-picker-toggle,
+      .dash-sidebar-block,
+      select,
+      input:not(
+        :where(
+          [type="checkbox"],
+          [type="radio"],
+          [type="range"],
+          [type="color"]
+        )
+      ),
+      [data-slot="select-trigger"]
+    ):not(
+      :where(
+        .funnel,
+        .funnel *,
+        [data-design-system="flow"],
+        [data-design-system="flow"] *,
+        .dash-checkout-pagina,
+        .dash-checkout-pagina *,
+        .sr-only,
+        [hidden],
+        [aria-label="Abrir menu lateral"],
+        [aria-label="Abrir menu de sessões desta página"]
+      )
+    ) {
+    min-height: var(--dashboard-control-min) !important;
+    min-width: var(--dashboard-control-min);
+  }
+
+  :where(.cl, [data-design-system="commandlayer"])
+    :is(button, input, select, textarea, a, [tabindex]):focus-visible:not(
+      :where(
+        .funnel,
+        .funnel *,
+        [data-design-system="flow"],
+        [data-design-system="flow"] *,
+        .dash-checkout-pagina,
+        .dash-checkout-pagina *
+      )
+    ),
+  body:has(.cl)
+    :is(
+      [data-slot="dropdown-menu-item"],
+      [data-slot="dropdown-menu-sub-trigger"],
+      [data-slot="dropdown-menu-checkbox-item"],
+      [data-slot="dropdown-menu-radio-item"],
+      [data-slot="select-item"],
+      [data-slot="dialog-content"],
+      [data-slot="sheet-content"]
+    ):focus-visible:not(
+      :where(.funnel *, [data-design-system="flow"] *, .dash-checkout-pagina *)
+    ) {
+    outline: var(--dashboard-focus-width) solid var(--dashboard-focus) !important;
+    outline-offset: 2px;
+  }
+
+  :where(.cl, [data-design-system="commandlayer"])
+    :is(button, input, select, textarea):is(
+      :disabled,
+      [aria-disabled="true"]
+    ):not(
+      :where(.funnel *, [data-design-system="flow"] *, .dash-checkout-pagina *)
+    ) {
+    opacity: var(--dashboard-disabled-opacity) !important;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  :where(.cl, [data-design-system="commandlayer"])
+    :is(
+      input,
+      select,
+      textarea,
+      [data-slot="select-trigger"]
+    )[aria-invalid="true"]:not(
+      :where(.funnel *, [data-design-system="flow"] *, .dash-checkout-pagina *)
+    ) {
+    border-color: var(--dashboard-danger);
+  }
+
+  :where(.cl, [data-design-system="commandlayer"])
+    :is([data-slot="badge"], [data-slot="alert"]):not(
+      :where(.funnel *, [data-design-system="flow"] *, .dash-checkout-pagina *)
+    ) {
+    font-family: var(--dashboard-font-ui);
+    font-size: var(--dashboard-text-table);
+    letter-spacing: normal;
+  }
+
+  :where(.cl, [data-design-system="commandlayer"])
+    [data-slot="badge"][data-variant="success"]:not(
+      :where(.funnel *, [data-design-system="flow"] *, .dash-checkout-pagina *)
+    ) {
+    color: var(--dashboard-success);
+  }
+
+  :where(.cl, [data-design-system="commandlayer"])
+    [data-slot="badge"][data-variant="warning"]:not(
+      :where(.funnel *, [data-design-system="flow"] *, .dash-checkout-pagina *)
+    ) {
+    color: var(--dashboard-warning);
+  }
+
+  :where(.cl, [data-design-system="commandlayer"])
+    :is(
+      [data-slot="badge"],
+      [data-slot="alert"]
+    )[data-variant="destructive"]:not(
+      :where(.funnel *, [data-design-system="flow"] *, .dash-checkout-pagina *)
+    ) {
+    color: var(--dashboard-danger);
+  }
+
+  :where(.cl, [data-design-system="commandlayer"])
+    [data-slot="badge"][data-variant="info"]:not(
+      :where(.funnel *, [data-design-system="flow"] *, .dash-checkout-pagina *)
+    ) {
+    color: var(--dashboard-info);
+  }
+
+  /* Real table wrappers used by campaigns, catalog, ledger and VPS screens.
+     A bounded scroll region makes the whole header group sticky, including
+     tables with more than one header row. Hidden chart alternatives stay put. */
+  :where(.cl, [data-design-system="commandlayer"])
+    :is(.overflow-x-auto, [data-slot="table-container"]):has(
+      > table:not(.sr-only)
+    ):not(
+      :where(.funnel *, [data-design-system="flow"] *, .dash-checkout-pagina *)
+    ) {
+    max-block-size: var(--dashboard-table-max-height);
+    overflow: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+  }
+
+  :where(.cl, [data-design-system="commandlayer"])
+    :is(.overflow-x-auto, [data-slot="table-container"])
+    > table:not(.sr-only):not(
+      :where(.funnel *, [data-design-system="flow"] *, .dash-checkout-pagina *)
+    ) {
+    border-collapse: separate;
+    border-spacing: 0;
+    font-family: var(--dashboard-font-ui);
+    font-size: var(--dashboard-text-table);
+    font-variant-numeric: tabular-nums;
+  }
+
+  :where(.cl, [data-design-system="commandlayer"])
+    :is(.overflow-x-auto, [data-slot="table-container"])
+    > table:not(.sr-only)
+    thead:not(
+      :where(.funnel *, [data-design-system="flow"] *, .dash-checkout-pagina *)
+    ) {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--dashboard-table-head);
+  }
+
+  :where(.cl, [data-design-system="commandlayer"])
+    table:not(.sr-only)
+    :is(th, td):not(
+      :where(.funnel *, [data-design-system="flow"] *, .dash-checkout-pagina *)
+    ) {
+    font-family: var(--dashboard-font-ui) !important;
+    font-size: var(--dashboard-text-table);
+    line-height: var(--dashboard-leading);
+    font-variant-numeric: tabular-nums;
+  }
+
+  :where(.cl, [data-design-system="commandlayer"])
+    table:not(.sr-only)
+    th:not(
+      :where(.funnel *, [data-design-system="flow"] *, .dash-checkout-pagina *)
+    ) {
+    color: var(--dashboard-text-secondary);
+    background: var(--dashboard-table-head);
+    font-weight: 500;
+    letter-spacing: normal;
+  }
+
+  body:has(.cl)
+    :is(
+      [data-slot="dropdown-menu-item"],
+      [data-slot="dropdown-menu-sub-trigger"],
+      [data-slot="dropdown-menu-checkbox-item"],
+      [data-slot="dropdown-menu-radio-item"],
+      [data-slot="select-item"]
+    ):not(
+      :where(.funnel *, [data-design-system="flow"] *, .dash-checkout-pagina *)
+    ) {
+    font-family: var(--dashboard-font-ui) !important;
+    font-size: var(--dashboard-text-support);
+    min-height: var(--dashboard-control-min);
+  }
+
+  body:has(.cl)
+    :is(
+      [data-slot="dropdown-menu-item"],
+      [data-slot="dropdown-menu-checkbox-item"],
+      [data-slot="dropdown-menu-radio-item"],
+      [data-slot="select-item"]
+    )[data-disabled]:not(
+      :where(.funnel *, [data-design-system="flow"] *, .dash-checkout-pagina *)
+    ) {
+    opacity: var(--dashboard-disabled-opacity);
+    cursor: not-allowed;
+  }
+
+  @media (pointer: coarse) {
+    :where(.cl, [data-design-system="commandlayer"])
+      :is(
+        button,
+        [data-slot="button"],
+        [role="tab"],
+        .block-picker > [role="radio"],
+        .block-picker-toggle,
+        .dash-sidebar-block,
+        select,
+        [data-slot="select-trigger"]
+      ):not(
+        :where(
+          .funnel *,
+          [data-design-system="flow"] *,
+          .dash-checkout-pagina *,
+          .sr-only,
+          [hidden],
+          [aria-label="Abrir menu lateral"],
+          [aria-label="Abrir menu de sessões desta página"]
+        )
+      ),
+    body:has(.cl)
+      :is(
+        [data-slot="dropdown-menu-item"],
+        [data-slot="dropdown-menu-sub-trigger"],
+        [data-slot="dropdown-menu-checkbox-item"],
+        [data-slot="dropdown-menu-radio-item"],
+        [data-slot="select-item"]
+      ):not(:where(.funnel *, [data-design-system="flow"] *)) {
+      min-height: var(--dashboard-control-touch) !important;
+      min-width: var(--dashboard-control-touch);
+    }
+  }
+
+  @media (forced-colors: active) {
+    :where(.cl, [data-design-system="commandlayer"])
+      :is(button, input, select, textarea, a, [tabindex]):focus-visible:not(
+        :where(.funnel *, [data-design-system="flow"] *)
+      ) {
+      outline-color: Highlight !important;
+    }
+  }
+}
+
+/* The legacy square reset is important in the first theme layer. A narrow
+   exception in that same layer gives only dashboard surfaces a 4px radius. */
+@layer theme {
+  :where(.cl, [data-design-system="commandlayer"])
+    [data-slot="card"]:not(
+      :where(.funnel *, [data-design-system="flow"] *, .dash-checkout-pagina *)
+    ),
+  body:has(.cl)
+    :is(
+      [data-slot="dialog-content"],
+      [data-slot="sheet-content"],
+      [data-slot="popover-content"],
+      [data-slot="dropdown-menu-content"],
+      [data-slot="dropdown-menu-sub-content"],
+      [data-slot="select-content"],
+      [data-sonner-toast]
+    ):not(
+      :where(.funnel *, [data-design-system="flow"] *, .dash-checkout-pagina *)
+    ) {
+    border-radius: var(--dashboard-radius-surface, 4px) !important;
+  }
+}

@@ -69,10 +69,11 @@ export function CommandLayerDesignSystem() {
       <header className={styles.header}>
         <div>
           <p className={styles.kicker}>Biblioteca de interface</p>
-          <h2>CommandLayer</h2>
+          <h2>CommandLayer · VECTR</h2>
           <p className={styles.intro}>
-            Materiais de um painel físico. Clareza de uma interface digital.
-            Este catálogo usa os mesmos componentes e tokens do dashboard.
+            Preto, creme e vermelho-alaranjado. Tipografia editorial e estrutura
+            técnica. Este catálogo usa os mesmos componentes e tokens do
+            dashboard.
           </p>
         </div>
         <div className={styles.themeControl}>
@@ -82,6 +83,7 @@ export function CommandLayerDesignSystem() {
       </header>
 
       <nav className={styles.navigation} aria-label="Seções do design system">
+        <a href="/design-system/vectr/design-system.html">Referência VECTR</a>
         {sections.map(([id, label]) => (
           <a key={id} href={`#cl-${id}`}>
             {label}
@@ -155,8 +157,8 @@ export function CommandLayerDesignSystem() {
           </Card>
         </div>
         <p className={styles.note}>
-          A profundidade vem da referência CommandLayer. Os temas usam branco,
-          preto e cinzas neutros, com cores apenas nos dados e estados.
+          A referência VECTR define preto, creme, bordas finas e ações em
+          vermelho-alaranjado. As cores dos estados mantêm seus significados.
         </p>
       </section>
 
@@ -228,10 +230,10 @@ export function CommandLayerDesignSystem() {
         aria-labelledby="cl-type-title"
       >
         <div className={styles.sectionHeading}>
-          <h2 id="cl-type-title">Inter + JetBrains Mono</h2>
+          <h2 id="cl-type-title">Newsreader + Inter + JetBrains Mono</h2>
           <p>
-            Leitura em Inter. Precisão nos controles, métricas e informações
-            técnicas com JetBrains Mono.
+            Títulos editoriais em Newsreader. Leitura e controles em Inter.
+            Identificadores e comandos em JetBrains Mono.
           </p>
         </div>
         <div className={styles.typeGrid}>
@@ -244,7 +246,7 @@ export function CommandLayerDesignSystem() {
               Hierarquia sem ruído. Títulos de 24–30px, peso 500, e texto de
               leitura com 14px e altura confortável.
             </p>
-            <code>Inter · tracking −0.025em nos títulos</code>
+            <code>Newsreader · tracking −0.045em nos títulos</code>
           </div>
           <div className={styles.typeSample}>
             <span className={styles.kicker}>Leituras técnicas · amostra</span>

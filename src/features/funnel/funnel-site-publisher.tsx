@@ -9,6 +9,7 @@ import { PageVpsPublisher } from "./page-vps-publisher";
 import { exportFunnelSite } from "./funnel-site-export";
 import { restorePackages } from "./package-cloud";
 import { packageReferenceIds } from "./package-references";
+import { FlowStatusBadge } from "./flow-ui";
 import styles from "./content-editor.module.css";
 
 export function FunnelSitePublisher({
@@ -31,6 +32,7 @@ export function FunnelSitePublisher({
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState("");
   const [review, setReview] = React.useState("");
+  const preparing = React.useRef(false);
   const signature = JSON.stringify(data);
   const current = React.useRef({ signature, domain });
   React.useLayoutEffect(() => {
@@ -38,7 +40,8 @@ export function FunnelSitePublisher({
   }, [signature, domain]);
   const validZip = review === `${domain}:${signature}` ? zip : null;
   async function prepare() {
-    if (busy) return;
+    if (preparing.current) return;
+    preparing.current = true;
     const before = `${domain}:${signature}`;
     setBusy(true);
     setError("");
@@ -71,6 +74,7 @@ export function FunnelSitePublisher({
           : "Não foi possível preparar o site. Nada foi publicado.",
       );
     } finally {
+      preparing.current = false;
       setBusy(false);
     }
   }
@@ -91,94 +95,134 @@ export function FunnelSitePublisher({
       }}
     >
       <Dialog.Portal>
-        <Dialog.Overlay className={styles.overlay} />
-        <Dialog.Content className={styles.dialog}>
-          <header className={styles.header}>
-            <div>
-              <Dialog.Title>Publicar o site completo do funil</Dialog.Title>
-              <Dialog.Description>
-                Um único ZIP com página inicial, produtos e etapas em seus
-                caminhos. Cada publicação substitui a versão inteira do site
-                escolhido.
-              </Dialog.Description>
+        <div
+          className="funnel flow-portal-scope"
+          data-tema={data.mapa?.tema ?? "padrao"}
+        >
+          <Dialog.Overlay className={styles.overlay} />
+          <Dialog.Content className={styles.dialog}>
+            <header className={styles.header}>
+              <div>
+                <Dialog.Title>Publicar o site completo do funil</Dialog.Title>
+                <Dialog.Description>
+                  Um único ZIP com página inicial, produtos e etapas em seus
+                  caminhos. Cada publicação substitui a versão inteira do site
+                  escolhido.
+                </Dialog.Description>
+              </div>
+              <Dialog.Close
+                className={styles.close}
+                aria-label="Fechar publicação"
+              >
+                <X size={20} />
+              </Dialog.Close>
+            </header>
+            <div className={styles.fields}>
+              <label>
+                Domínio do site na VPS
+                <input
+                  value={domain}
+                  placeholder="sua-loja.com"
+                  onChange={(event) => setDomain(event.target.value.trim())}
+                  autoComplete="off"
+                />
+              </label>
             </div>
-            <Dialog.Close
-              className={styles.close}
-              aria-label="Fechar publicação"
-            >
-              <X size={20} />
-            </Dialog.Close>
-          </header>
-          <div className={styles.fields}>
-            <label>
-              Domínio do site na VPS
-              <input
-                value={domain}
-                placeholder="sua-loja.com"
-                onChange={(event) => setDomain(event.target.value.trim())}
-                autoComplete="off"
-              />
-            </label>
-          </div>
-          <p className={styles.notice}>
-            Configure uma página com caminho /. As outras páginas precisam de
-            caminhos exclusivos, como /colecoes, /produto e /obrigado. Páginas
-            em outro domínio são destinos externos. Nenhum arquivo será enviado
-            até a confirmação abaixo.
-          </p>
-          <button
-            type="button"
-            className="funnel__btn"
-            disabled={busy || !domain}
-            onClick={() => void prepare()}
-          >
-            {busy
-              ? "Conferindo arquivos e ligações…"
-              : "Preparar ZIP único (até 3 MB)"}
-          </button>
-          {error && <p role="alert">{error}</p>}
-          {zip && !validZip && (
-            <p role="status">
-              O funil mudou. Prepare novamente; a versão anterior não será
-              publicada.
+            <p className={styles.notice}>
+              Configure uma página com caminho /. As outras páginas precisam de
+              caminhos exclusivos, como /colecoes, /produto e /obrigado. Páginas
+              em outro domínio são destinos externos. Nenhum arquivo será
+              enviado até a confirmação abaixo.
             </p>
-          )}
-          {validZip && (
-            <section aria-label="Revisão do site">
-              <p>
-                {validZip.fileCount} arquivos ·{" "}
-                {(validZip.file.size / 1_000_000).toFixed(2)} MB ·{" "}
-                {routes.length} caminhos
+            <div
+              role="status"
+              aria-label="Estado da preparação"
+              aria-live="polite"
+              aria-busy={busy}
+            >
+              <FlowStatusBadge
+                tone={
+                  busy
+                    ? "info"
+                    : error
+                      ? "danger"
+                      : validZip
+                        ? "success"
+                        : zip
+                          ? "warning"
+                          : "neutral"
+                }
+                busy={busy}
+              >
+                {busy
+                  ? "Conferindo arquivos e ligações…"
+                  : error
+                    ? "Falha na preparação"
+                    : validZip
+                      ? "ZIP pronto para revisão"
+                      : zip
+                        ? "Preparação desatualizada"
+                        : "Rascunho — prepare o pacote"}
+              </FlowStatusBadge>
+            </div>
+            <button
+              type="button"
+              className="funnel__btn"
+              disabled={busy || !domain}
+              onClick={() => void prepare()}
+            >
+              {busy
+                ? "Conferindo arquivos e ligações…"
+                : "Preparar ZIP único (até 3 MB)"}
+            </button>
+            {error && <p role="alert">{error}</p>}
+            {zip && !validZip && (
+              <p role="status">
+                O funil ou o domínio mudou. Prepare novamente para publicar a
+                seleção atual.
               </p>
-              <ul>
-                {routes.map((route) => (
-                  <li key={route}>
-                    <code>{route}</code>
-                  </li>
-                ))}
-              </ul>
-              <button type="button" className="funnel__btn" onClick={download}>
-                Baixar cópia do ZIP completo
-              </button>
-            </section>
-          )}
-          {warnings.length > 0 && (
-            <section aria-label="Limitações e avisos da exportação">
-              <h3>Confira antes de publicar</h3>
-              <ul>
-                {warnings.map((warning) => (
-                  <li key={warning}>{warning}</li>
-                ))}
-              </ul>
-            </section>
-          )}
-          <PageVpsPublisher
-            zip={validZip}
-            domain={domain}
-            path="/"
-            onDomainChange={setDomain}
-          />
-        </Dialog.Content>
+            )}
+            {validZip && (
+              <section aria-label="Revisão do site">
+                <p>
+                  {validZip.fileCount} arquivos ·{" "}
+                  {(validZip.file.size / 1_000_000).toFixed(2)} MB ·{" "}
+                  {routes.length} caminhos
+                </p>
+                <ul>
+                  {routes.map((route) => (
+                    <li key={route}>
+                      <code>{route}</code>
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  type="button"
+                  className="funnel__btn"
+                  onClick={download}
+                >
+                  Baixar cópia do ZIP completo
+                </button>
+              </section>
+            )}
+            {validZip && warnings.length > 0 && (
+              <section aria-label="Limitações e avisos da exportação">
+                <h3>Confira antes de publicar</h3>
+                <ul>
+                  {warnings.map((warning) => (
+                    <li key={warning}>{warning}</li>
+                  ))}
+                </ul>
+              </section>
+            )}
+            <PageVpsPublisher
+              zip={validZip}
+              domain={domain}
+              path="/"
+              onDomainChange={setDomain}
+            />
+          </Dialog.Content>
+        </div>
       </Dialog.Portal>
     </Dialog.Root>
   );

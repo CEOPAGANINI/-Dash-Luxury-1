@@ -1,0 +1,143 @@
+/* Flow: semantic tokens confined to the funnel workspace. */
+.funnel {
+  --flow-canvas: #090b0d;
+  --flow-surface: #121518;
+  --flow-surface-raised: #1a1e23;
+  --flow-surface-hover: #22282f;
+  --flow-border: #343c46;
+  --flow-border-functional: #667382;
+  --flow-text: #f4f6f8;
+  --flow-text-secondary: #aab4c0;
+  --flow-text-muted: #8d99a8;
+  --flow-primary: #22e58b;
+  --flow-primary-hover: #58f0a6;
+  --flow-on-primary: #071a10;
+  --flow-primary-soft: #103526;
+  --flow-info: #71b7ff;
+  --flow-info-soft: #172c43;
+  --flow-warning: #f2c66d;
+  --flow-warning-soft: #362c18;
+  --flow-danger: #ff919b;
+  --flow-danger-soft: #3d2028;
+  --flow-routing: #b6a0ff;
+  --flow-dot: rgb(170 180 192 / 16%);
+  --flow-edge: #8d99a8;
+  --flow-sans:
+    var(--font-inter, "Inter"), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --flow-mono: "SFMono-Regular", Consolas, ui-monospace, monospace;
+  --flow-space-1: 4px;
+  --flow-space-2: 8px;
+  --flow-space-3: 12px;
+  --flow-space-4: 16px;
+  --flow-space-5: 20px;
+  --flow-space-6: 24px;
+  --flow-space-8: 32px;
+  --flow-radius-sm: 4px;
+  --flow-radius-md: 8px;
+  --flow-radius-lg: 12px;
+  --flow-control: 40px;
+  --flow-touch-target: 44px;
+  --flow-node-width: 280px;
+  --flow-inspector-width: 400px;
+  --flow-duration-fast: 120ms;
+  --flow-duration-base: 180ms;
+  --flow-shadow-node: 0 4px 16px rgb(0 0 0 / 24%);
+  --flow-shadow-panel: 0 16px 48px #00000066;
+  --flow-z-toolbar: 28;
+  --flow-z-inspector: 40;
+  --flow-z-dialog: 50;
+  --flow-z-toast: 70;
+  --flow-color-primary: var(--flow-primary);
+  --flow-color-info: var(--flow-info);
+  --flow-color-routing: var(--flow-routing);
+  --flow-color-warning: var(--flow-warning);
+}
+
+/* Keep the existing board themes usable without changing dashboard tokens. */
+.funnel[data-tema="azul"] {
+  --flow-canvas: #090f1c;
+  --flow-surface: #121b2a;
+  --flow-surface-raised: #1a2535;
+  --flow-surface-hover: #243247;
+  --flow-border: #3a495f;
+  --flow-dot: rgb(142 171 219 / 17%);
+}
+
+.funnel[data-tema="grafite"] {
+  --flow-canvas: #171a1e;
+  --flow-surface: #20252b;
+  --flow-surface-raised: #292f37;
+  --flow-surface-hover: #333c46;
+  --flow-border: #46515f;
+  --flow-dot: rgb(170 180 192 / 18%);
+}
+
+.funnel[data-tema="papel"] {
+  --flow-canvas: #f3f1ea;
+  --flow-surface: #ffffff;
+  --flow-surface-raised: #f6f5f1;
+  --flow-surface-hover: #eceeea;
+  --flow-border: #cdd2d0;
+  --flow-border-functional: #667382;
+  --flow-text: #15201b;
+  --flow-text-secondary: #48564f;
+  --flow-text-muted: #58665f;
+  --flow-primary: #08733f;
+  --flow-primary-hover: #056135;
+  --flow-on-primary: #ffffff;
+  --flow-primary-soft: #e0f2e7;
+  --flow-info: #155e9a;
+  --flow-info-soft: #e6f0fa;
+  --flow-warning: #805911;
+  --flow-warning-soft: #faf0d9;
+  --flow-danger: #b6283b;
+  --flow-danger-soft: #fbe8ec;
+  --flow-routing: #6944bd;
+  --flow-dot: rgb(58 70 65 / 17%);
+  --flow-edge: #667382;
+  --flow-shadow-node: 0 4px 16px rgb(28 38 32 / 8%);
+  --flow-shadow-panel: 0 16px 48px rgb(28 38 32 / 16%);
+}
+
+/* Compatibility aliases let existing, working components share one palette.
+   The repeated workspace class intentionally outranks legacy token rules,
+   including route CSS that Next may load after the board's own stylesheet. */
+.funnel.funnel,
+.funnel.funnel[data-tema] {
+  --fn-canvas: var(--flow-canvas);
+  --fn-dot: var(--flow-dot);
+  --fn-grid: 20px;
+  --fn-surface: var(--flow-surface);
+  --fn-surface-2: var(--flow-surface-raised);
+  --fn-surface-3: var(--flow-surface);
+  --fn-hover: var(--flow-surface-hover);
+  --fn-line: var(--flow-border);
+  --fn-line-2: var(--flow-border-functional);
+  --fn-text: var(--flow-text);
+  --fn-muted: var(--flow-text-secondary);
+  --fn-action: var(--flow-primary);
+  --fn-action-2: var(--flow-primary-hover);
+  --fn-select: var(--flow-primary);
+  --fn-primary: var(--flow-primary);
+  --fn-primary-text: var(--flow-on-primary);
+  --fn-node-frame: var(--flow-surface);
+  --fn-node-top: var(--flow-surface-raised);
+  --fn-node-raised: var(--flow-surface-raised);
+  --fn-node-well: var(--flow-canvas);
+  --fn-node-line: var(--flow-border);
+  --fn-node-title: var(--flow-text);
+  --fn-node-sub: var(--flow-text-secondary);
+  --fn-node-ok: var(--flow-primary);
+  --fn-node-danger: var(--flow-danger);
+  --fn-handle: var(--flow-text-secondary);
+  --fn-edge: var(--flow-edge);
+  --fn-sans: var(--flow-sans);
+  --fn-mono: var(--flow-mono);
+  --fn-r-sm: var(--flow-radius-sm);
+  --fn-r-md: var(--flow-radius-md);
+  --fn-r-lg: var(--flow-radius-lg);
+  --fn-r-xl: var(--flow-radius-lg);
+  --fn-shadow-node: var(--flow-shadow-node);
+  --fn-shadow-panel: var(--flow-shadow-panel);
+  --fn-shadow-sm: 0 2px 8px rgb(0 0 0 / 15%);
+}

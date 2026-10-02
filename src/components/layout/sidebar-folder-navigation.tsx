@@ -126,7 +126,11 @@ const groups: PastaDoMenu[] = [
     items: [
       { title: "Monitor ao vivo", href: "/live-view", icon: Activity },
       { title: "Pedidos", href: "/pedidos", icon: ShoppingBag },
-      { title: "Checkouts", href: "/checkouts", icon: CircleDollarSign },
+      {
+        title: "Transações de pagamento",
+        href: "/checkouts",
+        icon: CircleDollarSign,
+      },
       { title: "Carrinhos", href: "/carrinhos", icon: ShoppingBag },
     ],
   },
@@ -134,12 +138,28 @@ const groups: PastaDoMenu[] = [
     label: "Financeiro",
     icon: Wallet,
     items: [
-      { title: "Resumo financeiro", href: "/dashboard/financeiro", icon: Wallet },
+      {
+        title: "Resumo financeiro",
+        href: "/dashboard/financeiro",
+        icon: Wallet,
+      },
       { title: "Operação financeira", href: "/financeiro", icon: Wallet },
-      { title: "Entradas e saídas", href: "/financeiro/entradas-saidas", icon: CircleDollarSign },
-      { title: "Processador", href: "/financeiro/processador", icon: Landmark },
+      {
+        title: "Entradas e saídas",
+        href: "/financeiro/entradas-saidas",
+        icon: CircleDollarSign,
+      },
+      {
+        title: "Processadores de pagamento",
+        href: "/financeiro/processador",
+        icon: Landmark,
+      },
       { title: "Repasses", href: "/financeiro/repasses", icon: Wallet },
-      { title: "Links de pagamento", href: "/financeiro/links-de-pagamento", icon: FileText },
+      {
+        title: "Links de pagamento",
+        href: "/financeiro/links-de-pagamento",
+        icon: FileText,
+      },
     ],
   },
   {
@@ -149,7 +169,7 @@ const groups: PastaDoMenu[] = [
       { title: "Produtos", href: "/catalogo/produtos", icon: ShoppingBag },
       { title: "Categorias", href: "/catalogo/categorias", icon: Folder },
       { title: "Estoque", href: "/catalogo/estoque", icon: Database },
-      { title: "Descontos e cupons", href: "/catalogo/cupons", icon: FileText },
+      { title: "Cupons", href: "/catalogo/cupons", icon: FileText },
     ],
   },
   {
@@ -158,7 +178,11 @@ const groups: PastaDoMenu[] = [
     items: [
       { title: "Lojas conectadas", href: "/lojas", icon: Store },
       { title: "Editor da loja", href: "/editor/loja", icon: SquarePen },
-      { title: "Editor de checkout", href: "/editor/checkout", icon: CircleDollarSign },
+      {
+        title: "Editor de checkout",
+        href: "/editor/checkout",
+        icon: CircleDollarSign,
+      },
       { title: "Fretes", href: "/editor/fretes", icon: ShoppingBag },
       { title: "Ver loja", href: "/loja", icon: Store, external: true },
     ],
@@ -167,7 +191,7 @@ const groups: PastaDoMenu[] = [
     label: "Clientes e comunicação",
     icon: Users,
     items: [
-      { title: "CRM", href: "/clientes", icon: Users },
+      { title: "Clientes e CRM", href: "/clientes", icon: Users },
       { title: "E-mails", href: "/emails", icon: FileText },
       { title: "Provas sociais", href: "/provas-sociais", icon: Users },
       { title: "Notificações", href: "/notificacoes", icon: BellRing },
@@ -179,28 +203,52 @@ const groups: PastaDoMenu[] = [
     items: [
       { title: "Landing pages", href: "/landing-pages", icon: FileText },
       { title: "Editor de conteúdo", href: "/editor/pagina", icon: SquarePen },
-      { title: "Baixar site", href: "/captura", icon: FileZip },
-      { title: "Roteador de ofertas", href: "/roteador-de-ofertas", icon: Megaphone },
+      { title: "Captura de sites", href: "/captura", icon: FileZip },
+      { title: "Filtro de acesso", href: "/filtro-de-acesso", icon: Globe },
+      {
+        title: "Roteador de ofertas",
+        href: "/roteador-de-ofertas",
+        icon: Megaphone,
+      },
     ],
   },
   {
     label: "Funis e campanhas",
     icon: Megaphone,
     items: [
-      // /campanhas/quadro e /editor/landing-page abrem o mesmo quadro; o menu
-      // lista um só (o endereço antigo continua funcionando).
       { title: "Quadro do funil", href: "/campanhas/quadro", icon: Megaphone },
-      { title: "Calculadora de campanhas", href: "/campanhas/calculadora", icon: Calculator },
-      { title: "Análise de campanhas", href: "/campanhas/analise", icon: BarChart3 },
+      {
+        title: "Quadro do funil (editor)",
+        href: "/editor/landing-page",
+        icon: SquarePen,
+      },
+      {
+        title: "Calculadora de campanhas",
+        href: "/campanhas/calculadora",
+        icon: Calculator,
+      },
+      {
+        title: "Análise de campanhas",
+        href: "/campanhas/analise",
+        icon: BarChart3,
+      },
     ],
   },
   {
     label: "Tráfego e métricas",
     icon: BarChart3,
     items: [
-      { title: "Gestão de tráfego", href: "/dashboard/trafego", icon: BarChart3 },
-      { title: "Diagnósticos de aquisição", href: "/dashboard/trafego/diagnosticos", icon: Activity },
-      { title: "Pixel", href: "/pixel", icon: Activity },
+      {
+        title: "Aquisição de clientes",
+        href: "/dashboard/trafego",
+        icon: BarChart3,
+      },
+      {
+        title: "Diagnóstico do tráfego",
+        href: "/dashboard/trafego/diagnosticos",
+        icon: Activity,
+      },
+      { title: "Pixels de rastreamento", href: "/pixel", icon: Activity },
     ],
   },
   {
@@ -217,8 +265,8 @@ const groups: PastaDoMenu[] = [
     label: "Conexões e APIs",
     icon: Plug,
     items: [
-      { title: "Integrações", href: "/integracoes", icon: Plug },
-      { title: "Gateways", href: "/gateways", icon: Landmark },
+      { title: "Integrações e APIs", href: "/integracoes", icon: Plug },
+      { title: "Gateways de pagamento", href: "/gateways", icon: Landmark },
       { title: "Webhooks", href: "/webhooks", icon: Megaphone },
     ],
   },
@@ -226,7 +274,12 @@ const groups: PastaDoMenu[] = [
     label: "Servidor",
     icon: Server,
     items: [
-      { title: "Servidores", href: "/servidor", icon: Server, corresponde: new RegExp("^/servidor(?:/[0-9a-f-]{36})?$") },
+      {
+        title: "Servidores",
+        href: "/servidor",
+        icon: Server,
+        corresponde: new RegExp("^/servidor(?:/[0-9a-f-]{36})?$"),
+      },
       { title: "Adicionar servidor", href: "/servidor/novo", icon: Plus },
     ],
   },
@@ -234,23 +287,78 @@ const groups: PastaDoMenu[] = [
     label: "Domínios",
     icon: Globe,
     items: [
-      { title: "Sites", href: "/servidor/sites", icon: Globe },
+      {
+        title: "Domínios e sites hospedados",
+        href: "/servidor/sites",
+        icon: Globe,
+      },
+    ],
+  },
+  {
+    label: "Agente IA",
+    icon: Activity,
+    items: [
+      { title: "Assistente IA", href: "/agente-ia", icon: Activity },
+      {
+        title: "Rascunhos de campanhas",
+        href: "/agente-ia/rascunhos",
+        icon: FileText,
+      },
+      {
+        title: "Histórico do agente",
+        href: "/agente-ia/historico",
+        icon: ScrollText,
+      },
+      {
+        title: "Configurações do agente",
+        href: "/agente-ia/configuracoes",
+        icon: Settings,
+      },
     ],
   },
   {
     label: "Sistema",
     icon: Settings,
     items: [
+      {
+        title: "Segurança e privacidade",
+        href: "/configuracoes/seguranca",
+        icon: ShieldCheck,
+      },
       { title: "Segurança", href: "/seguranca", icon: ShieldCheck },
-      { title: "Design system", href: "/design-system", icon: Palette },
-      { title: "Qualidade de dados", href: "/dashboard/dados", icon: Database },
-      { title: "Alertas", href: "/dashboard/notificacoes", icon: Bell },
-      { title: "Logs", href: "/logs", icon: ScrollText },
-      { title: "Configurações", href: "/configuracoes", icon: Settings },
-      { title: "Equipe e permissões", href: "/configuracoes/acessos", icon: ShieldCheck },
-      { title: "Configurar operação", href: "/configuracoes/operacao", icon: Settings },
-      { title: "Pagamentos e conciliação", href: "/configuracoes/pagamentos", icon: Wallet },
-      { title: "Diagnóstico da operação", href: "/configuracoes/diagnosticos", icon: Activity },
+      { title: "Sistema de design", href: "/design-system", icon: Palette },
+      {
+        title: "Qualidade dos dados",
+        href: "/dashboard/dados",
+        icon: Database,
+      },
+      {
+        title: "Alertas da operação",
+        href: "/dashboard/notificacoes",
+        icon: Bell,
+      },
+      { title: "Logs do sistema", href: "/logs", icon: ScrollText },
+      { title: "Configurações gerais", href: "/configuracoes", icon: Settings },
+      {
+        title: "Acessos e permissões",
+        href: "/configuracoes/acessos",
+        icon: ShieldCheck,
+      },
+      {
+        title: "Configurações da operação",
+        href: "/configuracoes/operacao",
+        icon: Settings,
+      },
+      {
+        title: "Configurações de pagamentos",
+        href: "/configuracoes/pagamentos",
+        icon: Wallet,
+      },
+      {
+        title: "Diagnóstico dos serviços",
+        href: "/configuracoes/diagnosticos",
+        icon: Activity,
+      },
     ],
   },
 ];
@@ -279,7 +387,6 @@ const TITULOS_FORA_DO_MENU: Record<string, string> = {
   "/catalogo/produtos": "Produtos",
   "/editor/checkout": "Editor de checkout",
   "/editor/fretes": "Fretes",
-  "/editor/landing-page": "Quadro do funil",
   "/editor/loja": "Editor da loja",
   "/emails": "E-mails",
   "/financeiro": "Financeiro",
@@ -296,7 +403,8 @@ const TITULOS_FORA_DO_MENU: Record<string, string> = {
  *  do cabeçalho da página. Fora do menu, "Painel". */
 export function sidebarFolderLabel(pathname: string) {
   for (const group of groups) {
-    if (group.items.some((item) => itemAtivo(pathname, item))) return group.label;
+    if (group.items.some((item) => itemAtivo(pathname, item)))
+      return group.label;
     if (group.raiz && itemIsActive(pathname, group.raiz)) return group.label;
   }
   return "Painel";
@@ -485,5 +593,3 @@ export function SidebarFolderNavigation({
     </nav>
   );
 }
-
-

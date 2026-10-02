@@ -1,0 +1,151 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-10-02",
+  "record_status": "confirmed_resources_with_unassigned_inactive_supabase_projects",
+  "application": {
+    "name": "Dash Luxury",
+    "canonical_slug": "dash-luxury-dashboard",
+    "legacy_package_name": "infinity-dashboard",
+    "source_commit": "613837d7507db502d4f7e39b1ebf99f493d13833",
+    "public_url": "https://dashboardatual.vercel.app",
+    "private_production_requires_authentication": true
+  },
+  "resources": {
+    "github_main": {
+      "id": 1316545148,
+      "owner": "CEOPAGANINI",
+      "visibility": "private",
+      "current_name": "dash-luxury-dashboard",
+      "current_full_name": "CEOPAGANINI/dash-luxury-dashboard",
+      "status": "rename_confirmed",
+      "purpose": "main_dashboard_source",
+      "evidence": "Rename confirmed; stable repository ID preserved.",
+      "original_name": "dashboard"
+    },
+    "vercel_main": {
+      "id": "prj_sughoBVaJoeQClw8ULoHNECAzuYt",
+      "team_id": "team_WUbbs5CEXGEJYWWvUQev4XyR",
+      "current_name": "dash-luxury-dashboard",
+      "status": "rename_confirmed",
+      "purpose": "only_dashboard_deployment_project",
+      "preserve_aliases": ["dashboardatual.vercel.app"],
+      "evidence": "Rename confirmed; original public alias retains valid Production configuration.",
+      "original_name": "dashboardatual"
+    },
+    "supabase_production": {
+      "ref": "dzjvmbfgytbhhpkcaxei",
+      "current_name": "dash-luxury-dashboard-producao",
+      "status": "rename_confirmed",
+      "purpose": "dashboard_production_database_and_auth",
+      "organization_id": "fvtrspqqfksswyockbyv",
+      "organization_name": "CEOPAGANINI's Org",
+      "region": "ca-central-1",
+      "region_name": "Canada Central",
+      "evidence": "Actual production project identified and rename confirmed in Supabase browser UI; no region or database migration.",
+      "vercel_storage_connection": "not_connected",
+      "configuration_method": "existing_environment_configuration"
+    }
+  },
+  "github_other_repositories": [
+    {
+      "owner": "CEOPAGANINI",
+      "original_name": "-Dash-Luxury",
+      "current_name": "dash-luxury-reserva-vazia",
+      "visibility": "private",
+      "observed_content": "Orientation README only; originally empty; no application",
+      "purpose": "reserved_empty_repository",
+      "status": "rename_confirmed",
+      "id": 1316520681
+    },
+    {
+      "owner": "CEOPAGANINI",
+      "original_name": "Dash-Luxury",
+      "current_name": "dash-luxury-reserva-documentacao",
+      "visibility": "private",
+      "observed_content": "Explicit reserve README; no application",
+      "purpose": "reserved_documentation_repository",
+      "status": "rename_confirmed",
+      "id": 1316528986
+    },
+    {
+      "owner": "CEOPAGANINI",
+      "original_name": "-Dash-Luxury-1",
+      "current_name": "dash-luxury-reserva-publica",
+      "visibility": "public",
+      "observed_content": "LICENSE and orientation README; no application",
+      "purpose": "reserved_public_repository",
+      "status": "rename_confirmed",
+      "id": 1316540073
+    },
+    {
+      "owner": "CEOPAGANINI",
+      "original_name": "C-digo-Fonte",
+      "current_name": "vitality-landing-page",
+      "visibility": "public",
+      "observed_content": "Vitality HTML landing page",
+      "purpose": "separate_product",
+      "status": "rename_confirmed",
+      "id": 1223819575
+    }
+  ],
+  "supabase_unassigned_projects": [
+    {
+      "ref": "olgetcvivvdqbebeepfm",
+      "current_name": "supabase-inativo-diamond",
+      "status": "INACTIVE",
+      "purpose": null,
+      "association": "unconfirmed",
+      "organization_id": "vercel_icfg_CIvqmLCQrZeQuIiBqTalgl3s",
+      "previous_name": "supabase-byzantine-diamond",
+      "rename_status": "confirmed",
+      "vercel_connected_projects": [],
+      "evidence": "Final MCP ListProjects confirms new name, unchanged ref and INACTIVE status; Vercel Storage shows no Connected Projects.",
+      "assignment_policy": "leave_unassigned_until_purpose_confirmed"
+    },
+    {
+      "ref": "zuhgbwbwjralkzsusjyq",
+      "current_name": "supabase-inativo-canvas",
+      "status": "INACTIVE",
+      "purpose": null,
+      "association": "unconfirmed",
+      "organization_id": "vercel_icfg_CIvqmLCQrZeQuIiBqTalgl3s",
+      "previous_name": "supabase-byzantine-canvas",
+      "rename_status": "confirmed",
+      "vercel_connected_projects": [],
+      "evidence": "Final MCP ListProjects confirms new name, unchanged ref and INACTIVE status; Vercel Storage shows no Connected Projects.",
+      "assignment_policy": "leave_unassigned_until_purpose_confirmed"
+    },
+    {
+      "ref": "dxoglxgdwpnpiqpcysgr",
+      "current_name": "supabase-inativo-desert",
+      "status": "INACTIVE",
+      "purpose": null,
+      "association": "unconfirmed",
+      "organization_id": "vercel_icfg_CIvqmLCQrZeQuIiBqTalgl3s",
+      "previous_name": "supabase-bistre-desert",
+      "rename_status": "confirmed",
+      "vercel_connected_projects": [],
+      "evidence": "Final MCP ListProjects confirms new name, unchanged ref and INACTIVE status; Vercel Storage shows no Connected Projects.",
+      "assignment_policy": "leave_unassigned_until_purpose_confirmed"
+    }
+  ],
+  "production_schema_guard": {
+    "script": "scripts/prepare-production-schema.mjs",
+    "vercel_environment": "production",
+    "registered_vercel_project_id": "prj_sughoBVaJoeQClw8ULoHNECAzuYt",
+    "vercel_project_id_check": "If VERCEL_PROJECT_ID is present and differs, preparation is skipped.",
+    "registered_supabase_ref": "dzjvmbfgytbhhpkcaxei",
+    "registered_migrations": [
+      "0007_funnel_storage.sql",
+      "0008_rate_limits.sql"
+    ],
+    "note": "Documentation of existing guarded build behavior; not authorization to run migrations or expand targets."
+  },
+  "maintenance": {
+    "update_after_confirming_resource_id_and_final_name": true,
+    "preserve_public_url": true,
+    "preserve_repository_visibility": true,
+    "preserve_database_region": true,
+    "contains_secrets": false
+  }
+}

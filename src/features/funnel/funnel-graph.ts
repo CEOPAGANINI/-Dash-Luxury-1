@@ -81,6 +81,11 @@ export function cloneFunnelGraph({
     node.id = ids.get(node.id)!;
     node.x += offset.x;
     node.y += offset.y;
+    if (node.trafficStoreNodeId) {
+      const storeId = target(node.trafficStoreNodeId);
+      if (storeId) node.trafficStoreNodeId = storeId;
+      else delete node.trafficStoreNodeId;
+    }
     if (node.redir) {
       node.redir.regras = node.redir.regras.map((rule) => {
         const next = {

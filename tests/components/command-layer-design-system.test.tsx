@@ -27,7 +27,7 @@ describe("CommandLayer live design system", () => {
     const { container } = render(<DesignSystemPage />);
     expect(metadata.title).toBe("Design system · CommandLayer");
     expect(
-      screen.getByRole("heading", { name: "CommandLayer", level: 2 }),
+      screen.getByRole("heading", { name: "CommandLayer · VECTR", level: 2 }),
     ).toBeTruthy();
     expect(screen.getByText(/Demonstrações locais/)).toBeTruthy();
     expect(screen.queryByText("Orbit · Nebula")).toBeNull();
@@ -42,9 +42,11 @@ describe("CommandLayer live design system", () => {
     for (const link of screen
       .getByRole("navigation", { name: "Seções do design system" })
       .querySelectorAll("a")) {
-      expect(
-        container.querySelector(link.getAttribute("href")!),
-      ).not.toBeNull();
+      const href = link.getAttribute("href")!;
+      // Âncoras apontam para seções da própria página; a referência VECTR
+      // é um arquivo em /public e não tem alvo no DOM.
+      if (!href.startsWith("#")) continue;
+      expect(container.querySelector(href)).not.toBeNull();
     }
   });
 

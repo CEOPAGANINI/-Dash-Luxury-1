@@ -1,0 +1,117 @@
+/* Story-only framing; production component styles are imported unchanged. */
+.funnel.flow-storybook {
+  position: relative;
+  min-height: 320px;
+  height: auto;
+  padding: 24px;
+  border-radius: 12px;
+  overflow: visible;
+  user-select: text;
+  touch-action: auto;
+}
+
+.flow-storybook .flow-story-grid {
+  display: grid;
+  gap: 24px;
+  max-width: 800px;
+}
+
+.flow-storybook .flow-story-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.flow-storybook :is(.flow-story-grid, .flow-story-token-grid) h2 {
+  margin: 0;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+}
+
+.flow-storybook .flow-story-grid p {
+  margin: 0;
+  color: var(--flow-text-secondary);
+}
+
+.flow-storybook .flow-story-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+  gap: 24px;
+}
+
+.flow-storybook .flow-story-card {
+  position: relative;
+  padding: 8px;
+}
+
+.flow-storybook .flow-story-card .funnel__node {
+  position: relative;
+}
+
+.flow-storybook .flow-story-token-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
+  gap: 16px;
+  max-width: 1000px;
+}
+
+.flow-storybook .flow-story-token {
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--flow-border);
+  border-radius: 8px;
+  background: var(--flow-surface);
+}
+
+.flow-storybook .flow-story-swatch {
+  height: 64px;
+  margin-bottom: 12px;
+  border: 1px solid var(--flow-border-functional);
+  border-radius: 4px;
+}
+
+.flow-storybook .flow-story-token figcaption {
+  display: grid;
+  gap: 4px;
+  color: var(--flow-text);
+  font-size: 12px;
+  line-height: 18px;
+  overflow-wrap: anywhere;
+}
+
+.flow-storybook .flow-story-token code {
+  font-family: var(--flow-mono);
+  color: var(--flow-text-secondary);
+}
+
+.flow-storybook .flow-story-rule {
+  max-width: 400px;
+}
+
+.flow-storybook .flow-story-board > .funnel {
+  height: 640px;
+  min-height: 520px;
+}
+
+.flow-storybook .flow-story-inspector {
+  position: relative;
+  min-height: 640px;
+  border: 1px solid var(--flow-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.flow-storybook .flow-story-inspector > .pub,
+.flow-storybook .flow-story-inspector .flow-inspector > .pub {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+}
+
+@media (max-width: 520px) {
+  .funnel.flow-storybook {
+    padding: 16px;
+  }
+}

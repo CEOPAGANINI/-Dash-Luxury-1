@@ -23,6 +23,8 @@ vi.mock("next/navigation", () => ({
   notFound: () => {
     throw new Error("NEXT_NOT_FOUND");
   },
+  // O eyebrow do cabeçalho lê a rota atual para nomear a pasta do menu.
+  usePathname: () => "/servidor",
 }));
 
 const SRV = "11111111-1111-4111-8111-111111111111";
@@ -64,14 +66,16 @@ afterEach(() => {
 });
 
 describe("configuração das páginas", () => {
+  // O título de cada página é o nome dela no menu da esquerda (regra do
+  // dono); as páginas de detalhe ficam com o nome da área.
   it.each([
-    ["/servidor", PaginaServidores],
-    ["/servidor/novo", PaginaNovo],
-    ["/servidor/[servidorId]", PaginaServidor],
-    ["/servidor/sites", PaginaSites],
-    ["/servidor/sites/[siteId]", PaginaSite],
-  ])("%s: título Servidor, sempre dinâmica, 30 s", (_rota, modulo) => {
-    expect(modulo.metadata).toEqual({ title: "Servidor" });
+    ["/servidor", PaginaServidores, "Servidores"],
+    ["/servidor/novo", PaginaNovo, "Adicionar servidor"],
+    ["/servidor/[servidorId]", PaginaServidor, "Servidor"],
+    ["/servidor/sites", PaginaSites, "Domínios e sites hospedados"],
+    ["/servidor/sites/[siteId]", PaginaSite, "Servidor"],
+  ])("%s: título do menu, sempre dinâmica, 30 s", (_rota, modulo, titulo) => {
+    expect(modulo.metadata).toEqual({ title: titulo });
     expect(modulo.dynamic).toBe("force-dynamic");
     expect(modulo.maxDuration).toBe(30);
   });

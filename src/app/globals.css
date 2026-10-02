@@ -1,8 +1,8 @@
-@import "tailwindcss";
+@import "tailwindcss" source("../");
 @import "tw-animate-css";
-@layer theme, base, components, utilities, legacy, commandlayer, futurist;
+@layer theme, base, components, utilities, legacy, commandlayer, dashboard, futurist;
 /* Design system "Futurist Workflow" (fontes, textos e diagramação): última
-   camada, por cima do CommandLayer. Ver src/app/futurist.css. */
+   camada, por cima do CommandLayer e da camada "dashboard". Ver src/app/futurist.css. */
 @import "./futurist.css";
 
 @custom-variant dark (&:is(.dark *));

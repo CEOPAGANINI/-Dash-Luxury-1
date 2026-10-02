@@ -51,15 +51,30 @@ beforeEach(() => {
 
 describe("bancoIndisponivel", () => {
   it("reconhece DNS, recusa e tempo esgotado, inclusive dentro de cause", () => {
-    for (const code of ["ENOTFOUND", "ECONNREFUSED", "ETIMEDOUT", "EAI_AGAIN"]) {
+    for (const code of [
+      "ENOTFOUND",
+      "ECONNREFUSED",
+      "ETIMEDOUT",
+      "EAI_AGAIN",
+    ]) {
       const driver = Object.assign(new Error("getaddrinfo " + code), { code });
       expect(bancoIndisponivel(driver)).toBe(true);
-      expect(bancoIndisponivel(Object.assign(new Error("Failed query"), { cause: driver }))).toBe(true);
+      expect(
+        bancoIndisponivel(
+          Object.assign(new Error("Failed query"), { cause: driver }),
+        ),
+      ).toBe(true);
     }
-    expect(bancoIndisponivel(new Error("DATABASE_URL não configurada. Configure o Supabase."))).toBe(true);
+    expect(
+      bancoIndisponivel(
+        new Error("DATABASE_URL não configurada. Configure o Supabase."),
+      ),
+    ).toBe(true);
   });
   it("não confunde recusa de acesso nem erro de regra com banco fora do ar", () => {
-    expect(bancoIndisponivel(new WorkspaceAccessError(403, "Sem permissão."))).toBe(false);
+    expect(
+      bancoIndisponivel(new WorkspaceAccessError(403, "Sem permissão.")),
+    ).toBe(false);
     expect(bancoIndisponivel(new Error("verification_failed"))).toBe(false);
     expect(bancoIndisponivel(null)).toBe(false);
   });
@@ -78,7 +93,9 @@ describe("tentarWorkspaceAccess", () => {
   it("continua lançando quando a sessão é de demonstração (recusa 401)", async () => {
     state.session = { user: { ...user, id: "demo-user" }, demoMode: true };
     state.db = dbQueFalha(new Error("não deveria consultar"));
-    await expect(tentarWorkspaceAccess()).rejects.toBeInstanceOf(WorkspaceAccessError);
+    await expect(tentarWorkspaceAccess()).rejects.toBeInstanceOf(
+      WorkspaceAccessError,
+    );
   });
   it("repassa erros que não são de conectividade", async () => {
     state.db = dbQueFalha(new Error("syntax error at or near"));

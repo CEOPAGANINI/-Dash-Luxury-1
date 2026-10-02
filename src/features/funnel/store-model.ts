@@ -101,6 +101,8 @@ export function tamanhoTxt(n: number): string {
 }
 
 export interface DadosLoja {
+  /** BMs explicitamente atribuídas a esta loja (até cinco). */
+  metaBusinessIds?: string[];
   plataforma: PlataformaLoja;
   /** Domínio da loja (da VPS ou externo). */
   dominio?: string;

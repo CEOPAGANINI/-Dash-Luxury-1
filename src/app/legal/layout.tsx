@@ -34,10 +34,9 @@ export default function LegalLayout({
           <div className="mb-8 flex items-start gap-3 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
             <TriangleAlert className="mt-0.5 size-4 shrink-0" />
             <p>
-              <strong>Página incompleta.</strong> Os dados de identificação da
-              empresa (denominação, NIF e morada) ainda não foram preenchidos em{" "}
-              <code className="font-mono text-xs">src/lib/company.ts</code>. A
-              lei portuguesa exige estas informações antes de vender ao público.
+              <strong>Página incompleta.</strong> A identificação da empresa
+              ainda não está completa. Verifique essas informações antes de
+              realizar uma compra.
             </p>
           </div>
         )}

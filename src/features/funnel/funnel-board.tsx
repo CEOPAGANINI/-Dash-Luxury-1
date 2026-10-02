@@ -1,6 +1,32 @@
 "use client";
 
 import * as React from "react";
+import * as Dialog from "@radix-ui/react-dialog";
+import {
+  FlowButton,
+  FlowConfirmDialog,
+  FlowIconButton,
+  FlowStatusBadge,
+} from "./flow-ui";
+import { nodePreparation } from "./node-readiness";
+import { FlowInspector } from "./flow-inspector";
+import { nodeFocusViewport } from "./node-focus";
+import { EdgeTools } from "./edge-tools";
+import { FlowEdgeSignal } from "./edge-flow-signal";
+import { addFunnelEdge, reconnectFunnelEdge } from "./reconnect-edge";
+import {
+  anchorPoint,
+  perimeterAnchor,
+  connectionControls,
+  connectionMidpoint,
+  connectionPath,
+  moveConnectionControls,
+  SOURCE_ANCHOR,
+  TARGET_ANCHOR,
+  type ConnectionPoint,
+} from "./connection-geometry";
+import "./flow-tokens.css";
+import "./flow-design-system.css";
 import type { FunnelSyncStatus } from "./cloud-client";
 import {
   Archive,
@@ -71,6 +97,7 @@ import {
   TIPOS_PAGINA,
   type FunnelData,
   type EstiloLinha,
+  type FunnelConnectionAnchor,
   type EstiloMapa,
   type EstiloNo,
   type FunnelEdge,
@@ -89,6 +116,8 @@ import {
 import { PagePublisher, type EtapaDestino } from "./page-publisher";
 import { RedirectPanel } from "./redirect-panel";
 import { BlockPanel } from "./block-panel";
+import { MetaBusinessPanel } from "./meta-business-panel";
+import { isFacebookTraffic } from "./meta-traffic-scope";
 import { CORES_NO, StylePanel } from "./style-panel";
 import {
   CENARIOS,
@@ -181,8 +210,8 @@ const ICONES: Record<
 };
 
 const OFF = 8000;
-const MIN_ZOOM = 0.2;
-const MAX_ZOOM = 5;
+const MIN_ZOOM = 0.25;
+const MAX_ZOOM = 1.5;
 const DATA_KEY = "application/x-funnel";
 
 const clamp = (v: number, lo: number, hi: number) =>
@@ -223,22 +252,7 @@ function caminhoDaLinha(
   ty: number,
   estilo: EstiloLinha | undefined,
 ): string {
-  const o = OFF;
-  const forma = estilo?.forma ?? "curva";
-  if (forma === "reta") return `M ${sx + o} ${sy + o} L ${tx + o} ${ty + o}`;
-  if (forma === "cotovelo") {
-    const mx = (sx + tx) / 2;
-    return `M ${sx + o} ${sy + o} H ${mx + o} V ${ty + o} H ${tx + o}`;
-  }
-  if (forma === "livre") {
-    const ps = estilo?.pontos ?? [];
-    if (ps.length === 1)
-      return `M ${sx + o} ${sy + o} Q ${ps[0].x + o} ${ps[0].y + o} ${tx + o} ${ty + o}`;
-    if (ps.length >= 2)
-      return `M ${sx + o} ${sy + o} C ${ps[0].x + o} ${ps[0].y + o}, ${ps[1].x + o} ${ps[1].y + o}, ${tx + o} ${ty + o}`;
-  }
-  const dx = Math.max(40, Math.abs(tx - sx) / 2);
-  return `M ${sx + o} ${sy + o} C ${sx + dx + o} ${sy + o}, ${tx - dx + o} ${ty + o}, ${tx + o} ${ty + o}`;
+  return connectionPath({ x: sx, y: sy }, { x: tx, y: ty }, estilo, OFF);
 }
 type Snap = { nodes: FunnelNode[]; edges: FunnelEdge[] };
 
@@ -257,7 +271,28 @@ type Interacao =
       /** Posição inicial de cada bloco do grupo (arrasto em conjunto). */
       grupo?: Record<string, { x: number; y: number }>;
     }
-  | { modo: "ponto"; edgeId: string; idx: number }
+  | {
+      modo: "ponto";
+      edgeId: string;
+      idx: number;
+      points: ConnectionPoint[];
+      before: Snap;
+      pointerId: number;
+    }
+  | {
+      modo: "bend";
+      edgeId: string;
+      start: ConnectionPoint;
+      points: ConnectionPoint[];
+      before: Snap;
+      pointerId: number;
+    }
+  | {
+      modo: "endpoint";
+      edge: FunnelEdge;
+      endpoint: "source" | "target";
+      pointerId: number;
+    }
   | { modo: "resize"; id: string; px: number; py: number; w: number; h: number }
   | {
       modo: "laco";
@@ -266,7 +301,12 @@ type Interacao =
       /** Seleção que já existia (Ctrl: soma; senão, começa vazia). */
       base: string[];
     }
-  | { modo: "connect"; source: string }
+  | {
+      modo: "connect";
+      source: string;
+      sourceAnchor: FunnelConnectionAnchor;
+      pointerId: number;
+    }
   | null;
 
 export interface FunnelBoardProps {
@@ -328,7 +368,7 @@ export function FunnelBoard({
           source: n.id,
           target: r.destinoNoId,
           rotulo: rotuloDaRegra(r),
-          estilo: { cor: r.ativo ? "#00e559" : "#6b6b73", ...r.estilo },
+          estilo: r.ativo ? r.estilo : { ...r.estilo, fluxo: false },
         });
       }
     }
@@ -358,6 +398,13 @@ export function FunnelBoard({
     tipo: "node" | "edge";
     id: string;
   } | null>(null);
+  const [viewMode, setViewMode] = React.useState<"canvas" | "lista" | null>(
+    null,
+  );
+  const [showForecast, setShowForecast] = React.useState(false);
+  const listMode =
+    viewMode === "lista" ||
+    (viewMode === null && canvasBox.width > 0 && canvasBox.width <= 1024);
   // Seleção múltipla (Ctrl+clique / laço), como no Windows.
   const [multi, setMulti] = React.useState<Set<string>>(() => new Set());
   // Fluxo animado nas linhas (padrão ligado; cada linha pode desligar).
@@ -371,6 +418,7 @@ export function FunnelBoard({
     wx: number;
     wy: number;
     source: string;
+    sourceAnchor: FunnelConnectionAnchor;
   } | null>(null);
   const [buscaLigar, setBuscaLigar] = React.useState("");
   // Retângulo do laço, em pixels da tela do quadro.
@@ -480,6 +528,12 @@ export function FunnelBoard({
     /** O nó de origem da ligação em curso — no estado, porque o render
         desenha a aresta temporária e não deve ler o ref da interação. */
     source: string;
+    sourceAnchor: FunnelConnectionAnchor;
+  } | null>(null);
+  const [edgePreview, setEdgePreview] = React.useState<{
+    edgeId: string;
+    endpoint: "source" | "target";
+    point: ConnectionPoint;
   } | null>(null);
   const [panning, setPanning] = React.useState(false);
   const [dragId, setDragId] = React.useState<string | null>(null);
@@ -630,6 +684,37 @@ export function FunnelBoard({
     paraMundoRef.current = paraMundo;
   }, [paraMundo]);
 
+  // Regras e linhas manuais compartilham a mesma edição/persistência de estilo.
+  const patchConnectionStyle = React.useCallback(
+    (id: string, patch: Partial<EstiloLinha>) => {
+      if (id.startsWith("rr:")) {
+        setNodes((ns) =>
+          ns.map((n) =>
+            n.redir
+              ? {
+                  ...n,
+                  redir: {
+                    regras: n.redir.regras.map((r) =>
+                      `rr:${n.id}:${r.id}` === id
+                        ? { ...r, estilo: { ...r.estilo, ...patch } }
+                        : r,
+                    ),
+                  },
+                }
+              : n,
+          ),
+        );
+      } else {
+        setEdges((es) =>
+          es.map((ed) =>
+            ed.id === id ? { ...ed, estilo: { ...ed.estilo, ...patch } } : ed,
+          ),
+        );
+      }
+    },
+    [],
+  );
+
   // Roda do mouse: zoom mirando o cursor. Listener nativo para poder
   // cancelar o scroll da página (onWheel do React é passivo).
   React.useEffect(() => {
@@ -638,7 +723,13 @@ export function FunnelBoard({
     const onWheel = (e: WheelEvent) => {
       // Roda sobre o publicador (painel lateral) rola o painel, não o
       // quadro: deixa o evento seguir e não dá zoom.
-      if ((e.target as Element | null)?.closest?.(".pub")) return;
+      if (
+        (e.target as Element | null)?.closest?.(
+          ".pub, .funnel__panel, .funnel__flow-list, .funnel__view-switch, .funnel__edge-tools, .flow-inspector",
+        ) ||
+        listMode
+      )
+        return;
       e.preventDefault();
       const r = el.getBoundingClientRect();
       const px = e.clientX - r.left;
@@ -652,13 +743,13 @@ export function FunnelBoard({
     };
     el.addEventListener("wheel", onWheel, { passive: false });
     return () => el.removeEventListener("wheel", onWheel);
-  }, []);
+  }, [listMode]);
 
   // Um único par move/up global enquanto há interação em curso.
   React.useEffect(() => {
     const onMove = (e: PointerEvent) => {
       const it = inter.current;
-      if (!it) return;
+      if (!it || ("pointerId" in it && it.pointerId !== e.pointerId)) return;
       if (it.modo === "pan") {
         setVp((v) => ({
           ...v,
@@ -731,14 +822,25 @@ export function FunnelBoard({
         setNodes((ns) => ns.map((n) => (n.id === it.id ? { ...n, w, h } : n)));
       } else if (it.modo === "ponto") {
         const w = paraMundoRef.current(e.clientX, e.clientY);
-        setEdges((es) =>
-          es.map((ed) => {
-            if (ed.id !== it.edgeId) return ed;
-            const pontos = [...(ed.estilo?.pontos ?? [])];
-            pontos[it.idx] = { x: w.wx, y: w.wy };
-            return { ...ed, estilo: { ...ed.estilo, forma: "livre", pontos } };
-          }),
-        );
+        const pontos = [...it.points];
+        pontos[it.idx] = { x: w.wx, y: w.wy };
+        patchConnectionStyle(it.edgeId, { forma: "livre", pontos });
+      } else if (it.modo === "bend") {
+        const w = paraMundoRef.current(e.clientX, e.clientY);
+        const delta = { x: w.wx - it.start.x, y: w.wy - it.start.y };
+        if (Math.hypot(delta.x, delta.y) * vp.k > 3) {
+          patchConnectionStyle(it.edgeId, {
+            forma: "livre",
+            pontos: moveConnectionControls(it.points, delta),
+          });
+        }
+      } else if (it.modo === "endpoint") {
+        const w = paraMundoRef.current(e.clientX, e.clientY);
+        setEdgePreview({
+          edgeId: it.edge.id,
+          endpoint: it.endpoint,
+          point: { x: w.wx, y: w.wy },
+        });
       } else if (it.modo === "laco") {
         const r = rootRef.current?.getBoundingClientRect();
         if (!r) return;
@@ -768,20 +870,55 @@ export function FunnelBoard({
         setConn({
           ...paraMundoRef.current(e.clientX, e.clientY),
           source: it.source,
+          sourceAnchor: it.sourceAnchor,
         });
       }
     };
     const onUp = (e: PointerEvent) => {
       const it = inter.current;
-      if (!it) return;
+      if (!it || ("pointerId" in it && it.pointerId !== e.pointerId)) return;
+      const w = paraMundoRef.current(e.clientX, e.clientY);
+      const point = { x: w.wx, y: w.wy };
+      const surface = document.elementFromPoint(e.clientX, e.clientY);
+      const overlay = surface?.closest(
+        ".pub,.funnel__panel,.funnel__edge-tools,.funnel__toolbar,.flow-inspector",
+      );
+      const hitNodeId = surface
+        ?.closest(".funnel__node[data-in]")
+        ?.getAttribute("data-in");
+      const hitNode = hitNodeId
+        ? nodesRef.current.find(
+            (node) =>
+              node.id === hitNodeId &&
+              (!isAnotacao(node.type) || node.type === "shape"),
+          )
+        : undefined;
+      const targetNode = overlay
+        ? undefined
+        : (hitNode ??
+          [...nodesRef.current].reverse().find((n) => {
+            if (isAnotacao(n.type) && n.type !== "shape") return false;
+            const sz = sizesRef.current[n.id] ?? { w: NODE_W, h: 90 };
+            const tolerance = 18 / vp.k;
+            return (
+              point.x >= n.x - tolerance &&
+              point.x <= n.x + sz.w + tolerance &&
+              point.y >= n.y - tolerance &&
+              point.y <= n.y + sz.h + tolerance
+            );
+          }));
+      const targetAnchor = targetNode
+        ? perimeterAnchor(
+            {
+              ...targetNode,
+              ...(sizesRef.current[targetNode.id] ?? { w: NODE_W, h: 90 }),
+            },
+            point,
+          )
+        : undefined;
       if (it.modo === "connect") {
-        // Aceita o drop em qualquer parte do nó-alvo (o próprio card leva
-        // data-in), não só no círculo de 20px da alça.
-        const alvo = document
-          .elementFromPoint(e.clientX, e.clientY)
-          ?.closest<HTMLElement>("[data-in]");
-        const destino = alvo?.dataset.in;
-        if (!destino) {
+        const destino = targetNode?.id;
+        if (!destino && !overlay) {
           // Soltou no vazio: abre o menu "o que criar e ligar aqui?".
           const r = rootRef.current?.getBoundingClientRect();
           if (r) {
@@ -793,23 +930,80 @@ export function FunnelBoard({
               wx: w.wx,
               wy: w.wy,
               source: it.source,
+              sourceAnchor: it.sourceAnchor,
             });
             setBuscaLigar("");
           }
         }
         if (destino && destino !== it.source) {
-          setEdges((es) => {
-            if (
-              es.some((ed) => ed.source === it.source && ed.target === destino)
-            )
-              return es;
-            return [
-              ...es,
-              { id: `e${idSeq.current++}`, source: it.source, target: destino },
-            ];
-          });
+          const next = addFunnelEdge(
+            { nodes: nodesRef.current, edges: edgesRef.current },
+            {
+              id: `e${idSeq.current++}`,
+              source: it.source,
+              target: destino,
+              estilo: { sourceAnchor: it.sourceAnchor, targetAnchor },
+            },
+          );
+          setNodes(next.nodes);
+          setEdges(next.edges);
         }
         setConn(null);
+      } else if (it.modo === "endpoint") {
+        // Um drop vazio/cancelado só apaga a prévia; a ligação original permanece.
+        if (targetNode && targetAnchor) {
+          const source =
+            it.endpoint === "source" ? targetNode.id : it.edge.source;
+          const target =
+            it.endpoint === "target" ? targetNode.id : it.edge.target;
+          const duplicate =
+            !it.edge.id.startsWith("rr:") &&
+            (source !== it.edge.source || target !== it.edge.target) &&
+            edgesRef.current.some(
+              (ed) =>
+                ed.id !== it.edge.id &&
+                ed.source === source &&
+                ed.target === target,
+            );
+          if (source !== target && !duplicate) {
+            if (it.edge.id.startsWith("rr:")) {
+              if (source === it.edge.source)
+                setNodes((ns) =>
+                  ns.map((n) =>
+                    n.redir
+                      ? {
+                          ...n,
+                          redir: {
+                            regras: n.redir.regras.map((r) =>
+                              `rr:${n.id}:${r.id}` === it.edge.id
+                                ? {
+                                    ...r,
+                                    destinoNoId: target,
+                                    destino: "",
+                                    estilo: {
+                                      ...r.estilo,
+                                      [`${it.endpoint}Anchor`]: targetAnchor,
+                                    },
+                                  }
+                                : r,
+                            ),
+                          },
+                        }
+                      : n,
+                  ),
+                );
+            } else {
+              const next = reconnectFunnelEdge(
+                { nodes: nodesRef.current, edges: edgesRef.current },
+                it.edge.id,
+                { source, target, [`${it.endpoint}Anchor`]: targetAnchor },
+              );
+              setNodes(next.nodes);
+              setEdges(next.edges);
+            }
+          }
+        }
+        setEdgePreview(null);
       }
       if (it.modo === "laco") setLaco(null);
       inter.current = null;
@@ -818,13 +1012,31 @@ export function FunnelBoard({
       setGuias(null);
       setHistTick((t) => t + 1);
     };
+    const onCancel = (e: PointerEvent) => {
+      const it = inter.current;
+      if (!it || ("pointerId" in it && it.pointerId !== e.pointerId)) return;
+      if ("before" in it) {
+        setNodes(it.before.nodes);
+        setEdges(it.before.edges);
+      }
+      inter.current = null;
+      setConn(null);
+      setEdgePreview(null);
+      setPanning(false);
+      setDragId(null);
+      setGuias(null);
+      setLaco(null);
+      setHistTick((t) => t + 1);
+    };
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onCancel);
     return () => {
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onCancel);
     };
-  }, [vp.k]);
+  }, [vp.k, patchConnectionStyle]);
 
   /*
     Área de transferência do quadro (Ctrl+C / Ctrl+X / Ctrl+V / Ctrl+D).
@@ -1120,11 +1332,28 @@ export function FunnelBoard({
     };
   };
 
-  const iniciarConexao = (e: React.PointerEvent, node: FunnelNode) => {
+  const iniciarConexao = (
+    e: React.PointerEvent,
+    node: FunnelNode,
+    side: FunnelConnectionAnchor["side"],
+  ) => {
+    e.preventDefault();
     e.stopPropagation();
-    if (locked) return;
-    inter.current = { modo: "connect", source: node.id };
-    setConn({ ...paraMundo(e.clientX, e.clientY), source: node.id });
+    if (locked || e.button !== 0) return;
+    const w = paraMundo(e.clientX, e.clientY);
+    const sourceAnchor = perimeterAnchor(
+      { ...node, ...size(node.id) },
+      { x: w.wx, y: w.wy },
+      side,
+    );
+    inter.current = {
+      modo: "connect",
+      source: node.id,
+      sourceAnchor,
+      pointerId: e.pointerId,
+    };
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+    setConn({ ...w, source: node.id, sourceAnchor });
   };
 
   const adicionar = React.useCallback(
@@ -1156,6 +1385,7 @@ export function FunnelBoard({
           title: m.label,
           cor: m.cor,
           sigla: m.sigla,
+          marcaId: m.id,
         };
       } else {
         const def = RECURSO_POR_TIPO[payload];
@@ -1220,10 +1450,21 @@ export function FunnelBoard({
     if (!m) return;
     const id = adicionar(payload, m.wx + NODE_W / 2, m.wy + 40);
     if (id) {
-      setEdges((es) => [
-        ...es,
-        { id: `e${idSeq.current++}`, source: m.source, target: id },
-      ]);
+      const next = addFunnelEdge(
+        { nodes: nodesRef.current, edges: edgesRef.current },
+        {
+          id: `e${idSeq.current++}`,
+          source: m.source,
+          target: id,
+          estilo: { sourceAnchor: m.sourceAnchor },
+        },
+      );
+      // Preserve the new block queued by adicionar in this same batch.
+      if (next.nodes !== nodesRef.current)
+        setNodes((ns) =>
+          ns.map((n) => next.nodes.find((old) => old.id === n.id) ?? n),
+        );
+      setEdges(next.edges);
     }
     setMenuLigar(null);
   };
@@ -1233,44 +1474,23 @@ export function FunnelBoard({
     const src = nodesRef.current.find((n) => n.id === sourceId);
     if (!src) return;
     const id = adicionar(tipo, src.x + NODE_W * 1.5 + 100, src.y + 40);
-    if (id)
-      setEdges((es) => [
-        ...es,
+    if (id) {
+      const next = addFunnelEdge(
+        { nodes: nodesRef.current, edges: edgesRef.current },
         { id: `e${idSeq.current++}`, source: sourceId, target: id },
-      ]);
+      );
+      if (next.nodes !== nodesRef.current)
+        setNodes((ns) =>
+          ns.map((n) => next.nodes.find((old) => old.id === n.id) ?? n),
+        );
+      setEdges(next.edges);
+    }
   };
 
   // Estilo da linha selecionada (barra flutuante).
   const edgeSel =
     sel?.tipo === "edge" ? todasLinhas.find((e) => e.id === sel.id) : undefined;
-  const setEstilo = (id: string, patch: Partial<EstiloLinha>) => {
-    if (id.startsWith("rr:")) {
-      // Linha de uma regra do Redirecionador: o estilo mora na regra.
-      const [, nid, rid] = id.split(":");
-      setNodes((ns) =>
-        ns.map((n) =>
-          n.id === nid && n.redir
-            ? {
-                ...n,
-                redir: {
-                  regras: n.redir.regras.map((r) =>
-                    r.id === rid
-                      ? { ...r, estilo: { ...r.estilo, ...patch } }
-                      : r,
-                  ),
-                },
-              }
-            : n,
-        ),
-      );
-      return;
-    }
-    setEdges((es) =>
-      es.map((ed) =>
-        ed.id === id ? { ...ed, estilo: { ...ed.estilo, ...patch } } : ed,
-      ),
-    );
-  };
+  const setEstilo = patchConnectionStyle;
   // Nome da saída (o texto no meio da linha), só nas linhas comuns.
   const setRotulo = (id: string, rotulo: string) =>
     setEdges((es) =>
@@ -1324,12 +1544,192 @@ export function FunnelBoard({
     if (!s0 || !t0) return null;
     const ss = size(s0.id);
     const ts = size(t0.id);
-    return {
-      sx: s0.x + ss.w,
-      sy: s0.y + ss.h / 2,
-      tx: t0.x,
-      ty: t0.y + ts.h / 2,
+    let start = anchorPoint(
+      { ...s0, ...ss },
+      ed.estilo?.sourceAnchor ?? SOURCE_ANCHOR,
+    );
+    let end = anchorPoint(
+      { ...t0, ...ts },
+      ed.estilo?.targetAnchor ?? TARGET_ANCHOR,
+    );
+    if (edgePreview?.edgeId === ed.id) {
+      if (edgePreview.endpoint === "source") start = edgePreview.point;
+      else end = edgePreview.point;
+    }
+    return { sx: start.x, sy: start.y, tx: end.x, ty: end.y };
+  };
+
+  const handleEdgePointerDown = (
+    e: React.PointerEvent<SVGElement>,
+    edge: FunnelEdge,
+  ) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setSel({ tipo: "edge", id: edge.id });
+    setMulti(new Set());
+    setAberto(null);
+    if (locked || e.button !== 0) return;
+    const pm = pontoMedio(edge);
+    if (!pm) return;
+    const w = paraMundo(e.clientX, e.clientY);
+    inter.current = {
+      modo: "bend",
+      edgeId: edge.id,
+      start: { x: w.wx, y: w.wy },
+      points: connectionControls(
+        { x: pm.sx, y: pm.sy },
+        { x: pm.tx, y: pm.ty },
+        edge.estilo,
+      ),
+      before: { nodes, edges },
+      pointerId: e.pointerId,
     };
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+  };
+  const handleEndpointPointerDown = (
+    e: React.PointerEvent<SVGElement>,
+    edge: FunnelEdge,
+    endpoint: "source" | "target",
+  ) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (locked || e.button !== 0) return;
+    inter.current = {
+      modo: "endpoint",
+      edge,
+      endpoint,
+      pointerId: e.pointerId,
+    };
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+  };
+  const moverPontaTeclado = (
+    e: React.KeyboardEvent<SVGElement>,
+    edge: FunnelEdge,
+    endpoint: "source" | "target",
+  ) => {
+    if (
+      locked ||
+      ![
+        "ArrowLeft",
+        "ArrowRight",
+        "ArrowUp",
+        "ArrowDown",
+        "Home",
+        "End",
+      ].includes(e.key)
+    )
+      return;
+    e.stopPropagation();
+    e.preventDefault();
+    const anchor =
+      edge.estilo?.[`${endpoint}Anchor`] ??
+      (endpoint === "source" ? SOURCE_ANCHOR : TARGET_ANCHOR);
+    const delta =
+      (e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 1) *
+      (e.shiftKey ? 0.1 : 0.02);
+    const offset =
+      e.key === "Home"
+        ? 0
+        : e.key === "End"
+          ? 1
+          : Math.max(0, Math.min(1, anchor.offset + delta));
+    setEstilo(edge.id, { [`${endpoint}Anchor`]: { ...anchor, offset } });
+  };
+  const controlesDaLinha = (edge: FunnelEdge) => {
+    const pm = pontoMedio(edge);
+    if (!pm) return null;
+    const start = { x: pm.sx, y: pm.sy };
+    const end = { x: pm.tx, y: pm.ty };
+    const midpoint = connectionMidpoint(start, end, edge.estilo);
+    return (
+      <g data-edge-id={edge.id}>
+        {(
+          [
+            ["source", start, "origem"],
+            ["target", end, "destino"],
+          ] as const
+        ).map(([endpoint, point, label]) => (
+          <circle
+            key={endpoint}
+            className="funnel__edge-endpoint"
+            data-endpoint={endpoint}
+            data-edge-id={edge.id}
+            cx={point.x + OFF}
+            cy={point.y + OFF}
+            r={9 / vp.k}
+            role="button"
+            tabIndex={locked ? -1 : 0}
+            aria-label={`Mover ponta de ${label}. Setas ajustam a posição na borda; Home e End vão aos cantos.`}
+            onPointerDown={(e) => handleEndpointPointerDown(e, edge, endpoint)}
+            onKeyDown={(e) => moverPontaTeclado(e, edge, endpoint)}
+          />
+        ))}
+        <circle
+          className="funnel__edge-bend"
+          data-edge-id={edge.id}
+          cx={midpoint.x + OFF}
+          cy={midpoint.y + OFF}
+          r={8 / vp.k}
+          role="button"
+          tabIndex={locked ? -1 : 0}
+          aria-label="Dobrar conexão. Use as setas para mover a curva."
+          onPointerDown={(e) => handleEdgePointerDown(e, edge)}
+          onKeyDown={(e) => {
+            if (
+              locked ||
+              !["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(
+                e.key,
+              )
+            )
+              return;
+            e.stopPropagation();
+            e.preventDefault();
+            const step = e.shiftKey ? 50 : 10;
+            const delta = {
+              x:
+                e.key === "ArrowLeft"
+                  ? -step
+                  : e.key === "ArrowRight"
+                    ? step
+                    : 0,
+              y: e.key === "ArrowUp" ? -step : e.key === "ArrowDown" ? step : 0,
+            };
+            setEstilo(edge.id, {
+              forma: "livre",
+              pontos: moveConnectionControls(
+                connectionControls(start, end, edge.estilo),
+                delta,
+              ),
+            });
+          }}
+        />
+        {edge.estilo?.forma === "livre" &&
+          (edge.estilo.pontos ?? []).slice(0, 2).map((pt, idx) => (
+            <circle
+              key={idx}
+              className="funnel__ponto"
+              cx={pt.x + OFF}
+              cy={pt.y + OFF}
+              r={7 / vp.k}
+              aria-hidden
+              onPointerDown={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                if (locked || e.button !== 0) return;
+                inter.current = {
+                  modo: "ponto",
+                  edgeId: edge.id,
+                  idx,
+                  points: edge.estilo?.pontos ?? [],
+                  before: { nodes, edges },
+                  pointerId: e.pointerId,
+                };
+                e.currentTarget.setPointerCapture?.(e.pointerId);
+              }}
+            />
+          ))}
+      </g>
+    );
   };
 
   // Soltar um item dos painéis no canvas.
@@ -1404,7 +1804,11 @@ export function FunnelBoard({
       rootRef.current?.querySelector("aside.pub")?.getBoundingClientRect()
         .width ?? 0;
     const usable = Math.max(180, r.width - leftReserved - rightReserved);
-    const k = clamp(Math.min(usable / largura, r.height / altura), 0.05, 1.2);
+    const k = clamp(
+      Math.min(usable / largura, r.height / altura),
+      MIN_ZOOM,
+      1.2,
+    );
     setVp({
       k,
       x: leftReserved + usable / 2 - ((minX + maxX) / 2) * k,
@@ -1459,47 +1863,103 @@ export function FunnelBoard({
     medir,
   ]);
 
-  /*
-    Ao abrir o publicador de uma página, o painel lateral (à direita) e o
-    trilho (à esquerda) podem cobrir o card. Aqui, se o card não estiver
-    inteiro na área útil (entre o trilho e o painel), o quadro dá um
-    zoom-out só o necessário para o card caber e o centraliza nessa área.
-    Se já estiver inteiro à vista, nada se move.
-  */
-  const trazerParaVista = (node: FunnelNode) => {
+  // Opening a card always centers it in the left half beside its inspector.
+  const trazerParaVista = (node: FunnelNode, reserveInspector = true) => {
     const r = rootRef.current?.getBoundingClientRect();
     if (!r) return;
-    const s = size(node.id);
-    const painelW = Math.min(468, r.width * 0.6, r.width - 12);
-    const railW = 56; // o trilho de ícones do quadro, à direita, antes do painel
-    const m = 28; // respiro em volta do card
-    const dispW = r.width - painelW - railW; // largura útil à esquerda do painel
-    setVp((v) => {
-      const left = v.x + node.x * v.k;
-      const right = left + s.w * v.k;
-      const top = v.y + node.y * v.k;
-      const bottom = top + s.h * v.k;
-      const dentro =
-        left >= m &&
-        right <= dispW - m &&
-        top >= m &&
-        bottom <= r.height - m;
-      if (dentro) return v;
-      const kCabe = Math.min((dispW - m * 2) / s.w, (r.height - m * 2) / s.h);
-      const k = clamp(Math.min(v.k, kCabe), MIN_ZOOM, MAX_ZOOM);
-      const alvoX = dispW / 2;
-      const alvoY = r.height / 2;
-      return {
-        k,
-        x: alvoX - (node.x + s.w / 2) * k,
-        y: alvoY - (node.y + s.h / 2) * k,
-      };
-    });
+    const focused = nodeFocusViewport(
+      node,
+      size(node.id),
+      r,
+      reserveInspector && r.width > 1024 && !listMode,
+    );
+    if (focused) setVp(focused);
+  };
+
+  const focusedWidth = aberto ? sizes[aberto]?.w : undefined;
+  const focusedHeight = aberto ? sizes[aberto]?.h : undefined;
+  React.useLayoutEffect(() => {
+    if (!aberto || listMode || canvasBox.width <= 1024) return;
+    const node = nodes.find((item) => item.id === aberto);
+    if (!node) return;
+    const focused = nodeFocusViewport(
+      node,
+      { w: focusedWidth ?? NODE_W, h: focusedHeight ?? 90 },
+      canvasBox,
+      true,
+    );
+    // A full card is measured again after leaving compact mode. Refit only
+    // when opening, changing its dimensions, or resizing the canvas.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (focused) setVp(focused);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- dragging/panning and unrelated edits preserve the user's camera
+  }, [
+    aberto,
+    listMode,
+    focusedWidth,
+    focusedHeight,
+    canvasBox.width,
+    canvasBox.height,
+  ]);
+
+  const irParaDestino = (id: string) => {
+    const target = nodes.find((node) => node.id === id);
+    if (!target) return;
+    setSel({ tipo: "node", id });
+    setMulti(new Set());
+    if (listMode) {
+      setAberto(null);
+      requestAnimationFrame(() => {
+        const item = rootRef.current?.querySelector<HTMLElement>(
+          `[data-node-id="${CSS.escape(id)}"]`,
+        );
+        item?.scrollIntoView({ block: "center" });
+        item
+          ?.querySelector<HTMLButtonElement>("button")
+          ?.focus({ preventScroll: true });
+      });
+    } else if (canvasBox.width > 0 && canvasBox.width <= 1024) {
+      setAberto(null);
+      requestAnimationFrame(() => {
+        trazerParaVista(target, false);
+        requestAnimationFrame(() =>
+          rootRef.current
+            ?.querySelector<HTMLButtonElement>(
+              `.funnel__node[data-in="${CSS.escape(id)}"] .funnel__node-body`,
+            )
+            ?.focus({ preventScroll: true }),
+        );
+      });
+    } else {
+      trazerParaVista(target);
+    }
   };
 
   // Atalhos do teclado (depois de tudo que eles chamam estar declarado).
   React.useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      const interaction = inter.current;
+      if (
+        interaction &&
+        (e.key === "Escape" ||
+          ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z"))
+      ) {
+        e.preventDefault();
+        if ("before" in interaction) {
+          setNodes(interaction.before.nodes);
+          setEdges(interaction.before.edges);
+        }
+        inter.current = null;
+        setConn(null);
+        setEdgePreview(null);
+        setMenuLigar(null);
+        setPanning(false);
+        setDragId(null);
+        setGuias(null);
+        setLaco(null);
+        setHistTick((tick) => tick + 1);
+        return;
+      }
       if (dialog || conteudoId) return;
       const alvo = e.target as HTMLElement | null;
       if (
@@ -1509,6 +1969,19 @@ export function FunnelBoard({
           alvo.tagName === "TEXTAREA" ||
           alvo.tagName === "SELECT" ||
           alvo.closest('[role="dialog"]'))
+      )
+        return;
+      if (!alvo || !rootRef.current?.contains(alvo)) return;
+      // Native buttons own Enter/Space. The previous selection must never
+      // intercept activation of a different card or an inspector control.
+      if (
+        (e.key === "Enter" || e.key === " ") &&
+        alvo.closest('button, [role="button"]')
+      )
+        return;
+      if (
+        (e.key === "Delete" || e.key === "Backspace") &&
+        !alvo.closest(".funnel__viewport, .funnel__flow-list")
       )
         return;
       const mod = e.ctrlKey || e.metaKey;
@@ -1853,7 +2326,10 @@ export function FunnelBoard({
     <div
       className="funnel"
       ref={rootRef}
-      data-design-system="orbit"
+      data-design-system="flow"
+      data-mode={listMode ? "lista" : "canvas"}
+      data-inspector-open={Boolean(aberto)}
+      data-connecting={Boolean(conn)}
       data-tema={mapa.tema ?? "padrao"}
     >
       {syncStatus && (
@@ -1862,7 +2338,22 @@ export function FunnelBoard({
           role="status"
           data-state={syncStatus.state}
         >
-          {syncStatus.message}
+          <FlowStatusBadge
+            tone={
+              syncStatus.state === "error"
+                ? "danger"
+                : syncStatus.state === "saved"
+                  ? "success"
+                  : syncStatus.state === "pending"
+                    ? "warning"
+                    : "info"
+            }
+            busy={
+              syncStatus.state === "loading" || syncStatus.state === "pending"
+            }
+          >
+            {syncStatus.message}
+          </FlowStatusBadge>
           {syncStatus.state === "error" && onSyncRetry && (
             <button type="button" onClick={onSyncRetry}>
               Sincronizar novamente
@@ -1883,7 +2374,68 @@ export function FunnelBoard({
         </div>
       )}
       <div
+        className="funnel__view-switch"
+        role="group"
+        aria-label="Visualização do funil"
+      >
+        <FlowButton
+          aria-pressed={!listMode}
+          onClick={() => setViewMode("canvas")}
+        >
+          <Grid2x2 size={16} aria-hidden />
+          Quadro
+        </FlowButton>
+        <FlowButton
+          aria-pressed={listMode}
+          onClick={() => setViewMode("lista")}
+        >
+          <ListTree size={16} aria-hidden />
+          Etapas
+        </FlowButton>
+        <FlowButton
+          aria-pressed={showForecast}
+          onClick={() => setShowForecast((value) => !value)}
+        >
+          {showForecast ? "Ocultar simulação" : "Mostrar simulação"}
+        </FlowButton>
+      </div>
+      {listMode && (
+        <section className="funnel__flow-list" aria-label="Etapas do funil">
+          <header>
+            <h2>{nome || "Meu funil"}</h2>
+            <p>
+              Edite cada etapa e confira para onde ela conduz. A ordem abaixo
+              segue a lista de blocos; as ligações definem a jornada.
+            </p>
+          </header>
+          {nodes.map((node, index) => (
+            <FunnelListItem
+              key={node.id}
+              node={node}
+              nodes={nodes}
+              edges={edges}
+              connections={todasLinhas}
+              storageId={storageId}
+              funnelId={inicial.id}
+              order={index + 1}
+              selected={sel?.tipo === "node" && sel.id === node.id}
+              onOpen={() => {
+                setSel({ tipo: "node", id: node.id });
+                setMulti(new Set());
+                setAberto(node.id);
+                setPainel(null);
+              }}
+            />
+          ))}
+        </section>
+      )}
+      <div
         className="funnel__viewport"
+        tabIndex={listMode ? -1 : 0}
+        role="region"
+        aria-label="Quadro do funil"
+        aria-hidden={listMode || undefined}
+        inert={listMode || undefined}
         data-panning={panning}
         data-locked={locked}
         data-fundo={mapa.fundo ?? "pontos"}
@@ -1906,202 +2458,82 @@ export function FunnelBoard({
           />
         )}
         {edgeSel &&
+          !edgePreview &&
           (() => {
             const pm = pontoMedio(edgeSel);
             if (!pm) return null;
-            const mx = (pm.sx + pm.tx) / 2;
-            const my = (pm.sy + pm.ty) / 2;
-            const left = vp.x + mx * vp.k;
-            const top = vp.y + my * vp.k;
-            const est = edgeSel.estilo ?? {};
-            const forma = est.forma ?? "curva";
-            const pontas = est.pontas ?? "fim";
-            const fluxo = est.fluxo ?? fluxoGlobal;
-            const B = ({
-              on,
-              title,
-              onClick,
-              children,
-            }: {
-              on?: boolean;
-              title: string;
-              onClick: () => void;
-              children: React.ReactNode;
-            }) => (
-              <button
-                type="button"
-                className="funnel__ltb-btn"
-                data-on={on || undefined}
-                title={title}
-                aria-label={title}
-                onPointerDown={(e) => e.stopPropagation()}
-                onClick={onClick}
-              >
-                {children}
-              </button>
+            const midpoint = connectionMidpoint(
+              { x: pm.sx, y: pm.sy },
+              { x: pm.tx, y: pm.ty },
+              edgeSel.estilo,
             );
-            const mudarForma = (f: EstiloLinha["forma"]) => {
-              if (f === "livre" && !(est.pontos && est.pontos.length)) {
-                setEstilo(edgeSel.id, {
-                  forma: f,
-                  pontos: [{ x: mx, y: my - 80 }],
-                });
-              } else setEstilo(edgeSel.id, { forma: f });
-            };
+            const availableWidth =
+              aberto && canvasBox.width > 1024
+                ? canvasBox.width / 2
+                : canvasBox.width;
+            const toolsWidth = Math.min(
+              520,
+              Math.max(240, availableWidth - 32),
+            );
+            const left = Math.max(
+              toolsWidth / 2 + 16,
+              Math.min(
+                vp.x + midpoint.x * vp.k,
+                availableWidth - toolsWidth / 2 - 16,
+              ),
+            );
+            const minTop = Math.min(128, Math.max(16, canvasBox.height - 160));
+            const top = Math.max(
+              minTop,
+              Math.min(
+                vp.y + midpoint.y * vp.k,
+                Math.max(minTop, canvasBox.height - 476),
+              ),
+            );
             return (
-              <div
-                className="funnel__ltb"
-                style={{ left, top }}
-                onPointerDown={(e) => e.stopPropagation()}
-                role="toolbar"
-                aria-label="Estilo da linha"
-              >
-                {!edgeSel.id.startsWith("rr:") && (
-                  <div className="funnel__ltb-grupo">
-                    <input
-                      className="funnel__ltb-nome"
-                      value={edgeSel.rotulo ?? ""}
-                      placeholder="Nome da saída (ex.: Comprou)"
-                      aria-label="Nome da saída"
-                      maxLength={40}
-                      onPointerDown={(e) => e.stopPropagation()}
-                      onChange={(e) => setRotulo(edgeSel.id, e.target.value)}
-                    />
-                  </div>
-                )}
-                <div className="funnel__ltb-grupo">
-                  <B
-                    on={forma === "curva"}
-                    title="Curva"
-                    onClick={() => mudarForma("curva")}
-                  >
-                    ⌒
-                  </B>
-                  <B
-                    on={forma === "reta"}
-                    title="Reta"
-                    onClick={() => mudarForma("reta")}
-                  >
-                    ／
-                  </B>
-                  <B
-                    on={forma === "cotovelo"}
-                    title="Cotovelo (90°)"
-                    onClick={() => mudarForma("cotovelo")}
-                  >
-                    ⌐
-                  </B>
-                  <B
-                    on={forma === "livre"}
-                    title="Livre (arraste os pontos)"
-                    onClick={() => mudarForma("livre")}
-                  >
-                    ∿
-                  </B>
-                </div>
-                <div className="funnel__ltb-grupo">
-                  <B
-                    on={pontas === "fim"}
-                    title="Seta no fim"
-                    onClick={() => setEstilo(edgeSel.id, { pontas: "fim" })}
-                  >
-                    →
-                  </B>
-                  <B
-                    on={pontas === "ambas"}
-                    title="Seta nas duas pontas"
-                    onClick={() => setEstilo(edgeSel.id, { pontas: "ambas" })}
-                  >
-                    ↔
-                  </B>
-                  <B
-                    on={pontas === "nenhuma"}
-                    title="Sem seta"
-                    onClick={() => setEstilo(edgeSel.id, { pontas: "nenhuma" })}
-                  >
-                    —
-                  </B>
-                </div>
-                <div className="funnel__ltb-grupo">
-                  <B
-                    on={Boolean(est.tracejada)}
-                    title="Tracejada"
-                    onClick={() =>
-                      setEstilo(edgeSel.id, { tracejada: !est.tracejada })
-                    }
-                  >
-                    ┄
-                  </B>
-                  <B
-                    on={fluxo}
-                    title="Fluxo animado"
-                    onClick={() => setEstilo(edgeSel.id, { fluxo: !fluxo })}
-                  >
-                    ≫
-                  </B>
-                  <B
-                    on={(est.espessura ?? 2) === 1}
-                    title="Fina"
-                    onClick={() => setEstilo(edgeSel.id, { espessura: 1 })}
-                  >
-                    <i className="funnel__ltb-esp" style={{ height: 1 }} />
-                  </B>
-                  <B
-                    on={(est.espessura ?? 2) === 2}
-                    title="Média"
-                    onClick={() => setEstilo(edgeSel.id, { espessura: 2 })}
-                  >
-                    <i className="funnel__ltb-esp" style={{ height: 2 }} />
-                  </B>
-                  <B
-                    on={(est.espessura ?? 2) === 3}
-                    title="Grossa"
-                    onClick={() => setEstilo(edgeSel.id, { espessura: 3 })}
-                  >
-                    <i className="funnel__ltb-esp" style={{ height: 4 }} />
-                  </B>
-                </div>
-                <div className="funnel__ltb-grupo funnel__ltb-cores">
-                  {CORES_LINHA.map((c) => (
-                    <button
-                      key={c}
-                      type="button"
-                      className="funnel__ltb-cor"
-                      data-on={(est.cor ?? "#b1b1b7") === c || undefined}
-                      style={{ background: c }}
-                      title={`Cor ${c}`}
-                      aria-label={`Cor ${c}`}
-                      onPointerDown={(e) => e.stopPropagation()}
-                      onClick={() => setEstilo(edgeSel.id, { cor: c })}
-                    />
-                  ))}
-                </div>
-                <div className="funnel__ltb-grupo">
-                  <B
-                    on={fluxoGlobal}
-                    title={
-                      fluxoGlobal
-                        ? "Fluxo ligado em todas — clique para desligar"
-                        : "Ligar fluxo em todas"
-                    }
-                    onClick={() => {
-                      const next = !fluxoGlobal;
-                      setFluxoGlobal(next);
-                      setMapa((m) => ({ ...m, fluxo: next }));
-                    }}
-                  >
-                    ⟳
-                  </B>
-                  <B
-                    title="Apagar linha"
-                    onClick={() => {
-                      apagarLinha(edgeSel.id);
-                    }}
-                  >
-                    🗑
-                  </B>
-                </div>
-              </div>
+              <EdgeTools
+                edge={edgeSel}
+                scope={{
+                  source: edgeSel.source,
+                  target: edgeSel.target,
+                  nodes,
+                  edges,
+                  storageId,
+                  funnelId: inicial.id,
+                }}
+                position={{
+                  left,
+                  top,
+                  maxHeight: Math.max(1, canvasBox.height - top - 16),
+                }}
+                flowEnabled={edgeSel.estilo?.fluxo ?? true}
+                flowGlobal={fluxoGlobal}
+                locked={locked}
+                onStyle={(patch) => {
+                  if (
+                    patch.forma === "livre" &&
+                    !edgeSel.estilo?.pontos?.length
+                  ) {
+                    patch = {
+                      ...patch,
+                      pontos: connectionControls(
+                        { x: pm.sx, y: pm.sy },
+                        { x: pm.tx, y: pm.ty },
+                        edgeSel.estilo,
+                      ),
+                    };
+                  }
+                  setEstilo(edgeSel.id, patch);
+                }}
+                onLabel={(label) => setRotulo(edgeSel.id, label)}
+                onReset={() => resetLinha(edgeSel.id)}
+                onDelete={() => apagarLinha(edgeSel.id)}
+                onGlobalFlow={() => {
+                  const next = !fluxoGlobal;
+                  setFluxoGlobal(next);
+                  setMapa((m) => ({ ...m, fluxo: next }));
+                }}
+              />
             );
           })()}
         {menuLigar && (
@@ -2234,8 +2666,24 @@ export function FunnelBoard({
             />
           ))}
 
-          <svg className="funnel__edges" aria-hidden>
+          <svg
+            className="funnel__edges"
+            role="group"
+            aria-label="Conexões do funil"
+          >
             <defs>
+              <marker
+                id="fn-seta-auto"
+                viewBox="0 0 10 10"
+                refX="9"
+                refY="5"
+                markerWidth="7"
+                markerHeight="7"
+                orient="auto-start-reverse"
+                markerUnits="strokeWidth"
+              >
+                <path d="M0,0 L10,5 L0,10 z" fill="context-stroke" />
+              </marker>
               {Array.from(
                 new Set([
                   ...CORES_LINHA,
@@ -2243,7 +2691,8 @@ export function FunnelBoard({
                     (e) => e.estilo?.cor ?? mapa.corLinha ?? "#b1b1b7",
                   ),
                   mapa.corLinha ?? "#b1b1b7",
-                  "#82a2f6",
+                  "#B6A0FF",
+                  "#AAB4C0",
                 ]),
               ).map((cor) => (
                 <marker
@@ -2261,6 +2710,7 @@ export function FunnelBoard({
                 </marker>
               ))}
             </defs>
+            {/* eslint-disable-next-line react-hooks/refs -- Interaction refs are accessed only by the deferred pointer handlers. */}
             {todasLinhas.map((ed) => {
               const pm = pontoMedio(ed);
               if (!pm) return null;
@@ -2268,69 +2718,78 @@ export function FunnelBoard({
               const est = ed.estilo;
               const d = caminhoDaLinha(sx, sy, tx, ty, est);
               const selecionada = sel?.tipo === "edge" && sel.id === ed.id;
-              const cor = selecionada
-                ? "#82a2f6"
-                : (est?.cor ?? mapa.corLinha ?? "#b1b1b7");
+              const relacionada =
+                sel?.tipo === "node" &&
+                (ed.source === sel.id || ed.target === sel.id);
+              const cor = est?.cor ?? mapa.corLinha ?? "#AAB4C0";
+              const midpoint = connectionMidpoint(
+                { x: sx, y: sy },
+                { x: tx, y: ty },
+                est,
+              );
               const pontas = est?.pontas ?? "fim";
-              const fluxo = est?.fluxo ?? fluxoGlobal;
+              const fluxo = fluxoGlobal && (est?.fluxo ?? true);
               // Rótulo no meio: o da regra, ou "resto" na saída comum do Redirecionador.
               const rotulo =
                 ed.rotulo ??
                 (tipoPorId[ed.source] === "redirect" ? "resto" : undefined);
               return (
-                <g key={ed.id}>
+                <g key={ed.id} data-edge-id={ed.id}>
                   <path
                     className="funnel__edge-hit"
                     d={d}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Editar conexão de ${nomesNos[ed.source] ?? ed.source} para ${nomesNos[ed.target] ?? ed.target}`}
                     onContextMenu={(e) =>
                       abrirMenu(e, { tipo: "edge", id: ed.id })
                     }
-                    onPointerDown={(e) => {
+                    onPointerDown={(e) => handleEdgePointerDown(e, ed)}
+                    onKeyDown={(e) => {
+                      if (e.key !== "Enter" && e.key !== " ") return;
                       e.stopPropagation();
+                      e.preventDefault();
                       setSel({ tipo: "edge", id: ed.id });
                       setMulti(new Set());
+                      setAberto(null);
                     }}
                   />
                   <path
                     className="funnel__edge"
                     d={d}
-                    data-selected={selecionada}
+                    aria-hidden
+                    data-selected={selecionada || relacionada}
+                    data-auto-color={
+                      !est?.cor && !mapa.corLinha ? "true" : undefined
+                    }
                     data-fluxo={fluxo || undefined}
                     data-tracejada={est?.tracejada || undefined}
                     style={{
-                      stroke: cor,
+                      stroke: est?.cor || mapa.corLinha ? cor : undefined,
                       strokeWidth: ESPESSURA[est?.espessura ?? 2],
                     }}
                     markerEnd={
                       pontas !== "nenhuma"
-                        ? `url(#${idMarcador(cor)})`
+                        ? `url(#${!est?.cor && !mapa.corLinha ? "fn-seta-auto" : idMarcador(cor)})`
                         : undefined
                     }
                     markerStart={
                       pontas === "ambas"
-                        ? `url(#${idMarcador(cor)})`
+                        ? `url(#${!est?.cor && !mapa.corLinha ? "fn-seta-auto" : idMarcador(cor)})`
                         : undefined
                     }
                   />
-                  {selecionada &&
-                    est?.forma === "livre" &&
-                    (est.pontos ?? []).map((pt, i) => (
-                      <circle
-                        key={i}
-                        className="funnel__ponto"
-                        cx={pt.x + OFF}
-                        cy={pt.y + OFF}
-                        r={7}
-                        onPointerDown={(e) => {
-                          e.stopPropagation();
-                          inter.current = {
-                            modo: "ponto",
-                            edgeId: ed.id,
-                            idx: i,
-                          };
-                        }}
-                      />
-                    ))}
+                  <FlowEdgeSignal
+                    path={d}
+                    tip={{ x: tx + OFF, y: ty + OFF }}
+                    nodes={nodes}
+                    source={ed.source}
+                    target={ed.target}
+                    edges={edges}
+                    storageId={storageId}
+                    funnelId={inicial.id}
+                    enabled={fluxo}
+                  />
                   {rotulo &&
                     (() => {
                       const w = Math.round(rotulo.length * 6.6 + 20);
@@ -2338,13 +2797,9 @@ export function FunnelBoard({
                         <g
                           className="funnel__edge-rotulo"
                           data-selected={selecionada || undefined}
-                          transform={`translate(${(sx + tx) / 2 + OFF}, ${(sy + ty) / 2 + OFF})`}
+                          transform={`translate(${midpoint.x + OFF}, ${midpoint.y + OFF})`}
                           style={{ "--linha-cor": cor } as React.CSSProperties}
-                          onPointerDown={(e) => {
-                            e.stopPropagation();
-                            setSel({ tipo: "edge", id: ed.id });
-                            setMulti(new Set());
-                          }}
+                          onPointerDown={(e) => handleEdgePointerDown(e, ed)}
                         >
                           <rect
                             x={-w / 2}
@@ -2367,11 +2822,16 @@ export function FunnelBoard({
                 const src = nodes.find((n) => n.id === conn.source);
                 if (!src) return null;
                 const ss = size(src.id);
-                const sx = src.x + ss.w;
-                const sy = src.y + ss.h / 2;
-                const dx = Math.max(40, Math.abs(conn.wx - sx) / 2);
-                const d = `M ${sx + OFF} ${sy + OFF} C ${sx + dx + OFF} ${sy + OFF}, ${conn.wx - dx + OFF} ${conn.wy + OFF}, ${conn.wx + OFF} ${conn.wy + OFF}`;
-                return <path className="funnel__edge--temp" d={d} />;
+                const start = anchorPoint({ ...src, ...ss }, conn.sourceAnchor);
+                const d = connectionPath(
+                  start,
+                  { x: conn.wx, y: conn.wy },
+                  { sourceAnchor: conn.sourceAnchor },
+                  OFF,
+                );
+                return (
+                  <path className="funnel__edge--temp" d={d} aria-hidden />
+                );
               })()}
           </svg>
           {conn && (
@@ -2409,6 +2869,16 @@ export function FunnelBoard({
               <NodeView
                 key={node.id}
                 node={node}
+                compact={vp.k < 0.6 && aberto !== node.id}
+                showForecast={showForecast}
+                nodes={nodes}
+                edges={edges}
+                onSelect={() => {
+                  if (!ctrlClick.current) {
+                    setSel({ tipo: "node", id: node.id });
+                    setMulti(new Set());
+                  }
+                }}
                 zipScope={{
                   storageId,
                   funnelId: node.pagina?.zip?.sourceFunnelId ?? inicial.id,
@@ -2426,7 +2896,7 @@ export function FunnelBoard({
                 nomes={nomesNos}
                 measure={medir}
                 onPointerDown={(e) => iniciarArrasto(e, node)}
-                onHandleOut={(e) => iniciarConexao(e, node)}
+                onHandleOut={(e, side) => iniciarConexao(e, node, side)}
                 onMenu={(e) => abrirMenu(e, { tipo: "node", id: node.id })}
                 onResize={(e) => iniciarResize(e, node)}
                 onChange={(patch) => atualizar(node.id, patch)}
@@ -2436,6 +2906,8 @@ export function FunnelBoard({
                     ctrlClick.current = false;
                     return;
                   }
+                  setSel({ tipo: "node", id: node.id });
+                  setMulti(new Set());
                   const abrindo = aberto !== node.id;
                   setAberto((a) => (a === node.id ? null : node.id));
                   if (abrindo) trazerParaVista(node);
@@ -2443,15 +2915,36 @@ export function FunnelBoard({
               />
             ))}
         </div>
+        {edgeSel && (
+          <div
+            className="funnel__world funnel__controls-world"
+            style={{ transform }}
+          >
+            <svg
+              className="funnel__edges funnel__edges--handles"
+              role="group"
+              aria-label="Pontos de edição da conexão"
+            >
+              {controlesDaLinha(edgeSel)}
+            </svg>
+          </div>
+        )}
       </div>
 
       {nodes.length === 0 && (
         <div className="funnel__empty">
-          <b>Arraste recursos para começar</b>
+          <b>Adicione a primeira etapa</b>
           <span>
             Use os botões do topo para adicionar páginas, automações e outros
             elementos ao seu funil
           </span>
+          <FlowButton variant="primary" onClick={() => setPainel("recursos")}>
+            <Plus size={16} aria-hidden />
+            Adicionar etapa
+          </FlowButton>
+          <FlowButton onClick={() => setPainel("modelos")}>
+            Escolher modelo
+          </FlowButton>
         </div>
       )}
 
@@ -2568,23 +3061,29 @@ export function FunnelBoard({
           proximas.push({ id: t.id, nome: t.title, url });
         }
         return (
-          <PagePublisher
-            key={`publisher:${n.id}`}
-            storageId={storageId}
-            funnelId={inicial.id}
-            nodeId={n.id}
-            onEditarConteudo={() => setConteudoId(n.id)}
-            onPublicarSite={() => {
-              setAberto(null);
-              setPublishSite(true);
-            }}
-            nome={n.title}
-            dados={dados}
-            onNome={(nm) => atualizar(n.id, { title: nm })}
-            onChange={(d) => atualizar(n.id, { pagina: d })}
-            proximasEtapas={proximas}
-            onFechar={() => setAberto(null)}
-          />
+          <FlowInspector
+            fullScreen={canvasBox.width > 0 && canvasBox.width <= 1024}
+            label={`Configurar ${n.title}`}
+            onClose={() => setAberto(null)}
+          >
+            <PagePublisher
+              key={`publisher:${n.id}`}
+              storageId={storageId}
+              funnelId={inicial.id}
+              nodeId={n.id}
+              onEditarConteudo={() => setConteudoId(n.id)}
+              onPublicarSite={() => {
+                setAberto(null);
+                setPublishSite(true);
+              }}
+              nome={n.title}
+              dados={dados}
+              onNome={(nm) => atualizar(n.id, { title: nm })}
+              onChange={(d) => atualizar(n.id, { pagina: d })}
+              proximasEtapas={proximas}
+              onFechar={() => setAberto(null)}
+            />
+          </FlowInspector>
         );
       })()}
 
@@ -2595,22 +3094,26 @@ export function FunnelBoard({
         const n = nodes.find((x) => x.id === aberto);
         if (!n || !isRedir(n.type)) return null;
         return (
-          <RedirectPanel
-            node={n}
-            nodes={nodes}
-            onNome={(nm) => atualizar(n.id, { title: nm })}
-            onChange={(redir) => atualizar(n.id, { redir })}
-            onAddress={(url) => atualizar(n.id, { url })}
-            onPublicarSite={() => {
-              setAberto(null);
-              setPublishSite(true);
-            }}
-            onFechar={() => setAberto(null)}
-            onIrPara={(id) => {
-              const t = nodes.find((x) => x.id === id);
-              if (t) trazerParaVista(t);
-            }}
-          />
+          <FlowInspector
+            fullScreen={canvasBox.width > 0 && canvasBox.width <= 1024}
+            label={`Configurar ${n.title}`}
+            onClose={() => setAberto(null)}
+          >
+            <RedirectPanel
+              node={n}
+              nodes={nodes}
+              defaultNodeId={edges.find((edge) => edge.source === n.id)?.target}
+              onNome={(nm) => atualizar(n.id, { title: nm })}
+              onChange={(redir) => atualizar(n.id, { redir })}
+              onAddress={(url) => atualizar(n.id, { url })}
+              onPublicarSite={() => {
+                setAberto(null);
+                setPublishSite(true);
+              }}
+              onFechar={() => setAberto(null)}
+              onIrPara={irParaDestino}
+            />
+          </FlowInspector>
         );
       })()}
 
@@ -2620,29 +3123,48 @@ export function FunnelBoard({
         const n = nodes.find((x) => x.id === aberto);
         if (!n || n.type !== "store") return null;
         return (
-          <StorePanel
+          <FlowInspector
+            fullScreen={canvasBox.width > 0 && canvasBox.width <= 1024}
+            label={`Configurar ${n.title}`}
+            onClose={() => setAberto(null)}
+          >
+            <StorePanel
+              key={n.id}
+              storageId={storageId}
+              funnelId={inicial.id}
+              node={n}
+              nodes={nodes}
+              edges={todasLinhas}
+              onNome={(nm) => atualizar(n.id, { title: nm })}
+              onChange={(loja) => atualizar(n.id, { loja })}
+              onFechar={() => setAberto(null)}
+              onIrPara={irParaDestino}
+              onCriarCheckout={() => criarAoLado(n.id, "checkout")}
+              onEditarConteudo={() => {
+                setAberto(null);
+                setConteudoId(n.id);
+              }}
+              onPublicarSite={() => {
+                setAberto(null);
+                setPublishSite(true);
+              }}
+            />
+          </FlowInspector>
+        );
+      })()}
+
+      {(() => {
+        if (!aberto || estiloAberto) return null;
+        const n = nodes.find((x) => x.id === aberto);
+        if (!n || !isFacebookTraffic(n)) return null;
+        return (
+          <MetaBusinessPanel
             key={n.id}
-            storageId={storageId}
-            funnelId={inicial.id}
             node={n}
             nodes={nodes}
             edges={todasLinhas}
-            onNome={(nm) => atualizar(n.id, { title: nm })}
-            onChange={(loja) => atualizar(n.id, { loja })}
-            onFechar={() => setAberto(null)}
-            onIrPara={(id) => {
-              const t = nodes.find((x) => x.id === id);
-              if (t) trazerParaVista(t);
-            }}
-            onCriarCheckout={() => criarAoLado(n.id, "checkout")}
-            onEditarConteudo={() => {
-              setAberto(null);
-              setConteudoId(n.id);
-            }}
-            onPublicarSite={() => {
-              setAberto(null);
-              setPublishSite(true);
-            }}
+            onChange={(id, patch) => atualizar(id, patch)}
+            onClose={() => setAberto(null)}
           />
         );
       })()}
@@ -2661,18 +3183,21 @@ export function FunnelBoard({
         )
           return null;
         return (
-          <BlockPanel
-            node={n}
-            nodes={nodes}
-            edges={todasLinhas}
-            onChange={(patch) => atualizar(n.id, patch)}
-            onFechar={() => setAberto(null)}
-            onRemover={() => remover(n.id)}
-            onIrPara={(id) => {
-              const t = nodes.find((x) => x.id === id);
-              if (t) trazerParaVista(t);
-            }}
-          />
+          <FlowInspector
+            fullScreen={canvasBox.width > 0 && canvasBox.width <= 1024}
+            label={`Configurar ${n.title}`}
+            onClose={() => setAberto(null)}
+          >
+            <BlockPanel
+              node={n}
+              nodes={nodes}
+              edges={todasLinhas}
+              onChange={(patch) => atualizar(n.id, patch)}
+              onFechar={() => setAberto(null)}
+              onRemover={() => remover(n.id)}
+              onIrPara={irParaDestino}
+            />
+          </FlowInspector>
         );
       })()}
 
@@ -3385,8 +3910,8 @@ export function FunnelBoard({
         <div className="funnel__panel funnel__panel--largo">
           <div className="funnel__panel-title">Previsão do funil</div>
           <div className="funnel__panel-hint">
-            Digite as visitas que entram e a conversão de cada bloco. São
-            contas, não medições.
+            Calculadora: digite as visitas que entram e a conversão de cada
+            bloco. São contas, não medições.
           </div>
           {previsao.avisos.map((aviso) => (
             <p key={aviso} className="funnel__panel-hint" role="status">
@@ -3471,7 +3996,6 @@ export function FunnelBoard({
               </b>
             </div>
           </div>
-          <div className="funnel__prev-tab-wrap">
           <table className="funnel__prev-tab">
             <thead>
               <tr>
@@ -3561,10 +4085,10 @@ export function FunnelBoard({
               })}
             </tbody>
           </table>
-          </div>
           <div className="funnel__panel-hint">
-            🟢 boa · 🟡 mediana · 🔴 fraca para o tipo do bloco. Cenários: ×0,7
-            / ×1 / ×1,3 nas conversões.
+            Semáforo: 🟢 conversão boa para o tipo do bloco · 🟡 mediana · 🔴
+            abaixo do comum. Os cenários multiplicam as conversões (×0,7 / ×1 /
+            ×1,3).
           </div>
         </div>
       )}
@@ -3670,27 +4194,25 @@ export function FunnelBoard({
       )}
 
       {/* Toolbar de zoom */}
-      <div className="funnel__zoom">
-        <button
-          type="button"
-          aria-label="Aproximar"
-          onClick={() => zoomPor(1.2)}
-        >
+      <div
+        className="funnel__zoom"
+        role="group"
+        aria-label="Controles do quadro"
+      >
+        <span className="funnel__zoom-value" aria-label="Zoom do quadro">
+          {Math.round(vp.k * 100)}%
+        </span>
+        <FlowIconButton label="Aproximar" onClick={() => zoomPor(1.2)}>
           <Plus size={16} strokeWidth={2} />
-        </button>
-        <button
-          type="button"
-          aria-label="Afastar"
-          onClick={() => zoomPor(1 / 1.2)}
-        >
+        </FlowIconButton>
+        <FlowIconButton label="Afastar" onClick={() => zoomPor(1 / 1.2)}>
           <Minus size={16} strokeWidth={2} />
-        </button>
-        <button type="button" aria-label="Enquadrar" onClick={enquadrar}>
+        </FlowIconButton>
+        <FlowIconButton label="Enquadrar" onClick={enquadrar}>
           <Maximize size={16} strokeWidth={2} />
-        </button>
-        <button
-          type="button"
-          aria-label="Travar quadro"
+        </FlowIconButton>
+        <FlowIconButton
+          label="Travar quadro"
           data-on={locked}
           onClick={() => setLocked((l) => !l)}
         >
@@ -3699,102 +4221,207 @@ export function FunnelBoard({
           ) : (
             <LockOpen size={16} strokeWidth={2} />
           )}
-        </button>
+        </FlowIconButton>
       </div>
 
       {/* Modal de configurações */}
       {dialog && (
-        <div className="funnel__overlay" onPointerDown={() => setDialog(false)}>
-          <div
-            className="funnel__dialog"
-            onPointerDown={(e) => e.stopPropagation()}
-          >
-            <div className="funnel__dialog-head">
-              <span>Configurações do Funil</span>
-              <button
-                type="button"
-                className="funnel__dialog-close"
-                aria-label="Fechar"
-                onClick={() => setDialog(false)}
-              >
-                <X size={18} strokeWidth={2} />
-              </button>
-            </div>
-            <div className="funnel__dialog-body">
-              <label htmlFor="funnel-nome">Nome do funil</label>
-              <input
-                id="funnel-nome"
-                className="funnel__input"
-                type="text"
-                maxLength={200}
-                value={nome}
-                onChange={(e) => setNome(e.target.value)}
-              />
-              <div className="funnel__count">{nome.length}/200</div>
-              <div className="funnel__dialog-foot">
+        <Dialog.Root open onOpenChange={setDialog}>
+          <Dialog.Overlay className="funnel__overlay">
+            <Dialog.Content
+              className="funnel__dialog"
+              onPointerDown={(e) => e.stopPropagation()}
+            >
+              <div className="funnel__dialog-head">
+                <Dialog.Title asChild>
+                  <span>Configurações do Funil</span>
+                </Dialog.Title>
+                <Dialog.Description className="sr-only">
+                  Edite o nome, salve ou arquive o funil.
+                </Dialog.Description>
                 <button
                   type="button"
-                  className="funnel__btn"
-                  onClick={() => {
-                    try {
-                      onArquivar?.({
-                        ...inicial,
-                        nome,
-                        nodes,
-                        edges,
-                        mapa,
-                        previsao: previsaoCfg,
-                      });
-                    } catch (cause) {
-                      setAvisoFunil(
-                        cause instanceof Error
-                          ? cause.message
-                          : "Não foi possível arquivar.",
-                      );
-                    }
-                  }}
+                  className="funnel__dialog-close"
+                  aria-label="Fechar"
+                  onClick={() => setDialog(false)}
                 >
-                  <Archive size={15} strokeWidth={2} />
-                  Arquivar com as alterações
+                  <X size={18} strokeWidth={2} />
                 </button>
-                <div className="funnel__foot-right">
+              </div>
+              <div className="funnel__dialog-body">
+                <label htmlFor="funnel-nome">Nome do funil</label>
+                <input
+                  id="funnel-nome"
+                  className="funnel__input"
+                  type="text"
+                  maxLength={200}
+                  value={nome}
+                  onChange={(e) => setNome(e.target.value)}
+                />
+                <div className="funnel__count">{nome.length}/200</div>
+                <div className="funnel__dialog-foot">
                   <button
                     type="button"
-                    className={cn("funnel__btn", "funnel__btn--danger")}
+                    className="funnel__btn"
                     onClick={() => {
                       try {
-                        onExcluir?.(inicial.id);
+                        onArquivar?.({
+                          ...inicial,
+                          nome,
+                          nodes,
+                          edges,
+                          mapa,
+                          previsao: previsaoCfg,
+                        });
                       } catch (cause) {
                         setAvisoFunil(
                           cause instanceof Error
                             ? cause.message
-                            : "Não foi possível excluir o rascunho.",
+                            : "Não foi possível arquivar.",
                         );
                       }
                     }}
                   >
-                    <Trash2 size={15} strokeWidth={2} />
-                    Excluir
+                    <Archive size={15} strokeWidth={2} />
+                    Arquivar com as alterações
                   </button>
-                  <button
-                    type="button"
-                    className={cn("funnel__btn", "funnel__btn--primary")}
-                    onClick={salvar}
-                  >
-                    <Save size={15} strokeWidth={2} />
-                    Salvar
-                  </button>
+                  <div className="funnel__foot-right">
+                    <FlowConfirmDialog
+                      title="Excluir este rascunho?"
+                      description="O rascunho será removido do cofre deste navegador. As páginas já publicadas no servidor continuam disponíveis."
+                      confirmLabel="Excluir rascunho"
+                      theme={mapa.tema}
+                      onConfirm={() => {
+                        try {
+                          onExcluir?.(inicial.id);
+                        } catch (cause) {
+                          setAvisoFunil(
+                            cause instanceof Error
+                              ? cause.message
+                              : "Não foi possível excluir o rascunho.",
+                          );
+                        }
+                      }}
+                    >
+                      <button
+                        type="button"
+                        className={cn("funnel__btn", "funnel__btn--danger")}
+                      >
+                        <Trash2 size={15} strokeWidth={2} />
+                        Excluir
+                      </button>
+                    </FlowConfirmDialog>
+                    <button
+                      type="button"
+                      className={cn("funnel__btn", "funnel__btn--primary")}
+                      onClick={salvar}
+                    >
+                      <Save size={15} strokeWidth={2} />
+                      Salvar
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
+            </Dialog.Content>
+          </Dialog.Overlay>
+        </Dialog.Root>
       )}
     </div>
   );
 }
 
+function FunnelListItem({
+  node,
+  nodes,
+  edges,
+  connections,
+  storageId,
+  funnelId,
+  order,
+  selected,
+  onOpen,
+}: {
+  node: FunnelNode;
+  nodes: FunnelNode[];
+  edges: FunnelEdge[];
+  connections: FunnelEdge[];
+  storageId: string;
+  funnelId: string;
+  order: number;
+  selected: boolean;
+  onOpen: () => void;
+}) {
+  const zip = usePageZip({
+    storageId,
+    funnelId: node.pagina?.zip?.sourceFunnelId ?? funnelId,
+    nodeId: node.id,
+  });
+  const preparation = nodePreparation(node, nodes, edges, Boolean(zip));
+  const outgoing = connections.filter((edge) => edge.source === node.id);
+  const Icon = ICONES[RECURSO_POR_TIPO[node.type]?.icon] ?? FileText;
+  return (
+    <article
+      className="funnel__flow-list-item"
+      data-node-id={node.id}
+      data-selected={selected}
+      aria-label={`${ROTULO_TIPO[node.type]} ${node.title}`}
+    >
+      <div className="funnel__flow-list-main">
+        <Icon size={20} strokeWidth={1.75} aria-hidden />
+        <span>
+          {order.toString().padStart(2, "0")} · {ROTULO_TIPO[node.type]}
+        </span>
+      </div>
+      <h3>{node.title || "Etapa sem nome"}</h3>
+      <code className="funnel__flow-list-path">{funnelNodeAddress(node)}</code>
+      <div className="funnel__flow-list-state">
+        <FlowStatusBadge
+          tone={
+            preparation.state === "error"
+              ? "danger"
+              : preparation.state === "ready"
+                ? "success"
+                : preparation.state === "pending"
+                  ? "warning"
+                  : "neutral"
+          }
+        >
+          {preparation.total ? preparation.label : "Bloco do funil"}
+        </FlowStatusBadge>
+        {preparation.total > 0 && (
+          <span>
+            {preparation.completed}/{preparation.total} itens
+          </span>
+        )}
+      </div>
+      <p>
+        {outgoing.length
+          ? outgoing
+              .map(
+                (edge) =>
+                  `${edge.rotulo || (node.type === "redirect" ? "Destino padrão" : "Continuar")} → ${nodes.find((target) => target.id === edge.target)?.title || "Destino não encontrado"}`,
+              )
+              .join(" · ")
+          : node.type === "thanks"
+            ? "Conclusão do funil"
+            : "Sem próxima etapa ligada"}
+      </p>
+      {!SEM_PAINEL.has(node.type) && (
+        <FlowButton className="funnel__flow-list-action" onClick={onOpen}>
+          Configurar {node.title || "etapa"}
+          <ExternalLink size={14} aria-hidden />
+        </FlowButton>
+      )}
+    </article>
+  );
+}
+
 interface NodeViewProps {
+  compact: boolean;
+  showForecast: boolean;
+  nodes: FunnelNode[];
+  edges: FunnelEdge[];
+  onSelect: () => void;
   zipScope: PageZipScope;
   node: FunnelNode;
   ord: number;
@@ -3809,7 +4436,10 @@ interface NodeViewProps {
   nomes: Record<string, string>;
   measure: (id: string, el: HTMLDivElement | null) => void;
   onPointerDown: (e: React.PointerEvent) => void;
-  onHandleOut: (e: React.PointerEvent) => void;
+  onHandleOut: (
+    e: React.PointerEvent,
+    side: FunnelConnectionAnchor["side"],
+  ) => void;
   /** Botão direito no bloco: abre o menu de contexto. */
   onMenu: (e: React.MouseEvent) => void;
   /** Puxar o canto inferior direito (anotações). */
@@ -3828,6 +4458,11 @@ interface NodeViewProps {
  * quadro. O nó de origem (marca) é só o cabeçalho.
  */
 function NodeView({
+  compact,
+  showForecast,
+  nodes,
+  edges,
+  onSelect,
   zipScope,
   node,
   ord,
@@ -3862,6 +4497,10 @@ function NodeView({
     node.descricao,
     node.redir,
     aberto,
+    compact,
+    showForecast,
+    zipPreparado,
+    edges,
   ]);
 
   const marca = node.type === "brand";
@@ -3875,10 +4514,15 @@ function NodeView({
   const url = node.url ?? "";
   // Publicador (nós de página): estado do "crachá".
   const pag = node.pagina;
-  const paginaPronta = Boolean(zipPreparado);
   const enderecoPub = pag?.dominio
     ? (pageAddress(pag) ?? "Endereço inválido")
     : "";
+  const preparation = nodePreparation(
+    node,
+    nodes,
+    edges,
+    Boolean(zipPreparado),
+  );
   const rotuloSaidas = `${saidas} ${saidas === 1 ? "saída" : "saídas"}`;
 
   return (
@@ -3899,6 +4543,7 @@ function NodeView({
         } as React.CSSProperties
       }
       data-selected={selected}
+      data-compact={compact && !marca && !anot}
       data-dragging={dragging}
       data-locked={locked}
       data-aberto={aberto || undefined}
@@ -3911,17 +4556,31 @@ function NodeView({
       onPointerDown={onPointerDown}
       onContextMenu={onMenu}
     >
-      {!semAlca && (
-        <span
-          className="funnel__handle funnel__handle--in"
-          data-in={node.id}
-          aria-hidden
-        />
-      )}
-
       {marca ? (
         <div className="funnel__node-shell">
-          <div className="funnel__node-brand">
+          <div
+            onFocus={onSelect}
+            className="funnel__node-brand"
+            role={isFacebookTraffic(node) ? "button" : undefined}
+            tabIndex={isFacebookTraffic(node) ? 0 : undefined}
+            aria-label={
+              isFacebookTraffic(node)
+                ? "Ver BMs e tráfego da loja no Facebook"
+                : undefined
+            }
+            onClick={isFacebookTraffic(node) ? onToggle : undefined}
+            onKeyDown={
+              isFacebookTraffic(node)
+                ? (e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      onToggle();
+                    }
+                  }
+                : undefined
+            }
+            style={isFacebookTraffic(node) ? { cursor: "pointer" } : undefined}
+          >
             <span
               className="funnel__brand-disc"
               style={{ background: node.cor }}
@@ -3931,9 +4590,11 @@ function NodeView({
             <div className="funnel__node-titles">
               <span className="funnel__node-title">{node.title}</span>
               <span className="funnel__node-sub">
-                {prev
-                  ? `${inteiro(prev.entram)} visitas/mês`
-                  : "Origem de tráfego"}
+                {isFacebookTraffic(node)
+                  ? "Ver BMs e tráfego da loja"
+                  : prev
+                    ? `${inteiro(prev.entram)} visitas/mês`
+                    : "Origem de tráfego"}
               </span>
             </div>
           </div>
@@ -3963,6 +4624,7 @@ function NodeView({
             type="button"
             className="funnel__node-body"
             onClick={onToggle}
+            onFocus={onSelect}
             aria-expanded={aberto}
             aria-label={`Configurar ${node.title || "bloco sem nome"}`}
           >
@@ -4009,13 +4671,16 @@ function NodeView({
                     }
                   />
                 )}
-                {prev && (
+                {showForecast && prev && (
                   <span
                     className="funnel__node-prev"
                     data-sem={prev.semaforo}
-                    title="Previsão (calculadora): entram · conversão · seguem"
+                    title="Simulação — não são dados reais"
                   >
                     <i aria-hidden />
+                    <span className="funnel__simulation-label">
+                      Simulação · não são dados reais
+                    </span>
                     {prev.origem
                       ? `${inteiro(prev.entram)} visitas/mês`
                       : `${inteiro(prev.entram)} entram · ${prev.conversao.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}% · ${inteiro(prev.saem)} seguem`}
@@ -4024,30 +4689,83 @@ function NodeView({
                 )}
               </>
             )}
+            {preparation.total > 0 && (
+              <span className="funnel__node-checklist">
+                <span className="funnel__node-progress-label">
+                  Configuração{" "}
+                  <b>
+                    {preparation.completed}/{preparation.total} itens
+                  </b>
+                </span>
+                <span
+                  className="funnel__node-progress"
+                  role="progressbar"
+                  aria-label={`Configuração de ${node.title}`}
+                  aria-valuemin={0}
+                  aria-valuemax={preparation.total}
+                  aria-valuenow={preparation.completed}
+                >
+                  <span
+                    style={{
+                      width: `${(100 * preparation.completed) / preparation.total}%`,
+                    }}
+                  />
+                </span>
+                <span className="funnel__node-checks">
+                  {preparation.items.map((item) => (
+                    <span key={item.label} data-done={item.done}>
+                      <span aria-hidden>{item.done ? "✓" : "○"}</span>
+                      {item.label}
+                    </span>
+                  ))}
+                </span>
+              </span>
+            )}
           </button>
 
           <footer className="funnel__node-foot">
-            <span data-ok={pagina ? paginaPronta : true}>
-              <i aria-hidden />
-              {pagina
-                ? paginaPronta
-                  ? "ZIP conferido nesta aba"
-                  : "Rascunho"
-                : ROTULO_TIPO[node.type]}
-            </span>
+            <FlowStatusBadge
+              tone={
+                preparation.state === "error"
+                  ? "danger"
+                  : preparation.state === "ready"
+                    ? "success"
+                    : preparation.state === "pending"
+                      ? "warning"
+                      : "neutral"
+              }
+            >
+              {preparation.total ? preparation.label : ROTULO_TIPO[node.type]}
+            </FlowStatusBadge>
             <span>{rotuloSaidas}</span>
           </footer>
         </article>
       )}
 
-      {!semAlca && (
-        <span
-          className="funnel__handle funnel__handle--out"
-          data-out={node.id}
-          onPointerDown={onHandleOut}
-          aria-hidden
-        />
-      )}
+      {!semAlca &&
+        (
+          [
+            ["top", "superior"],
+            ["right", "direita"],
+            ["bottom", "inferior"],
+            ["left", "esquerda"],
+          ] as const
+        ).map(([side, label]) => (
+          <button
+            key={side}
+            type="button"
+            className={`funnel__port funnel__port--${side}`}
+            data-node-id={node.id}
+            data-port-side={side}
+            disabled={locked}
+            aria-label={`Conectar ${node.title} pela borda ${label}. Arraste para ligar; Enter abre as configurações.`}
+            onPointerDown={(e) => onHandleOut(e, side)}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (e.detail === 0) onToggle();
+            }}
+          />
+        ))}
     </div>
   );
 }
