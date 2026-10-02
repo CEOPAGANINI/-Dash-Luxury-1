@@ -1,5 +1,11 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono, Montserrat, Outfit } from "next/font/google";
+import {
+  Inter,
+  Instrument_Serif,
+  JetBrains_Mono,
+  Montserrat,
+  Outfit,
+} from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
 import { brand } from "@/lib/brand";
@@ -38,6 +44,16 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
+/* Acento do design system Futurist Workflow: serifa itálica só na primeira
+   linha dos cabeçalhos (como o "Designed for" da referência). */
+const instrumentSerif = Instrument_Serif({
+  variable: "--font-instrument-serif",
+  subsets: ["latin"],
+  weight: "400",
+  style: ["normal", "italic"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: {
     default: brand.name,
@@ -55,7 +71,7 @@ export default function RootLayout({
     <html
       lang="pt-BR"
       suppressHydrationWarning
-      className={`${outfit.variable} ${montserrat.variable} ${inter.variable} ${jetbrainsMono.variable} h-full`}
+      className={`${outfit.variable} ${montserrat.variable} ${inter.variable} ${jetbrainsMono.variable} ${instrumentSerif.variable} h-full`}
     >
       <body className="min-h-full flex flex-col">
         {/* Dois temas: preto (padrão) e branco com preto. O escolhido fica

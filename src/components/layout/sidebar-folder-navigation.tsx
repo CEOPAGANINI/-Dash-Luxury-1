@@ -293,6 +293,16 @@ const TITULOS_FORA_DO_MENU: Record<string, string> = {
   "/webhooks": "Webhooks",
 };
 
+/** A pasta do menu onde a página mora ("Vendas", "Sistema"…): vira o eyebrow
+ *  do cabeçalho da página. Fora do menu, "Painel". */
+export function sidebarFolderLabel(pathname: string) {
+  for (const group of groups) {
+    if (group.items.some((item) => itemAtivo(pathname, item))) return group.label;
+    if (group.raiz && itemIsActive(pathname, group.raiz)) return group.label;
+  }
+  return "Painel";
+}
+
 export function sidebarPageTitle(pathname: string) {
   for (const group of groups) {
     const item = [...group.items]

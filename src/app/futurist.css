@@ -1,0 +1,408 @@
+/*
+  ══ Design system "Futurist Workflow" aplicado ao painel ═══════════════════
+
+  Extraído da página de referência (futurist-workflow.aura.build) e posto
+  por cima do CommandLayer: só fontes, textos, superfícies e diagramação.
+  Nada de cantos redondos (regra do dono) e nada de cor nova além do ciano
+  de acento da própria referência.
+
+  Fonte da verdade (medido na página, em 1440px):
+  - Família: Inter em tudo; Instrument Serif itálico só no acento de um
+    título; monoespaçada nos rótulos técnicos (10–12px, caixa alta).
+  - Títulos: peso 500, tracking negativo (−0,025em), branco.
+      Display 128/115 · H1 60/57 · H2 48/48 · H3 30/36 · H4 24/32 · H5 20/28
+  - Eyebrow: 12/16, 600, caixa alta, tracking 0,1em, zinc-500, filete à
+    esquerda de 2px na cor do acento a 20%.
+  - Corpo: peso 300, entrelinha 1,625, slate-400. 14 · 16 · 18 · lead 20.
+  - Legenda: 12/16, zinc-600. Mono: 10/15 caixa alta tracking 0,1em.
+  - Nav: 14/20 peso 500 zinc-400, branco no hover. Botão: 700.
+  - Fundo #030305 com dois radial-gradients (ciano 10% e violeta 10%).
+  - Vidro: branco 2% + blur 20px + borda branco 5% (10% no hover).
+  - Botão: borda de baixo de 3px (3D); hover sobe 1px; ativo desce 3px.
+  - Diagramação: contêiner 1280px com respiro de 24px; seções separadas por
+    linha branca a 5%; grade de 3 colunas; cabeçalho = eyebrow + título +
+    parágrafo leve.
+  - Movimento: reveal (opacidade, 20px, blur 10px) 0,8s
+    cubic-bezier(0.2, 0.8, 0.2, 1).
+
+  A camada "futurist" é a última da ordem declarada em globals.css: ganha
+  das utilidades e do CommandLayer sem precisar de !important.
+*/
+@layer futurist {
+  .dash-skin {
+    --fw-sans: var(--font-inter), "Inter", system-ui, sans-serif;
+    --fw-serif: var(--font-instrument-serif), "Instrument Serif", Georgia, serif;
+    --fw-mono: var(--font-jetbrains-mono), "JetBrains Mono", ui-monospace, monospace;
+    --fw-bg: #030305;
+    --fw-text: #cbd5e1; /* slate-300 */
+    --fw-body: #94a3b8; /* slate-400 */
+    --fw-muted: #71717a; /* zinc-500 */
+    --fw-caption: #52525b; /* zinc-600 */
+    --fw-accent: #22d3ee; /* cyan-400 */
+    --fw-accent-dim: rgb(6 182 212 / 20%);
+    --fw-glass: rgb(255 255 255 / 2%);
+    --fw-glass-line: rgb(255 255 255 / 5%);
+    --fw-glass-line-hover: rgb(255 255 255 / 10%);
+    --fw-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+    /* Tokens do painel que passam a apontar para o sistema. */
+    --background: var(--fw-bg);
+    --card: #07070a;
+    --border: rgb(255 255 255 / 6%);
+    --muted-foreground: var(--fw-body);
+    --cl-chassis: #07070a;
+    --cl-border: rgb(255 255 255 / 6%);
+    --cl-border-strong: rgb(255 255 255 / 12%);
+    --cl-text-muted: var(--fw-body);
+    --cl-sans: var(--fw-sans);
+    --cl-mono: var(--fw-mono);
+    --font-display: var(--fw-sans);
+
+    color: var(--fw-text);
+    background-color: var(--fw-bg);
+    background-image:
+      radial-gradient(at 0% 0%, rgb(56 189 248 / 10%) 0, transparent 50%),
+      radial-gradient(at 100% 0%, rgb(124 58 237 / 10%) 0, transparent 50%);
+    background-attachment: fixed;
+    font-family: var(--fw-sans);
+  }
+  .dash-skin ::selection {
+    background: rgb(6 182 212 / 30%);
+    color: #a5f3fc;
+  }
+
+  /* ── Títulos: Inter 500, tracking negativo, branco ─────────────────────── */
+  .dash-skin :is(h1, h2, h3, h4, h5):not(.funnel-stage *) {
+    font-family: var(--fw-sans);
+    font-weight: 500;
+    letter-spacing: -0.025em;
+    color: #fff;
+  }
+  .dash-skin h1:not(.funnel-stage *) {
+    font-size: clamp(30px, 2.4vw, 48px);
+    line-height: 1;
+  }
+  .dash-skin h2:not(.funnel-stage *) {
+    font-size: clamp(24px, 2vw, 30px);
+    line-height: 1.2;
+  }
+  .dash-skin h3:not(.funnel-stage *) {
+    font-size: 20px;
+    line-height: 28px;
+  }
+  .dash-skin h4:not(.funnel-stage *) {
+    font-size: 16px;
+    line-height: 24px;
+  }
+  /* Títulos pequenos em caixa alta viram o "Bold S" da referência. */
+  .dash-skin :is(h3, h4).uppercase,
+  .dash-skin :is(h3, h4)[class*="uppercase"] {
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+
+  /* ── Acento em serifa itálica: só na primeira linha do cabeçalho ───────── */
+  .dash-skin .fw-serif {
+    font-family: var(--fw-serif);
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    color: #e4e4e7;
+  }
+
+  /* ── Eyebrow: rótulo pequeno, caixa alta, tracking largo, filete ciano ─── */
+  .dash-skin .fw-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding-left: 8px;
+    border-left: 2px solid var(--fw-accent-dim);
+    font-family: var(--fw-sans);
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--fw-muted);
+  }
+  /* Rótulos de tabela e de formulário seguem o eyebrow (sem o filete). */
+  .dash-skin :is(th, label, legend):not(.funnel-stage *) {
+    font-family: var(--fw-sans);
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fw-muted);
+  }
+  /* Rótulo de KPI (o texto pequeno acima do número) */
+  .dash-skin [data-slot="card-header"] .text-xs.font-semibold {
+    font-size: 11px;
+    line-height: 16px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--fw-muted);
+  }
+
+  /* ── Corpo: leve (300), entrelinha 1,625, slate-400 ───────────────────── */
+  .dash-skin :is(p, li, dd, figcaption):not([class*="text-"]):not([class*="font-"]):not(.funnel-stage *) {
+    font-weight: 300;
+    line-height: 1.625;
+    color: var(--fw-body);
+  }
+  .dash-skin p.text-muted-foreground,
+  .dash-skin [data-slot="card-description"] {
+    font-weight: 300;
+    line-height: 1.625;
+    color: var(--fw-body);
+  }
+  .dash-skin small:not(.funnel-stage *),
+  .dash-skin .text-xs:not(.font-semibold):not(.font-bold):not(.uppercase):not(.funnel-stage *) {
+    color: var(--fw-caption);
+  }
+
+  /* ── Números grandes: Inter 500, tracking apertado (como "35", "120") ─── */
+  .dash-skin [data-slot="card-header"] p.tabular-nums,
+  .dash-skin .tabular-nums.font-extrabold {
+    font-weight: 500;
+    letter-spacing: -0.03em;
+    color: #fff;
+  }
+
+  /* ── Monoespaçada só no que é técnico ─────────────────────────────────── */
+  .dash-skin :is(code, kbd, samp, .font-mono, .fw-mono):not(.funnel-stage *) {
+    font-family: var(--fw-mono);
+    font-size: 10px;
+    line-height: 15px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--fw-muted);
+  }
+  .dash-skin :is(code, kbd, samp):not(.funnel-stage *) {
+    text-transform: none;
+    font-size: 12px;
+    letter-spacing: 0;
+  }
+
+  /* ── Navegação: 14/20 peso 500 zinc-400, branco no hover ──────────────── */
+  .dash-skin nav a,
+  .dash-skin aside a,
+  .dash-skin .dash-sidebar-block {
+    font-family: var(--fw-sans);
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+  .dash-skin .dash-sidebar-block:not([aria-current="page"]) {
+    color: #a1a1aa;
+    background: var(--fw-glass);
+    border-color: var(--fw-glass-line);
+  }
+  .dash-skin .dash-sidebar-block:not([aria-current="page"]):hover {
+    color: #fff;
+    border-color: var(--fw-glass-line-hover);
+  }
+
+  /* ── Botões: Inter 700, borda de baixo em 3D ──────────────────────────── */
+  .dash-skin button:not(.funnel-stage *),
+  .dash-skin [data-slot="button"]:not(.funnel-stage *) {
+    font-family: var(--fw-sans);
+    font-weight: 700;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+  /* Botões de navegação (pastas do menu lateral) seguem o peso da nav, 500,
+     não o peso 700 dos botões de ação. */
+  .dash-skin aside button:not([data-slot="button"]),
+  .dash-skin nav button:not([data-slot="button"]),
+  .dash-skin button[aria-label^="Abrir pasta"],
+  .dash-skin button[aria-label^="Fechar pasta"] {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+  }
+  .dash-skin [data-slot="button"][data-variant="default"] {
+    border-bottom: 3px solid #d4d4d8;
+    transition:
+      transform 150ms var(--fw-ease),
+      border-bottom-width 150ms var(--fw-ease),
+      background-color 150ms var(--fw-ease);
+  }
+  .dash-skin [data-slot="button"][data-variant="default"]:hover {
+    transform: translateY(1px);
+    border-bottom-width: 2px;
+    background: #f4f4f5;
+  }
+  .dash-skin [data-slot="button"][data-variant="default"]:active {
+    transform: translateY(3px);
+    border-bottom-width: 0;
+  }
+  .dash-skin [data-slot="button"][data-variant="outline"],
+  .dash-skin [data-slot="button"][data-variant="secondary"] {
+    background: #18181b;
+    border: 1px solid rgb(255 255 255 / 10%);
+    border-bottom: 3px solid rgb(0 0 0 / 60%);
+    color: #fff;
+  }
+  .dash-skin [data-slot="button"][data-variant="outline"]:hover,
+  .dash-skin [data-slot="button"][data-variant="secondary"]:hover {
+    background: #27272a;
+    border-color: rgb(255 255 255 / 20%);
+    transform: translateY(1px);
+    border-bottom-width: 2px;
+  }
+
+  /* ── Superfícies de vidro: cartões e seções ───────────────────────────── */
+  .dash-skin [data-slot="card"],
+  .dash-skin .sessao,
+  .dash-skin [data-surface="layered"] {
+    background: var(--fw-glass);
+    border: 1px solid var(--fw-glass-line);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 20px 40px -10px rgb(0 0 0 / 50%);
+    transition: border-color 500ms var(--fw-ease), background-color 500ms var(--fw-ease);
+  }
+  .dash-skin [data-slot="card"]:hover,
+  .dash-skin [data-surface="layered"]:hover {
+    border-color: var(--fw-glass-line-hover);
+    background: rgb(255 255 255 / 3%);
+  }
+  .dash-skin .fw-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    background: rgb(6 182 212 / 10%);
+    border: 1px solid var(--fw-accent-dim);
+    color: var(--fw-accent);
+    font-family: var(--fw-sans);
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 600;
+    letter-spacing: 0.025em;
+    box-shadow: 0 0 15px -3px rgb(6 182 212 / 40%);
+    backdrop-filter: blur(12px);
+  }
+  .dash-skin .fw-pill-dot {
+    position: relative;
+    display: inline-flex;
+    width: 8px;
+    height: 8px;
+  }
+  .dash-skin .fw-pill-dot::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--fw-accent);
+    opacity: 0.75;
+    animation: fw-ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+  .dash-skin .fw-pill-dot::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: #06b6d4;
+  }
+
+  /* ── Diagramação: contêiner de 1280px, respiro de 24px, seções ────────── */
+  .dash-skin .dash-main:not(:has(> .funnel-stage)) {
+    width: 100%;
+    max-width: 1280px;
+    margin-inline: auto;
+    padding-inline: 24px;
+  }
+  .dash-skin .dash-main:not(:has(> .funnel-stage)) > * + * {
+    margin-top: 32px;
+  }
+  /* ── Movimento: a página entra como na referência ─────────────────────── */
+  @keyframes fw-reveal {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+      filter: blur(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+      filter: blur(0);
+    }
+  }
+  @keyframes fw-ping {
+    75%,
+    100% {
+      transform: scale(2);
+      opacity: 0;
+    }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .dash-skin .dash-main:not(:has(> .funnel-stage)) > * {
+      animation: fw-reveal 0.8s var(--fw-ease) both;
+    }
+    .dash-skin .dash-main:not(:has(> .funnel-stage)) > :nth-child(2) {
+      animation-delay: 100ms;
+    }
+    .dash-skin .dash-main:not(:has(> .funnel-stage)) > :nth-child(3) {
+      animation-delay: 200ms;
+    }
+    .dash-skin .dash-main:not(:has(> .funnel-stage)) > :nth-child(n + 4) {
+      animation-delay: 300ms;
+    }
+  }
+
+  /* Tema branco: mantém a tipografia, inverte as superfícies. */
+  :root[data-tema="branco"] .dash-skin {
+    --fw-bg: #fafafa;
+    --fw-text: #27272a;
+    --fw-body: #52525b;
+    --fw-muted: #71717a;
+    --fw-caption: #a1a1aa;
+    --fw-glass: rgb(0 0 0 / 2%);
+    --fw-glass-line: rgb(0 0 0 / 6%);
+    --fw-glass-line-hover: rgb(0 0 0 / 12%);
+    --card: #ffffff;
+    --border: rgb(0 0 0 / 8%);
+    --cl-chassis: #ffffff;
+    --cl-border: rgb(0 0 0 / 8%);
+    --cl-border-strong: rgb(0 0 0 / 16%);
+    background-image:
+      radial-gradient(at 0% 0%, rgb(56 189 248 / 8%) 0, transparent 50%),
+      radial-gradient(at 100% 0%, rgb(124 58 237 / 6%) 0, transparent 50%);
+  }
+  :root[data-tema="branco"] .dash-skin :is(h1, h2, h3, h4, h5),
+  :root[data-tema="branco"] .dash-skin [data-slot="card-header"] p.tabular-nums {
+    color: #09090b;
+  }
+}
+
+/* Fora de qualquer camada de propósito: o cabeçalho de página é desenhado
+   também por shell.module.css (sem camada), e só uma regra sem camada
+   ganha dela. */
+.dash-skin .fw-page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--fw-glass-line);
+}
+.dash-skin .fw-page-header h2 {
+  font-family: var(--fw-sans);
+  font-size: clamp(24px, 2vw, 30px);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+  color: #fff;
+}
+.dash-skin .fw-page-header p {
+  max-width: 48rem;
+  margin: 0;
+  font: 300 14px/1.625 var(--fw-sans);
+  color: var(--fw-body);
+}
+:root[data-tema="branco"] .dash-skin .fw-page-header h2 {
+  color: #09090b;
+}

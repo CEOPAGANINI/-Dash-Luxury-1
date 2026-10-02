@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Design system · Futurist Workflow</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=PT+Serif:wght@400;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400..800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style id="aura-editor-visibility-style">
+.invisible { visibility: hidden !important; }
+</style>
+<style>
+:root {
+--glow-primary: rgba(120, 119, 198, 0.3);
+--glow-secondary: rgba(56, 189, 248, 0.3);
+}
+body {
+font-family: 'Inter', sans-serif;
+background-color: #030305;
+background-image:
+radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.1) 0px, transparent 50%),
+radial-gradient(at 100% 0%, rgba(124, 58, 237, 0.1) 0px, transparent 50%);
+}
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+/* Animations */
+@keyframes float {
+0%, 100% { transform: translateY(0px); }
+50% { transform: translateY(-10px); }
+}
+@keyframes subtle-pulse {
+0%, 100% { opacity: 0.4; transform: scale(1); }
+50% { opacity: 0.7; transform: scale(1.05); }
+}
+@keyframes stream {
+0% { transform: translateX(-100%); opacity: 0; }
+50% { opacity: 1; }
+100% { transform: translateX(100%); opacity: 0; }
+}
+@keyframes reveal {
+from { opacity: 0; transform: translateY(20px); filter: blur(10px); }
+to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+@keyframes key-pop {
+0% { transform: scale(1); box-shadow: 0 0 0 rgba(255,255,255,0); }
+50% { transform: scale(0.92); box-shadow: 0 0 10px var(--glow-secondary); border-color: rgba(56, 189, 248, 0.8); background: rgba(56, 189, 248, 0.1); }
+100% { transform: scale(1); }
+}
+.animate-float { animation: float 6s ease-in-out infinite; }
+.animate-pulse-glow { animation: subtle-pulse 4s ease-in-out infinite; }
+.animate-stream { animation: stream 2s linear infinite; }
+.animate-reveal { animation: reveal 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+.animate-key-press { animation: key-pop 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+/* Utility delays */
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-500 { animation-delay: 500ms; }
+.glass-panel {
+background: rgba(255, 255, 255, 0.02);
+backdrop-filter: blur(20px);
+-webkit-backdrop-filter: blur(20px);
+border: 1px solid rgba(255, 255, 255, 0.05);
+box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5);
+}
+.glass-panel:hover {
+border-color: rgba(255, 255, 255, 0.1);
+background: rgba(255, 255, 255, 0.03);
+}
+.text-gradient {
+background-clip: text;
+-webkit-background-clip: text;
+color: transparent;
+background-image: linear-gradient(to right, #e2e8f0, #94a3b8);
+}
+.key-shadow {
+box-shadow: 0 4px 0 rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.2);
+}
+.key-shadow:active, .animate-key-press {
+box-shadow: 0 0 0 rgba(0,0,0,0.4);
+transform: translateY(4px);
+}
+</style>
+<style>
+@keyframes scan-line {
+0% { top: -10%; opacity: 0; }
+15% { opacity: 1; }
+100% { top: 110%; opacity: 0; }
+}
+.animate-scan { animation: scan-line 3s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+.delay-700 { animation-delay: 700ms; }
+</style>
+<style>.reveal-on-scroll{opacity:0;transform:translateY(30px);filter:blur(10px);transition:opacity 0.8s ease-out,transform 0.8s cubic-bezier(0.16,1,0.3,1),filter 0.8s ease-out;will-change:opacity,transform,filter}.reveal-on-scroll.is-visible{opacity:1;transform:translateY(0);filter:blur(0)}</style>
+<style id="all-fonts-style-font-geist">
+.font-geist { font-family: 'Geist', sans-serif !important; }
+</style>
+<style id="all-fonts-style-font-roboto">
+.font-roboto { font-family: 'Roboto', sans-serif !important; }
+</style>
+<style id="all-fonts-style-font-montserrat">
+.font-montserrat { font-family: 'Montserrat', sans-serif !important; }
+</style>
+<style id="all-fonts-style-font-poppins">
+.font-poppins { font-family: 'Poppins', sans-serif !important; }
+</style>
+<style id="all-fonts-style-font-playfair">
+.font-playfair { font-family: 'Playfair Display', serif !important; }
+</style>
+<style id="all-fonts-style-font-instrument-serif">
+.font-instrument-serif { font-family: 'Instrument Serif', serif !important; }
+</style>
+<style id="all-fonts-style-font-merriweather">
+.font-merriweather { font-family: 'Merriweather', serif !important; }
+</style>
+<style id="all-fonts-style-font-bricolage">
+.font-bricolage { font-family: 'Bricolage Grotesque', sans-serif !important; }
+</style>
+<style id="all-fonts-style-font-jakarta">
+.font-jakarta { font-family: 'Plus Jakarta Sans', sans-serif !important; }
+</style>
+<style id="all-fonts-style-font-manrope">
+.font-manrope { font-family: 'Manrope', sans-serif !important; }
+</style>
+<style id="all-fonts-style-font-space-grotesk">
+.font-space-grotesk { font-family: 'Space Grotesk', sans-serif !important; }
+</style>
+<style id="all-fonts-style-font-work-sans">
+.font-work-sans { font-family: 'Work Sans', sans-serif !important; }
+</style>
+<style id="all-fonts-style-font-pt-serif">
+.font-pt-serif { font-family: 'PT Serif', serif !important; }
+</style>
+<style id="all-fonts-style-font-geist-mono">
+.font-geist-mono { font-family: 'Geist Mono', monospace !important; }
+</style>
+<style id="all-fonts-style-font-space-mono">
+.font-space-mono { font-family: 'Space Mono', monospace !important; }
+</style>
+<style id="all-fonts-style-font-quicksand">
+.font-quicksand { font-family: 'Quicksand', sans-serif !important; }
+</style>
+<style id="all-fonts-style-font-nunito">
+.font-nunito { font-family: 'Nunito', sans-serif !important; }
+</style>
+<style id="all-fonts-style-font-newsreader">
+.font-newsreader { font-family: 'Newsreader', serif !important; }
+</style>
+<style id="all-fonts-style-font-google-sans-flex">
+.font-google-sans-flex { font-family: 'Google Sans Flex', sans-serif !important; }
+</style>
+<style id="all-fonts-style-font-oswald">
+.font-oswald { font-family: 'Oswald', sans-serif !important; }
+</style>
+<style id="all-fonts-style-font-dm-sans">
+.font-dm-sans { font-family: 'DM Sans', sans-serif !important; }
+</style>
+<style id="all-fonts-style-font-cormorant">
+.font-cormorant { font-family: 'Cormorant Garamond', serif !important; }
+</style>
+<style>
+/* 3D Transform utilities */
+.rotate-x-0 { --tw-rotate-x: 0deg; transform: translate3d(var(--tw-translate-x, 0), var(--tw-translate-y, 0), var(--tw-translate-z, 0)) rotateX(var(--tw-rotate-x, 0)) rotateY(var(--tw-rotate-y, 0)) rotateZ(var(--tw-rotate-z, 0)) skewX(var(--tw-skew-x, 0)) skewY(var(--tw-skew-y, 0)) scaleX(var(--tw-scale-x, 1)) scaleY(var(--tw-scale-y, 1)) !important; }
+.perspective-none { perspective: none !important; }
+.perspective-dramatic { perspective: 100px !important; }
+.perspective-near { perspective: 300px !important; }
+.perspective-normal { perspective: 500px !important; }
+.perspective-midrange { perspective: 800px !important; }
+.perspective-distant { perspective: 1200px !important; }
+.transform-style-preserve-3d { transform-style: preserve-3d !important; }
+.transform-style-flat { transform-style: flat !important; }
+</style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.pointer-events-none{pointer-events:none}.pointer-events-auto{pointer-events:auto}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.inset-0{inset:0px}.inset-4{inset:1rem}.-inset-4{inset:-1rem}.-inset-x-6{left:-1.5rem;right:-1.5rem}.-inset-y-4{top:-1rem;bottom:-1rem}.inset-y-0\.5{top:0.125rem;bottom:0.125rem}.left-0{left:0px}.right-0{right:0px}.top-0{top:0px}.-bottom-6{bottom:-1.5rem}.-right-8{right:-2rem}.-top-24{top:-6rem}.-top-\[30\%\]{top:-30%}.bottom-0{bottom:0px}.bottom-24{bottom:6rem}.bottom-\[-41px\]{bottom:-41px}.bottom-\[20\%\]{bottom:20%}.left-0\.5{left:0.125rem}.left-1\/2{left:50%}.left-10{left:2.5rem}.left-8{left:2rem}.left-\[10\%\]{left:10%}.left-\[31px\]{left:31px}.left-\[6\%\]{left:6%}.right-10{right:2.5rem}.right-\[12\%\]{right:12%}.right-\[18\%\]{right:18%}.top-1\/2{top:50%}.top-12{top:3rem}.top-8{top:2rem}.top-\[-51px\]{top:-51px}.top-\[15\%\]{top:15%}.-bottom-8{bottom:-2rem}.bottom-6{bottom:1.5rem}.bottom-\[-10\%\]{bottom:-10%}.left-\[20\%\]{left:20%}.left-\[25\%\]{left:25%}.left-\[50\%\]{left:50%}.left-\[75\%\]{left:75%}.right-\[20\%\]{right:20%}.top-6{top:1.5rem}.top-\[-20\%\]{top:-20%}.top-\[30\%\]{top:30%}.top-\[35\%\]{top:35%}.top-\[45\%\]{top:45%}.isolate{isolation:isolate}.-z-10{z-index:-10}.z-50{z-index:50}.z-0{z-index:0}.z-10{z-index:10}.z-20{z-index:20}.z-30{z-index:30}.-z-20{z-index:-20}.order-1{order:1}.order-2{order:2}.col-span-2{grid-column:span 2 / span 2}.mx-auto{margin-left:auto;margin-right:auto}.mb-0\.5{margin-bottom:0.125rem}.mb-1{margin-bottom:0.25rem}.mb-10{margin-bottom:2.5rem}.mb-12{margin-bottom:3rem}.mb-16{margin-bottom:4rem}.mb-2{margin-bottom:0.5rem}.mb-20{margin-bottom:5rem}.mb-24{margin-bottom:6rem}.mb-3{margin-bottom:0.75rem}.mb-4{margin-bottom:1rem}.mb-6{margin-bottom:1.5rem}.mb-8{margin-bottom:2rem}.ml-1{margin-left:0.25rem}.ml-2{margin-left:0.5rem}.ml-auto{margin-left:auto}.mr-auto{margin-right:auto}.mt-1{margin-top:0.25rem}.mt-4{margin-top:1rem}.mt-8{margin-top:2rem}.mt-\[-0\.2em\]{margin-top:-0.2em}.mt-auto{margin-top:auto}.block{display:block}.inline-block{display:inline-block}.flex{display:flex}.inline-flex{display:inline-flex}.grid{display:grid}.hidden{display:none}.aspect-\[2\/1\]{aspect-ratio:2/1}.h-10{height:2.5rem}.h-16{height:4rem}.h-4{height:1rem}.h-8{height:2rem}.h-full{height:100%}.h-screen{height:100vh}.h-1{height:0.25rem}.h-1\.5{height:0.375rem}.h-12{height:3rem}.h-14{height:3.5rem}.h-2{height:0.5rem}.h-24{height:6rem}.h-3{height:0.75rem}.h-32{height:8rem}.h-40{height:10rem}.h-5{height:1.25rem}.h-6{height:1.5rem}.h-7{height:1.75rem}.h-\[18px\]{height:18px}.h-\[1px\]{height:1px}.h-\[400px\]{height:400px}.h-\[40px\]{height:40px}.h-\[500px\]{height:500px}.h-\[50px\]{height:50px}.h-\[600px\]{height:600px}.h-\[800px\]{height:800px}.h-px{height:1px}.h-\[300px\]{height:300px}.h-\[320px\]{height:320px}.min-h-screen{min-height:100vh}.min-h-\[320px\]{min-height:320px}.w-4{width:1rem}.w-8{width:2rem}.w-full{width:100%}.w-0\.5{width:0.125rem}.w-1{width:0.25rem}.w-1\.5{width:0.375rem}.w-1\/2{width:50%}.w-10{width:2.5rem}.w-11{width:2.75rem}.w-12{width:3rem}.w-14{width:3.5rem}.w-16{width:4rem}.w-2{width:0.5rem}.w-20{width:5rem}.w-24{width:6rem}.w-32{width:8rem}.w-5{width:1.25rem}.w-7{width:1.75rem}.w-\[1200px\]{width:1200px}.w-\[1px\]{width:1px}.w-\[500px\]{width:500px}.w-\[600px\]{width:600px}.w-\[800px\]{width:800px}.w-px{width:1px}.w-3{width:0.75rem}.w-6{width:1.5rem}.w-\[300px\]{width:300px}.w-\[400px\]{width:400px}.min-w-\[180px\]{min-width:180px}.max-w-7xl{max-width:80rem}.max-w-2xl{max-width:42rem}.max-w-3xl{max-width:48rem}.max-w-4xl{max-width:56rem}.max-w-5xl{max-width:64rem}.max-w-6xl{max-width:72rem}.max-w-md{max-width:28rem}.max-w-xl{max-width:36rem}.max-w-xs{max-width:20rem}.flex-1{flex:1 1 0%}.origin-center{transform-origin:center}.-translate-x-1\/2{--tw-translate-x:-50%;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.-translate-y-1\/2{--tw-translate-y:-50%;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.-translate-y-4{--tw-translate-y:-1rem;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.-translate-y-full{--tw-translate-y:-100%;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.translate-y-full{--tw-translate-y:100%;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.-translate-y-8{--tw-translate-y:-2rem;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.-rotate-45{--tw-rotate:-45deg;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.rotate-45{--tw-rotate:45deg;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.rotate-6{--tw-rotate:6deg;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.scale-90{--tw-scale-x:.9;--tw-scale-y:.9;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.scale-95{--tw-scale-x:.95;--tw-scale-y:.95;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.transform{transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.animate-\[shimmer-bg_4s_linear_infinite\]{animation:shimmer-bg 4s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.animate-\[spin_10s_linear_infinite\]{animation:spin 10s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.animate-\[spin_15s_linear_infinite_reverse\]{animation:spin 15s linear infinite reverse}@keyframes spin{to{transform:rotate(360deg)}}.animate-\[spin_20s_linear_infinite\]{animation:spin 20s linear infinite}@keyframes ping{75%, 100%{transform:scale(2);opacity:0}}.animate-ping{animation:ping 1s cubic-bezier(0, 0, 0.2, 1) infinite}@keyframes pulse{50%{opacity:.5}}.animate-pulse{animation:pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite}@keyframes spin{to{transform:rotate(360deg)}}.animate-\[spin_4s_linear_infinite\]{animation:spin 4s linear infinite}.cursor-pointer{cursor:pointer}.cursor-default{cursor:default}.select-none{-webkit-user-select:none;user-select:none}.grid-cols-1{grid-template-columns:repeat(1, minmax(0, 1fr))}.grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.flex-col{flex-direction:column}.flex-col-reverse{flex-direction:column-reverse}.flex-wrap{flex-wrap:wrap}.items-center{align-items:center}.items-baseline{align-items:baseline}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-2{gap:0.5rem}.gap-4{gap:1rem}.gap-8{gap:2rem}.gap-0\.5{gap:0.125rem}.gap-1{gap:0.25rem}.gap-1\.5{gap:0.375rem}.gap-10{gap:2.5rem}.gap-3{gap:0.75rem}.gap-6{gap:1.5rem}.gap-12{gap:3rem}.gap-x-4{column-gap:1rem}.gap-y-4{row-gap:1rem}.gap-x-1\.5{column-gap:0.375rem}.gap-x-8{column-gap:2rem}.gap-y-1\.5{row-gap:0.375rem}.gap-y-8{row-gap:2rem}.gap-x-16{column-gap:4rem}.gap-x-2{column-gap:0.5rem}.gap-y-16{row-gap:4rem}.gap-y-2{row-gap:0.5rem}.space-y-1 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.25rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.25rem * var(--tw-space-y-reverse))}.space-y-4 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem * var(--tw-space-y-reverse))}.space-y-3 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.75rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.75rem * var(--tw-space-y-reverse))}.divide-x > :not([hidden]) ~ :not([hidden]){--tw-divide-x-reverse:0;border-right-width:calc(1px * var(--tw-divide-x-reverse));border-left-width:calc(1px * calc(1 - var(--tw-divide-x-reverse)))}.divide-white\/5 > :not([hidden]) ~ :not([hidden]){border-color:rgb(255 255 255 / 0.05)}.overflow-hidden{overflow:hidden}.overflow-visible{overflow:visible}.overflow-x-hidden{overflow-x:hidden}.whitespace-nowrap{white-space:nowrap}.rounded{border-radius:0.25rem}.rounded-lg{border-radius:0.5rem}.rounded-2xl{border-radius:1rem}.rounded-3xl{border-radius:1.5rem}.rounded-\[100\%\]{border-radius:100%}.rounded-\[20px\]{border-radius:20px}.rounded-full{border-radius:9999px}.rounded-md{border-radius:0.375rem}.rounded-xl{border-radius:0.75rem}.rounded-\[32px\]{border-radius:32px}.rounded-\[4px\]{border-radius:4px}.rounded-l-2xl{border-top-left-radius:1rem;border-bottom-left-radius:1rem}.rounded-r-2xl{border-top-right-radius:1rem;border-bottom-right-radius:1rem}.border{border-width:1px}.border-\[0\.5px\]{border-width:0.5px}.border-b{border-bottom-width:1px}.border-b-\[3px\]{border-bottom-width:3px}.border-b-2{border-bottom-width:2px}.border-b-4{border-bottom-width:4px}.border-l{border-left-width:1px}.border-l-2{border-left-width:2px}.border-t{border-top-width:1px}.border-dashed{border-style:dashed}.border-dotted{border-style:dotted}.border-cyan-500\/20{border-color:rgb(6 182 212 / 0.2)}.border-white\/5{border-color:rgb(255 255 255 / 0.05)}.border-zinc-300{--tw-border-opacity:1;border-color:rgb(212 212 216 / var(--tw-border-opacity, 1))}.border-black{--tw-border-opacity:1;border-color:rgb(0 0 0 / var(--tw-border-opacity, 1))}.border-black\/10{border-color:rgb(0 0 0 / 0.1)}.border-blue-500\/20{border-color:rgb(59 130 246 / 0.2)}.border-cyan-700{--tw-border-opacity:1;border-color:rgb(14 116 144 / var(--tw-border-opacity, 1))}.border-emerald-500\/10{border-color:rgb(16 185 129 / 0.1)}.border-emerald-500\/20{border-color:rgb(16 185 129 / 0.2)}.border-orange-500\/10{border-color:rgb(249 115 22 / 0.1)}.border-purple-500\/20{border-color:rgb(168 85 247 / 0.2)}.border-white\/10{border-color:rgb(255 255 255 / 0.1)}.border-white\/\[0\.05\]{border-color:rgb(255 255 255 / 0.05)}.border-white\/\[0\.08\]{border-color:rgb(255 255 255 / 0.08)}.border-zinc-800{--tw-border-opacity:1;border-color:rgb(39 39 42 / var(--tw-border-opacity, 1))}.border-zinc-900{--tw-border-opacity:1;border-color:rgb(24 24 27 / var(--tw-border-opacity, 1))}.border-zinc-950{--tw-border-opacity:1;border-color:rgb(9 9 11 / var(--tw-border-opacity, 1))}.border-cyan-500\/30{border-color:rgb(6 182 212 / 0.3)}.border-b-black\/60{border-bottom-color:rgb(0 0 0 / 0.6)}.bg-black\/10{background-color:rgb(0 0 0 / 0.1)}.bg-black\/50{background-color:rgb(0 0 0 / 0.5)}.bg-cyan-500\/10{background-color:rgb(6 182 212 / 0.1)}.bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255 / var(--tw-bg-opacity, 1))}.bg-\[\#09090b\]{--tw-bg-opacity:1;background-color:rgb(9 9 11 / var(--tw-bg-opacity, 1))}.bg-\[\#0c0c0e\]{--tw-bg-opacity:1;background-color:rgb(12 12 14 / var(--tw-bg-opacity, 1))}.bg-\[\#121214\]{--tw-bg-opacity:1;background-color:rgb(18 18 20 / var(--tw-bg-opacity, 1))}.bg-black\/40{background-color:rgb(0 0 0 / 0.4)}.bg-black\/60{background-color:rgb(0 0 0 / 0.6)}.bg-cyan-400{--tw-bg-opacity:1;background-color:rgb(34 211 238 / var(--tw-bg-opacity, 1))}.bg-cyan-500{--tw-bg-opacity:1;background-color:rgb(6 182 212 / var(--tw-bg-opacity, 1))}.bg-cyan-500\/20{background-color:rgb(6 182 212 / 0.2)}.bg-cyan-500\/40{background-color:rgb(6 182 212 / 0.4)}.bg-cyan-500\/60{background-color:rgb(6 182 212 / 0.6)}.bg-cyan-500\/80{background-color:rgb(6 182 212 / 0.8)}.bg-emerald-500{--tw-bg-opacity:1;background-color:rgb(16 185 129 / var(--tw-bg-opacity, 1))}.bg-emerald-900\/10{background-color:rgb(6 78 59 / 0.1)}.bg-green-500\/20{background-color:rgb(34 197 94 / 0.2)}.bg-orange-400{--tw-bg-opacity:1;background-color:rgb(251 146 60 / var(--tw-bg-opacity, 1))}.bg-orange-500{--tw-bg-opacity:1;background-color:rgb(249 115 22 / var(--tw-bg-opacity, 1))}.bg-orange-500\/5{background-color:rgb(249 115 22 / 0.05)}.bg-purple-500\/10{background-color:rgb(168 85 247 / 0.1)}.bg-purple-500\/20{background-color:rgb(168 85 247 / 0.2)}.bg-red-500\/20{background-color:rgb(239 68 68 / 0.2)}.bg-white\/10{background-color:rgb(255 255 255 / 0.1)}.bg-white\/5{background-color:rgb(255 255 255 / 0.05)}.bg-white\/\[0\.02\]{background-color:rgb(255 255 255 / 0.02)}.bg-white\/\[0\.03\]{background-color:rgb(255 255 255 / 0.03)}.bg-yellow-500\/20{background-color:rgb(234 179 8 / 0.2)}.bg-zinc-700{--tw-bg-opacity:1;background-color:rgb(63 63 70 / var(--tw-bg-opacity, 1))}.bg-zinc-800{--tw-bg-opacity:1;background-color:rgb(39 39 42 / var(--tw-bg-opacity, 1))}.bg-zinc-800\/50{background-color:rgb(39 39 42 / 0.5)}.bg-zinc-900{--tw-bg-opacity:1;background-color:rgb(24 24 27 / var(--tw-bg-opacity, 1))}.bg-zinc-900\/30{background-color:rgb(24 24 27 / 0.3)}.bg-zinc-900\/40{background-color:rgb(24 24 27 / 0.4)}.bg-zinc-900\/50{background-color:rgb(24 24 27 / 0.5)}.bg-zinc-900\/90{background-color:rgb(24 24 27 / 0.9)}.bg-\[\#0d1117\]{--tw-bg-opacity:1;background-color:rgb(13 17 23 / var(--tw-bg-opacity, 1))}.bg-black\/80{background-color:rgb(0 0 0 / 0.8)}.bg-blue-500\/10{background-color:rgb(59 130 246 / 0.1)}.bg-emerald-400{--tw-bg-opacity:1;background-color:rgb(52 211 153 / var(--tw-bg-opacity, 1))}.bg-emerald-500\/10{background-color:rgb(16 185 129 / 0.1)}.bg-purple-400{--tw-bg-opacity:1;background-color:rgb(192 132 252 / var(--tw-bg-opacity, 1))}.bg-\[\#020203\]{--tw-bg-opacity:1;background-color:rgb(2 2 3 / var(--tw-bg-opacity, 1))}.bg-\[linear-gradient\(115deg\2c transparent_35\%\2c rgba\(16\2c 185\2c 129\2c 0\.15\)_50\%\2c transparent_65\%\)\]{background-image:linear-gradient(115deg,transparent 35%,rgba(16,185,129,0.15) 50%,transparent 65%)}.bg-\[url\(\'https\:\/\/grainy-gradients\.vercel\.app\/noise\.svg\'\)\]{background-image:url('https://grainy-gradients.vercel.app/noise.svg')}.bg-gradient-to-b{background-image:linear-gradient(to bottom, var(--tw-gradient-stops))}.bg-gradient-to-r{background-image:linear-gradient(to right, var(--tw-gradient-stops))}.bg-gradient-to-t{background-image:linear-gradient(to top, var(--tw-gradient-stops))}.bg-\[linear-gradient\(to_right\2c \#ffffff05_1px\2c transparent_1px\)\2c linear-gradient\(to_bottom\2c \#ffffff05_1px\2c transparent_1px\)\]{background-image:linear-gradient(to right,#ffffff05 1px,transparent 1px),linear-gradient(to bottom,#ffffff05 1px,transparent 1px)}.bg-\[radial-gradient\(\#fff_1px\2c transparent_1px\)\]{background-image:radial-gradient(#fff 1px,transparent 1px)}.from-\[\#0c0c0e\]{--tw-gradient-from:#0c0c0e var(--tw-gradient-from-position);--tw-gradient-to:rgb(12 12 14 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-transparent{--tw-gradient-from:transparent var(--tw-gradient-from-position);--tw-gradient-to:rgb(0 0 0 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-white{--tw-gradient-from:#fff var(--tw-gradient-from-position);--tw-gradient-to:rgb(255 255 255 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-zinc-800{--tw-gradient-from:#27272a var(--tw-gradient-from-position);--tw-gradient-to:rgb(39 39 42 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-zinc-900\/20{--tw-gradient-from:rgb(24 24 27 / 0.2) var(--tw-gradient-from-position);--tw-gradient-to:rgb(24 24 27 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-cyan-300{--tw-gradient-from:#67e8f9 var(--tw-gradient-from-position);--tw-gradient-to:rgb(103 232 249 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-cyan-500\/20{--tw-gradient-from:rgb(6 182 212 / 0.2) var(--tw-gradient-from-position);--tw-gradient-to:rgb(6 182 212 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-zinc-900{--tw-gradient-from:#18181b var(--tw-gradient-from-position);--tw-gradient-to:rgb(24 24 27 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.via-cyan-400{--tw-gradient-to:rgb(34 211 238 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), #22d3ee var(--tw-gradient-via-position), var(--tw-gradient-to)}.via-cyan-50{--tw-gradient-to:rgb(236 254 255 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), #ecfeff var(--tw-gradient-via-position), var(--tw-gradient-to)}.via-zinc-800{--tw-gradient-to:rgb(39 39 42 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), #27272a var(--tw-gradient-via-position), var(--tw-gradient-to)}.via-zinc-900\/5{--tw-gradient-to:rgb(24 24 27 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), rgb(24 24 27 / 0.05) var(--tw-gradient-via-position), var(--tw-gradient-to)}.to-cyan-200{--tw-gradient-to:#a5f3fc var(--tw-gradient-to-position)}.to-transparent{--tw-gradient-to:transparent var(--tw-gradient-to-position)}.to-black{--tw-gradient-to:#000 var(--tw-gradient-to-position)}.to-blue-500{--tw-gradient-to:#3b82f6 var(--tw-gradient-to-position)}.to-blue-600\/20{--tw-gradient-to:rgb(37 99 235 / 0.2) var(--tw-gradient-to-position)}.bg-\[length\:200\%_100\%\]{background-size:200% 100%}.bg-\[size\:40px_40px\]{background-size:40px 40px}.bg-clip-text{-webkit-background-clip:text;background-clip:text}.fill-black\/20{fill:rgb(0 0 0 / 0.2)}.p-0\.5{padding:0.125rem}.p-1{padding:0.25rem}.p-2{padding:0.5rem}.p-3{padding:0.75rem}.p-4{padding:1rem}.p-6{padding:1.5rem}.p-8{padding:2rem}.p-0{padding:0px}.px-5{padding-left:1.25rem;padding-right:1.25rem}.px-6{padding-left:1.5rem;padding-right:1.5rem}.px-1{padding-left:0.25rem;padding-right:0.25rem}.px-1\.5{padding-left:0.375rem;padding-right:0.375rem}.px-2{padding-left:0.5rem;padding-right:0.5rem}.px-3{padding-left:0.75rem;padding-right:0.75rem}.px-4{padding-left:1rem;padding-right:1rem}.px-8{padding-left:2rem;padding-right:2rem}.py-0\.5{padding-top:0.125rem;padding-bottom:0.125rem}.py-1{padding-top:0.25rem;padding-bottom:0.25rem}.py-1\.5{padding-top:0.375rem;padding-bottom:0.375rem}.py-2{padding-top:0.5rem;padding-bottom:0.5rem}.py-12{padding-top:3rem;padding-bottom:3rem}.py-20{padding-top:5rem;padding-bottom:5rem}.py-24{padding-top:6rem;padding-bottom:6rem}.py-3{padding-top:0.75rem;padding-bottom:0.75rem}.py-16{padding-top:4rem;padding-bottom:4rem}.pb-0\.5{padding-bottom:0.125rem}.pl-1\.5{padding-left:0.375rem}.pr-1\.5{padding-right:0.375rem}.pt-0\.5{padding-top:0.125rem}.pb-0{padding-bottom:0px}.pb-1{padding-bottom:0.25rem}.pb-10{padding-bottom:2.5rem}.pb-2{padding-bottom:0.5rem}.pb-20{padding-bottom:5rem}.pb-24{padding-bottom:6rem}.pb-32{padding-bottom:8rem}.pb-4{padding-bottom:1rem}.pl-1{padding-left:0.25rem}.pl-12{padding-left:3rem}.pl-2{padding-left:0.5rem}.pl-4{padding-left:1rem}.pl-6{padding-left:1.5rem}.pr-1{padding-right:0.25rem}.pr-12{padding-right:3rem}.pr-4{padding-right:1rem}.pr-6{padding-right:1.5rem}.pt-0{padding-top:0px}.pt-1{padding-top:0.25rem}.pt-10{padding-top:2.5rem}.pt-32{padding-top:8rem}.pb-8{padding-bottom:2rem}.pt-4{padding-top:1rem}.pt-6{padding-top:1.5rem}.pr-8{padding-right:2rem}.pt-8{padding-top:2rem}.text-center{text-align:center}.font-mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}.text-\[10px\]{font-size:10px}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-2xl{font-size:1.5rem;line-height:2rem}.text-4xl{font-size:2.25rem;line-height:2.5rem}.text-6xl{font-size:3.75rem;line-height:1}.text-\[9px\]{font-size:9px}.text-base{font-size:1rem;line-height:1.5rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:0.75rem;line-height:1rem}.text-3xl{font-size:1.875rem;line-height:2.25rem}.font-bold{font-weight:700}.font-medium{font-weight:500}.font-light{font-weight:300}.font-semibold{font-weight:600}.uppercase{text-transform:uppercase}.italic{font-style:italic}.leading-\[0\.95\]{line-height:0.95}.leading-\[0\.9\]{line-height:0.9}.leading-relaxed{line-height:1.625}.tracking-widest{letter-spacing:0.1em}.tracking-tight{letter-spacing:-0.025em}.tracking-tighter{letter-spacing:-0.05em}.tracking-wide{letter-spacing:0.025em}.tracking-wider{letter-spacing:0.05em}.text-black{--tw-text-opacity:1;color:rgb(0 0 0 / var(--tw-text-opacity, 1))}.text-cyan-400{--tw-text-opacity:1;color:rgb(34 211 238 / var(--tw-text-opacity, 1))}.text-slate-300{--tw-text-opacity:1;color:rgb(203 213 225 / var(--tw-text-opacity, 1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.text-zinc-400{--tw-text-opacity:1;color:rgb(161 161 170 / var(--tw-text-opacity, 1))}.text-blue-400{--tw-text-opacity:1;color:rgb(96 165 250 / var(--tw-text-opacity, 1))}.text-cyan-500\/80{color:rgb(6 182 212 / 0.8)}.text-emerald-400{--tw-text-opacity:1;color:rgb(52 211 153 / var(--tw-text-opacity, 1))}.text-orange-400{--tw-text-opacity:1;color:rgb(251 146 60 / var(--tw-text-opacity, 1))}.text-purple-400{--tw-text-opacity:1;color:rgb(192 132 252 / var(--tw-text-opacity, 1))}.text-red-400{--tw-text-opacity:1;color:rgb(248 113 113 / var(--tw-text-opacity, 1))}.text-slate-400{--tw-text-opacity:1;color:rgb(148 163 184 / var(--tw-text-opacity, 1))}.text-transparent{color:transparent}.text-violet-400{--tw-text-opacity:1;color:rgb(167 139 250 / var(--tw-text-opacity, 1))}.text-zinc-200{--tw-text-opacity:1;color:rgb(228 228 231 / var(--tw-text-opacity, 1))}.text-zinc-300{--tw-text-opacity:1;color:rgb(212 212 216 / var(--tw-text-opacity, 1))}.text-zinc-500{--tw-text-opacity:1;color:rgb(113 113 122 / var(--tw-text-opacity, 1))}.text-zinc-600{--tw-text-opacity:1;color:rgb(82 82 91 / var(--tw-text-opacity, 1))}.text-zinc-700{--tw-text-opacity:1;color:rgb(63 63 70 / var(--tw-text-opacity, 1))}.text-cyan-200{--tw-text-opacity:1;color:rgb(165 243 252 / var(--tw-text-opacity, 1))}.text-cyan-500\/70{color:rgb(6 182 212 / 0.7)}.text-emerald-200{--tw-text-opacity:1;color:rgb(167 243 208 / var(--tw-text-opacity, 1))}.text-emerald-500\/70{color:rgb(16 185 129 / 0.7)}.text-green-400{--tw-text-opacity:1;color:rgb(74 222 128 / var(--tw-text-opacity, 1))}.text-purple-200{--tw-text-opacity:1;color:rgb(233 213 255 / var(--tw-text-opacity, 1))}.text-purple-500\/70{color:rgb(168 85 247 / 0.7)}.text-yellow-300{--tw-text-opacity:1;color:rgb(253 224 71 / var(--tw-text-opacity, 1))}.antialiased{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}.opacity-0{opacity:0}.opacity-10{opacity:0.1}.opacity-20{opacity:0.2}.opacity-30{opacity:0.3}.opacity-40{opacity:0.4}.opacity-50{opacity:0.5}.opacity-60{opacity:0.6}.opacity-75{opacity:0.75}.opacity-80{opacity:0.8}.opacity-\[0\.03\]{opacity:0.03}.opacity-\[0\.15\]{opacity:0.15}.mix-blend-screen{mix-blend-mode:screen}.mix-blend-plus-lighter{mix-blend-mode:plus-lighter}.shadow-sm{--tw-shadow:0 1px 2px 0 rgb(0 0 0 / 0.05);--tw-shadow-colored:0 1px 2px 0 var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-2xl{--tw-shadow:0 25px 50px -12px rgb(0 0 0 / 0.25);--tw-shadow-colored:0 25px 50px -12px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-\[0_0_15px_-3px_rgba\(6\2c 182\2c 212\2c 0\.15\)\]{--tw-shadow:0 0 15px -3px rgba(6,182,212,0.15);--tw-shadow-colored:0 0 15px -3px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-\[0_0_15px_-3px_rgba\(6\2c 182\2c 212\2c 0\.4\)\]{--tw-shadow:0 0 15px -3px rgba(6,182,212,0.4);--tw-shadow-colored:0 0 15px -3px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-\[0_0_20px_rgba\(6\2c 182\2c 212\2c 0\.15\)\]{--tw-shadow:0 0 20px rgba(6,182,212,0.15);--tw-shadow-colored:0 0 20px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-\[0_0_8px_rgba\(16\2c 185\2c 129\2c 0\.4\)\]{--tw-shadow:0 0 8px rgba(16,185,129,0.4);--tw-shadow-colored:0 0 8px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-\[0_0_8px_rgba\(16\2c 185\2c 129\2c 0\.5\)\]{--tw-shadow:0 0 8px rgba(16,185,129,0.5);--tw-shadow-colored:0 0 8px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-\[0_0_8px_rgba\(34\2c 211\2c 238\2c 0\.5\)\]{--tw-shadow:0 0 8px rgba(34,211,238,0.5);--tw-shadow-colored:0 0 8px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-\[0_5px_0_rgb\(8\2c 145\2c 178\)\]{--tw-shadow:0 5px 0 rgb(8,145,178);--tw-shadow-colored:0 5px 0 var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-inner{--tw-shadow:inset 0 2px 4px 0 rgb(0 0 0 / 0.05);--tw-shadow-colored:inset 0 2px 4px 0 var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-lg{--tw-shadow:0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-xl{--tw-shadow:0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 20px 25px -5px var(--tw-shadow-color), 0 8px 10px -6px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-\[0_0_10px_\#22d3ee\]{--tw-shadow:0 0 10px #22d3ee;--tw-shadow-colored:0 0 10px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-\[0_0_10px_\#c084fc\]{--tw-shadow:0 0 10px #c084fc;--tw-shadow-colored:0 0 10px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-\[0_0_30px_rgba\(6\2c 182\2c 212\2c 0\.2\)\]{--tw-shadow:0 0 30px rgba(6,182,212,0.2);--tw-shadow-colored:0 0 30px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.ring-1{--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)}.ring-cyan-400\/20{--tw-ring-color:rgb(34 211 238 / 0.2)}.blur-3xl{--tw-blur:blur(64px);filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.blur-\[100px\]{--tw-blur:blur(100px);filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.blur-\[120px\]{--tw-blur:blur(120px);filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.blur-lg{--tw-blur:blur(16px);filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.blur-xl{--tw-blur:blur(24px);filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.blur-2xl{--tw-blur:blur(40px);filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.blur-\[80px\]{--tw-blur:blur(80px);filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.drop-shadow-\[0_0_35px_rgba\(34\2c 211\2c 238\2c 0\.4\)\]{--tw-drop-shadow:drop-shadow(0 0 35px rgba(34,211,238,0.4));filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.saturate-200{--tw-saturate:saturate(2);filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.backdrop-blur-xl{--tw-backdrop-blur:blur(24px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.backdrop-blur-md{--tw-backdrop-blur:blur(12px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.backdrop-blur-sm{--tw-backdrop-blur:blur(4px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-colors{transition-property:color, background-color, border-color, fill, stroke, -webkit-text-decoration-color;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, -webkit-text-decoration-color;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-transform{transition-property:transform;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-opacity{transition-property:opacity;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.delay-100{transition-delay:100ms}.delay-300{transition-delay:300ms}.delay-500{transition-delay:500ms}.delay-700{transition-delay:700ms}.duration-300{transition-duration:300ms}.duration-500{transition-duration:500ms}.duration-700{transition-duration:700ms}.duration-75{transition-duration:75ms}.duration-1000{transition-duration:1000ms}.duration-\[3s\]{transition-duration:3s}.ease-linear{transition-timing-function:linear}.will-change-transform{will-change:transform}.\[background-size\:40px_40px\]{background-size:40px 40px}.\[mask-image\:radial-gradient\(ellipse_at_center\2c black_40\%\2c transparent_100\%\)\]{-webkit-mask-image:radial-gradient(ellipse at center,black 40%,transparent 100%);mask-image:radial-gradient(ellipse at center,black 40%,transparent 100%)}.selection\:bg-cyan-500\/30 *::selection{background-color:rgb(6 182 212 / 0.3)}.selection\:text-cyan-200 *::selection{--tw-text-opacity:1;color:rgb(165 243 252 / var(--tw-text-opacity, 1))}.selection\:bg-cyan-500\/30::selection{background-color:rgb(6 182 212 / 0.3)}.selection\:text-cyan-200::selection{--tw-text-opacity:1;color:rgb(165 243 252 / var(--tw-text-opacity, 1))}.hover\:translate-y-\[1px\]:hover{--tw-translate-y:1px;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.hover\:border-b-\[2px\]:hover{border-bottom-width:2px}.hover\:border-zinc-400:hover{--tw-border-opacity:1;border-color:rgb(161 161 170 / var(--tw-border-opacity, 1))}.hover\:border-cyan-500\/20:hover{border-color:rgb(6 182 212 / 0.2)}.hover\:border-cyan-500\/30:hover{border-color:rgb(6 182 212 / 0.3)}.hover\:border-cyan-600:hover{--tw-border-opacity:1;border-color:rgb(8 145 178 / var(--tw-border-opacity, 1))}.hover\:border-emerald-500\/30:hover{border-color:rgb(16 185 129 / 0.3)}.hover\:border-purple-500\/30:hover{border-color:rgb(168 85 247 / 0.3)}.hover\:border-red-500\/30:hover{border-color:rgb(239 68 68 / 0.3)}.hover\:border-violet-500\/20:hover{border-color:rgb(139 92 246 / 0.2)}.hover\:border-yellow-500\/30:hover{border-color:rgb(234 179 8 / 0.3)}.hover\:border-white\/20:hover{border-color:rgb(255 255 255 / 0.2)}.hover\:bg-zinc-100:hover{--tw-bg-opacity:1;background-color:rgb(244 244 245 / var(--tw-bg-opacity, 1))}.hover\:bg-cyan-400:hover{--tw-bg-opacity:1;background-color:rgb(34 211 238 / var(--tw-bg-opacity, 1))}.hover\:bg-white\/5:hover{background-color:rgb(255 255 255 / 0.05)}.hover\:bg-zinc-600:hover{--tw-bg-opacity:1;background-color:rgb(82 82 91 / var(--tw-bg-opacity, 1))}.hover\:bg-zinc-700:hover{--tw-bg-opacity:1;background-color:rgb(63 63 70 / var(--tw-bg-opacity, 1))}.hover\:bg-zinc-700\/80:hover{background-color:rgb(63 63 70 / 0.8)}.hover\:bg-zinc-900\/60:hover{background-color:rgb(24 24 27 / 0.6)}.hover\:bg-white\/\[0\.02\]:hover{background-color:rgb(255 255 255 / 0.02)}.hover\:bg-zinc-800:hover{--tw-bg-opacity:1;background-color:rgb(39 39 42 / var(--tw-bg-opacity, 1))}.hover\:text-white:hover{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.hover\:text-cyan-400:hover{--tw-text-opacity:1;color:rgb(34 211 238 / var(--tw-text-opacity, 1))}.hover\:text-emerald-400:hover{--tw-text-opacity:1;color:rgb(52 211 153 / var(--tw-text-opacity, 1))}.hover\:text-purple-400:hover{--tw-text-opacity:1;color:rgb(192 132 252 / var(--tw-text-opacity, 1))}.hover\:text-red-400:hover{--tw-text-opacity:1;color:rgb(248 113 113 / var(--tw-text-opacity, 1))}.hover\:text-yellow-400:hover{--tw-text-opacity:1;color:rgb(250 204 21 / var(--tw-text-opacity, 1))}.hover\:text-zinc-400:hover{--tw-text-opacity:1;color:rgb(161 161 170 / var(--tw-text-opacity, 1))}.active\:translate-y-\[3px\]:active{--tw-translate-y:3px;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.active\:translate-y-1:active{--tw-translate-y:0.25rem;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.active\:translate-y-\[1px\]:active{--tw-translate-y:1px;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.active\:translate-y-\[2px\]:active{--tw-translate-y:2px;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.active\:border-b-0:active{border-bottom-width:0px}.active\:shadow-none:active{--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.group\/arrow:hover .group-hover\/arrow\:-translate-x-0\.5{--tw-translate-x:-0.125rem;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.group\/arrow:hover .group-hover\/arrow\:translate-x-0\.5{--tw-translate-x:0.125rem;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.group\/arrow:hover .group-hover\/arrow\:translate-y-0\.5{--tw-translate-y:0.125rem;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.group:hover .group-hover\:-translate-y-1{--tw-translate-y:-0.25rem;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.group:hover .group-hover\:-rotate-90{--tw-rotate:-90deg;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.group:hover .group-hover\:rotate-90{--tw-rotate:90deg;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.group:hover .group-hover\:scale-110{--tw-scale-x:1.1;--tw-scale-y:1.1;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.group:hover .group-hover\:scale-\[1\.02\]{--tw-scale-x:1.02;--tw-scale-y:1.02;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.group\/hub:hover .group-hover\/hub\:scale-110{--tw-scale-x:1.1;--tw-scale-y:1.1;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.group:hover .group-hover\:border-cyan-500\/30{border-color:rgb(6 182 212 / 0.3)}.group:hover .group-hover\:border-emerald-500\/30{border-color:rgb(16 185 129 / 0.3)}.group:hover .group-hover\:border-violet-500\/30{border-color:rgb(139 92 246 / 0.3)}.group:hover .group-hover\:border-white\/20{border-color:rgb(255 255 255 / 0.2)}.group:hover .group-hover\:bg-black\/20{background-color:rgb(0 0 0 / 0.2)}.group:hover .group-hover\:bg-cyan-400{--tw-bg-opacity:1;background-color:rgb(34 211 238 / var(--tw-bg-opacity, 1))}.group:hover .group-hover\:bg-cyan-500\/15{background-color:rgb(6 182 212 / 0.15)}.group:hover .group-hover\:bg-emerald-400{--tw-bg-opacity:1;background-color:rgb(52 211 153 / var(--tw-bg-opacity, 1))}.group:hover .group-hover\:bg-violet-400{--tw-bg-opacity:1;background-color:rgb(167 139 250 / var(--tw-bg-opacity, 1))}.group:hover .group-hover\:bg-zinc-700{--tw-bg-opacity:1;background-color:rgb(63 63 70 / var(--tw-bg-opacity, 1))}.group:hover .group-hover\:bg-white\/10{background-color:rgb(255 255 255 / 0.1)}.group:hover .group-hover\:from-cyan-500\/50{--tw-gradient-from:rgb(6 182 212 / 0.5) var(--tw-gradient-from-position);--tw-gradient-to:rgb(6 182 212 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.group:hover .group-hover\:from-emerald-500\/50{--tw-gradient-from:rgb(16 185 129 / 0.5) var(--tw-gradient-from-position);--tw-gradient-to:rgb(16 185 129 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.group:hover .group-hover\:from-violet-500\/50{--tw-gradient-from:rgb(139 92 246 / 0.5) var(--tw-gradient-from-position);--tw-gradient-to:rgb(139 92 246 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.group\/item:hover .group-hover\/item\:text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.group:hover .group-hover\:text-cyan-400{--tw-text-opacity:1;color:rgb(34 211 238 / var(--tw-text-opacity, 1))}.group:hover .group-hover\:text-cyan-500\/50{color:rgb(6 182 212 / 0.5)}.group:hover .group-hover\:text-emerald-500\/50{color:rgb(16 185 129 / 0.5)}.group:hover .group-hover\:text-purple-400{--tw-text-opacity:1;color:rgb(192 132 252 / var(--tw-text-opacity, 1))}.group:hover .group-hover\:text-violet-500\/50{color:rgb(139 92 246 / 0.5)}.group\/stat:hover .group-hover\/stat\:text-zinc-400{--tw-text-opacity:1;color:rgb(161 161 170 / var(--tw-text-opacity, 1))}.group\/stat:hover .group-hover\/stat\:text-zinc-500{--tw-text-opacity:1;color:rgb(113 113 122 / var(--tw-text-opacity, 1))}.group\/hub:hover .group-hover\/hub\:opacity-100{opacity:1}.group\/node:hover .group-hover\/node\:opacity-100{opacity:1}.group:hover .group-hover\:shadow-\[0_0_10px_rgba\(167\2c 139\2c 250\2c 0\.8\)\]{--tw-shadow:0 0 10px rgba(167,139,250,0.8);--tw-shadow-colored:0 0 10px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.group:hover .group-hover\:shadow-\[0_0_10px_rgba\(34\2c 211\2c 238\2c 0\.8\)\]{--tw-shadow:0 0 10px rgba(34,211,238,0.8);--tw-shadow-colored:0 0 10px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.group:hover .group-hover\:shadow-\[0_0_10px_rgba\(52\2c 211\2c 153\2c 0\.8\)\]{--tw-shadow:0 0 10px rgba(52,211,153,0.8);--tw-shadow-colored:0 0 10px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.group:hover .group-hover\:rotate-x-0{--tw-rotate-x:0deg;transform:translate3d(var(--tw-translate-x, 0), var(--tw-translate-y, 0), var(--tw-translate-z, 0))
+rotateX(var(--tw-rotate-x, 0))
+rotateY(var(--tw-rotate-y, 0))
+rotateZ(var(--tw-rotate-z, 0))
+skewX(var(--tw-skew-x, 0))
+skewY(var(--tw-skew-y, 0))
+scaleX(var(--tw-scale-x, 1))
+scaleY(var(--tw-scale-y, 1))}@media (min-width: 640px){.sm\:block{display:block}.sm\:flex-row{flex-direction:row}}@media (min-width: 768px){.md\:col-span-1{grid-column:span 1 / span 1}.md\:mt-8{margin-top:2rem}.md\:flex{display:flex}.md\:aspect-\[2\.5\/1\]{aspect-ratio:2.5/1}.md\:h-12{height:3rem}.md\:h-\[22px\]{height:22px}.md\:w-1\/2{width:50%}.md\:w-12{width:3rem}.md\:w-14{width:3.5rem}.md\:w-16{width:4rem}.md\:w-20{width:5rem}.md\:w-24{width:6rem}.md\:w-28{width:7rem}.md\:w-32{width:8rem}.md\:grid-cols-4{grid-template-columns:repeat(4, minmax(0, 1fr))}.md\:flex-row{flex-direction:row}.md\:items-end{align-items:flex-end}.md\:gap-16{gap:4rem}.md\:p-4{padding:1rem}.md\:p-6{padding:1.5rem}.md\:pb-2{padding-bottom:0.5rem}.md\:pl-4{padding-left:1rem}.md\:pr-4{padding-right:1rem}.md\:pt-4{padding-top:1rem}.md\:text-3xl{font-size:1.875rem;line-height:2.25rem}.md\:text-6xl{font-size:3.75rem;line-height:1}.md\:text-9xl{font-size:8rem;line-height:1}.md\:text-5xl{font-size:3rem;line-height:1}}@media (min-width: 1024px){.lg\:order-1{order:1}.lg\:order-2{order:2}.lg\:col-span-1{grid-column:span 1 / span 1}.lg\:col-span-2{grid-column:span 2 / span 2}.lg\:col-span-3{grid-column:span 3 / span 3}.lg\:mt-8{margin-top:2rem}.lg\:block{display:block}.lg\:flex{display:flex}.lg\:-translate-y-12{--tw-translate-y:-3rem;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.lg\:translate-y-12{--tw-translate-y:3rem;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.lg\:grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}.lg\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.lg\:p-8{padding:2rem}.lg\:px-12{padding-left:3rem;padding-right:3rem}}</style>
+<style id="cms-loading-styles">
+@keyframes cms-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.cms-loading {
+  position: relative;
+  color: transparent !important;
+  /* Override any background-image (inline styles, Tailwind bg-[url(...)]) */
+  background-image: none !important;
+  background-color: transparent !important;
+  background: linear-gradient(90deg, 
+    rgba(128, 128, 128, 0.1) 25%, 
+    rgba(128, 128, 128, 0.2) 50%, 
+    rgba(128, 128, 128, 0.1) 75%
+  ) !important;
+  background-size: 200% 100% !important;
+  animation: cms-shimmer 1.5s infinite !important;
+  border-radius: 12px;
+  min-height: 1em;
+  min-width: 3em;
+  overflow: hidden;
+}
+.cms-loading * {
+  visibility: hidden !important;
+}
+.cms-loading img {
+  opacity: 0 !important;
+}
+</style>
+<style id="aura-share-responsive-guards">
+@media (max-width: 639px) {
+  html,
+  body {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
+
+  #root {
+    max-width: 100% !important;
+  }
+
+  img,
+  video,
+  canvas,
+  svg {
+    max-width: 100%;
+  }
+
+  .aura-share-mobile-grid-stack {
+    grid-template-columns: minmax(0, 1fr) !important;
+    column-gap: min(1rem, 4vw) !important;
+  }
+
+  .aura-share-mobile-grid-stack > * {
+    grid-column: 1 / -1 !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+}
+</style>
+<style data-offline="1">/* offline: ensure content is visible regardless of JS init state */
+html,body{opacity:1!important;visibility:visible!important}
+.page-loader,.site-loader,[class*='loading-screen'],[id*='loading-screen']{display:none!important}
+</style>
+<style>
+        @keyframes shimmer-bg {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+    </style>
+<style>
+    @keyframes infinite-scroll-y {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-50%); }
+    }
+  </style>
+<style>
+          @keyframes code-scroll-vertical {
+            0% {
+              transform: translateY(0);
+            }
+
+            100% {
+              transform: translateY(-50%);
+            }
+          }
+        </style>
+</head>
+<body class="min-h-screen antialiased selection:bg-cyan-500/30 selection:text-cyan-200 overflow-x-hidden text-slate-300">
+<nav class="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-black/50 backdrop-blur-xl h-16 transition-all duration-300">
+<div class="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
+<div class="flex items-center gap-2 cursor-pointer">
+<div class="w-8 h-8 bg-cyan-500/10 rounded-lg border border-cyan-500/20 flex items-center justify-center">
+<svg aria-hidden="true" class="lucide lucide-aperture w-4 h-4 text-cyan-400" data-lucide="aperture" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"></circle><path d="m14.31 8 5.74 9.94"></path><path d="M9.69 8h11.48"></path><path d="m7.38 12 5.74-9.94"></path><path d="M9.69 16 3.95 6.06"></path><path d="M14.31 16H2.83"></path><path d="m16.62 12-5.74 9.94"></path></svg>
+</div>
+<span class="font-bold text-white tracking-widest font-mono">DORA<span class="text-cyan-400">_</span></span>
+</div>
+<div class="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-400">
+<a class="hover:text-white transition-colors" href="#tipografia">Tipografia</a>
+<a class="hover:text-white transition-colors" href="#cores">Cores</a>
+<a class="hover:text-white transition-colors" href="#componentes">Componentes</a>
+<a class="hover:text-white transition-colors" href="#layout">Layout</a>
+</div>
+<div class="flex gap-4 gap-x-4 gap-y-4 items-center">
+<a class="text-sm font-medium text-zinc-400 hover:text-white transition-colors hidden sm:block" href="#movimento">
+    Movimento
+  </a>
+<a href="#icones" class="group h-10 px-5 bg-white text-black text-sm font-bold rounded-lg border-b-[3px] border-zinc-300 hover:bg-zinc-100 hover:border-zinc-400 hover:border-b-[2px] hover:translate-y-[1px] active:translate-y-[3px] active:border-b-0 transition-all flex items-center gap-2 shadow-sm">
+<span class="">Ícones</span>
+<span class="text-[10px] group-hover:bg-black/20 transition-colors font-bold font-mono bg-black/10 rounded pt-0.5 pr-1.5 pb-0.5 pl-1.5 flex items-center justify-center"><svg class="lucide lucide-arrow-right" fill="none" height="12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewbox="0 0 24 24" width="12" xmlns="http://www.w3.org/2000/svg"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></span>
+</a>
+</div>
+</div>
+</nav>
+<!-- Background (component) added by Aura -->
+<div class="aura-background-component top-0 w-full h-screen -z-10 absolute saturate-200 blur-3xl" data-alpha-mask="80" style="; mask-image: linear-gradient(to bottom, transparent, black 0%, black 80%, transparent); -webkit-mask-image: linear-gradient(to bottom, transparent, black 0%, black 80%, transparent)">
+<div class="absolute w-full h-full left-0 top-0 -z-10" data-us-project="1bY8o6HVTI1oxJxuCJEG"><div data-us-text="id-iyy1c1tcn5dk8a6ghguji" style="width: 1357.38px; top: 254.715px; left: 74.3124px; font-size: 271.08px; line-height: 272.569px; letter-spacing: -8.59935px; font-family: Outfit; font-weight: 400; text-align: center; position: absolute; word-break: break-word; transform: rotateZ(0deg); color: transparent; z-index: 2;">IMAGI</div><div data-us-text="id-5kg63xssihsfwlnt9cyrqr" style="width: 1114.44px; top: 258.171px; left: 195.78px; font-size: 271.08px; line-height: 265.658px; letter-spacing: -8.59935px; font-family: Outfit; font-weight: 400; text-align: center; position: absolute; word-break: break-word; transform: rotateZ(0deg); color: transparent; z-index: 2;">IMAGI</div><div data-us-text="id-3pmdaefmh4k7noswdtkjeb" style="width: 1730.52px; top: 366.251px; left: 94.7409px; font-size: 345.6px; line-height: 347.499px; letter-spacing: -10.9633px; font-family: Outfit; font-weight: 400; text-align: center; position: absolute; word-break: break-word; transform: rotateZ(0deg); color: transparent; z-index: 2;">IMAGI</div><div data-us-text="id-a3n3vkfqtidj4y2hid69w" style="width: 1420.8px; top: 370.656px; left: 249.6px; font-size: 345.6px; line-height: 338.688px; letter-spacing: -10.9633px; font-family: Outfit; font-weight: 400; text-align: center; position: absolute; word-break: break-word; transform: rotateZ(0deg); color: transparent; z-index: 2;">IMAGI</div></div>
+
+</div>
+<!-- Decorative background mesh -->
+<div class="fixed inset-0 z-0 opacity-20 pointer-events-none" style="background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px); background-size: 50px 50px;"></div>
+
+<main class="w-full max-w-7xl z-10 mr-auto ml-auto pt-32 pr-6 pb-24 pl-6 relative">
+<div class="text-center mb-24 relative z-10">
+<!-- Decorative Glow Effects -->
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-cyan-500/20 blur-[120px] rounded-full -z-10 pointer-events-none mix-blend-screen opacity-40"></div>
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-purple-500/10 blur-[100px] rounded-full -z-10 pointer-events-none mix-blend-screen opacity-30 delay-700 animate-pulse-glow"></div>
+<div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-xs font-semibold text-cyan-400 mb-8 tracking-wide shadow-[0_0_15px_-3px_rgba(6,182,212,0.4)] backdrop-blur-md reveal-on-scroll is-visible">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
+</span>
+          DESIGN SYSTEM · FUTURIST WORKFLOW
+        </div>
+<h1 class="relative z-10 md:text-9xl text-6xl font-medium tracking-tighter text-white mb-10 leading-[0.9] flex flex-col items-center gap-2 reveal-on-scroll is-visible">
+<span class="block text-4xl md:text-6xl font-instrument-serif italic text-zinc-200 font-light tracking-tight mix-blend-plus-lighter">
+    Sistema de
+  </span>
+<span class="relative inline-block mt-[-0.2em]">
+<span class="absolute -inset-x-6 -inset-y-4 bg-cyan-500/10 blur-3xl rounded-full opacity-50"></span>
+<span class="bg-clip-text block text-transparent bg-gradient-to-b from-white via-cyan-50 to-cyan-200 pb-2 relative drop-shadow-[0_0_35px_rgba(34,211,238,0.4)]">
+      Fontes e Texto.
+    </span>
+<span class="absolute -right-8 top-0 text-cyan-400 animate-pulse font-light text-4xl md:text-6xl opacity-80 mt-4 md:mt-8">_</span>
+</span>
+</h1>
+<p class="text-xl text-slate-400 max-w-2xl mx-auto font-light leading-relaxed mb-12 reveal-on-scroll is-visible">
+  Tipografia, cores, componentes, diagramação e movimento desta página, documentados com as mesmas classes e os mesmos arquivos do original.
+</p>
+<button class="h-14 px-8 bg-cyan-500 rounded-lg border-b-4 border-cyan-700 text-black font-bold hover:bg-cyan-400 hover:border-cyan-600 active:translate-y-1 active:border-b-0 transition-all flex items-center gap-3 group shadow-[0_5px_0_rgb(8,145,178)] active:shadow-none reveal-on-scroll is-visible">
+<svg class="lucide lucide-zap w-5 h-5 fill-black/20 group-hover:scale-110 transition-transform" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"></path>
+</svg>
+<span class="text-lg tracking-tight">EXPLORAR</span>
+<div class="ml-2 px-1.5 py-0.5 bg-black/10 rounded text-xs font-mono opacity-60 font-bold border border-black/10">
+            ⏎
+          </div>
+</button>
+<div class="absolute top-12 left-[10%] hidden lg:flex items-center gap-2 px-3 py-1.5 bg-white/[0.02] backdrop-blur-sm border border-white/[0.05] rounded-full animate-float delay-100 z-0 pointer-events-none select-none"><div class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]"></div><span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">Node_Verified</span></div><div class="absolute bottom-24 right-[12%] hidden lg:flex flex-col gap-2 p-3 bg-zinc-900/40 backdrop-blur-md border border-white/5 rounded-xl animate-float delay-300 shadow-xl z-0 rotate-6 pointer-events-none select-none"><div class="flex items-center justify-between gap-8 mb-0.5"><span class="text-[9px] font-mono text-zinc-600 uppercase tracking-wider">Packet Loss</span><span class="text-[9px] font-mono text-cyan-500/80 font-bold">0.0%</span></div><div class="flex gap-0.5"><div class="w-0.5 h-2 bg-cyan-500/40 rounded-full"></div><div class="w-0.5 h-3 bg-cyan-500/60 rounded-full"></div><div class="w-0.5 h-2 bg-cyan-500/40 rounded-full"></div><div class="w-0.5 h-4 bg-cyan-500/80 rounded-full"></div><div class="w-0.5 h-2 bg-cyan-500/40 rounded-full"></div><div class="w-0.5 h-3 bg-cyan-500/60 rounded-full"></div></div></div><div class="absolute top-[15%] right-[18%] hidden lg:block animate-float delay-500 z-0 pointer-events-none opacity-30"><svg class="animate-[spin_20s_linear_infinite]" fill="none" height="100" viewbox="0 0 100 100" width="100"><circle cx="50" cy="50" opacity="0.5" r="48" stroke="#22d3ee" stroke-dasharray="4 6" stroke-width="0.5"></circle><circle cx="50" cy="50" opacity="0.3" r="38" stroke="#a78bfa" stroke-dasharray="2 4" stroke-width="0.5"></circle></svg></div><div class="absolute bottom-[20%] left-[6%] hidden lg:block animate-float delay-700 z-0 pointer-events-none opacity-30 mix-blend-screen"><div class="w-24 h-24 border-[0.5px] border-cyan-500/20 rounded-full flex items-center justify-center"><div class="w-16 h-16 border-[0.5px] border-purple-500/20 rounded-full"></div></div></div></div>
+</main>
+
+<section id="tipografia" class="py-24 relative border-t border-white/5">
+<div class="max-w-7xl mx-auto px-6">
+<div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-xs font-semibold text-cyan-400 mb-8 tracking-wide shadow-[0_0_15px_-3px_rgba(6,182,212,0.4)] backdrop-blur-md reveal-on-scroll is-visible">01 · TIPOGRAFIA</div>
+<h2 class="text-3xl md:text-5xl font-medium text-white mb-6 tracking-tight reveal-on-scroll is-visible">Tipografia</h2>
+<p class="text-lg text-slate-400 font-light leading-relaxed mb-8 reveal-on-scroll is-visible">Inter em todos os papéis, Instrument Serif itálico só no acento do título e monoespaçada nos rótulos técnicos. Pesos: títulos 500 com tracking negativo; corpo 300.</p>
+<div class="flex items-center justify-between border-b border-white/5 py-3 gap-8">
+<span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">Display</span>
+<div class="flex-1"><h1 class="relative z-10 md:text-9xl text-6xl font-medium tracking-tighter text-white leading-[0.9]"><span class="bg-clip-text block text-transparent bg-gradient-to-b from-white via-cyan-50 to-cyan-200 pb-2 relative drop-shadow-[0_0_35px_rgba(34,211,238,0.4)]">Flow State.</span></h1></div>
+<span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">128px / 115px</span>
+</div><div class="flex items-center justify-between border-b border-white/5 py-3 gap-8">
+<span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">Display serif</span>
+<div class="flex-1"><span class="block text-4xl md:text-6xl font-instrument-serif italic text-zinc-200 font-light tracking-tight mix-blend-plus-lighter">Designed for</span></div>
+<span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">60px / 60px</span>
+</div><div class="flex items-center justify-between border-b border-white/5 py-3 gap-8">
+<span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">Heading 1</span>
+<div class="flex-1"><h2 class="text-4xl md:text-6xl font-medium text-white tracking-tight leading-[0.95]">Systematic Evolution</h2></div>
+<span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">60px / 57px</span>
+</div><div class="flex items-center justify-between border-b border-white/5 py-3 gap-8">
+<span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">Heading 2</span>
+<div class="flex-1"><h2 class="text-3xl md:text-5xl font-medium text-white tracking-tight">Native Type Safety</h2></div>
+<span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">48px / 48px</span>
+</div><div class="flex items-center justify-between border-b border-white/5 py-3 gap-8">
+<span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">Heading 3</span>
+<div class="flex-1"><h2 class="text-2xl md:text-3xl font-medium text-white tracking-tight">Complete control at your fingertips</h2></div>
+<span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">30px / 36px</span>
+</div><div class="flex items-center justify-between border-b border-white/5 py-3 gap-8">
+<span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">Heading 4</span>
+<div class="flex-1"><h3 class="text-2xl font-medium tracking-tight text-white">Fabric Runtime</h3></div>
+<span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">24px / 32px</span>
+</div><div class="flex items-center justify-between border-b border-white/5 py-3 gap-8">
+<span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">Heading 5</span>
+<div class="flex-1"><h3 class="text-xl font-medium tracking-tight text-white">Neural Automation</h3></div>
+<span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">20px / 28px</span>
+</div><div class="flex items-center justify-between border-b border-white/5 py-3 gap-8">
+<span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">Eyebrow</span>
+<div class="flex-1"><h3 class="text-xs font-semibold text-zinc-500 uppercase tracking-widest pl-2 border-l-2 border-cyan-500/20">Navigation</h3></div>
+<span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">12px / 16px</span>
+</div><div class="flex items-center justify-between border-b border-white/5 py-3 gap-8">
+<span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">Bold S</span>
+<div class="flex-1"><h4 class="text-xs font-semibold text-white uppercase tracking-wider">Product</h4></div>
+<span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">12px / 16px</span>
+</div><div class="flex items-center justify-between border-b border-white/5 py-3 gap-8">
+<span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">Lead</span>
+<div class="flex-1"><p class="text-xl text-slate-400 font-light leading-relaxed">Interact with the cards below to experience the next generation of workflow control.</p></div>
+<span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">20px / 32px</span>
+</div><div class="flex items-center justify-between border-b border-white/5 py-3 gap-8">
+<span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">Paragraph L</span>
+<div class="flex-1"><p class="text-lg text-slate-400 font-light leading-relaxed">Integrate with your existing stack in minutes.</p></div>
+<span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">18px / 29px</span>
+</div><div class="flex items-center justify-between border-b border-white/5 py-3 gap-8">
+<span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">Paragraph M</span>
+<div class="flex-1"><p class="text-base text-zinc-400 font-light leading-relaxed">Every pixel of the interface is accessible via keyboard.</p></div>
+<span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">16px / 26px</span>
+</div><div class="flex items-center justify-between border-b border-white/5 py-3 gap-8">
+<span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">Paragraph S</span>
+<div class="flex-1"><p class="text-sm text-slate-400 font-light leading-relaxed">Self-optimizing workflows adapt to your team's velocity.</p></div>
+<span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">14px / 23px</span>
+</div><div class="flex items-center justify-between border-b border-white/5 py-3 gap-8">
+<span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">Nav</span>
+<div class="flex-1"><a class="text-sm font-medium text-zinc-400 hover:text-white transition-colors" href="#">Platform</a></div>
+<span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">14px / 20px</span>
+</div><div class="flex items-center justify-between border-b border-white/5 py-3 gap-8">
+<span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">Caption</span>
+<div class="flex-1"><p class="mt-8 text-xs text-zinc-600">No credit card required for dev environments.</p></div>
+<span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">12px / 16px</span>
+</div><div class="flex items-center justify-between border-b border-white/5 py-3 gap-8">
+<span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">Mono label</span>
+<div class="flex-1"><span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">Node_Verified</span></div>
+<span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">10px / 15px</span>
+</div><div class="flex items-center justify-between border-b border-white/5 py-3 gap-8">
+<span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">Logo mono</span>
+<div class="flex-1"><span class="font-bold text-white tracking-widest font-mono">DORA<span class="text-cyan-400">_</span></span></div>
+<span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">16px / 24px</span>
+</div>
+</div>
+</section>
+<section id="cores" class="py-24 relative border-t border-white/5">
+<div class="max-w-7xl mx-auto px-6">
+<div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-xs font-semibold text-cyan-400 mb-8 tracking-wide shadow-[0_0_15px_-3px_rgba(6,182,212,0.4)] backdrop-blur-md reveal-on-scroll is-visible">02 · CORES</div>
+<h2 class="text-3xl md:text-5xl font-medium text-white mb-6 tracking-tight reveal-on-scroll is-visible">Cores e superfícies</h2>
+<p class="text-lg text-slate-400 font-light leading-relaxed mb-8 reveal-on-scroll is-visible">Preto azulado de fundo, texto em slate e zinc, vidro translúcido para cartões e ciano como único acento.</p>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8"><div class="group glass-panel transition-all duration-500 rounded-3xl pt-1 pr-1 pb-1 pl-1 relative">
+<div class="bg-black/50 backdrop-blur-xl rounded-3xl p-6 border border-white/5"><span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">Página · #030305</span></div>
+<p class="text-sm text-slate-400 font-light leading-relaxed p-6">Fundo do body com dois radial-gradients (ciano 10% e violeta 10%) nos cantos de cima.</p>
+</div><div class="group glass-panel transition-all duration-500 rounded-3xl pt-1 pr-1 pb-1 pl-1 relative">
+<div class="glass-panel rounded-3xl p-6 border border-white/5"><span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">glass-panel</span></div>
+<p class="text-sm text-slate-400 font-light leading-relaxed p-6">Cartão de vidro: branco 2%, blur 20px, borda branco 5%; no hover a borda vai a 10%.</p>
+</div><div class="group glass-panel transition-all duration-500 rounded-3xl pt-1 pr-1 pb-1 pl-1 relative">
+<div class="bg-cyan-500/10 border border-cyan-500/20 rounded-3xl p-6 border border-white/5"><span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">Acento ciano</span></div>
+<p class="text-sm text-slate-400 font-light leading-relaxed p-6">Selo, badge e brilho: cyan-500 a 10% com borda a 20%; texto cyan-400.</p>
+</div><div class="group glass-panel transition-all duration-500 rounded-3xl pt-1 pr-1 pb-1 pl-1 relative">
+<div class="bg-white/[0.02] backdrop-blur-sm border border-white/[0.05] rounded-3xl p-6 border border-white/5"><span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">Chip flutuante</span></div>
+<p class="text-sm text-slate-400 font-light leading-relaxed p-6">Pastilha de estado com fundo branco 2% e borda branco 5%.</p>
+</div><div class="group glass-panel transition-all duration-500 rounded-3xl pt-1 pr-1 pb-1 pl-1 relative">
+<div class="bg-zinc-900 border-white/10 border rounded-3xl p-6 border border-white/5"><span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">Superfície escura</span></div>
+<p class="text-sm text-slate-400 font-light leading-relaxed p-6">Botão secundário e blocos de código: zinc-900 com borda branco 10%.</p>
+</div><div class="group glass-panel transition-all duration-500 rounded-3xl pt-1 pr-1 pb-1 pl-1 relative">
+<div class="border-t border-white/5 rounded-3xl p-6 border border-white/5"><span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">Divisória</span></div>
+<p class="text-sm text-slate-400 font-light leading-relaxed p-6">Seções separadas por uma linha branca a 5%.</p>
+</div></div><div class="flex items-center justify-between border-b border-white/5 py-3 gap-8"><span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">Texto com gradiente</span><span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-blue-500 text-4xl md:text-5xl font-medium tracking-tight">synchronize</span><span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">.text-gradient / bg-clip-text</span></div>
+</div>
+</section>
+<section id="componentes" class="py-24 relative border-t border-white/5">
+<div class="max-w-7xl mx-auto px-6">
+<div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-xs font-semibold text-cyan-400 mb-8 tracking-wide shadow-[0_0_15px_-3px_rgba(6,182,212,0.4)] backdrop-blur-md reveal-on-scroll is-visible">03 · COMPONENTES</div>
+<h2 class="text-3xl md:text-5xl font-medium text-white mb-6 tracking-tight reveal-on-scroll is-visible">Componentes</h2>
+<p class="text-lg text-slate-400 font-light leading-relaxed mb-8 reveal-on-scroll is-visible">Botões com borda de baixo em 3D, cartões de vidro, selos e chips. Estados reais ao lado: padrão, hover, ativo, desabilitado.</p>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8"><div class="group glass-panel transition-all duration-500 rounded-3xl pt-1 pr-1 pb-1 pl-1 relative">
+<div class="p-6"><h3 class="text-xs font-semibold text-zinc-500 uppercase tracking-widest pl-2 border-l-2 border-cyan-500/20">Botão primário (branco)</h3></div>
+<div class="flex items-center gap-8 p-6 flex-wrap">
+<div class="flex flex-col items-center gap-2"><button class="group h-10 px-5 bg-white text-black text-sm font-bold rounded-lg border-b-[3px] border-zinc-300 hover:bg-zinc-100 hover:border-zinc-400 hover:border-b-[2px] hover:translate-y-[1px] active:translate-y-[3px] active:border-b-0 transition-all flex items-center gap-2 shadow-sm"><span class="">Padrão</span><span class="text-[10px] group-hover:bg-black/20 transition-colors font-bold font-mono bg-black/10 rounded pt-0.5 pr-1.5 pb-0.5 pl-1.5 flex items-center justify-center">⏎</span></button><span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">padrão</span></div>
+<div class="flex flex-col items-center gap-2"><button class="group h-10 px-5 bg-white text-black text-sm font-bold rounded-lg border-b-[3px] border-zinc-300 hover:bg-zinc-100 hover:border-zinc-400 hover:border-b-[2px] hover:translate-y-[1px] active:translate-y-[3px] active:border-b-0 transition-all flex items-center gap-2 shadow-sm"><span class="">Hover</span><span class="text-[10px] group-hover:bg-black/20 transition-colors font-bold font-mono bg-black/10 rounded pt-0.5 pr-1.5 pb-0.5 pl-1.5 flex items-center justify-center">⏎</span></button><span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">passe o mouse</span></div>
+<div class="flex flex-col items-center gap-2"><button class="group h-10 px-5 bg-white text-black text-sm font-bold rounded-lg border-b-[3px] border-zinc-300 hover:bg-zinc-100 hover:border-zinc-400 hover:border-b-[2px] hover:translate-y-[1px] active:translate-y-[3px] active:border-b-0 transition-all flex items-center gap-2 shadow-sm"><span class="">Ativo</span><span class="text-[10px] group-hover:bg-black/20 transition-colors font-bold font-mono bg-black/10 rounded pt-0.5 pr-1.5 pb-0.5 pl-1.5 flex items-center justify-center">⏎</span></button><span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">clique e segure</span></div>
+<div class="flex flex-col items-center gap-2 opacity-40 pointer-events-none"><button class="group h-10 px-5 bg-white text-black text-sm font-bold rounded-lg border-b-[3px] border-zinc-300 hover:bg-zinc-100 hover:border-zinc-400 hover:border-b-[2px] hover:translate-y-[1px] active:translate-y-[3px] active:border-b-0 transition-all flex items-center gap-2 shadow-sm"><span class="">Desabilitado</span><span class="text-[10px] group-hover:bg-black/20 transition-colors font-bold font-mono bg-black/10 rounded pt-0.5 pr-1.5 pb-0.5 pl-1.5 flex items-center justify-center">⏎</span></button><span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">desabilitado</span></div>
+</div></div><div class="group glass-panel transition-all duration-500 rounded-3xl pt-1 pr-1 pb-1 pl-1 relative">
+<div class="p-6"><h3 class="text-xs font-semibold text-zinc-500 uppercase tracking-widest pl-2 border-l-2 border-cyan-500/20">Botão de ação (ciano)</h3></div>
+<div class="flex items-center gap-8 p-6 flex-wrap">
+<div class="flex flex-col items-center gap-2"><button class="h-14 px-8 bg-cyan-500 rounded-lg border-b-4 border-cyan-700 text-black font-bold hover:bg-cyan-400 hover:border-cyan-600 active:translate-y-1 active:border-b-0 transition-all flex items-center gap-3 group shadow-[0_5px_0_rgb(8,145,178)] active:shadow-none"><span class="text-lg tracking-tight">Padrão</span><div class="ml-2 px-1.5 py-0.5 bg-black/10 rounded text-xs font-mono opacity-60 font-bold border border-black/10">⏎</div></button><span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">padrão</span></div>
+<div class="flex flex-col items-center gap-2"><button class="h-14 px-8 bg-cyan-500 rounded-lg border-b-4 border-cyan-700 text-black font-bold hover:bg-cyan-400 hover:border-cyan-600 active:translate-y-1 active:border-b-0 transition-all flex items-center gap-3 group shadow-[0_5px_0_rgb(8,145,178)] active:shadow-none"><span class="text-lg tracking-tight">Hover</span><div class="ml-2 px-1.5 py-0.5 bg-black/10 rounded text-xs font-mono opacity-60 font-bold border border-black/10">⏎</div></button><span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">passe o mouse</span></div>
+<div class="flex flex-col items-center gap-2"><button class="h-14 px-8 bg-cyan-500 rounded-lg border-b-4 border-cyan-700 text-black font-bold hover:bg-cyan-400 hover:border-cyan-600 active:translate-y-1 active:border-b-0 transition-all flex items-center gap-3 group shadow-[0_5px_0_rgb(8,145,178)] active:shadow-none"><span class="text-lg tracking-tight">Ativo</span><div class="ml-2 px-1.5 py-0.5 bg-black/10 rounded text-xs font-mono opacity-60 font-bold border border-black/10">⏎</div></button><span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">clique e segure</span></div>
+<div class="flex flex-col items-center gap-2 opacity-40 pointer-events-none"><button class="h-14 px-8 bg-cyan-500 rounded-lg border-b-4 border-cyan-700 text-black font-bold hover:bg-cyan-400 hover:border-cyan-600 active:translate-y-1 active:border-b-0 transition-all flex items-center gap-3 group shadow-[0_5px_0_rgb(8,145,178)] active:shadow-none"><span class="text-lg tracking-tight">Desabilitado</span><div class="ml-2 px-1.5 py-0.5 bg-black/10 rounded text-xs font-mono opacity-60 font-bold border border-black/10">⏎</div></button><span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">desabilitado</span></div>
+</div></div><div class="group glass-panel transition-all duration-500 rounded-3xl pt-1 pr-1 pb-1 pl-1 relative">
+<div class="p-6"><h3 class="text-xs font-semibold text-zinc-500 uppercase tracking-widest pl-2 border-l-2 border-cyan-500/20">Botão secundário (escuro)</h3></div>
+<div class="flex items-center gap-8 p-6 flex-wrap">
+<div class="flex flex-col items-center gap-2"><button class="min-w-[180px] border-b-black/60 transition-all flex gap-2 hover:bg-zinc-800 hover:border-white/20 hover:border-b-[2px] hover:translate-y-[1px] active:translate-y-[3px] active:border-b-0 font-bold text-white bg-zinc-900 h-14 border-white/10 border rounded-xl border-b-4 pr-6 pl-6 gap-x-2 gap-y-2 items-center justify-center"><span class="">Padrão</span><span class="bg-black/50 px-1.5 py-0.5 rounded text-xs font-mono font-bold">C</span></button><span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">padrão</span></div>
+<div class="flex flex-col items-center gap-2"><button class="min-w-[180px] border-b-black/60 transition-all flex gap-2 hover:bg-zinc-800 hover:border-white/20 hover:border-b-[2px] hover:translate-y-[1px] active:translate-y-[3px] active:border-b-0 font-bold text-white bg-zinc-900 h-14 border-white/10 border rounded-xl border-b-4 pr-6 pl-6 gap-x-2 gap-y-2 items-center justify-center"><span class="">Hover</span><span class="bg-black/50 px-1.5 py-0.5 rounded text-xs font-mono font-bold">C</span></button><span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">passe o mouse</span></div>
+<div class="flex flex-col items-center gap-2"><button class="min-w-[180px] border-b-black/60 transition-all flex gap-2 hover:bg-zinc-800 hover:border-white/20 hover:border-b-[2px] hover:translate-y-[1px] active:translate-y-[3px] active:border-b-0 font-bold text-white bg-zinc-900 h-14 border-white/10 border rounded-xl border-b-4 pr-6 pl-6 gap-x-2 gap-y-2 items-center justify-center"><span class="">Ativo</span><span class="bg-black/50 px-1.5 py-0.5 rounded text-xs font-mono font-bold">C</span></button><span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">clique e segure</span></div>
+<div class="flex flex-col items-center gap-2 opacity-40 pointer-events-none"><button class="min-w-[180px] border-b-black/60 transition-all flex gap-2 hover:bg-zinc-800 hover:border-white/20 hover:border-b-[2px] hover:translate-y-[1px] active:translate-y-[3px] active:border-b-0 font-bold text-white bg-zinc-900 h-14 border-white/10 border rounded-xl border-b-4 pr-6 pl-6 gap-x-2 gap-y-2 items-center justify-center"><span class="">Desabilitado</span><span class="bg-black/50 px-1.5 py-0.5 rounded text-xs font-mono font-bold">C</span></button><span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">desabilitado</span></div>
+</div></div></div><div class="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:mt-8 mt-8 gap-x-8 gap-y-8">
+<div class="lg:col-span-2 group relative rounded-3xl glass-panel p-1 transition-all duration-500">
+<div class="p-6"><h3 class="text-xs font-semibold text-zinc-500 uppercase tracking-widest pl-2 border-l-2 border-cyan-500/20">Cartão de vidro · 2 colunas</h3><h3 class="flex items-center gap-2 text-xl font-medium text-white tracking-tight mb-2 pt-0 pb-0">Neural Automation</h3>
+<p class="leading-relaxed text-sm font-light text-slate-400 max-w-md">Self-optimizing workflows adapt to your team's velocity. O cartão usa glass-panel, rounded-3xl e padding 1 no aro.</p></div></div>
+<div class="lg:col-span-1 group glass-panel transition-all duration-500 rounded-3xl pt-1 pr-1 pb-1 pl-1 relative">
+<div class="p-6"><h3 class="text-xs font-semibold text-zinc-500 uppercase tracking-widest pl-2 border-l-2 border-emerald-500/20">Cartão de vidro · 1 coluna</h3><h3 class="text-xl font-medium tracking-tight text-white mb-2">Zero Trust</h3>
+<p class="text-sm text-slate-400 font-light leading-relaxed">Enterprise-grade encryption with real-time anomaly detection.</p></div></div>
+<div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-xs font-semibold text-cyan-400 mb-8 tracking-wide shadow-[0_0_15px_-3px_rgba(6,182,212,0.4)] backdrop-blur-md"><span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span></span>SELO COM PULSO</div>
+<div class="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-white/[0.02] backdrop-blur-sm border border-white/[0.05] rounded-full animate-float delay-100"><div class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]"></div><span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">Chip flutuante</span></div>
+</div>
+</div>
+</section>
+<section id="layout" class="py-24 relative border-t border-white/5">
+<div class="max-w-7xl mx-auto px-6">
+<div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-xs font-semibold text-cyan-400 mb-8 tracking-wide shadow-[0_0_15px_-3px_rgba(6,182,212,0.4)] backdrop-blur-md reveal-on-scroll is-visible">04 · LAYOUT</div>
+<h2 class="text-3xl md:text-5xl font-medium text-white mb-6 tracking-tight reveal-on-scroll is-visible">Layout e espaçamento</h2>
+<p class="text-lg text-slate-400 font-light leading-relaxed mb-8 reveal-on-scroll is-visible">Contêiner de 1280px, seções de py-24 e grade de três colunas com gap-8.</p>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<div class="group glass-panel transition-all duration-500 rounded-3xl pt-1 pr-1 pb-1 pl-1 relative"><div class="p-6"><h3 class="text-xs font-semibold text-zinc-500 uppercase tracking-widest pl-2 border-l-2 border-cyan-500/20">Contêiner</h3><p class="text-sm text-slate-400 font-light leading-relaxed">max-w-7xl (1280px) centrado com px-6. Nav fixa de h-16. Hero com pt-32 e pb-24, texto centrado e mb-24.</p></div></div>
+<div class="group glass-panel transition-all duration-500 rounded-3xl pt-1 pr-1 pb-1 pl-1 relative"><div class="p-6"><h3 class="text-xs font-semibold text-zinc-500 uppercase tracking-widest pl-2 border-l-2 border-purple-500/20">Seções</h3><p class="text-sm text-slate-400 font-light leading-relaxed">py-24 com border-t border-white/5 entre elas. Dentro: selo, título, parágrafo e a grade.</p></div></div>
+<div class="group glass-panel transition-all duration-500 rounded-3xl pt-1 pr-1 pb-1 pl-1 relative"><div class="p-6"><h3 class="text-xs font-semibold text-zinc-500 uppercase tracking-widest pl-2 border-l-2 border-emerald-500/20">Grade</h3><p class="text-sm text-slate-400 font-light leading-relaxed">grid-cols-1 → lg:grid-cols-3 com gap-8. Bento: col-span-2 + col-span-1, depois col-span-3.</p></div></div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:mt-8 mt-8 gap-x-8 gap-y-8">
+<div class="lg:col-span-2 group relative rounded-3xl glass-panel p-1 transition-all duration-500"><div class="p-6"><span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">lg:col-span-2</span></div></div>
+<div class="lg:col-span-1 group glass-panel transition-all duration-500 rounded-3xl pt-1 pr-1 pb-1 pl-1 relative"><div class="p-6"><span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">lg:col-span-1</span></div></div>
+<div class="lg:col-span-3 group relative rounded-3xl glass-panel p-1 transition-all duration-500"><div class="p-6"><span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">lg:col-span-3</span></div></div>
+</div>
+</div>
+</section>
+<section id="movimento" class="py-24 relative border-t border-white/5">
+<div class="max-w-7xl mx-auto px-6">
+<div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-xs font-semibold text-cyan-400 mb-8 tracking-wide shadow-[0_0_15px_-3px_rgba(6,182,212,0.4)] backdrop-blur-md reveal-on-scroll is-visible">05 · MOVIMENTO</div>
+<h2 class="text-3xl md:text-5xl font-medium text-white mb-6 tracking-tight reveal-on-scroll is-visible">Movimento e interação</h2>
+<p class="text-lg text-slate-400 font-light leading-relaxed mb-8 reveal-on-scroll is-visible">Cada classe de animação da página, viva.</p>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8"><div class="group glass-panel transition-all duration-500 rounded-3xl pt-1 pr-1 pb-1 pl-1 relative"><div class="p-6">
+<div class="w-8 h-8 bg-cyan-500/10 rounded-lg border border-cyan-500/20 flex items-center justify-center animate-float"><span class="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span></div>
+<h3 class="text-xl font-medium tracking-tight text-white mb-2">.animate-float</h3><p class="text-sm text-slate-400 font-light leading-relaxed">float 6s ease-in-out infinito: sobe 10px e volta.</p></div></div><div class="group glass-panel transition-all duration-500 rounded-3xl pt-1 pr-1 pb-1 pl-1 relative"><div class="p-6">
+<div class="w-8 h-8 bg-cyan-500/10 rounded-lg border border-cyan-500/20 flex items-center justify-center animate-pulse-glow"><span class="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span></div>
+<h3 class="text-xl font-medium tracking-tight text-white mb-2">.animate-pulse-glow</h3><p class="text-sm text-slate-400 font-light leading-relaxed">subtle-pulse 4s: opacidade 0,4→0,7 e escala 1→1,05.</p></div></div><div class="group glass-panel transition-all duration-500 rounded-3xl pt-1 pr-1 pb-1 pl-1 relative"><div class="p-6">
+<div class="w-8 h-8 bg-cyan-500/10 rounded-lg border border-cyan-500/20 flex items-center justify-center animate-reveal"><span class="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span></div>
+<h3 class="text-xl font-medium tracking-tight text-white mb-2">.animate-reveal</h3><p class="text-sm text-slate-400 font-light leading-relaxed">reveal 0,8s cubic-bezier(0.2,0.8,0.2,1): entra de baixo, do desfoque para o nítido.</p></div></div><div class="group glass-panel transition-all duration-500 rounded-3xl pt-1 pr-1 pb-1 pl-1 relative"><div class="p-6">
+<div class="w-8 h-8 bg-cyan-500/10 rounded-lg border border-cyan-500/20 flex items-center justify-center animate-ping"><span class="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span></div>
+<h3 class="text-xl font-medium tracking-tight text-white mb-2">.animate-ping</h3><p class="text-sm text-slate-400 font-light leading-relaxed">Pulso do ponto do selo (Tailwind).</p></div></div><div class="group glass-panel transition-all duration-500 rounded-3xl pt-1 pr-1 pb-1 pl-1 relative"><div class="p-6">
+<div class="w-8 h-8 bg-cyan-500/10 rounded-lg border border-cyan-500/20 flex items-center justify-center animate-pulse"><span class="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span></div>
+<h3 class="text-xl font-medium tracking-tight text-white mb-2">.animate-pulse</h3><p class="text-sm text-slate-400 font-light leading-relaxed">Cursor _ piscando ao lado do título.</p></div></div><div class="group glass-panel transition-all duration-500 rounded-3xl pt-1 pr-1 pb-1 pl-1 relative"><div class="p-6">
+<div class="w-8 h-8 bg-cyan-500/10 rounded-lg border border-cyan-500/20 flex items-center justify-center reveal-on-scroll is-visible"><span class="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span></div>
+<h3 class="text-xl font-medium tracking-tight text-white mb-2">.reveal-on-scroll</h3><p class="text-sm text-slate-400 font-light leading-relaxed">Revelação por rolagem: translateY(30px) e blur(10px) até is-visible, 0,8s cubic-bezier(0.16,1,0.3,1).</p></div></div></div><p class="text-sm text-slate-400 font-light leading-relaxed mt-8">Botões: transition-all; hover sobe 1px e afina a borda de baixo; ativo desce 3px e some a borda. Cartões: transition-all duration-500 na borda do glass-panel.</p>
+</div>
+</section>
+<section id="icones" class="py-24 relative border-t border-white/5">
+<div class="max-w-7xl mx-auto px-6">
+<div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-xs font-semibold text-cyan-400 mb-8 tracking-wide shadow-[0_0_15px_-3px_rgba(6,182,212,0.4)] backdrop-blur-md reveal-on-scroll is-visible">06 · ÍCONES</div>
+<h2 class="text-3xl md:text-5xl font-medium text-white mb-6 tracking-tight reveal-on-scroll is-visible">Ícones</h2>
+<p class="text-lg text-slate-400 font-light leading-relaxed mb-8 reveal-on-scroll is-visible">Lucide inline, stroke em currentColor, nos tamanhos w-4, w-5 e w-6.</p>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<div class="group glass-panel transition-all duration-500 rounded-3xl pt-1 pr-1 pb-1 pl-1 relative"><div class="p-6"><h3 class="text-xs font-semibold text-zinc-500 uppercase tracking-widest pl-2 border-l-2 border-cyan-500/20">Tamanhos</h3><div class="flex items-center gap-8 p-6"><svg class="lucide lucide-zap w-4 h-4 text-cyan-400" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"></path>
+</svg><svg class="lucide lucide-zap w-5 h-5 text-cyan-400" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"></path>
+</svg><svg class="lucide lucide-zap w-6 h-6 text-cyan-400" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"></path>
+</svg></div><span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">w-4 · w-5 · w-6</span></div></div>
+<div class="group glass-panel transition-all duration-500 rounded-3xl pt-1 pr-1 pb-1 pl-1 relative"><div class="p-6"><h3 class="text-xs font-semibold text-zinc-500 uppercase tracking-widest pl-2 border-l-2 border-purple-500/20">Herança de cor</h3><div class="flex items-center gap-8 p-6 text-zinc-400 hover:text-white transition-colors"><svg class="lucide lucide-command w-5 h-5" fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg">
+<path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3"></path>
+</svg><svg class="lucide lucide-network w-5 h-5" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><rect height="6" rx="1" width="6" x="16" y="16"></rect><rect height="6" rx="1" width="6" x="2" y="16"></rect><rect height="6" rx="1" width="6" x="9" y="2"></rect><path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3"></path><path d="M12 12V8"></path></svg><svg class="lucide lucide-arrow-right w-5 h-5" fill="none" height="12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewbox="0 0 24 24" width="12" xmlns="http://www.w3.org/2000/svg"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></div><span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">stroke currentColor</span></div></div>
+<div class="group glass-panel transition-all duration-500 rounded-3xl pt-1 pr-1 pb-1 pl-1 relative"><div class="p-6"><h3 class="text-xs font-semibold text-zinc-500 uppercase tracking-widest pl-2 border-l-2 border-emerald-500/20">Em caixa</h3><div class="flex items-center gap-8 p-6"><div class="w-8 h-8 bg-cyan-500/10 rounded-lg border border-cyan-500/20 flex items-center justify-center"><svg class="lucide lucide-zap w-4 h-4 text-cyan-400" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"></path>
+</svg></div></div><span class="text-[10px] font-mono text-zinc-500 tracking-widest uppercase">w-8 h-8 · bg-cyan-500/10</span></div></div>
+</div>
+</div>
+</section>
+<footer class="border-t border-white/5 bg-[#020203] py-16">
+<div class="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-12 mb-16">
+<div class="col-span-2 md:col-span-1 pr-8 reveal-on-scroll is-visible">
+<div class="flex items-center gap-2 mb-6">
+<div class="w-6 h-6 bg-cyan-500/20 rounded border border-cyan-500/30 flex items-center justify-center">
+<svg aria-hidden="true" class="lucide lucide-aperture w-3 h-3 text-cyan-400" data-lucide="aperture" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"></circle><path d="m14.31 8 5.74 9.94"></path><path d="M9.69 8h11.48"></path><path d="m7.38 12 5.74-9.94"></path><path d="M9.69 16 3.95 6.06"></path><path d="M14.31 16H2.83"></path><path d="m16.62 12-5.74 9.94"></path></svg>
+</div>
+<span class="font-semibold text-white tracking-tight">DORA</span>
+</div>
+<p class="text-sm text-zinc-500 leading-relaxed font-light">
+        Next-generation workflow intelligence for autonomous organizations.
+        Built for speed, designed for flow.
+      </p>
+</div>
+<div class="reveal-on-scroll is-visible">
+<h4 class="text-xs font-semibold text-white uppercase tracking-wider mb-6">
+        Product
+      </h4>
+<ul class="space-y-3 text-sm text-zinc-500">
+<li>
+<a class="hover:text-cyan-400 transition-colors" href="#">
+            Features
+          </a>
+</li>
+<li class="">
+<a class="hover:text-cyan-400 transition-colors" href="#">
+            Security
+          </a>
+</li>
+<li class="">
+<a class="hover:text-cyan-400 transition-colors" href="#">
+            Enterprise
+          </a>
+</li>
+<li>
+<a class="hover:text-cyan-400 transition-colors" href="#">
+            Changelog
+          </a>
+</li>
+</ul>
+</div>
+<div class="reveal-on-scroll is-visible">
+<h4 class="text-xs font-semibold text-white uppercase tracking-wider mb-6">
+        Company
+      </h4>
+<ul class="space-y-3 text-sm text-zinc-500">
+<li class="">
+<a class="hover:text-cyan-400 transition-colors" href="#">
+            About
+          </a>
+</li>
+<li class="">
+<a class="hover:text-cyan-400 transition-colors" href="#">Blog</a>
+</li>
+<li class="">
+<a class="hover:text-cyan-400 transition-colors" href="#">
+            Careers
+          </a>
+</li>
+<li class="">
+<a class="hover:text-cyan-400 transition-colors" href="#">
+            Contact
+          </a>
+</li>
+</ul>
+</div>
+<div class="reveal-on-scroll is-visible">
+<h4 class="text-xs font-semibold text-white uppercase tracking-wider mb-6">
+        Legal
+      </h4>
+<ul class="space-y-3 text-sm text-zinc-500">
+<li>
+<a class="hover:text-cyan-400 transition-colors" href="#">
+            Privacy Policy
+          </a>
+</li>
+<li>
+<a class="hover:text-cyan-400 transition-colors" href="#">
+            Terms of Service
+          </a>
+</li>
+<li>
+<a class="hover:text-cyan-400 transition-colors" href="#">
+            Cookie Policy
+          </a>
+</li>
+</ul>
+</div>
+</div>
+<div class="max-w-7xl mx-auto px-6 pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4">
+<p class="text-xs text-zinc-600">
+      © 2024 Aura Systems Inc. All rights reserved.
+    </p>
+<div class="flex gap-6">
+<a class="text-zinc-600 hover:text-white transition-colors" href="#">
+<svg class="lucide lucide-twitter w-4 h-4" data-lucide="twitter" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path></svg>
+</a>
+<a class="text-zinc-600 hover:text-white transition-colors" href="#">
+<svg class="lucide lucide-github w-4 h-4" data-lucide="github" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"></path><path d="M9 18c-4.51 2-5-2-7-2"></path></svg>
+</a>
+<a class="text-zinc-600 hover:text-white transition-colors" href="#">
+<svg class="lucide lucide-linkedin w-4 h-4" data-lucide="linkedin" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect height="12" width="4" x="2" y="9"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+</a>
+</div>
+</div>
+<script>
+    lucide.createIcons();
+  </script>
+</footer>
+</body>
+</html>

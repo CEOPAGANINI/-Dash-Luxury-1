@@ -1,15 +1,21 @@
 import { Badge } from "@/components/ui/badge";
 import styles from "@/components/command-layer/shell.module.css";
 
+import { PageEyebrow } from "./page-eyebrow";
+
 /**
- * Cabeçalho padrão das páginas do dashboard modular: título, função da
- * página em uma frase e o aviso de dados demonstrativos quando aplicável.
+ * Cabeçalho padrão das páginas do dashboard modular, no desenho do design
+ * system Futurist Workflow: eyebrow (a pasta do menu, caixa alta pequena
+ * com filete ciano), título em Inter 500 com tracking negativo e a função
+ * da página numa frase leve. O aviso de dados demonstrativos continua à
+ * direita quando aplicável.
  */
 export function PageHeader({
   title,
   description,
   demoMode,
   hideTitle = false,
+  eyebrow,
 }: {
   title: string;
   description: string;
@@ -20,24 +26,23 @@ export function PageHeader({
    * gastava uma linha inteira para não dizer nada novo.
    */
   hideTitle?: boolean;
+  /** Texto do eyebrow; sem ele, usa a pasta do menu da página atual. */
+  eyebrow?: string;
 }) {
   return (
     <div
-      className={`flex flex-wrap items-start justify-between ${styles.pageHeader}`}
+      className={`flex flex-wrap items-start justify-between fw-page-header ${styles.pageHeader}`}
     >
-      <div>
-        {/* Título da página: usa o token --text-page-title, o mesmo em
-            qualquer tela do painel — nenhuma página tem um "grande" próprio. */}
+      <div className="flex flex-col gap-3">
+        <PageEyebrow texto={eyebrow} />
+        {/* Título da página: o mesmo tamanho em qualquer tela do painel —
+            nenhuma página tem um "grande" próprio. */}
         {hideTitle ? (
           <h2 className="sr-only">{title}</h2>
         ) : (
-          <h2 className="text-[length:var(--text-page-title)] leading-tight font-extrabold tracking-tight">
-            {title}
-          </h2>
+          <h2 className="leading-tight tracking-tight">{title}</h2>
         )}
-        <p className="text-muted-foreground mt-0.5 max-w-3xl text-[length:var(--text-body)] leading-5">
-          {description}
-        </p>
+        <p className="text-muted-foreground max-w-3xl">{description}</p>
       </div>
       {demoMode !== undefined && (
         <Badge variant="warning">
