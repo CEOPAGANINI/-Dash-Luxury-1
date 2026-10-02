@@ -51,8 +51,10 @@ e a única cor nova é o ciano de acento da própria referência.
 
 ## Diagramação
 
-- Contêiner de 1280px centrado com respiro lateral de 24px (o quadro do funil
-  fica de fora: continua em tela cheia).
+- Conteúdo fluido, de borda a borda, só com o respiro lateral do painel
+  (16–32px). A referência centra o site em 1280px, mas no painel isso
+  enquadrava tudo numa caixa no meio de telas largas, então ficou de fora.
+  O quadro do funil continua em tela cheia.
 - Blocos de página separados por 32px; cabeçalho = eyebrow + título + parágrafo
   leve, com uma linha branca a 5% embaixo.
 - Grade de 3 colunas com 32px de vão; bento 2 + 1, depois 3.

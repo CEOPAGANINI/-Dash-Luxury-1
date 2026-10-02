@@ -151,7 +151,10 @@ const node = z
     cor: texto.optional(),
     sigla: texto.optional(),
     pagina: pagina.optional(),
-    redir: z.object({ regras: z.array(regra).max(500) }).optional(),
+    redir: z.object({
+      regras: z.array(regra).max(500),
+      campanhaId: z.string().regex(/^[1-9]\d{0,11}$/).optional(),
+    }).optional(),
     estilo: z
       .object({
         cor: texto.optional(),
@@ -296,3 +299,5 @@ export function funilSemArquivosTemporarios(value: unknown): FunnelData {
     })),
   };
 }
+
+

@@ -319,14 +319,21 @@
     background: #06b6d4;
   }
 
-  /* ── Diagramação: contêiner de 1280px, respiro de 24px, seções ────────── */
-  .dash-skin .dash-main:not(:has(> .funnel-stage)) {
+  /* ── Diagramação: conteúdo fluido, de borda a borda ───────────────────── */
+  /* A referência centra o site num contêiner de 1280px; no painel isso
+     enquadrava tudo numa caixa no meio de telas largas, então o painel
+     fica fluido: ocupa a largura toda e só guarda o respiro lateral
+     (clamp 16–32px, do CommandLayer). Sem a linha ao redor da área de
+     trabalho: a moldura era o que mais dava cara de caixa. */
+  .dash-skin .dash-main {
     width: 100%;
-    max-width: 1280px;
-    margin-inline: auto;
-    padding-inline: 24px;
+    max-width: none;
+    margin-inline: 0;
+    border: 0;
   }
-  .dash-skin .dash-main:not(:has(> .funnel-stage)) > * + * {
+  /* Blocos de página separados por 32px (o quadro do funil fica de fora:
+     ele mora dentro de .campaign-workspace e precisa de tela cheia). */
+  .dash-skin .dash-main:not(:has(.funnel-stage)) > * + * {
     margin-top: 32px;
   }
   /* ── Movimento: a página entra como na referência ─────────────────────── */
@@ -350,16 +357,16 @@
     }
   }
   @media (prefers-reduced-motion: no-preference) {
-    .dash-skin .dash-main:not(:has(> .funnel-stage)) > * {
+    .dash-skin .dash-main:not(:has(.funnel-stage)) > * {
       animation: fw-reveal 0.8s var(--fw-ease) both;
     }
-    .dash-skin .dash-main:not(:has(> .funnel-stage)) > :nth-child(2) {
+    .dash-skin .dash-main:not(:has(.funnel-stage)) > :nth-child(2) {
       animation-delay: 100ms;
     }
-    .dash-skin .dash-main:not(:has(> .funnel-stage)) > :nth-child(3) {
+    .dash-skin .dash-main:not(:has(.funnel-stage)) > :nth-child(3) {
       animation-delay: 200ms;
     }
-    .dash-skin .dash-main:not(:has(> .funnel-stage)) > :nth-child(n + 4) {
+    .dash-skin .dash-main:not(:has(.funnel-stage)) > :nth-child(n + 4) {
       animation-delay: 300ms;
     }
   }

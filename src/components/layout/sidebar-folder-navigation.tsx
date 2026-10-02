@@ -180,7 +180,6 @@ const groups: PastaDoMenu[] = [
       { title: "Landing pages", href: "/landing-pages", icon: FileText },
       { title: "Editor de conteúdo", href: "/editor/pagina", icon: SquarePen },
       { title: "Baixar site", href: "/captura", icon: FileZip },
-      { title: "Filtro de acesso", href: "/filtro-de-acesso", icon: Globe },
       { title: "Roteador de ofertas", href: "/roteador-de-ofertas", icon: Megaphone },
     ],
   },
@@ -486,3 +485,5 @@ export function SidebarFolderNavigation({
     </nav>
   );
 }
+
+

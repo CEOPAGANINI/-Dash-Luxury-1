@@ -8,6 +8,8 @@
 */
 
 import * as React from "react";
+import { RedirectorEngine } from "./redirector-engine";
+import { redirectorAdminAddress } from "./redirector-address";
 import {
   ArrowRightLeft,
   FlaskConical,
@@ -59,7 +61,7 @@ import {
   rotuloDaRegra,
 } from "./redirect-rules";
 
-type Aba = "regras" | "testar" | "origem" | "redirecionados";
+type Aba = "painel" | "regras" | "testar" | "origem" | "redirecionados";
 
 const ABAS: {
   id: Aba;
@@ -68,6 +70,13 @@ const ABAS: {
   cor: string;
   Icone: React.ComponentType<{ size?: number; strokeWidth?: number }>;
 }[] = [
+  {
+    id: "painel",
+    rotulo: "Painel completo",
+    sub: "Domínios, destinos e fluxos dentro do funil",
+    cor: "#38bdf8",
+    Icone: ArrowRightLeft,
+  },
   {
     id: "regras",
     rotulo: "Regras",
@@ -119,7 +128,8 @@ export function RedirectPanel({
   onAddress?: (url: string) => void;
   onPublicarSite?: () => void;
 }) {
-  const [aba, setAba] = React.useState<Aba>("regras");
+  const engineAddress = redirectorAdminAddress(process.env.NEXT_PUBLIC_REDIRECTOR_ADMIN_URL);
+  const [aba, setAba] = React.useState<Aba>(engineAddress ? "painel" : "regras");
   const [filtroPais, setFiltroPais] = React.useState<Record<string, string>>(
     {},
   );
@@ -205,6 +215,7 @@ export function RedirectPanel({
   return (
     <aside
       className="pub pub--redir"
+      style={aba === "painel" ? { width: "min(1120px, calc(100vw - 32px))", maxWidth: "calc(100vw - 32px)" } : undefined}
       aria-label="Redirecionador"
       onPointerDown={(e) => e.stopPropagation()}
     >
@@ -271,6 +282,13 @@ export function RedirectPanel({
           </div>
 
           {/* ── Regras ─────────────────────────────────────────────── */}
+          {aba === "painel" && (
+            <RedirectorEngine
+              address={engineAddress}
+              campaignId={node.redir?.campanhaId}
+              onCampaignChange={(campanhaId) => onChange({ ...node.redir, regras, campanhaId })}
+            />
+          )}
           {aba === "regras" && (
             <>
               <label className="pub__campo">
@@ -850,3 +868,5 @@ function Toggle({
     </button>
   );
 }
+
+

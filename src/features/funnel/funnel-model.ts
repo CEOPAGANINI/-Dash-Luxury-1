@@ -467,6 +467,8 @@ export interface EstiloMapa {
 /** O que um bloco Redirecionador guarda. */
 export interface RedirNode {
   regras: RegraRedir[];
+  /** Campaign in the hosted redirection engine; empty opens its dashboard. */
+  campanhaId?: string;
 }
 
 /** Um nó posicionado no quadro. */
@@ -684,3 +686,5 @@ export function enderecoConfigurado(url?: string): boolean {
     return false;
   }
 }
+
+
